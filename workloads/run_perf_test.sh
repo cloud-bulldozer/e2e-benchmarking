@@ -25,6 +25,7 @@ spec:
   sourceNamespace: openshift-marketplace
 EOF
 
+oc apply -f https://raw.githubusercontent.com/cloud-bulldozer/ripsaw/0.0.1/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
 oc wait --for condition=ready pods -l name=benchmark-operator -n my-ripsaw --timeout=2400s
 
 cat << EOF | oc create -f -
