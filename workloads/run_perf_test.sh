@@ -100,8 +100,8 @@ spec:
 #        - key=value
 EOF
 
-for i in {1..30}; do
-  oc get benchmarks | grep benchmark | grep Complete
+for i in {1..60}; do
+  oc get -n my-ripsaw benchmarks | grep benchmark | grep Complete
   if [ $? -eq 0 ]; then
 	  echo "Workload done"
 	  exit 0
