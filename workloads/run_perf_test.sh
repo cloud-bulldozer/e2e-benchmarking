@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+cloud_name=$1
+if [ $cloud_name == "" ]; then
+  cloud_name="test_cloud"
+fi
+
+echo "Starting test for cloud: $cloud_name"
+
 oc create ns my-ripsaw
 
 cat << EOF | oc create -f -
@@ -38,8 +45,8 @@ spec:
   elasticsearch:
     server: search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
     port: 80
-  clustername: azure
-  test_user: azure-ci
+  clustername: $cloud_name
+  test_user: ${cloud_name}-ci
   workload:
     name: "fio_distributed"
     args:
