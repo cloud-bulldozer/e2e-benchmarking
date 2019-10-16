@@ -60,51 +60,11 @@ spec:
   clustername: $cloud_name
   test_user: ${cloud_name}-ci
   workload:
-    name: "fio_distributed"
+    name: byowl
     args:
-      samples: 3
-      servers: 1
-      pin_server: ''
-      jobs:
-        - write
-      bs:
-        - 2300B
-      numjobs:
-        - 1
-      iodepth: 4
-      read_runtime: 60
-      read_ramp_time: 5
-      filesize: 23MiB
-      log_sample_rate: 1000
-#######################################
-#  EXPERT AREA - MODIFY WITH CAUTION  #
-#######################################
-  global_overrides:
-    - ioengine=sync
-    - fdatasync=1
-  job_params:
-#    - jobname_match: w
-#      params:
-    - jobname_match: read
-      params:
-        - time_based=1
-        - runtime={{ fiod.read_runtime }}
-        - ramp_time={{ fiod.read_ramp_time }}
-    - jobname_match: rw
-      params:
-        - rwmixread=50
-        - time_based=1
-        - runtime={{ fiod.read_runtime }}
-        - ramp_time={{ fiod.read_ramp_time }}
-    - jobname_match: readwrite
-      params:
-        - rwmixread=50
-        - time_based=1
-        - runtime={{ fiod.read_runtime }}
-        - ramp_time={{ fiod.read_ramp_time }}
-#    - jobname_match: <search_string>
-#      params:
-#        - key=value
+      image: "quay.io/cloud-bulldozer/fio"
+      clients: 1
+      commands: "cd tmp/;for i in 1 2 3; do mkdir -p /tmp/test; fio --rw=write --ioengine=sync --fdatasync=1 --directory=test --size=22m --bs=2300 --name=test; done;"
 EOF
 
 fio_state=1
@@ -112,7 +72,7 @@ for i in {1..60}; do
   oc get -n my-ripsaw benchmarks | grep "fio-benchmark" | grep Complete
   if [ $? -eq 0 ]; then
 	  echo "Workload done"
-          oc logs -n my-ripsaw pods/$(oc get pods | grep client|awk '{print $1}')
+          oc logs -n my-ripsaw pods/$(oc get pods | grep byowl|awk '{print $1}')
           fio_state=$?
 	  break
   fi
@@ -172,7 +132,7 @@ for i in {1..120}; do
   if [ $? -eq 0 ]; then
 	  echo "Workload done"
           oc logs -n my-ripsaw pods/$(oc get pods | grep client|awk '{print $1}')
-          fio_state=$?
+          uperf_state=$?
 	  break
   fi
   sleep 60
