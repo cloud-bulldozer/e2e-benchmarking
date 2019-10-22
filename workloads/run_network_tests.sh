@@ -51,105 +51,6 @@ cat << EOF | oc create -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
-  name: fio-benchmark
-  namespace: my-ripsaw
-spec:
-  elasticsearch:
-    server: search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
-    port: 80
-  clustername: $cloud_name
-  test_user: ${cloud_name}-ci
-  workload:
-    name: byowl
-    args:
-      image: "quay.io/cloud-bulldozer/fio"
-      clients: 1
-      commands: "cd tmp/;for i in 1 2 3; do mkdir -p /tmp/test; fio --rw=write --ioengine=sync --fdatasync=1 --directory=test --size=22m --bs=2300 --name=test; done;"
-EOF
-
-fio_state=1
-for i in {1..60}; do
-  oc get -n my-ripsaw benchmarks | grep "fio-benchmark" | grep Complete
-  if [ $? -eq 0 ]; then
-	  echo "FIO Workload done"
-          fio_state=$?
-	  break
-  fi
-  sleep 60
-done
-
-if [ "$fio_state" == "1" ] ; then
-  echo "Workload failed"
-  exit 1
-fi
-
-results=$(oc logs -n my-ripsaw pods/$(oc get pods | grep byowl|awk '{print $1}') | grep "fsync\/fd" -A 7 | grep "99.00" | awk -F '[' '{print $2}' | awk -F ']' '{print $1}')
-echo $results
-
-oc delete benchmark/fio-benchmark
-sleep 30
-
-cat << EOF | oc create -f -
-apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
-kind: Benchmark
-metadata:
-  name: fio-benchmark
-  namespace: my-ripsaw
-spec:
-  elasticsearch:
-    server: search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
-    port: 80
-  clustername: $cloud_name
-  test_user: ${cloud_name}-ci
-  workload:
-    name: "fio_distributed"
-    args:
-      samples: 3
-      servers: 1
-      jobs:
-        - write
-      bs:
-        - 2300B
-      numjobs:
-        - 1
-      iodepth: 1
-      read_runtime: 3
-      read_ramp_time: 1
-      filesize: 23MiB
-      log_sample_rate: 1000
-#######################################
-#  EXPERT AREA - MODIFY WITH CAUTION  #
-#######################################
-  job_params:
-    - jobname_match: w
-      params:
-        - sync=1
-        - direct=0
-EOF
-
-fio_state=1
-for i in {1..60}; do
-  oc get -n my-ripsaw benchmarks | grep "fio-benchmark" | grep Complete
-  if [ $? -eq 0 ]; then
-          echo "FIO Workload done"
-          fio_state=$?
-          break
-  fi
-  sleep 60
-done
-
-if [ "$fio_state" == "1" ] ; then
-  echo "Workload failed"
-  exit 1
-fi
-
-oc delete benchmark/fio-benchmark
-sleep 30
-
-cat << EOF | oc create -f -
-apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
-kind: Benchmark
-metadata:
   name: uperf-benchmark
   namespace: my-ripsaw
 spec:
@@ -168,10 +69,11 @@ spec:
       pin_client: ""
       multus:
         enabled: false
-      samples: 1
+      samples: 5
       pair: 1
       nthrs:
         - 1
+        - 8
       protos:
         - tcp
         - udp
