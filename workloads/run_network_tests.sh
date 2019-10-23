@@ -47,6 +47,15 @@ for node in $(oc get pods -n backpack --selector=name=backpack -o name); do
   oc -n backpack exec $pod -- python3 stockpile-wrapper-always.py -s $_es -p $_es_port -u No
 done
 
+server=""
+client=""
+pin=false
+if [[ $(oc get nodes | grep worker | wc -l) -gt 1 ]]; then
+server=$(oc describe nodes/$(oc get nodes | grep worker | tail -1 | awk '{print $1}') | grep hostname | awk -F= '{print $2}')
+client=$(oc describe nodes/$(oc get nodes | grep worker | head -1 | awk '{print $1}') | grep hostname | awk -F= '{print $2}')
+pin=true
+fi
+
 cat << EOF | oc create -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
@@ -64,16 +73,15 @@ spec:
     args:
       hostnetwork: false
       serviceip: false
-      pin: false
-      pin_server: ""
-      pin_client: ""
+      pin: $pin
+      pin_server: "$server"
+      pin_client: "$client"
       multus:
         enabled: false
-      samples: 5
+      samples: 3
       pair: 1
       nthrs:
         - 1
-        - 8
       protos:
         - tcp
         - udp
