@@ -40,13 +40,6 @@ EOF
 oc apply -f https://raw.githubusercontent.com/cloud-bulldozer/ripsaw/0.0.1/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
 oc wait --for condition=ready pods -l name=benchmark-operator -n my-ripsaw --timeout=2400s
 
-oc apply -f https://raw.githubusercontent.com/dry923/backpack/always_on/backpack.yaml
-oc wait --for condition=ready pods -l name=backpack  -n backpack --timeout=2400s
-for node in $(oc get pods -n backpack --selector=name=backpack -o name); do
-  pod=$(echo $node | awk -F'/' '{print $2}')
-  oc -n backpack exec $pod -- python3 stockpile-wrapper-always.py -s $_es -p $_es_port -u No
-done
-
 cat << EOF | oc create -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
@@ -66,6 +59,17 @@ spec:
       clients: 1
       commands: "cd tmp/;for i in 1 2 3; do mkdir -p /tmp/test; fio --rw=write --ioengine=sync --fdatasync=1 --directory=test --size=22m --bs=2300 --name=test; done;"
 EOF
+
+sleep 30
+uuid=$(oc get -n my-ripsaw benchmarks | grep uperf-benchmark | awk '{print $4}')
+kubeconfig=~/go/src/github.com/openshift/installer/jtaleric-4.3/auth/kubeconfig
+oc apply -f https://gist.githubusercontent.com/jtaleric/0f5fb636a3ffb59ba2176ea0c13bc6b0/raw/8930ee01f39d621a6105b11011c5a8dd75a95c60/gistfile1.txt
+oc wait --for condition=ready pods -l name=backpack  -n backpack --timeout=2400s
+for node in $(oc get pods -n backpack --selector=name=backpack -o name); do
+  pod=$(echo $node | awk -F'/' '{print $2}')
+  oc cp $kubeconfig backpack/$pod:/tmp/kubeconfig
+  oc -n backpack exec $pod -- python3 stockpile-wrapper-always.py -s $_es -p $_es_port -u $uuid
+done
 
 fio_state=1
 for i in {1..60}; do
@@ -127,6 +131,18 @@ spec:
         - direct=0
 EOF
 
+sleep 30
+uuid=$(oc get -n my-ripsaw benchmarks | grep uperf-benchmark | awk '{print $4}')
+kubeconfig=~/go/src/github.com/openshift/installer/jtaleric-4.3/auth/kubeconfig
+oc apply -f https://gist.githubusercontent.com/jtaleric/0f5fb636a3ffb59ba2176ea0c13bc6b0/raw/8930ee01f39d621a6105b11011c5a8dd75a95c60/gistfile1.txt
+oc wait --for condition=ready pods -l name=backpack  -n backpack --timeout=2400s
+for node in $(oc get pods -n backpack --selector=name=backpack -o name); do
+  pod=$(echo $node | awk -F'/' '{print $2}')
+  oc cp $kubeconfig backpack/$pod:/tmp/kubeconfig
+  oc -n backpack exec $pod -- python3 stockpile-wrapper-always.py -s $_es -p $_es_port -u $uuid
+done
+
+
 fio_state=1
 for i in {1..60}; do
   oc get -n my-ripsaw benchmarks | grep "fio-benchmark" | grep Complete
@@ -146,6 +162,15 @@ fi
 oc delete benchmark/fio-benchmark
 sleep 30
 
+server=""
+client=""
+pin=false
+if [[ $(oc get nodes | grep worker | wc -l) -gt 1 ]]; then
+server=$(oc describe nodes/$(oc get nodes | grep worker | tail -1 | awk '{print $1}') | grep hostname | awk -F= '{print $2}')
+client=$(oc describe nodes/$(oc get nodes | grep worker | head -1 | awk '{print $1}') | grep hostname | awk -F= '{print $2}')
+pin=true
+fi
+
 cat << EOF | oc create -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
@@ -163,12 +188,12 @@ spec:
     args:
       hostnetwork: false
       serviceip: false
-      pin: false
-      pin_server: ""
-      pin_client: ""
+      pin: $pin
+      pin_server: "$server"
+      pin_client: "$client"
       multus:
         enabled: false
-      samples: 1
+      samples: 3
       pair: 1
       nthrs:
         - 1
@@ -184,6 +209,17 @@ spec:
         - 16384
       runtime: 60
 EOF
+
+sleep 30
+uuid=$(oc get -n my-ripsaw benchmarks | grep uperf-benchmark | awk '{print $4}')
+kubeconfig=~/go/src/github.com/openshift/installer/jtaleric-4.3/auth/kubeconfig
+oc apply -f https://gist.githubusercontent.com/jtaleric/0f5fb636a3ffb59ba2176ea0c13bc6b0/raw/8930ee01f39d621a6105b11011c5a8dd75a95c60/gistfile1.txt
+oc wait --for condition=ready pods -l name=backpack  -n backpack --timeout=2400s
+for node in $(oc get pods -n backpack --selector=name=backpack -o name); do
+  pod=$(echo $node | awk -F'/' '{print $2}')
+  oc cp $kubeconfig backpack/$pod:/tmp/kubeconfig
+  oc -n backpack exec $pod -- python3 stockpile-wrapper-always.py -s $_es -p $_es_port -u $uuid
+done
 
 uperf_state=1
 for i in {1..120}; do
@@ -201,6 +237,5 @@ if [ "$uperf_state" == "1" ] ; then
   echo "Workload failed"
   exit 1
 fi
-
 
 exit 0
