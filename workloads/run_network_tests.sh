@@ -3,6 +3,10 @@ set -x
 
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
+kubeconfig=$2
+if [ "$cloud_name" == "" ]; then
+  kubeconfig="$HOME/kubeconfig"
+fi
 
 cloud_name=$1
 if [ "$cloud_name" == "" ]; then
@@ -91,7 +95,6 @@ EOF
 
 sleep 30
 uuid=$(oc get -n my-ripsaw benchmarks | grep uperf-benchmark | awk '{print $4}')
-kubeconfig=~/go/src/github.com/openshift/installer/jtaleric-4.3/auth/kubeconfig
 oc apply -f https://gist.githubusercontent.com/jtaleric/0f5fb636a3ffb59ba2176ea0c13bc6b0/raw/8930ee01f39d621a6105b11011c5a8dd75a95c60/gistfile1.txt
 oc wait --for condition=ready pods -l name=backpack  -n backpack --timeout=2400s
 for node in $(oc get pods -n backpack --selector=name=backpack -o name); do
