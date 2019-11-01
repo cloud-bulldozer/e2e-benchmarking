@@ -39,6 +39,8 @@ EOF
 
 time oc apply -f https://raw.githubusercontent.com/cloud-bulldozer/ripsaw/0.0.1/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
 
+sleep 30
+
 time oc wait --for condition=ready pods -l name=benchmark-operator -n my-ripsaw --timeout=5000s
 
 oc get pods -n my-ripsaw
@@ -65,7 +67,7 @@ EOF
 
 sleep 30
 uuid=$(oc get -n my-ripsaw benchmarks | grep fio-benchmark | awk '{print $4}')
-oc apply -n bacakpack -f https://gist.githubusercontent.com/jtaleric/0f5fb636a3ffb59ba2176ea0c13bc6b0/raw/8930ee01f39d621a6105b11011c5a8dd75a95c60/gistfile1.txt
+oc apply -n backpack -f https://gist.githubusercontent.com/jtaleric/0f5fb636a3ffb59ba2176ea0c13bc6b0/raw/8930ee01f39d621a6105b11011c5a8dd75a95c60/gistfile1.txt
 oc wait --for condition=ready pods -l name=backpack -n backpack --timeout=2400s
 for node in $(oc get pods -n backpack --selector=name=backpack -o name); do
   pod=$(echo $node | awk -F'/' '{print $2}')
