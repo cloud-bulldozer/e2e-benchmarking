@@ -12,7 +12,6 @@ fi
 echo "Starting test for cloud: $cloud_name"
 
 oc create ns my-ripsaw
-oc create ns backpack
 
 cat << EOF | oc create -f -
 ---
@@ -43,6 +42,42 @@ time oc wait --for condition=ready pods -l name=benchmark-operator -n my-ripsaw 
 
 oc get pods -n my-ripsaw
 
+# Create Service Account with View privileges for backpack
+cat << EOF | oc create -f -
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backpack-view
+  namespace: my-ripsaw
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backpack-view
+  namespace: my-ripsaw
+  annotations:
+    kubernetes.io/service-account.name: backpack-view
+type: kubernetes.io/service-account-token
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: backpack-view
+  namespace: my-ripsaw
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+- kind: ServiceAccount
+  name: backpack-view
+  namespace: my-ripsaw
+EOF
+
+oc adm policy add-scc-to-user privileged -z benchmark-operator
+oc adm policy add-scc-to-user privileged -z backpack-view
+
 cat << EOF | oc create -n my-ripsaw -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
@@ -55,6 +90,9 @@ spec:
     port: 80
   clustername: $cloud_name
   test_user: ${cloud_name}-ci
+  metadata_collection: true
+  metadata_sa: backpack-view
+  metadata_privileged: true
   workload:
     name: byowl
     args:
@@ -64,14 +102,6 @@ spec:
 EOF
 
 sleep 30
-uuid=$(oc get -n my-ripsaw benchmarks | grep fio-benchmark | awk '{print $4}')
-oc apply -n backpack -f https://gist.githubusercontent.com/jtaleric/0f5fb636a3ffb59ba2176ea0c13bc6b0/raw/8930ee01f39d621a6105b11011c5a8dd75a95c60/gistfile1.txt
-oc wait --for condition=ready pods -l name=backpack -n backpack --timeout=2400s
-for node in $(oc get pods -n backpack --selector=name=backpack -o name); do
-  pod=$(echo $node | awk -F'/' '{print $2}')
-  oc -n backpack cp $kubeconfig backpack/$pod:/tmp/kubeconfig
-  oc -n backpack exec $pod -- python3 stockpile-wrapper-always.py -s $_es -p $_es_port -u $uuid
-done
 
 fio_state=1
 for i in {1..60}; do
@@ -95,6 +125,7 @@ echo $results
 oc delete -n my-ripsaw benchmark/fio-benchmark
 sleep 30
 
+
 cat << EOF | oc create -n my-ripsaw -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
@@ -107,6 +138,9 @@ spec:
     port: 80
   clustername: $cloud_name
   test_user: ${cloud_name}-ci
+  metadata_collection: true
+  metadata_sa: backpack-view
+  metadata_privileged: true
   workload:
     name: "fio_distributed"
     args:
@@ -134,14 +168,6 @@ spec:
 EOF
 
 sleep 30
-uuid=$(oc get -n my-ripsaw benchmarks | grep fio-benchmark | awk '{print $4}')
-oc apply -n backpack -f https://gist.githubusercontent.com/jtaleric/0f5fb636a3ffb59ba2176ea0c13bc6b0/raw/8930ee01f39d621a6105b11011c5a8dd75a95c60/gistfile1.txt
-oc wait --for condition=ready pods -l name=backpack  -n backpack --timeout=2400s
-for node in $(oc get pods -n backpack --selector=name=backpack -o name); do
-  pod=$(echo $node | awk -F'/' '{print $2}')
-  oc -n backpack cp $KUBECONFIG backpack/$pod:/tmp/kubeconfig
-  oc -n backpack exec $pod -- python3 stockpile-wrapper-always.py -s $_es -p $_es_port -u $uuid
-done
 
 fio_state=1
 for i in {1..60}; do
