@@ -23,7 +23,7 @@ cat << EOF | oc create -f -
 apiVersion: operators.coreos.com/v1alpha2
 kind: OperatorGroup
 metadata:
-  name: operatorgroup
+  name: ripsawgroup
   namespace: my-ripsaw
 spec:
   targetNamespaces:
@@ -32,7 +32,7 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: my-ripsaw
+  name: ripsaw
   namespace: my-ripsaw
 spec:
   channel: alpha
@@ -41,7 +41,8 @@ spec:
   sourceNamespace: openshift-marketplace
 EOF
 
-oc apply -f https://raw.githubusercontent.com/cloud-bulldozer/ripsaw/0.0.1/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
+sleep 90
+
 oc wait --for condition=ready pods -l name=benchmark-operator -n my-ripsaw --timeout=2400s
 
 
