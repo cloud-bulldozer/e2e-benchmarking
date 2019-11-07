@@ -45,14 +45,13 @@ sleep 90
 
 oc wait --for condition=ready pods -l name=benchmark-operator -n my-ripsaw --timeout=2400s
 
-
 server=""
 client=""
 pin=false
 if [[ $(oc get nodes | grep worker | wc -l) -gt 1 ]]; then
-server=$(oc describe nodes/$(oc get nodes | grep worker | tail -1 | awk '{print $1}') | grep hostname | awk -F= '{print $2}')
-client=$(oc describe nodes/$(oc get nodes | grep worker | head -1 | awk '{print $1}') | grep hostname | awk -F= '{print $2}')
-pin=true
+  server=$(oc describe nodes/$(oc get nodes | grep worker | tail -1 | awk '{print $1}') | grep hostname | awk -F= '{print $2}')
+  client=$(oc describe nodes/$(oc get nodes | grep worker | head -1 | awk '{print $1}') | grep hostname | awk -F= '{print $2}')
+  pin=true
 fi
 
 cat << EOF | oc create -f -
