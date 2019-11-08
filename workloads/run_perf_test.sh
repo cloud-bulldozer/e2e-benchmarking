@@ -98,14 +98,12 @@ spec:
     args:
       image: "quay.io/cloud-bulldozer/fio"
       clients: 1
-      commands: "cd tmp/;for i in 1 2 3; do mkdir -p /tmp/test; fio --rw=write --ioengine=sync --fdatasync=1 --directory=test --size=22m --bs=2300 --name=test; done;"
+      commands: "cd tmp/;for i in 1 2 3 4 5; do mkdir -p /tmp/test; fio --rw=write --ioengine=sync --fdatasync=1 --directory=test --size=22m --bs=2300 --name=test; done;"
 EOF
-
-sleep 30
 
 fio_state=1
 for i in {1..60}; do
-  oc get -n my-ripsaw benchmarks | grep "fio-benchmark" | grep Complete
+  oc describe -n my-ripsaw benchmarks/fio-benchmark | grep State | grep Complete
   if [ $? -eq 0 ]; then
 	  echo "FIO Workload done"
           fio_state=$?
@@ -119,18 +117,19 @@ if [ "$fio_state" == "1" ] ; then
   exit 1
 fi
 
-results=$(oc logs -n my-ripsaw pods/$(oc get pods | grep byowl|awk '{print $1}') | grep "fsync\/fd" -A 7 | grep "99.00" | awk -F '[' '{print $2}' | awk -F ']' '{print $1}')
-echo $results
+oc logs -n my-ripsaw pods/$(oc get pods | grep byowl|awk '{print $1}') | tee /tmp/riprun
+results=$(cat /tmp/riprun | grep "fsync\/fd" -A 7 | grep "99.00" | awk -F '[' '{print $2}' | awk -F ']' '{print $1}')
 
-oc delete -n my-ripsaw benchmark/fio-benchmark
+# Calculate Pass/Fail for fsync from above result
+
+#oc delete -n my-ripsaw benchmark/fio-benchmark
 sleep 30
-
 
 cat << EOF | oc create -n my-ripsaw -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
-  name: fio-benchmark
+  name: fio-benchmark-sync
   namespace: my-ripsaw
 spec:
   elasticsearch:
@@ -171,7 +170,7 @@ sleep 30
 
 fio_state=1
 for i in {1..60}; do
-  oc get -n my-ripsaw benchmarks | grep "fio-benchmark" | grep Complete
+  oc get -n my-ripsaw benchmarks/fio-benchmark | grep Complete
   if [ $? -eq 0 ]; then
           echo "FIO Workload done"
           fio_state=$?
