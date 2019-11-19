@@ -54,8 +54,8 @@ subjects:
   namespace: my-ripsaw
 EOF
 
-oc adm policy add-scc-to-user privileged -z benchmark-operator
-oc adm policy add-scc-to-user privileged -z backpack-view
+oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
+oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
 
 cat << EOF | oc create -n my-ripsaw -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
