@@ -54,6 +54,7 @@ if [[ $(oc get nodes | grep worker | wc -l) -gt 1 ]]; then
 fi
 
 # Create Service Account with View privileges for backpack
+oc delete ClusterRoleBinding/backpack-view
 cat << EOF | oc create -f -
 ---
 apiVersion: rbac.authorization.k8s.io/v1

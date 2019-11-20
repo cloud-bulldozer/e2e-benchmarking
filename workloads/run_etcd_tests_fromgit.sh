@@ -22,6 +22,7 @@ oc apply -f /tmp/ripsaw/resources/operator.yaml
 oc get pods -n my-ripsaw
 
 # Create Service Account with View privileges for backpack
+oc delete ClusterRoleBinding/backpack-view
 cat << EOF | oc create -f -
 ---
 apiVersion: rbac.authorization.k8s.io/v1
