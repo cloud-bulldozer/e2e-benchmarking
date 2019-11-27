@@ -4,6 +4,19 @@ set -x
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
 
+if [[ -z "${ES_SERVER}" ]]; then
+  _es=${ES_SERVER}
+fi
+
+if [[ -z "${ES_PORT}" ]]; then
+  _es_port=${ES_PORT}
+fi
+
+kubeconfig=$2
+if [ "$cloud_name" == "" ]; then
+  kubeconfig="$HOME/kubeconfig"
+fi
+
 cloud_name=$1
 if [ "$cloud_name" == "" ]; then
   cloud_name="test_cloud"
@@ -208,8 +221,8 @@ spec:
   metadata_sa: backpack-view
   metadata_privileged: true
   elasticsearch:
-    server: search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
-    port: 80
+    server: $_es
+    port: $_es_port
   clustername: $cloud_name
   test_user: ${cloud_name}-ci
   workload:

@@ -208,8 +208,8 @@ metadata:
   namespace: my-ripsaw
 spec:
   elasticsearch:
-    server: search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
-    port: 80
+    server: $_es
+    port: $_es_port
   clustername: $cloud_name
   test_user: ${cloud_name}-ci
   metadata_collection: true
