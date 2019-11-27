@@ -4,11 +4,11 @@ set -x
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
 
-if [[ -z "${ES_SERVER}" ]]; then
+if [[ ${ES_SERVER} ]]; then
   _es=${ES_SERVER}
 fi
 
-if [[ -z "${ES_PORT}" ]]; then
+if [[ ${ES_PORT} ]]; then
   _es_port=${ES_PORT}
 fi
 
@@ -187,6 +187,8 @@ EOF
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
 
+oc -n my-ripsaw delete benchmark/uperf-benchmark
+
 cat << EOF | oc create -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
@@ -198,14 +200,14 @@ spec:
     server: $_es
     port: $_es_port
   clustername: $cloud_name
-  test_user: ${cloud_name}-ci
+  test_user: ${cloud_name}-hostnetwork-ci
   metadata_collection: true
   metadata_sa: backpack-view
   metadata_privileged: true
   workload:
     name: uperf
     args:
-      hostnetwork: false
+      hostnetwork: true
       serviceip: false
       pin: $pin
       pin_server: "$server"
@@ -216,6 +218,7 @@ spec:
       pair: 1
       nthrs:
         - 1
+        - 8
       protos:
         - tcp
         - udp
@@ -246,6 +249,134 @@ if [ "$uperf_state" == "1" ] ; then
   echo "Workload failed"
   exit 1
 fi
+
+oc -n my-ripsaw delete benchmark/uperf-benchmark
+
+cat << EOF | oc create -f -
+apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
+kind: Benchmark
+metadata:
+  name: uperf-benchmark
+  namespace: my-ripsaw
+spec:
+  elasticsearch:
+    server: $_es
+    port: $_es_port
+  clustername: $cloud_name
+  test_user: ${cloud_name}-serviceip-ci
+  metadata_collection: true
+  metadata_sa: backpack-view
+  metadata_privileged: true
+  workload:
+    name: uperf
+    args:
+      hostnetwork: false
+      serviceip: true
+      pin: $pin
+      pin_server: "$server"
+      pin_client: "$client"
+      multus:
+        enabled: false
+      samples: 3
+      pair: 1
+      nthrs:
+        - 1
+        - 8
+      protos:
+        - tcp
+        - udp
+      test_types:
+        - stream
+        - rr
+      sizes:
+        - 64
+        - 1024
+        - 16384
+      runtime: 60
+EOF
+
+sleep 30
+
+uperf_state=1
+for i in {1..120}; do
+  oc describe -n my-ripsaw benchmarks/uperf-benchmark | grep State | grep Complete
+  if [ $? -eq 0 ]; then
+          echo "UPerf Workload done"
+          uperf_state=$?
+          break
+  fi
+  sleep 60
+done
+
+if [ "$uperf_state" == "1" ] ; then
+  echo "Workload failed"
+  exit 1
+fi
+
+oc -n my-ripsaw delete benchmark/uperf-benchmark
+
+cat << EOF | oc create -f -
+apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
+kind: Benchmark
+metadata:
+  name: uperf-benchmark
+  namespace: my-ripsaw
+spec:
+  elasticsearch:
+    server: $_es
+    port: $_es_port
+  clustername: $cloud_name
+  test_user: ${cloud_name}-default-ci
+  metadata_collection: true
+  metadata_sa: backpack-view
+  metadata_privileged: true
+  workload:
+    name: uperf
+    args:
+      hostnetwork: false
+      serviceip: false
+      pin: $pin
+      pin_server: "$server"
+      pin_client: "$client"
+      multus:
+        enabled: false
+      samples: 3
+      pair: 1
+      nthrs:
+        - 1
+        - 8
+      protos:
+        - tcp
+        - udp
+      test_types:
+        - stream
+        - rr
+      sizes:
+        - 64
+        - 1024
+        - 16384
+      runtime: 60
+EOF
+
+sleep 30
+
+uperf_state=1
+for i in {1..120}; do
+  oc describe -n my-ripsaw benchmarks/uperf-benchmark | grep State | grep Complete
+  if [ $? -eq 0 ]; then
+          echo "UPerf Workload done"
+          uperf_state=$?
+          break
+  fi
+  sleep 60
+done
+
+if [ "$uperf_state" == "1" ] ; then
+  echo "Workload failed"
+  exit 1
+fi
+
+oc -n my-ripsaw delete benchmark/uperf-benchmark
 
 # Cleanup
 rm -rf /tmp/ripsaw
