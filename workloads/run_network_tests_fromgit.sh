@@ -22,6 +22,14 @@ if [ "$cloud_name" == "" ]; then
   cloud_name="test_cloud"
 fi
 
+MULTUS=false
+if [[ ${MULTUS_CLIENT_NAD} ]]; then
+  MULTUS=true
+fi
+if [[ ${MULTUS_SERVER_NAD} ]]; then
+  MULTUS=true
+fi
+
 echo "Starting test for cloud: $cloud_name"
 
 oc create ns my-ripsaw
@@ -183,6 +191,63 @@ subjects:
   name: backpack-view
   namespace: my-ripsaw
 EOF
+
+if ${MULTUS} ; then
+oc -n my-ripsaw delete benchmark/uperf-benchmark
+
+if [[ ${MULTUS_SERVER_NAD} ]]; then
+  MULTUS_SERVER="server: ${MULTUS_SERVER_NAD}"
+fi
+if [[ ${MULTUS_CLIENT_NAD} ]]; then
+  MULTUS_CLIENT="client: ${MULTUS_CLIENT_NAD}"
+fi
+
+cat << EOF | oc create -f -
+apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
+kind: Benchmark
+metadata:
+  name: uperf-benchmark
+  namespace: my-ripsaw
+spec:
+  elasticsearch:
+    server: $_es
+    port: $_es_port
+  clustername: $cloud_name
+  test_user: ${cloud_name}-hostnetwork-ci
+  metadata_collection: true
+  metadata_sa: backpack-view
+  metadata_privileged: true
+  workload:
+    name: uperf
+    args:
+      hostnetwork: false
+      serviceip: false
+      pin: false
+      pin_server: ""
+      pin_client: ""
+      multus:
+        enabled: true
+        ${MULTUS_SERVER}
+        ${MULTUS_CLIENT}
+      samples: 3
+      pair: 1
+      nthrs:
+        - 1
+        - 8
+      protos:
+        - tcp
+        - udp
+      test_types:
+        - stream
+        - rr
+      sizes:
+        - 64
+        - 1024
+        - 16384
+      runtime: 60
+EOF
+
+fi
 
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
