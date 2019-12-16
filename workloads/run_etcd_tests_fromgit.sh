@@ -4,11 +4,11 @@ set -x
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
 
-if [[ -z "${ES_SERVER}" ]]; then
+if [[ ! -z "${ES_SERVER}" ]]; then
   _es=${ES_SERVER}
 fi
 
-if [[ -z "${ES_PORT}" ]]; then
+if [[ ! -z "${ES_PORT}" ]]; then
   _es_port=${ES_PORT}
 fi
 
@@ -181,7 +181,7 @@ EOF
 oc adm policy add-scc-to-user -n my-ripsaw privileged -z benchmark-operator
 oc adm policy add-scc-to-user -n my-ripsaw privileged -z backpack-view
 
-cat << EOF | oc create -n my-ripsaw -f -
+oc apply -n my-ripsaw -f - <<< "
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
@@ -189,20 +189,33 @@ metadata:
   namespace: my-ripsaw
 spec:
   elasticsearch:
-    server: $_es
-    port: $_es_port
-  clustername: $cloud_name
+    server: ${_es}
+    port: ${_es_port}
+  fio_path: /var/tmp
+  clustername: ${cloud_name}
   test_user: ${cloud_name}-ci
   metadata_collection: true
   metadata_sa: backpack-view
   metadata_privileged: true
   workload:
-    name: byowl
+    name: fio_distributed
     args:
-      image: "quay.io/cloud-bulldozer/fio"
-      clients: 1
-      commands: "cd tmp/;for i in 1 2 3 4 5; do mkdir -p /tmp/test; fio --rw=write --ioengine=sync --fdatasync=1 --directory=test --size=22m --bs=2300 --name=test; done;"
-EOF
+      log_sample_rate: 1000
+      samples: 5
+      servers: 1
+      jobs:
+        - write
+      bs:
+        - 2300
+      numjobs:
+        - 1
+      iodepth: 1
+      filesize: 22m
+  global_overrides:
+    - fdatasync=1
+    - ioengine=sync
+    - direct=0
+"
 
 fio_state=1
 for i in {1..60}; do
