@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -x
 
+trap "rm -rf /tmp/ripsaw" EXIT
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
+latency_th=10000
+samples=5
 
 if [[ "${ES_SERVER}" ]]; then
   _es=${ES_SERVER}
@@ -27,7 +30,7 @@ echo "Starting test for cloud: $cloud_name"
 oc create ns my-ripsaw
 oc create ns backpack
 
-git clone http://github.com/cloud-bulldozer/ripsaw /tmp/ripsaw
+git clone http://github.com/cloud-bulldozer/ripsaw /tmp/ripsaw --depth 1
 oc apply -f /tmp/ripsaw/deploy
 oc apply -f /tmp/ripsaw/resources/backpack_role.yaml
 oc apply -f /tmp/ripsaw/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
@@ -56,18 +59,22 @@ spec:
     args:
       image: "quay.io/cloud-bulldozer/fio"
       clients: 1
-      commands: "cd tmp/;for i in 1 2 3 4 5; do mkdir -p /tmp/test; fio --rw=write --ioengine=sync --fdatasync=1 --directory=test --size=22m --bs=2300 --name=test; done;"
+      commands: |
+        for i in $(seq ${samples} | xargs); do
+          mkdir -p /tmp/perf;
+          fio --rw=write --ioengine=sync --fdatasync=1 --directory=/tmp/perf --size=22m --bs=2300 --name=test;
+          sleep 5;
+        done
 EOF
 
 fio_state=1
 for i in {1..60}; do
-  oc describe -n my-ripsaw benchmarks/fio-benchmark | grep State | grep Complete
-  if [ $? -eq 0 ]; then
-	  echo "FIO Workload done"
-          fio_state=$?
-	  break
+  if [[ $(oc get benchmark fio-benchmark -n my-ripsaw -o jsonpath='{.status.complete}') == true ]]; then
+    echo "FIO Workload done"
+    fio_state=$?
+    break
   fi
-  sleep 60
+  sleep 30
 done
 
 if [ "$fio_state" == "1" ] ; then
@@ -75,9 +82,13 @@ if [ "$fio_state" == "1" ] ; then
   exit 1
 fi
 
-results=$(oc logs -n my-ripsaw pods/$(oc get pods | grep byowl|awk '{print $1}') | grep "fsync\/fd" -A 7 | grep "99.00" | awk -F '[' '{print $2}' | awk -F ']' '{print $1}')
+results=$(oc logs -n my-ripsaw $(oc get pods -o name -n my-ripsaw | grep byowl) | grep "fsync\/fd" -A 7 | grep "99.00" | awk -F '[' '{print $2}' | awk -F ']' '{print $1}')
 echo $results
-
-rm -rf /tmp/ripsaw
+for r in ${results}; do
+  if [[ ${r} -gt ${latency_th} ]]; then
+    echo "Fsync latency ${r} > ${latency_th}"
+    exit 1
+  fi
+done
 
 exit 0
