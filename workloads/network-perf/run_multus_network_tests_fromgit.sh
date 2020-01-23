@@ -59,6 +59,9 @@ if [[ ${MULTUS_CLIENT_NAD} ]]; then
   MULTUS_CLIENT="client: ${MULTUS_CLIENT_NAD}"
 fi
 
+for pairs in 1 2 4  #number of uperf client-server pairs
+do
+
 cat << EOF | oc create -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
@@ -70,7 +73,7 @@ spec:
     server: $_es
     port: $_es_port
   clustername: $cloud_name
-  test_user: ${cloud_name}-hostnetwork-ci
+  test_user: ${cloud_name}-multus-ci-${pairs}p
   metadata_collection: true
   metadata_sa: backpack-view
   metadata_privileged: true
@@ -87,7 +90,7 @@ spec:
         ${MULTUS_SERVER}
         ${MULTUS_CLIENT}
       samples: 3
-      pair: 1
+      pair: ${pairs}
       nthrs:
         - 1
         - 8
@@ -103,8 +106,6 @@ spec:
         - 16384
       runtime: 60
 EOF
-
-fi
 
 sleep 30
 
@@ -126,7 +127,12 @@ fi
 
 oc -n my-ripsaw delete benchmark/uperf-benchmark
 
+done
+
+fi
+
 # Cleanup
 rm -rf /tmp/ripsaw
 
 exit 0
+
