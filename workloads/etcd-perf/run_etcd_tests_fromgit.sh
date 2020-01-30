@@ -4,8 +4,8 @@ set -x
 trap "rm -rf /tmp/ripsaw" EXIT
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
-latency_th=10000
 samples=5
+sample=1
 
 if [[ "${ES_SERVER}" ]]; then
   _es=${ES_SERVER}
@@ -83,12 +83,9 @@ if [ "$fio_state" == "1" ] ; then
 fi
 
 results=$(oc logs -n my-ripsaw $(oc get pods -o name -n my-ripsaw | grep byowl) | grep "fsync\/fd" -A 7 | grep "99.00" | awk -F '[' '{print $2}' | awk -F ']' '{print $1}')
-echo $results
 for r in ${results}; do
-  if [[ ${r} -gt ${latency_th} ]]; then
-    echo "Fsync latency ${r} > ${latency_th}"
-    exit 1
-  fi
+  echo "99th fdatasync latency in sample ${sample}: ${r} us"
+  ((sample++))
 done
 
 exit 0
