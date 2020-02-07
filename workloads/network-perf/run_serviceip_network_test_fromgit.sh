@@ -3,6 +3,7 @@ set -x
 
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
+_metadata_collection=true
 
 if [[ ${ES_SERVER} ]]; then
   _es=${ES_SERVER}
@@ -10,6 +11,10 @@ fi
 
 if [[ ${ES_PORT} ]]; then
   _es_port=${ES_PORT}
+fi
+
+if [[ ${METADATA_COLLECTION} ]]; then
+  _metadata_collection=${METADATA_COLLECTION}
 fi
 
 kubeconfig=$2
@@ -60,7 +65,7 @@ spec:
     port: $_es_port
   clustername: $cloud_name
   test_user: ${cloud_name}-serviceip-ci-${pairs}p
-  metadata_collection: true
+  metadata_collection: ${_metadata_collection}
   metadata_sa: backpack-view
   metadata_privileged: true
   workload:
@@ -94,7 +99,7 @@ EOF
 sleep 30
 
 uperf_state=1
-for i in {1..120}; do
+for i in {1..240}; do
   oc describe -n my-ripsaw benchmarks/uperf-benchmark | grep State | grep Complete
   if [ $? -eq 0 ]; then
           echo "UPerf Workload done"

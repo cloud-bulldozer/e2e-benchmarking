@@ -94,4 +94,3 @@ if test_type in data['test_type.keyword'] :
                         test_type,proto,size,thread))
                     failed = 1   
 exit(failed)
-
