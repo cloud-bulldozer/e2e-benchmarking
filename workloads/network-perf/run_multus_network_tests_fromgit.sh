@@ -49,6 +49,9 @@ if [[ $(oc get nodes | grep worker | wc -l) -gt 1 ]]; then
   pin=true
 fi
 
+oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
+oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
+
 if ${MULTUS} ; then
 oc -n my-ripsaw delete benchmark/uperf-benchmark
 
