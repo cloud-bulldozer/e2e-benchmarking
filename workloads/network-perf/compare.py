@@ -25,8 +25,6 @@ parser.add_argument("--tests", help="Test to compare",nargs=1,choices=['stream',
                     dest="tests")
 parser.add_argument("--protocol", help="Protocol to compare",nargs=1,choices=['tcp','udp'],required=True,
                     dest="protocol")
-parser.add_argument("--ci", help="Exit code will be 1/0 based on the number of regressions",nargs=1,required=False,
-                    dest="uuid")
 params = parser.parse_args()
 data = None
 
