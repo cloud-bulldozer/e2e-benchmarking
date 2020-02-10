@@ -30,6 +30,11 @@ if [[ ${MULTUS_SERVER_NAD} ]]; then
   MULTUS=true
 fi
 
+_pair=1
+if [[ ${PAIR} ]]; then
+  _pair=${PAIR}
+fi
+
 echo "Starting test for cloud: $cloud_name"
 
 oc create ns my-ripsaw
@@ -62,9 +67,6 @@ if [[ ${MULTUS_CLIENT_NAD} ]]; then
   MULTUS_CLIENT="client: ${MULTUS_CLIENT_NAD}"
 fi
 
-for pairs in 1 2 4  #number of uperf client-server pairs
-do
-
 cat << EOF | oc create -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
@@ -76,7 +78,7 @@ spec:
     server: $_es
     port: $_es_port
   clustername: $cloud_name
-  test_user: ${cloud_name}-multus-ci-${pairs}p
+  test_user: ${cloud_name}-multus-ci-${_pair}p
   metadata_collection: true
   metadata_sa: backpack-view
   metadata_privileged: true
@@ -93,7 +95,7 @@ spec:
         ${MULTUS_SERVER}
         ${MULTUS_CLIENT}
       samples: 3
-      pair: ${pairs}
+      pair: ${_pair}
       nthrs:
         - 1
         - 8
@@ -129,8 +131,6 @@ if [ "$uperf_state" == "1" ] ; then
 fi
 
 oc -n my-ripsaw delete benchmark/uperf-benchmark
-
-done
 
 fi
 
