@@ -25,6 +25,8 @@ parser.add_argument("--tests", help="Test to compare",nargs=1,choices=['stream',
                     dest="tests")
 parser.add_argument("--protocol", help="Protocol to compare",nargs=1,choices=['tcp','udp'],required=True,
                     dest="protocol")
+parser.add_argument("--diff", help="Allowable difference between runs",required=False,
+                    dest="diff",default=5)
 params = parser.parse_args()
 data = None
 
@@ -45,8 +47,26 @@ main_metric = { 'stream': 'avg(norm_byte)','rr' : 'avg(norm_ltcy)' }
 test_type = params.tests[0]
 proto = params.protocol[0]
 
-def compare(data):
-     return (max(data.items(), key=operator.itemgetter(1)))
+def compare(data, pdiff=5, test='stream', uuid=None):
+    cdata = data.copy()
+    if len(data) == 2 and uuid is not None:
+        uid_result = cdata[uuid]
+        del cdata[uuid]
+        diff = abs(uid_result - cdata[list(cdata.keys())[0]]) / ( (uid_result + cdata[list(cdata.keys())[0]]) / 2) * 100
+        if test is 'rr':
+            if abs(diff) >= pdiff :
+                return data
+            else :
+                return cdata
+        else:
+            print("{} {}".format(diff,pdiff))
+            print(data)
+            if abs(diff) <= pdiff :
+                return data
+            else :
+                return cdata
+
+    return (max(data.items(), key=operator.itemgetter(1)))
 
 if test_type in data['test_type.keyword'] :
     if proto in data['test_type.keyword'][test_type]['protocol'] :
@@ -56,8 +76,10 @@ if test_type in data['test_type.keyword'] :
                 proto]['message_size'][size]['num_threads'] :
                 result = data['test_type.keyword'][test_type]['protocol'][
                         proto]['message_size'][size]['num_threads'][thread]
-                comparison = compare(result[main_metric[test_type]])
+                comparison = compare(result[main_metric[test_type]],pdiff=int(params.diff),test=test_type,uuid=params.uuid[0])
                 if params.uuid[0] not in comparison :
-                    print("Test Failure : UPerf reports lower throughput for, Test: {}, Protocol {}, Message_size {}, Threads {}".format(
+                    if len(result[main_metric[test_type]]) == 2 :
+                        print("Test Failure : UPerf reports lower throughput for - not within {}%".format(params.diff))
+                        print("Test: {}, Protocol {}, Message_size {}, Threads {}".format(
                         test_type,proto,size,thread))
                     exit(1)
