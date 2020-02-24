@@ -4,6 +4,7 @@ set -x
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
 _metadata_collection=true
+_baseline_multus_uuid=
 
 if [[ ${ES_SERVER} ]]; then
   _es=${ES_SERVER}
@@ -15,6 +16,10 @@ fi
 
 if [[ ${METADATA_COLLECTION} ]]; then
   _metadata_collection=${METADATA_COLLECTION}
+fi
+
+if [[ ${BASELINE_MULTUS_UUID} ]]; then
+  _baseline_multus_uuid=${BASELINE_MULTUS_UUID}
 fi
 
 kubeconfig=$2
@@ -133,6 +138,13 @@ done
 if [ "$uperf_state" == "1" ] ; then
   echo "Workload failed"
   exit 1
+fi
+
+if [[ ${COMPARE} == "true" ]] ; then
+  baseline_uperf_uuid=${_baseline_multus_uuid}
+  compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io -o json | jq -r .items[].status.uuid)
+  echo "Comparing current test uuid ${compare_uperf_uuid} with baseline uuid ${baseline_uperf_uuid}"
+  ./run_network_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid}
 fi
 
 oc -n my-ripsaw delete benchmark/uperf-benchmark
