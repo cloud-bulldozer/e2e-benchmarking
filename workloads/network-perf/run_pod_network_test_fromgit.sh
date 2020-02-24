@@ -4,17 +4,32 @@ set -x
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
 _metadata_collection=true
+_baseline_pod_1p_uuid=
+_baseline_pod_2p_uuid=
+_baseline_pod_4p_uuid=
 
 if [[ ${ES_SERVER} ]]; then
   _es=${ES_SERVER}
 fi
 
-if [[ ${METADATA_COLLECTION} ]]; then
-  _metadata_collection=${METADATA_COLLECTION}
-fi
-
 if [[ ${ES_PORT} ]]; then
   _es_port=${ES_PORT}
+fi
+
+if [[ ${BASELINE_POD_1P_UUID} ]]; then
+  _baseline_pod_1p_uuid=${BASELINE_POD_1P_UUID}
+fi
+
+if [[ ${BASELINE_POD_2P_UUID} ]]; then
+  _baseline_pod_2p_uuid=${BASELINE_POD_2P_UUID}
+fi
+
+if [[ ${BASELINE_POD_4P_UUID} ]]; then
+  _baseline_pod_4p_uuid=${BASELINE_POD_4P_UUID}
+fi
+
+if [[ ${METADATA_COLLECTION} ]]; then
+  _metadata_collection=${METADATA_COLLECTION}
 fi
 
 kubeconfig=$2
@@ -112,6 +127,19 @@ done
 if [ "$uperf_state" == "1" ] ; then
   echo "Workload failed"
   exit 1
+fi
+
+if [[ ${COMPARE} == "true" ]] ; then
+  if [ "${pairs}" == "1" ] ; then
+    baseline_uperf_uuid=${_baseline_pod_1p_uuid}
+  elif [ "${pairs}" == "2" ] ; then
+    baseline_uperf_uuid=${_baseline_pod_2p_uuid}
+  elif [ "${pairs}" == "4" ] ; then
+    baseline_uperf_uuid=${_baseline_pod_4p_uuid}
+  fi
+  compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io -o json | jq -r .items[].status.uuid)
+  echo "Comparing current test uuid ${compare_uperf_uuid} with baseline uuid ${baseline_uperf_uuid}"
+  ./run_network_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid}
 fi
 
 oc -n my-ripsaw delete benchmark/uperf-benchmark

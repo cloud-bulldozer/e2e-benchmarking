@@ -49,7 +49,7 @@ def percent_change(value, reference):
     else:
         return -1
 
-def compare(data, tolerance=5, latency=False):
+def compare(data, tolerance, latency=False):
     ref_val = data[params.uuid[0]]
     current_tuple = [(k,v) for k,v in data.items() if k!=params.uuid[0]][0]
     percent_diff = percent_change(current_tuple[1], ref_val)
@@ -87,7 +87,7 @@ if test_type in data['test_type.keyword'] :
                 if test_type == "rr" :
                     comparison = compare(result[main_metric[test_type]], int(params.tolerance[0]), latency=True)
                 else:
-                    comparison = compare(result[main_metric[test_type]], tolerance=int(params.tolerance[0]))
+                    comparison = compare(result[main_metric[test_type]], int(params.tolerance[0]))
                 if params.uuid[0] not in comparison :
                     print("TEST FAILURE: Uperf reports regrerssion which is beyond the acceptable deviation of {}%".format(params.tolerance[0]))
                     print("Test: {}    Protocol: {}    Message_size: {}    Threads: {}".format(
