@@ -5,7 +5,7 @@ trap "rm -rf /tmp/ripsaw" EXIT
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
 samples=5
-sample=1
+sample=0
 
 if [[ "${ES_SERVER}" ]]; then
   _es=${ES_SERVER}
@@ -82,9 +82,10 @@ if [ "$fio_state" == "1" ] ; then
   exit 1
 fi
 
-results=$(oc logs -n my-ripsaw $(oc get pods -o name -n my-ripsaw | grep byowl) | grep "fsync\/fd" -A 7 | grep "99.00" | awk -F '[' '{print $2}' | awk -F ']' '{print $1}')
+results=$(oc logs -n my-ripsaw $(oc get pods -o name -n my-ripsaw | grep byowl) | grep "fsync\/fd" -A 7 | awk '/99.00th/{ print $3}' | sed 's/[],]//g')
+units=($(oc logs -n my-ripsaw $(oc get pods -o name -n my-ripsaw | grep byowl) awk '/sync percentiles /{ print $3 }' | sed 's/[():]//g'))
 for r in ${results}; do
-  echo "99th fdatasync latency in sample ${sample}: ${r} us"
+  echo "99th fdatasync latency in sample ${sample}: ${r} ${units[${sample}]}"
   ((sample++))
 done
 
