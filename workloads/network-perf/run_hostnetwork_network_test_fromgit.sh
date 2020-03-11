@@ -86,7 +86,6 @@ spec:
       pair: 1
       nthrs:
         - 1
-        - 8
       protos:
         - tcp
         - udp
