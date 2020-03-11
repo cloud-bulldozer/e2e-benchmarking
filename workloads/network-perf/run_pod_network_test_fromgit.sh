@@ -98,7 +98,6 @@ spec:
       pair: ${pairs}
       nthrs:
         - 1
-        - 8
       protos:
         - tcp
         - udp
