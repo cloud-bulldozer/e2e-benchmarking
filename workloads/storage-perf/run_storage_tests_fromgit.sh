@@ -12,11 +12,9 @@ if [[ "${ES_PORT}" ]]; then
   _es_port=${ES_PORT}
 fi
 
-kubeconfig=$2
-if [ "$kubeconfig" == "" ]; then
-  kubeconfig="$HOME/.kube/config"
+if [ ! -z ${2} ]; then
+  export KUBECONFIG=${2}
 fi
-export KUBECONFIG=$kubeconfig
 
 cloud_name=$1
 if [ "$cloud_name" == "" ]; then
