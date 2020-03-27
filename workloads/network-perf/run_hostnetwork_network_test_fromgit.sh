@@ -31,6 +31,14 @@ if [ "$cloud_name" == "" ]; then
   cloud_name="test_cloud"
 fi
 
+# check if cluster is up
+date
+oc get clusterversion
+if [ $? -ne 0 ]; then
+  echo "Workload Failed for cloud $cloud_name, Unable to connect to the cluster"
+  exit 1
+fi
+
 echo "Starting test for cloud: $cloud_name"
 
 oc create ns my-ripsaw
