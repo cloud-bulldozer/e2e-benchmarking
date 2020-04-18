@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -x
 
-./common.sh
+source ./common.sh
 
 _baseline_multus_uuid=
 

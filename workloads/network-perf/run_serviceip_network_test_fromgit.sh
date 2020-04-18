@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -x
 
-./common.sh
+source ./common.sh
 
 _baseline_svc_1p_uuid=
 _baseline_svc_2p_uuid=
