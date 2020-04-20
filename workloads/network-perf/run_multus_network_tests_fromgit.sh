@@ -3,7 +3,11 @@ set -x
 
 source ./common.sh
 
-_baseline_multus_uuid=
+pairs=1
+
+if [[ ${COMPARE} == "true" ]]; then
+  _baseline_multus_uuid=
+fi 
 
 if [[ ${BASELINE_MULTUS_UUID} ]]; then
   _baseline_multus_uuid=${BASELINE_MULTUS_UUID}
@@ -17,9 +21,8 @@ if [[ ${MULTUS_SERVER_NAD} ]]; then
   MULTUS=true
 fi
 
-_pair=1
 if [[ ${PAIR} ]]; then
-  _pair=${PAIR}
+  pairs=${PAIR}
 fi
 
 if ${MULTUS} ; then
@@ -61,7 +64,7 @@ spec:
         ${MULTUS_SERVER}
         ${MULTUS_CLIENT}
       samples: 3
-      pair: ${_pair}
+      pair: $pairs
       nthrs:
         - 1
         - 8
@@ -96,19 +99,25 @@ if [ "$uperf_state" == "1" ] ; then
   exit 1
 fi
 
-if [[ ${COMPARE} == "true" ]] ; then
-  baseline_uperf_uuid=${_baseline_multus_uuid}
-  compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io -o json | jq -r .items[].status.uuid)
-  echo "Comparing current test uuid ${compare_uperf_uuid} with baseline uuid ${baseline_uperf_uuid}"
-  ./run_network_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid}
+compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io -n my-ripsaw -o json | jq -r .items[].status.uuid)
+baseline_uperf_uuid=${_baseline_multus_uuid}
+
+if [[ ${COMPARE} == "true" ]]; then
+  echo ${baseline_uperf_uuid},${compare_uperf_uuid} >> uuid.txt
+else
+  echo ${compare_uperf_uuid} >> uuid.txt
 fi
 
+./run_network_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
+pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}p.yaml" )
+
 oc -n my-ripsaw delete benchmark/uperf-benchmark
+
+python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance
 
 fi
 
 # Cleanup
 rm -rf /tmp/ripsaw
-
+rm -f compare_output_*.yaml
 exit 0
-
