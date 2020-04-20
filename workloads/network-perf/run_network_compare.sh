@@ -2,38 +2,33 @@
 datasource="elasticsearch"
 tool="uperf"
 function="compare"
-throughput_tolerance=5
-latency_tolerance=5
+_es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
+_es_port=80
+_es_baseline=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
+_es_baseline_port=80
 
-if [ "$#" -ne 2 ]; then
-  echo "Syntax error : Script expects two UUIDs"
-  echo "               ./run_network_compare.sh <baseline_uuid> <new_uuid>"
-  exit 1
+
+if [[ ${ES_SERVER} ]] && [[ ${ES_PORT} ]] && [[ ${ES_USER} ]] && [[ ${ES_PASSWORD} ]]; then
+  _es=${ES_USER}:${ES_PASSWORD}@${ES_SERVER}
+  _es_port=${ES_PORT}
+elif [[ ${ES_SERVER} ]] && [[ ${ES_PORT} ]]; then
+  _es=${ES_SERVER}
+  _es_port=${ES_PORT}
 fi
 
-base_uuid=$1
-compare_uuid=$2
-es_server=${ES_SERVER}
-es_port=${ES_PORT}
-es_server_baseline=${ES_SERVER}
-es_port_baseline=${ES_PORT}
-
-if [ "$es_server" == "" ] || [ "$es_port" == "" ]; then
-  echo "Unable to execute compare - no elasticsearch server and/or port passed"
-  exit 1
+if [[ ${ES_SERVER_BASELINE} ]] && [[ ${ES_PORT_BASELINE} ]] && [[ ${ES_USER_BASELINE} ]] && [[ ${ES_PASSWORD_BASELINE} ]]; then
+  _es_baseline=${ES_USER_BASELINE}:${ES_PASSWORD_BASELINE}@${ES_SERVER_BASELINE}
+  _es_baseline_port=${ES_PORT_BASELINE}
+elif [[ ${ES_SERVER_BASELINE} ]] && [[ ${ES_PORT_BASELINE} ]]; then
+  _es=${ES_SERVER_BASELINE}
+  _es_port=${ES_PORT_BASELINE}
 fi
 
-if [[ ${ES_SERVER_BASELINE} ]] && [[ ${ES_PORT_BASELINE} ]]; then
-  es_server_baseline=${ES_SERVER_BASELINE}
-  es_port_baseline=${ES_PORT_BASELINE}
-fi
-
-if [[ ${THROUGHPUT_TOLERANCE} ]]; then
-  throughput_tolerance=${THROUGHPUT_TOLERANCE}
-fi
-
-if [[ ${LATENCY_TOLERANCE} ]]; then
-  latency_tolerance=${LATENCY_TOLERANCE}
+if [[ ${COMPARE} != "true" ]]; then
+  compare_uuid=$1
+else
+  base_uuid=$1
+  compare_uuid=$2
 fi
 
 git clone https://github.com/cloud-bulldozer/touchstone
@@ -46,21 +41,9 @@ if [[ $? -ne 0 ]] ; then
   echo "Unable to execute compare - Failed to install touchstone"
   exit 1
 fi
-
-touchstone_compare $tool $datasource ripsaw -url $es_server_baseline:$es_port_baseline $es_server:$es_port -u $base_uuid $compare_uuid -o yaml | tee ../compare.yaml
+set -x
+touchstone_compare $tool $datasource ripsaw -url $_es_baseline:$_es_baseline_port $_es:$_es_port -u $base_uuid $compare_uuid -o yaml | tee ../compare_output_${!#}p.yaml
 if [[ $? -ne 0 ]] ; then
   echo "Unable to execute compare - Failed to run touchstone"
   exit 1
 fi
-cd ../
-failed=0
-echo "Checking Stream TCP"
-python3 compare.py --result compare.yaml --uuid $base_uuid --test stream --protocol tcp --tolerance $throughput_tolerance || failed=1
-echo "Checking Stream UDP"
-python3 compare.py --result compare.yaml --uuid $base_uuid --test stream --protocol udp --tolerance $throughput_tolerance || failed=1
-echo "Checking RR TCP"
-python3 compare.py --result compare.yaml --uuid $base_uuid --test rr --protocol tcp --tolerance $latency_tolerance || failed=1
-echo "Checking RR UDP"
-python3 compare.py --result compare.yaml --uuid $base_uuid --test rr --protocol tcp --tolerance $latency_tolerance || failed=1
-echo "Compare complete"
-exit $failed
