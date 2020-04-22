@@ -50,9 +50,10 @@ spec:
     port: $_es_port
   clustername: $cloud_name
   test_user: ${cloud_name}-ci
-  metadata_collection: true
-  metadata_sa: backpack-view
-  metadata_privileged: true
+  metadata:
+    collection: true
+    sa: backpack-view
+    privileged: true
   workload:
     name: byowl
     args:

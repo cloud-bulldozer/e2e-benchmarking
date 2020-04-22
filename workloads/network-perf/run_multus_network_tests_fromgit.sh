@@ -44,9 +44,10 @@ spec:
     port: $_es_port
   clustername: $cloud_name
   test_user: ${cloud_name}-multus-ci-${_pair}p
-  metadata_collection: ${_metadata_collection}
-  metadata_sa: backpack-view
-  metadata_privileged: true
+  metadata:
+    collection: ${_metadata_collection}
+    sa: backpack-view
+    privileged: true
   workload:
     name: uperf
     args:

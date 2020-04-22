@@ -44,9 +44,10 @@ metadata:
   name: fio-benchmark
   namespace: my-ripsaw
 spec:
-  metadata_collection: true
-  metadata_sa: backpack-view
-  metadata_privileged: true
+  metadata:
+    collection: true
+    sa: backpack-view
+    privileged: true
   elasticsearch:
     server: $_es
     port: $_es_port
