@@ -55,3 +55,4 @@ fi
 
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
+oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
