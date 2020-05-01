@@ -16,7 +16,7 @@ $ ./run_<test-name>_network_test_fromgit.sh
 ## Environment variables
 
 ### ES_SERVER
-Default: `search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com`  
+Default: `milton.aws.com`  
 Public elasticsearch server
 
 ### ES_PORT
