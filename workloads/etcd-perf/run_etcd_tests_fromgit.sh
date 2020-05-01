@@ -4,8 +4,9 @@ set -x
 trap "rm -rf /tmp/ripsaw" EXIT
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
-samples=5
-sample=0
+latency_th=${LATENCY_TH:-10000000}
+index=ripsaw-fio-results
+curl_body='{"_source": false, "aggs": {"max-fsync-lat-99th": {"max": {"field": "fio.sync.lat_ns.percentile.99.000000"}}}}'
 
 if [[ "${ES_SERVER}" ]]; then
   _es=${ES_SERVER}
@@ -42,36 +43,45 @@ cat << EOF | oc create -n my-ripsaw -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
-  name: fio-benchmark
+  name: etcd-fio
   namespace: my-ripsaw
 spec:
   elasticsearch:
-    server: $_es
-    port: $_es_port
-  clustername: $cloud_name
+    server: ${_es}
+    port: ${_es_port}
+  clustername: ${cloud_name}
   test_user: ${cloud_name}-ci
   metadata:
     collection: true
-    sa: backpack-view
+    serviceaccount: backpack-view
     privileged: true
+  hostpath: /var/lib/fio-etcd
   workload:
-    name: byowl
+    name: fio_distributed
     args:
-      image: "quay.io/cloud-bulldozer/fio"
-      clients: 1
-      commands: |
-        for i in $(seq ${samples} | xargs); do
-          mkdir -p /tmp/perf;
-          fio --rw=write --ioengine=sync --fdatasync=1 --directory=/tmp/perf --size=22m --bs=2300 --name=test;
-          sleep 5;
-        done
+      iodepth: 1
+      log_sample_rate: 1000
+      samples: 5
+      servers: 1
+      jobs:
+        - write
+      bs:
+        - 2300
+      numjobs:
+        - 1
+      filesize: 22Mib
+  global_overrides:
+    - fdatasync=1
+    - ioengine=sync
+    - direct=0
 EOF
 
 fio_state=1
 for i in {1..60}; do
-  if [[ $(oc get benchmark fio-benchmark -n my-ripsaw -o jsonpath='{.status.complete}') == true ]]; then
+  if [[ $(oc get benchmark -n my-ripsaw etcd-fio -o jsonpath='{.status.complete}') == true ]]; then
     echo "FIO Workload done"
     fio_state=$?
+    uuid=$(oc get benchmark -n my-ripsaw etcd-fio -o jsonpath="{.status.uuid}")
     break
   fi
   sleep 30
@@ -82,11 +92,11 @@ if [ "$fio_state" == "1" ] ; then
   exit 1
 fi
 
-results=$(oc logs -n my-ripsaw $(oc get pods -o name -n my-ripsaw | grep byowl) | grep "fsync\/fd" -A 7 | awk '/99.00th/{ print $3}' | sed 's/[],]//g')
-units=($(oc logs -n my-ripsaw $(oc get pods -o name -n my-ripsaw | grep byowl) awk '/sync percentiles /{ print $3 }' | sed 's/[():]//g'))
-for r in ${results}; do
-  echo "99th fdatasync latency in sample ${sample}: ${r} ${units[${sample}]}"
-  ((sample++))
-done
+fsync_lat=$(curl -s ${_es}/${index}/_search?q=uuid:${uuid} -H "Content-Type: application/json" -d "${curl_body}" | python -c 'import sys,json;print(int(json.loads(sys.stdin.read())["aggregations"]["max-fsync-lat-99th"]["value"]))')
+echo "Max 99th fsync latency observed: ${fsync_lat} ns"
+if [[ ${fsync_lat} -gt ${latency_th} ]]; then
+  echo "Latency greater than configured threshold: ${latency_th} ns"
+  exit 1
+fi
 
 exit 0
