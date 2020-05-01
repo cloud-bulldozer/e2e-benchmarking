@@ -46,7 +46,7 @@ spec:
   test_user: ${cloud_name}-multus-ci-${_pair}p
   metadata:
     collection: ${_metadata_collection}
-    sa: backpack-view
+    serviceaccount: backpack-view
     privileged: true
   workload:
     name: uperf
