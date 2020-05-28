@@ -99,6 +99,10 @@ Accepeted deviation in percentage for throughput when compared to a baseline run
 Default: `5`   
 Accepeted deviation in percentage for latency when compared to a baseline run
 
+### CERBERUS_URL
+Default: ``     
+URL to check the health of the cluster using Cerberus (https://github.com/openshift-scale/cerberus).
+
 ### EMAIL_ID_FOR_RESULTS_SHEET
 Default: *Commented out*       
 For this you will have to place Google Service Account Key in /plow/workloads/network-perf dir.   
@@ -128,6 +132,7 @@ export BASELINE_SVC_4P_UUID=
 export BASELINE_MULTUS_UUID=
 export THROUGHPUT_TOLERANCE=5
 export LATENCY_TOLERANCE=5
+export CERBERUS_URL=http://1.2.3.4:8080
 #export EMAIL_ID_FOR_RESULTS_SHEET=<your_email_id>  # Will only work if you have google service account key
 ```
 

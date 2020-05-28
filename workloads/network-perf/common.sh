@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -x
 
+# Check cluster's health
+if [[ ${CERBERUS_URL} ]]; then
+  response=$(curl ${CERBERUS_URL})
+  if [ "$response" != "True" ]; then
+    echo "Cerberus status is False, Cluster is unhealthy"
+    exit 1
+  fi
+fi
+
 _es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 _es_port=80
 _es_baseline=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com

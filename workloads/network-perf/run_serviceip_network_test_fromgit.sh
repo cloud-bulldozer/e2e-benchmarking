@@ -42,6 +42,7 @@ spec:
     collection: ${_metadata_collection}
     serviceaccount: backpack-view
     privileged: true
+  cerberus_url: "$CERBERUS_URL" 
   workload:
     name: uperf
     args:
@@ -73,6 +74,10 @@ sleep 30
 
 uperf_state=1
 for i in {1..240}; do
+  if [ "$(oc get benchmarks.ripsaw.cloudbulldozer.io -n my-ripsaw -o jsonpath='{.items[0].status.state}')" == "Error" ]; then
+    echo "Cerberus status is False, Cluster is unhealthy"
+    exit 1
+  fi
   oc describe -n my-ripsaw benchmarks/uperf-benchmark | grep State | grep Complete
   if [ $? -eq 0 ]; then
           echo "UPerf Workload done"
@@ -87,7 +92,7 @@ if [ "$uperf_state" == "1" ] ; then
   exit 1
 fi
 
-compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io -n my-ripsaw -o json | jq -r .items[].status.uuid)
+compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io -n my-ripsaw -o jsonpath='{.items[0].status.uuid}')
 if [ "${pairs}" == "1" ] ; then
   baseline_uperf_uuid=${_baseline_svc_1p_uuid}
 elif [ "${pairs}" == "2" ] ; then
