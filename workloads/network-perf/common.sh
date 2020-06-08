@@ -88,8 +88,17 @@ server=""
 client=""
 pin=false
 if [[ $(oc get nodes | grep worker | wc -l) -gt 1 ]]; then
-  server=$(oc get nodes -l node-role.kubernetes.io/worker -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n 1)
-  client=$(oc get nodes -l node-role.kubernetes.io/worker -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n 1)
+  # Deploy pods in different AZs https://kubernetes.io/docs/reference/kubernetes-api/labels-annotations-taints/#topologykubernetesiozone
+  # Starting from k8s v1.17, the label failure-domain.beta.kubernetes.io/zonel is replaced in favor of topology.kubernetes.io/region
+  if [[ $(oc get nodes -l node-role.kubernetes.io/worker,topology.kubernetes.io/zone | wc -l ) -gt 1 ]]; then
+    zones=($(oc get nodes -o go-template --template='{{ range .items }}{{index .metadata.labels "topology.kubernetes.io/zone"}}{{"\n"}}{{ end }}' | sort -u))
+    server=$(oc get nodes -l node-role.kubernetes.io/worker,topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n 1)
+    client=$(oc get nodes -l node-role.kubernetes.io/worker,topology.kubernetes.io/zone=${zones[1]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n 1)
+  else
+    zones=($(oc get nodes -o go-template --template='{{ range .items }}{{index .metadata.labels "failure-domain.beta.kubernetes.io/zone"}}{{"\n"}}{{ end }}' | sort -u))
+    server=$(oc get nodes -l node-role.kubernetes.io/worker,failure-domain.beta.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n 1)
+    client=$(oc get nodes -l node-role.kubernetes.io/worker,failure-domain.beta.kubernetes.io/zone=${zones[1]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n 1)
+  fi
   pin=true
 fi
 
