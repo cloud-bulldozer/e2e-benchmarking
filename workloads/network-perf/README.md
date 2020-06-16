@@ -7,7 +7,12 @@ There are 4 types network tests:
 3. pod to pod using Service
 4. pod to pod using Multus (NetworkAttachmentDefinition needs to be provided)
 
-Running from CLI:
+### Install the dependencies
+```
+$ pip3 install -r requirements.txt
+```
+
+### Running from CLI:
 
 ```sh
 $ ./run_<test-name>_network_test_fromgit.sh 
