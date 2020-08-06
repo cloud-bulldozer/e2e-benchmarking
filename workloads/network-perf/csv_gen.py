@@ -189,8 +189,8 @@ parser.add_argument(
 )
 params = parser.parse_args()
 generate_csv(params.yaml_files, f"{params.sheetname}.csv")
-if "EMAIL_ID_FOR_RESULTS_SHEET" in os.environ:
+if "EMAIL_ID_FOR_RESULTS_SHEET" and "GSHEET_KEY_LOCATION" in os.environ:
     push_to_gsheet(
-        f"{params.sheetname}.csv", "gsheet_key.json", os.environ["EMAIL_ID_FOR_RESULTS_SHEET"],
+        f"{params.sheetname}.csv", os.environ["GSHEET_KEY_LOCATION"], os.environ["EMAIL_ID_FOR_RESULTS_SHEET"],
     )
 
