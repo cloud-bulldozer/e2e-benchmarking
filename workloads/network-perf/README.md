@@ -103,9 +103,13 @@ Accepeted deviation in percentage for latency when compared to a baseline run
 Default: ``     
 URL to check the health of the cluster using Cerberus (https://github.com/openshift-scale/cerberus).
 
+### GSHEET_KEY_LOCATION
+Default: *Commented out*      
+The location where you placed your Google Service Account Key. ex: `$HOME/.secrets/gsheet_key.json`
+
 ### EMAIL_ID_FOR_RESULTS_SHEET
 Default: *Commented out*       
-For this you will have to place Google Service Account Key in /plow/workloads/network-perf dir.   
+For this you will have to place Google Service Account Key in the $GSHEET_KEY_LOCATION   
 It will push your local results CSV to Google Spreadsheets and send an email with the attachment
 
 ## Suggested configurations
@@ -133,6 +137,7 @@ export BASELINE_MULTUS_UUID=
 export THROUGHPUT_TOLERANCE=5
 export LATENCY_TOLERANCE=5
 export CERBERUS_URL=http://1.2.3.4:8080
+#export GSHEET_KEY_LOCATION=
 #export EMAIL_ID_FOR_RESULTS_SHEET=<your_email_id>  # Will only work if you have google service account key
 ```
 
