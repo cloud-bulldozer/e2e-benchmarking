@@ -10,6 +10,7 @@ There are 4 types network tests:
 Running from CLI:
 
 ```sh
+pip3 install -r requirements.txt
 $ ./run_<test-name>_network_test_fromgit.sh 
 ```
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 datasource="elasticsearch"
-tool="uperf"
-function="compare"
+tool="mb"
 _es=${ES_SERVER:-search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
 _es_port=${ES_PORT:-80}
 
@@ -24,6 +23,7 @@ elif [[ ${ES_SERVER_BASELINE} ]] && [[ ${ES_PORT_BASELINE} ]]; then
   _es_port=${ES_PORT_BASELINE}
 fi
 
+
 if [[ ${COMPARE} != "true" ]]; then
   compare_uuid=$1
 else
@@ -31,15 +31,17 @@ else
   compare_uuid=$2
 fi
 
+
 python3 -m venv ./venv
 source ./venv/bin/activate
 pip3 install git+https://github.com/cloud-bulldozer/touchstone
+
 if [[ $? -ne 0 ]] ; then
   echo "Unable to execute compare - Failed to install touchstone"
   exit 1
 fi
 set -x
-touchstone_compare $tool $datasource ripsaw -url $_es:$_es_port $_es_baseline:$_es_baseline_port -u $base_uuid $compare_uuid -o yaml | tee ../compare_output_${!#}p.yaml
+touchstone_compare $tool $datasource ripsaw -url $_es:$_es_port $_es_baseline:$_es_baseline_port -u $base_uuid $compare_uuid -o yaml | tee compare.yaml
 if [[ $? -ne 0 ]] ; then
   echo "Unable to execute compare - Failed to run touchstone"
   exit 1
