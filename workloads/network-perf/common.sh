@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -x
 
+pip3 install -r requirements.txt
+
 # Check cluster's health
 if [[ ${CERBERUS_URL} ]]; then
   response=$(curl ${CERBERUS_URL})
