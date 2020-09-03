@@ -37,6 +37,10 @@ elif [[ ${ES_SERVER_BASELINE} ]] && [[ ${ES_PORT_BASELINE} ]]; then
   _es_port=${ES_PORT_BASELINE}
 fi
 
+if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
+   export GSHEET_KEY_LOCATION=$HOME/.secrets/gsheet_key.json
+fi
+
 if [[ ${THROUGHPUT_TOLERANCE} ]]; then
   throughput_tolerance=${THROUGHPUT_TOLERANCE}
 fi
