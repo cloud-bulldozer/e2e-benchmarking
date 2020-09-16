@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -x
 
-pip3 install -r requirements.txt
-
 # Check cluster's health
 if [[ ${CERBERUS_URL} ]]; then
   response=$(curl ${CERBERUS_URL})
@@ -20,12 +18,20 @@ _metadata_collection=${METADATA_COLLECTION:=false}
 _poll_interval=${POLL_INTERVAL:=5}
 _post_sleep=${POST_SLEEP:=0}
 COMPARE=${COMPARE:=false}
+_timeout=${TIMEOUT:=240}
+_runs=${RUNS:=3}
 
 if [[ -n $SCALE ]]; then
   _scale=${SCALE}
 else
   echo "Scale target not set. Exiting"
   exit 1
+fi
+
+if [[ -n $UUID ]]; then
+  _uuid=${UUID}
+else
+  _uuid=$(uuidgen)
 fi
 
 if [[ ${ES_SERVER} ]] && [[ ${ES_PORT} ]] && [[ ${ES_USER} ]] && [[ ${ES_PASSWORD} ]]; then
@@ -53,6 +59,10 @@ if [ $? -ne 0 ]; then
   echo "Workload Failed for cloud $cloud_name, Unable to connect to the cluster"
   exit 1
 fi
+
+# Get initial worker count
+_init_worker_count=`oc get nodes -l node-role.kubernetes.io/worker | grep -v NAME | wc -l`
+
 
 if [[ ${COMPARE} == "true" ]]; then
   echo $BASELINE_CLOUD_NAME,$cloud_name > uuid.txt
