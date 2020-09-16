@@ -12,50 +12,26 @@ if [[ ${CERBERUS_URL} ]]; then
   fi
 fi
 
-_es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
-_es_port=80
-_es_baseline=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
-_es_baseline_port=80
-throughput_tolerance=5
-latency_tolerance=5
-_metadata_collection=true
-client_server_pairs=(1 2 4)
+_es=${ES_SERVER:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
+_es_port=${ES_PORT:=80}
+_es_baseline=${ES_SERVER_BASELINE:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
+_es_baseline_port=${ES_PORT_BASELINE:=80}
+_metadata_collection=${METADATA_COLLECTION:=true}
+COMPARE=${COMPARE:=false}
+throughput_tolerance=${THROUGHPUT_TOLERANCE:=5}
+latency_tolerance=${LATENCY_TOLERANCE:=5}
+client_server_pairs=${CLIENT_SERVER_PAIRS:=(1 2 4)}
 
 if [[ ${ES_SERVER} ]] && [[ ${ES_PORT} ]] && [[ ${ES_USER} ]] && [[ ${ES_PASSWORD} ]]; then
   _es=${ES_USER}:${ES_PASSWORD}@${ES_SERVER}
-  _es_port=${ES_PORT}
-elif [[ ${ES_SERVER} ]] && [[ ${ES_PORT} ]]; then
-  _es=${ES_SERVER}
-  _es_port=${ES_PORT}
 fi
 
 if [[ ${ES_SERVER_BASELINE} ]] && [[ ${ES_PORT_BASELINE} ]] && [[ ${ES_USER_BASELINE} ]] && [[ ${ES_PASSWORD_BASELINE} ]]; then
   _es_baseline=${ES_USER_BASELINE}:${ES_PASSWORD_BASELINE}@${ES_SERVER_BASELINE}
-  _es_baseline_port=${ES_PORT_BASELINE}
-elif [[ ${ES_SERVER_BASELINE} ]] && [[ ${ES_PORT_BASELINE} ]]; then
-  _es=${ES_SERVER_BASELINE}
-  _es_port=${ES_PORT_BASELINE}
 fi
 
 if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
    export GSHEET_KEY_LOCATION=$HOME/.secrets/gsheet_key.json
-fi
-
-if [[ ${THROUGHPUT_TOLERANCE} ]]; then
-  throughput_tolerance=${THROUGHPUT_TOLERANCE}
-fi
-
-if [[ ${LATENCY_TOLERANCE} ]]; then
-  latency_tolerance=${LATENCY_TOLERANCE}
-fi
-
-
-if [[ ${METADATA_COLLECTION} ]]; then
-  _metadata_collection=${METADATA_COLLECTION}
-fi
-
-if [[ ${CLIENT_SERVER_PAIRS} ]]; then
-  client_server_pairs=${CLIENT_SERVER_PAIRS}
 fi
 
 if [[ ${COMPARE} != "true" ]]; then
