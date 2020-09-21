@@ -13,9 +13,9 @@ from gspread_formatting import *
 regexp = re.compile(r"^\D*(\d+)\D*$")
 
 # Globals
-main_metric_rps = {"http": "avg(requests_per_second)", "edge": "avg(requests_per_second)", "mix": "avg(requests_per_second)"}
-label_map = {"http": "http", "edge": "edge", "mix": "mix"}
-main_metric_latency = {"http": "avg(latency_95pctl)", "edge": "avg(latency_95pctl)", "mix": "avg(latency_95pctl)"}
+main_metric_rps = {"passthrough": "avg(requests_per_second)", "reencrypt": "avg(requests_per_second)", "http": "avg(requests_per_second)", "edge": "avg(requests_per_second)", "mix": "avg(requests_per_second)"}
+label_map = {"passthrough": "passthrough", "reencrypt": "reencrypt", "http": "http", "edge": "edge", "mix": "mix"}
+main_metric_latency = {"passthrough": "avg(latency_95pctl)", "reencrypt": "avg(latency_95pctl)", "http": "avg(latency_95pctl)", "edge": "avg(latency_95pctl)", "mix": "avg(latency_95pctl)"}
 
 def get_uuid_mapping(file_name):
     uuid_map = {}
