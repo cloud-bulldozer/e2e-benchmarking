@@ -25,15 +25,14 @@ fi
 
 
 echo "Starting test for: $HTTP_TEST_SUFFIX"
-#git clone http://github.com/openshift-scale/workloads /tmp/workloads
-git clone -b change_index http://github.com/mohit-sheth/workloads /tmp/workloads
+git clone http://github.com/openshift-scale/workloads /tmp/workloads
 echo "[orchestration]" > /tmp/workloads/inventory; echo "${ORCHESTRATION_HOST:-localhost}" >> /tmp/workloads/inventory
 time ansible-playbook -vv -i /tmp/workloads/inventory /tmp/workloads/workloads/http.yml
 oc logs --timestamps -n scale-ci-tooling -f job/scale-ci-http
 oc get job -n scale-ci-tooling scale-ci-http -o json | jq -e '.status.succeeded==1'
-￼
+
 router_state=1
-oc describe job scale-ci-http | grep "1 Succeeded"
+oc describe job scale-ci-http -n scale-ci-tooling | grep "1 Succeeded"
 if [ $? -eq 0 ]; then
         echo "Router Workload done"
         router_state=$?
@@ -43,7 +42,7 @@ if [ "$router_state" == "1" ] ; then
   exit 1
 fi
 
-compare_router_uuid=$(oc logs $(oc get pods | grep "scale-ci-http" |awk '{print $1}') | grep UUID | awk '{print $3}')
+compare_router_uuid=$(oc logs -n scale-ci-tooling $(oc get pods -n scale-ci-tooling | grep "scale-ci-http" |awk '{print $1}') | grep UUID | awk '{print $3}')
 baseline_router_uuid=${BASELINE_ROUTER_UUID}
 
 if [[ ${COMPARE} == "true" ]]; then

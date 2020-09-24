@@ -39,7 +39,7 @@ if [[ $? -ne 0 ]] ; then
   exit 1
 fi
 set -x
-touchstone_compare $tool $datasource ripsaw -url $_es:$_es_port $_es_baseline:$_es_baseline_port -u $base_uuid $compare_uuid -o yaml | tee ../compare_output_${!#}p.yaml
+touchstone_compare $tool $datasource ripsaw -url $_es:$_es_port $_es_baseline:$_es_baseline_port -u $base_uuid $compare_uuid -o yaml | tee compare_output_${!#}p.yaml
 if [[ $? -ne 0 ]] ; then
   echo "Unable to execute compare - Failed to run touchstone"
   exit 1
