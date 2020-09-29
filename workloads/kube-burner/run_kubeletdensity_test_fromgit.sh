@@ -8,7 +8,7 @@ export PODS_PER_NODE=${PODS_PER_NODE:-250}
 
 . common.sh
 
-if [[ ${TAINT_NODE} == 1 ]] && [[ ! -z ${WORKLOAD_NODE} ]]; then
+if [[ ${TAINT_NODE} == 1 ]] && [[ ${WORKLOAD_NODE} ]]; then
   taint_node ${WORKLOAD_NODE}
 fi
 

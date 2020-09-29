@@ -1,4 +1,13 @@
 
+# Check cluster's health
+if [[ ${CERBERUS_URL} ]]; then
+  response=$(curl ${CERBERUS_URL})
+  if [ "$response" != "True" ]; then
+    echo "Cerberus status is False, Cluster is unhealthy"
+    exit 1
+  fi
+fi
+
 export QPS=${QPS:-10}
 export BURST=${BURST:-10}
 export ES_SERVER=${ES_SERVER:-https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
@@ -20,7 +29,7 @@ export TAINT_NODE=${TAINT_NODE:-0}
 bold=$(tput bold)
 normal=$(tput sgr0)
 
-if [[ ! -z ${WORKLOAD_NODE} ]]; then
+if [[ ${WORKLOAD_NODE} ]]; then
   PIN_SERVER=$(oc get node ${WORKLOAD_NODE} -o go-template --template='{{index .metadata.labels "kubernetes.io/hostname" }}')
   export PIN_SERVER
 fi
