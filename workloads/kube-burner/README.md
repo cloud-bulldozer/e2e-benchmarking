@@ -25,6 +25,17 @@ All scripts can be tweaked with the following environment variables:
 ### cluster-density variables
 
 The `cluster-density` workload supports the environment variable **JOB_ITERATIONS**. This variable configures the number of cluster-density jobs iterations to perform (1 namespace per iteration). By default 1000
+Each iteration of this workload creates the following objects:
+
+- 12 imagestreams
+- 3 buidconfigs
+- 6 builds
+- 1 deployment with 2 pod replicas (sleep) mounting two secrets each. deployment-2pod
+- 2 deployments with 1 pod replicas (sleep) mounting two secrets. deployment-1pod
+- 3 services, one pointing to deployment-2pod, and other two pointing to deployment-1pod
+- 3 route. 1 pointing to the service deployment-2pod and other two pointing to deployment-1pod
+- 20 secrets
+
 
 ### kubelet-density and kubelet-density-heavy variables
 

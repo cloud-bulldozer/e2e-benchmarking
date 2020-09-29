@@ -59,8 +59,17 @@ deploy_workload() {
 
 wait_for_benchmark() {
   rc=0
-  log "Waiting for benchmark kube-burner-${1}-${UUID} to complete"
-  until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq  "Complete|Failed"; do
+  log "Waiting for kube-burner job to be created"
+  until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -q Running; do
+    sleep 1
+  done
+  suuid=$(oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.suuid}")
+  until oc get pod -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -q Running; do
+    sleep 1
+  done
+  oc logs -n my-ripsaw -f -l job-name=kube-burner-${suuid}
+  log "Kube-burner job completed, waiting for benchmark/kube-burner-${1}-${UUID} object to be updated"
+  until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
     sleep 1
   done
   status=$(oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}")
