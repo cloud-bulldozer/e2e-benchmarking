@@ -25,7 +25,6 @@ export JOB_TIMEOUT=${JOB_TIMEOUT:-7200}
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export WORKLOAD_NODE=${WORKLOAD_NODE}
 export UUID=$(uuidgen)
-export TAINT_NODE=${TAINT_NODE:-0}
 bold=$(tput bold)
 normal=$(tput sgr0)
 
@@ -36,11 +35,6 @@ fi
 
 log() {
   echo ${bold}$(date "+%d-%m-%YT%H:%m:%S") ${@}${normal}
-}
-
-taint_node() {
-  log "Tainting node ${1}"
-  oc adm taint node ${1} role=workload:NoSchedule --overwrite
 }
 
 deploy_operator() {

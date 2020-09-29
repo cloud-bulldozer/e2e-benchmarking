@@ -20,7 +20,6 @@ All scripts can be tweaked with the following environment variables:
 | **PROM_URL**         | Elastic search endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
 | **JOB_TIMEOUT**      | kube-burner's job timeout       | 7200|
 | **WORKLOAD_NODE**    | Workload node name              | "" (don't pin kube-burner to any server)|
-| **TAINT_NODE**       | Taint the workload node         | 0 (don't taint)|
 | **CERBERUS_URL**     | URL to check the health of the cluster using [Cerberus](https://github.com/openshift-scale/cerberus) | "" (don't check)|
 
 ### cluster-density variables
