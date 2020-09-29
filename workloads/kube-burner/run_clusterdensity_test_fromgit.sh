@@ -9,4 +9,5 @@ export JOB_ITERATIONS=${JOB_ITERATIONS:-1000}
 deploy_operator
 deploy_workload
 wait_for_benchmark ${WORKLOAD}
+rm -rf benchmark-operator
 exit ${rc}

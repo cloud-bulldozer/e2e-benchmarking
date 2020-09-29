@@ -13,4 +13,5 @@ label_nodes heavy
 deploy_workload
 wait_for_benchmark ${WORKLOAD}
 unlabel_nodes
+rm -rf benchmark-operator
 exit ${rc}
