@@ -26,6 +26,8 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
+rm -rf /tmp/ripsaw
+
 oc create ns my-ripsaw
 oc create ns backpack
 
