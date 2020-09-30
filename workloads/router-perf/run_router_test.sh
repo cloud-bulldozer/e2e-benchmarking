@@ -25,6 +25,9 @@ fi
 
 
 echo "Starting test for: $HTTP_TEST_SUFFIX"
+
+rm -rf /tmp/workloads
+
 git clone http://github.com/openshift-scale/workloads /tmp/workloads
 echo "[orchestration]" > /tmp/workloads/inventory; echo "${ORCHESTRATION_HOST:-localhost}" >> /tmp/workloads/inventory
 time ansible-playbook -vv -i /tmp/workloads/inventory /tmp/workloads/workloads/http.yml

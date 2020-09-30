@@ -67,6 +67,8 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
+rm -rf /tmp/ripsaw
+
 oc create ns my-ripsaw
 
 git clone http://github.com/cloud-bulldozer/ripsaw /tmp/ripsaw
