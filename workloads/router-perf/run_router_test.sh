@@ -23,25 +23,29 @@ else
   echo $HTTP_TEST_SUFFIX > uuid.txt
 fi
 
-
 echo "Starting test for: $HTTP_TEST_SUFFIX"
-
 rm -rf /tmp/workloads
-
 git clone http://github.com/openshift-scale/workloads /tmp/workloads
 echo "[orchestration]" > /tmp/workloads/inventory; echo "${ORCHESTRATION_HOST:-localhost}" >> /tmp/workloads/inventory
 time ansible-playbook -vv -i /tmp/workloads/inventory /tmp/workloads/workloads/http.yml
-oc logs --timestamps -n scale-ci-tooling -f job/scale-ci-http
-oc get job -n scale-ci-tooling scale-ci-http -o json | jq -e '.status.succeeded==1'
+for (( i=1; i<=5; i++ ))
+do
+  pod_name=$(oc get pods -n scale-ci-tooling | grep scale-ci-http | awk '{print $1}')
+  pod_status=$(oc get pods -n scale-ci-tooling | grep scale-ci-http | awk '{print $3}')
+  echo "$pod_name -> $pod_status"
+  sleep 10
+  if [ $pod_status == "Running" ]; then
+    oc logs -f $pod_name -n scale-ci-tooling
+  else
+    break
+  fi
+done
 
-router_state=1
-oc describe job scale-ci-http -n scale-ci-tooling | grep "1 Succeeded"
-if [ $? -eq 0 ]; then
-        echo "Router Workload done"
-        router_state=$?
-fi
+router_state=$(oc get job -n scale-ci-tooling scale-ci-http -o jsonpath='{.status.succeeded}')
 if [ "$router_state" == "1" ] ; then
-  echo "Workload failed"
+  echo "Workload Succeeded"
+else
+  echo "Workload Failed"
   exit 1
 fi
 
