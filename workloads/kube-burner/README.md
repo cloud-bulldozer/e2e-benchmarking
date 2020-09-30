@@ -43,3 +43,8 @@ The `kubelet-density` and `kubelet-density-heavy` workloads support the followin
 
 - **NODE_COUNT**: Number of worker nodes to deploy the pods on. During the workload nodes will be labeled with `kubelet-density=true`. Defaults to 4.
 - **PODS_PER_NODE**: Define the maximum number of pods to deploy on each labeled node. Defaults to 250
+
+### Configuration file
+
+An [env.sh](env.sh) file is provided with all available configuration parameters.
+
