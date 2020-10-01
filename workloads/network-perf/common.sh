@@ -20,7 +20,7 @@ _metadata_collection=${METADATA_COLLECTION:=true}
 COMPARE=${COMPARE:=false}
 throughput_tolerance=${THROUGHPUT_TOLERANCE:=5}
 latency_tolerance=${LATENCY_TOLERANCE:=5}
-client_server_pairs=${CLIENT_SERVER_PAIRS:=(1 2 4)}
+client_server_pairs=(1 2 4)
 
 if [[ ${ES_SERVER} ]] && [[ ${ES_PORT} ]] && [[ ${ES_USER} ]] && [[ ${ES_PASSWORD} ]]; then
   _es=${ES_USER}:${ES_PASSWORD}@${ES_SERVER}
