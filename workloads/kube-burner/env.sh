@@ -9,6 +9,8 @@ export PROM_URL=https://prometheus-k8s.openshift-monitoring.svc.cluster.local:90
 export JOB_TIMEOUT=7200
 export WORKLOAD_NODE=""
 export CERBERUS_URL=""
+export STEP_SIZE=30s
+export METRICS_PROFILE=metrics.yaml
 
 # Cluster density specific
 export JOB_ITERATIONS=1000

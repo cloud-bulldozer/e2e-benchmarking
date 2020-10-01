@@ -53,6 +53,10 @@ spec:
       tolerations: ${TOLERATIONS}
       # Wait for only certain object types to be ready
       wait_for: ${WAIT_FOR}
+      # Prometheus step size
+      step: ${STEP_SIZE}
+      # kube-burner metrics profile
+      metrics_profile: ${METRICS_PROFILE}
       # Pod nodeSelector
       node_selector:
         key: ${NODE_SELECTOR_KEY}

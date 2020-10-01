@@ -21,6 +21,8 @@ All scripts can be tweaked with the following environment variables:
 | **JOB_TIMEOUT**      | kube-burner's job timeout       | 7200|
 | **WORKLOAD_NODE**    | Workload node name              | "" (don't pin kube-burner to any server)|
 | **CERBERUS_URL**     | URL to check the health of the cluster using [Cerberus](https://github.com/openshift-scale/cerberus) | "" (don't check)|
+| **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
+| **METRICS_PROFILE**        | Metric profile that indicates what prometheus metrics kube-burner will collect | metrics.yaml |
 
 ### cluster-density variables
 
