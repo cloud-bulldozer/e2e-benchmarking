@@ -57,6 +57,10 @@ spec:
       step: ${STEP_SIZE}
       # kube-burner metrics profile
       metrics_profile: ${METRICS_PROFILE}
+      # ES username
+      prom_es_user: ${ES_USER}
+      # ES password
+      prom_es_pass: ${ES_PASSWORD}
       # Pod nodeSelector
       node_selector:
         key: ${NODE_SELECTOR_KEY}

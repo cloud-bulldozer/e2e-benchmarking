@@ -17,6 +17,8 @@ All scripts can be tweaked with the following environment variables:
 | **ES_SERVER**        | Elastic search endpoint         | https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com|
 | **ES_PORT**          | Elastic search port             | 443|
 | **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
+| **ES_USER**          | Elastic search user             | "" |
+| **ES_PASSWORD**      | Elastic search password         | "" |
 | **PROM_URL**         | Elastic search endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
 | **JOB_TIMEOUT**      | kube-burner's job timeout       | 7200|
 | **WORKLOAD_NODE**    | Workload node name              | "" (don't pin kube-burner to any server)|
