@@ -36,7 +36,7 @@ oc apply -f /tmp/ripsaw/resources/operator.yaml
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
 
-oc delete -n my-ripsaw benchmark/fio-benchmark
+oc delete -n my-ripsaw benchmark/fio-benchmark --wait
 sleep 30
 
 cat << EOF | oc create -n my-ripsaw -f -
