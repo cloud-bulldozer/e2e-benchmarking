@@ -3,7 +3,7 @@ set -x
 
 source ./common.sh
 
-oc -n my-ripsaw delete benchmark/scale --ignore-not-found
+oc -n my-ripsaw delete benchmark/scale --ignore-not-found --wait
 
 # Scale up/down $_runs times
 for x in $(seq 1 $_runs); do
@@ -86,8 +86,6 @@ EOF
           exit 1
         fi
       fi
-
-      oc -n my-ripsaw delete benchmark/scale --ignore-not-found --wait
 
     fi
 
