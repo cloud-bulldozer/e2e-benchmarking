@@ -11,6 +11,10 @@ spec:
   elasticsearch:
     server: ${ES_SERVER}
     port: ${ES_PORT}
+  metadata:
+    collection: ${METADATA_COLLECTION}
+    privileged: true
+  cerberus_url: "${CERBERUS_URL}"
   prometheus:
     # Elastic search instance with full URL format. https://elastic.apps.org:9200
     server: ${ES_SERVER}:${ES_PORT}

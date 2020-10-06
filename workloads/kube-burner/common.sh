@@ -1,13 +1,5 @@
-
-# Check cluster's health
-if [[ ${CERBERUS_URL} ]]; then
-  response=$(curl ${CERBERUS_URL})
-  if [ "$response" != "True" ]; then
-    echo "Cerberus status is False, Cluster is unhealthy"
-    exit 1
-  fi
-fi
-
+export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
+export CERBERUS_URL=${CERBERUS_URL}
 export QPS=${QPS:-10}
 export BURST=${BURST:-10}
 export ES_SERVER=${ES_SERVER:-https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
@@ -48,7 +40,6 @@ deploy_operator() {
   log "Deploying benchmark-operator"
   oc apply -f benchmark-operator/resources/namespace.yaml
   oc apply -f benchmark-operator/deploy
-  oc apply -f benchmark-operator/resources/backpack_role.yaml
   oc apply -f benchmark-operator/resources/kube-burner-role.yml
   oc apply -f benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
   oc apply -f benchmark-operator/resources/operator.yaml
@@ -67,6 +58,7 @@ wait_for_benchmark() {
   until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -q Running; do
     sleep 1
   done
+  log "Waiting for kube-burner job to finish"
   suuid=$(oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.suuid}")
   until oc get pod -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -q Running; do
     sleep 1

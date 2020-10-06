@@ -25,6 +25,7 @@ All scripts can be tweaked with the following environment variables:
 | **CERBERUS_URL**     | URL to check the health of the cluster using [Cerberus](https://github.com/openshift-scale/cerberus) | "" (don't check)|
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
 | **METRICS_PROFILE**        | Metric profile that indicates what prometheus metrics kube-burner will collect | metrics.yaml |
+| **METADATA_COLLECTION**    | Enable metadata collection | true |
 
 ### cluster-density variables
 
