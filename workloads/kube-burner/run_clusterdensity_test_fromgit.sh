@@ -2,6 +2,7 @@
 
 set -e
 
+export WORKLOAD=cluster-density
 export JOB_ITERATIONS=${JOB_ITERATIONS:-1000}
 
 . common.sh
