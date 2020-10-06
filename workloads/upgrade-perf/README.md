@@ -1,8 +1,7 @@
-# Scale Scripts
+# Upgrade Scripts
 
-The purpose of the scale scripts is scale Openshift Cluster to a given size.
-It will scale up and down X number of times and report the timings to 
-Elasticsearch
+The purpose of the upgrade scripts is to upgrade an Openshift Cluster
+to a given version. It will report the timings to Elasticsearch.
 
 Running from CLI:
 
@@ -12,25 +11,22 @@ $ ./run_<test-name>_fromgit.sh
 
 ## Environment variables
 
-### SCALE
+### VERSION
 Default: ''
-The target scale of the workers in the cluster. THIS IS A REQUIRED VARIABLE
+The target version of the cluster. THIS IS A REQUIRED VARIABLE
+
+## TOIMAGE
+Default: ''
+This is an optional location of an image to upgrade to. If set you will STILL need to assign
+the VERSION variable as well to match what the end result will be.
 
 ### POLL_INTERVAL
 Default: 5
-How long (in seconds) to have the scale test wait inbetween ready checks
-
-### POST_SLEEP
-Default: 0
-How long to have the system wait after a scale event
+How long (in seconds) to have the test wait inbetween ready checks
 
 ### TIMEOUT
 Default: 240
-Timeout value (in minutes) for each scale event
-
-### RUNS
-Default: 3
-How many times to run the scale up. It will scale down to the original size before running the next itteration
+Timeout value (in minutes) for the upgrade. NOTE: there is no rollback on failure
 
 ### ES_USER
 Default: `` 
@@ -47,10 +43,6 @@ Elasticsearch server to index the results of the current run
 ### ES_PORT
 Default: ``  
 Port number for elasticsearch server
-
-### METADATA_COLLECTION
-Default: `false`   
-Enable/Disable collection of metadata
 
 ### COMPARE (not implemented yet)
 Default: `false`   
@@ -81,7 +73,7 @@ Default: ``
 Baseline UUID 
 
 ### CERBERUS_URL
-Default: ``     
+Default: ``
 URL to check the health of the cluster using Cerberus (https://github.com/openshift-scale/cerberus).
 
 ## Suggested configurations
@@ -91,7 +83,6 @@ export ES_USER=
 export ES_PASSWORD=
 export ES_SERVER=
 export ES_PORT=
-export METADATA_COLLECTION=
 export COMPARE=false
 export BASELINE_CLOUD_NAME=
 export ES_USER_BASELINE=
@@ -99,11 +90,10 @@ export ES_PASSWORD_BASELINE
 export ES_SERVER_BASELINE=
 export ES_PORT_BASELINE=
 export BASELINE_UUID=
-export CERBERUS_URL=http://1.2.3.4:8080
-export SCALE=
+export VERSION=
+export TOVERSION=
 export POLL_INTERVAL=
-export POST_SLEEP=
 export TIMEOUT=
-export RUNS=
+export CERBERUS_URL=http://1.2.3.4:8080
 ```
 
