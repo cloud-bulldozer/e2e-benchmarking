@@ -25,3 +25,6 @@ export ES_PASSWORD=""
 
 # Metadata
 export METADATA_COLLECTION=true
+
+# kube-burner log streaming
+export LOG_STREAMING=true

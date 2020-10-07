@@ -26,6 +26,7 @@ All scripts can be tweaked with the following environment variables:
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
 | **METRICS_PROFILE**        | Metric profile that indicates what prometheus metrics kube-burner will collect | metrics.yaml |
 | **METADATA_COLLECTION**    | Enable metadata collection | true |
+| **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
 
 ### cluster-density variables
 

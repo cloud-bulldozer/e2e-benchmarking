@@ -21,6 +21,8 @@ export WORKLOAD_NODE=${WORKLOAD_NODE}
 export STEP_SIZE=${STEP_SIZE:-30s}
 export METRICS_PROFILE=${METRICS_PROFILE:-metrics.yaml}
 export UUID=$(uuidgen)
+export LOG_STREAMING=${LOG_STREAMING:-true}
+
 bold=$(tput bold)
 normal=$(tput sgr0)
 
@@ -30,7 +32,7 @@ if [[ ${WORKLOAD_NODE} ]]; then
 fi
 
 log() {
-  echo ${bold}$(date "+%d-%m-%YT%H:%m:%S") ${@}${normal}
+  echo ${bold}$(date "+%d-%m-%YT%H:%M:%S") ${@}${normal}
 }
 
 deploy_operator() {
@@ -58,16 +60,22 @@ wait_for_benchmark() {
   until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -q Running; do
     sleep 1
   done
-  log "Waiting for kube-burner job to finish"
+  log "Waiting for kube-burner job to start"
   suuid=$(oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.suuid}")
-  until oc get pod -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -q Running; do
+  until oc get pod -n my-ripsaw -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -q Running; do
     sleep 1
   done
-  oc logs -n my-ripsaw -f -l job-name=kube-burner-${suuid}
-  log "Kube-burner job completed, waiting for benchmark/kube-burner-${1}-${UUID} object to be updated"
+  if [[ ${LOG_STREAMING} == "true" ]]; then
+    oc logs -n my-ripsaw -f -l job-name=kube-burner-${suuid}
+  fi
+  log "Benchmark in progress, Waiting for benchmark/kube-burner-${1}-${UUID} object to be updated"
   until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
     sleep 1
   done
+  if [[ ${LOG_STREAMING} == "false" ]]; then
+    oc logs -n my-ripsaw -l job-name=kube-burner-${suuid}
+  fi
+  oc get pod -l job-name=kube-burner-${suuid} -n my-ripsaw
   status=$(oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}")
   log "Benchmark kube-burner-${1}-${UUID} finished with status: ${status}"
   if [[ ${status} == "Failed" ]]; then
