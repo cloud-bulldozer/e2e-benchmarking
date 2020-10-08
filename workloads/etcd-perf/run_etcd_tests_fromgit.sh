@@ -54,7 +54,7 @@ spec:
   test_user: ${cloud_name}-ci
   metadata:
     collection: true
-    sa: backpack-view
+    serviceaccount: backpack-view
     privileged: true
   workload:
     name: byowl

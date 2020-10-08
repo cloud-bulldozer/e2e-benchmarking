@@ -48,7 +48,7 @@ metadata:
 spec:
   metadata:
     collection: true
-    sa: backpack-view
+    serviceaccount: backpack-view
     privileged: true
   elasticsearch:
     server: $_es
