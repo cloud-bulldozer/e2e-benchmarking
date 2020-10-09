@@ -46,9 +46,9 @@ spec:
       # Max number of burst queries to perform
       burst: ${BURST}
       # Log level. Allowed, info and debug
-      log_level: info
+      log_level: ${LOG_LEVEL}
       # Delete old namespaces for the selected workload before starting benchmark
-      cleanup: false
+      cleanup: ${CLEANUP}
       # Verify object creation
       verify_objects: true
       # Exit w/o indexint if a verify error happened

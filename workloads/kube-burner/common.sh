@@ -22,6 +22,8 @@ export STEP_SIZE=${STEP_SIZE:-30s}
 export METRICS_PROFILE=${METRICS_PROFILE:-metrics.yaml}
 export UUID=$(uuidgen)
 export LOG_STREAMING=${LOG_STREAMING:-true}
+export CLEANUP=${CLEANUP:-true}
+export LOG_LEVEL=${LOG_LEVEL:-false}
 
 bold=$(tput bold)
 normal=$(tput sgr0)

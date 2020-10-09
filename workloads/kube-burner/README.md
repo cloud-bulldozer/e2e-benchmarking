@@ -27,6 +27,8 @@ All scripts can be tweaked with the following environment variables:
 | **METRICS_PROFILE**        | Metric profile that indicates what prometheus metrics kube-burner will collect | metrics.yaml |
 | **METADATA_COLLECTION**    | Enable metadata collection | true |
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
+| **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
+| **LOG_LEVEL**        | Kube-burner log level | info |
 
 ### cluster-density variables
 
@@ -45,7 +47,7 @@ Each iteration of this workload creates the following objects:
 
 ### kubelet-density and kubelet-density-heavy variables
 
-The `kubelet-density` and `kubelet-density-heavy` workloads support the following environent variables:
+The `kubelet-density` and `kubelet-density-heavy` workloads support the following environment variables:
 
 - **NODE_COUNT**: Number of worker nodes to deploy the pods on. During the workload nodes will be labeled with `kubelet-density=true`. Defaults to 4.
 - **PODS_PER_NODE**: Define the maximum number of pods to deploy on each labeled node. Defaults to 250

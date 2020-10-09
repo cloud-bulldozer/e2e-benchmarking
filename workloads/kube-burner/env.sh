@@ -11,6 +11,8 @@ export WORKLOAD_NODE=""
 export CERBERUS_URL=""
 export STEP_SIZE=30s
 export METRICS_PROFILE=metrics.yaml
+export CLEANUP=false
+export LOG_LEVEL=info
 
 # Cluster density specific
 export JOB_ITERATIONS=1000
