@@ -9,6 +9,7 @@ export PODS_PER_NODE=${PODS_PER_NODE:-250}
 . common.sh
 
 deploy_operator
+check_running_benchmarks
 label_nodes regular
 deploy_workload
 wait_for_benchmark ${WORKLOAD}

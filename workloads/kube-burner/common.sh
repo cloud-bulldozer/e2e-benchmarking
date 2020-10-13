@@ -23,7 +23,7 @@ export METRICS_PROFILE=${METRICS_PROFILE:-metrics.yaml}
 export UUID=$(uuidgen)
 export LOG_STREAMING=${LOG_STREAMING:-true}
 export CLEANUP=${CLEANUP:-true}
-export LOG_LEVEL=${LOG_LEVEL:-false}
+export LOG_LEVEL=${LOG_LEVEL:-info}
 
 bold=$(tput bold)
 normal=$(tput sgr0)
@@ -75,7 +75,7 @@ wait_for_benchmark() {
     sleep 1
   done
   if [[ ${LOG_STREAMING} == "false" ]]; then
-    oc logs -n my-ripsaw -l job-name=kube-burner-${suuid}
+    oc logs -n my-ripsaw --tail=-1 -l job-name=kube-burner-${suuid}
   fi
   oc get pod -l job-name=kube-burner-${suuid} -n my-ripsaw
   status=$(oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}")
@@ -123,4 +123,11 @@ unlabel_nodes() {
   for n in ${nodes}; do
     oc label ${n} kubelet-density-
   done
+}
+
+check_running_benchmarks() {
+  benchmarks=$(oc get benchmark -n my-ripsaw --ignore-not-found | wc -l)
+  if [[ ${benchmarks} -gt 0 ]]; then
+    echo ${benchmarks} | grep kube-burner | grep -qE "Failed|Completed" || log "Another kube-burner benchmark is running at the moment" && exit 1
+  fi
 }
