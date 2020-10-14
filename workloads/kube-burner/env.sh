@@ -1,17 +1,18 @@
 
 # Common
 export QPS=10
-export Burst=10
+export BURST=10
 export ES_SERVER=https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 export ES_PORT=443
 export ES_INDEX=ripsaw-kube-burner
 export PROM_URL=https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091
-export JOB_TIMEOUT=7200
+export JOB_TIMEOUT=14400
 export WORKLOAD_NODE=""
 export CERBERUS_URL=""
 export STEP_SIZE=30s
-export METRICS_PROFILE=metrics.yaml
+export METRICS_PROFILE=metrics-aggregated.yaml
 export CLEANUP=false
+export CLEANUP_WHEN_FINISH=false
 export LOG_LEVEL=info
 
 # Cluster density specific

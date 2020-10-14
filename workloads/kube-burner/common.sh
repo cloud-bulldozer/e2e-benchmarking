@@ -15,14 +15,15 @@ PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
 export PROM_TOKEN
 export WAIT_WHEN_FINISHED=true
 export WAIT_FOR=[]
-export JOB_TIMEOUT=${JOB_TIMEOUT:-7200}
+export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export WORKLOAD_NODE=${WORKLOAD_NODE}
 export STEP_SIZE=${STEP_SIZE:-30s}
-export METRICS_PROFILE=${METRICS_PROFILE:-metrics.yaml}
+export METRICS_PROFILE=${METRICS_PROFILE:-metrics-aggregated.yaml}
 export UUID=$(uuidgen)
 export LOG_STREAMING=${LOG_STREAMING:-true}
 export CLEANUP=${CLEANUP:-true}
+export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
 export LOG_LEVEL=${LOG_LEVEL:-info}
 
 bold=$(tput bold)
@@ -67,13 +68,14 @@ wait_for_benchmark() {
   until oc get pod -n my-ripsaw -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -q Running; do
     sleep 1
   done
-  if [[ ${LOG_STREAMING} == "true" ]]; then
-    oc logs -n my-ripsaw -f -l job-name=kube-burner-${suuid}
-  fi
-  log "Benchmark in progress, Waiting for benchmark/kube-burner-${1}-${UUID} object to be updated"
+  log "Benchmark in progress"
   until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
+    if [[ ${LOG_STREAMING} == "true" ]]; then
+      oc logs -n my-ripsaw -f -l job-name=kube-burner-${suuid}
+    fi
     sleep 1
   done
+  log "Benchmark finished, waiting for benchmark/kube-burner-${1}-${UUID} object to be updated"
   if [[ ${LOG_STREAMING} == "false" ]]; then
     oc logs -n my-ripsaw --tail=-1 -l job-name=kube-burner-${suuid}
   fi
@@ -126,8 +128,13 @@ unlabel_nodes() {
 }
 
 check_running_benchmarks() {
-  benchmarks=$(oc get benchmark -n my-ripsaw --ignore-not-found | wc -l)
-  if [[ ${benchmarks} -gt 0 ]]; then
-    echo ${benchmarks} | grep kube-burner | grep -qE "Failed|Completed" || log "Another kube-burner benchmark is running at the moment" && exit 1
+  benchmarks=$(oc get benchmark -n my-ripsaw --ignore-not-found | grep -vE "Failed|Complete" | wc -l)
+  if [[ ${benchmarks} -gt 1 ]]; then
+    log "Another kube-burner benchmark is running at the moment" && exit 1
   fi
 }
+
+cleanup() {
+  oc delete ns -l kube-burner-uuid=${UUID}
+}
+
