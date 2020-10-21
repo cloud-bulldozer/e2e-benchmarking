@@ -61,6 +61,9 @@ EOF
 
       scale_state=1
       for i in $(seq 1 $_timeout); do
+        current_workers=`oc get nodes -l node-role.kubernetes.io/worker= | grep -v NAME | wc -l`
+        echo "Current worker count: "${current_workers}
+        echo "Desired worker count: "${size}
         oc describe -n my-ripsaw benchmarks/scale | grep State | grep Complete
         if [ $? -eq 0 ]; then
           echo "Scaling Complete"
