@@ -16,8 +16,7 @@ All scripts can be tweaked with the following environment variables:
 |------------------|-------------------------------------|---------|
 | **QPS**              | Queries/sec                     | 20      |
 | **BURST**            | Burst queries                   | 20      |
-| **ES_SERVER**        | Elastic search endpoint         | https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com|
-| **ES_PORT**          | Elastic search port             | 443 |
+| **ES_SERVER**        | Elastic search endpoint         | https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
 | **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 17500 |
@@ -32,7 +31,7 @@ All scripts can be tweaked with the following environment variables:
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
 | **LOG_LEVEL**        | Kube-burner log level | info |
 
-**Note**: You can use basic authentication when indexing in ES using the notation `http(s)://[username]:[password]@[address]` in **ES_SERVER**.
+**Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
 ### Cluster-density variables
 

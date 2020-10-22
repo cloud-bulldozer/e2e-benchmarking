@@ -3,7 +3,6 @@ export PBENCH_SERVER=''
 export GSHEET_KEY=
 export GSHEET_KEY_LOCATION=''
 export ES_SERVER=''
-export ES_PORT=
 export EMAIL_ID_FOR_RESULTS_SHEET=''
 export COMPARE=false
 export BASELINE_ROUTER_UUID=''

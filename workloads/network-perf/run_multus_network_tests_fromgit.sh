@@ -34,8 +34,7 @@ metadata:
   namespace: my-ripsaw
 spec:
   elasticsearch:
-    server: $_es
-    port: $_es_port
+    url: $_es
   clustername: $cloud_name
   test_user: ${cloud_name}-multus-ci-${_pair}p
   metadata:
