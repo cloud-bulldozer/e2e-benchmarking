@@ -17,8 +17,6 @@ All scripts can be tweaked with the following environment variables:
 | **ES_SERVER**        | Elastic search endpoint         | https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com|
 | **ES_PORT**          | Elastic search port             | 443 |
 | **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
-| **ES_USER**          | Elastic search user             | "" |
-| **ES_PASSWORD**      | Elastic search password         | "" |
 | **PROM_URL**         | Elastic search endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
 | **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 14400 |
 | **WORKLOAD_NODE**    | Workload node name              | "" (don't pin kube-burner to any server)|
@@ -30,6 +28,8 @@ All scripts can be tweaked with the following environment variables:
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
 | **LOG_LEVEL**        | Kube-burner log level | info |
+
+**Note**: You can use basic authentication when indexing in ES using the notation `http(s)://[username]:[password]@[address]` in **ES_SERVER**.
 
 ### cluster-density variables
 
