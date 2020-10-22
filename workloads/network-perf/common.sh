@@ -25,12 +25,11 @@ check_cluster_health() {
   fi
 }
 
+
 export_defaults() {
   operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-  export _es=${ES_SERVER:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
-  export _es_port=${ES_PORT:=80}
-  _es_baseline=${ES_SERVER_BASELINE:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
-  _es_baseline_port=${ES_PORT_BASELINE:=80}
+  export _es=${ES_SERVER:-http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80}
+  _es_baseline=${ES_SERVER_BASELINE:-http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80}
   export _metadata_collection=${METADATA_COLLECTION:=true}
   COMPARE=${COMPARE:=false}
   gold_sdn=${GOLD_SDN:=openshiftsdn}
@@ -56,14 +55,6 @@ export_defaults() {
   else
     export hostnetwork=false
     export serviceip=false
-  fi
-
-  if [[ ${ES_SERVER} ]] && [[ ${ES_PORT} ]] && [[ ${ES_USER} ]] && [[ ${ES_PASSWORD} ]]; then
-    _es=${ES_USER}:${ES_PASSWORD}@${ES_SERVER}
-  fi
-
-  if [[ ${ES_SERVER_BASELINE} ]] && [[ ${ES_PORT_BASELINE} ]] && [[ ${ES_USER_BASELINE} ]] && [[ ${ES_PASSWORD_BASELINE} ]]; then
-    _es_baseline=${ES_USER_BASELINE}:${ES_PASSWORD_BASELINE}@${ES_SERVER_BASELINE}
   fi
 
   if [[ -z "$GSHEET_KEY_LOCATION" ]]; then

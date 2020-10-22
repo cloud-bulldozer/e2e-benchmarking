@@ -1,16 +1,7 @@
 #!/usr/bin/env bash
 set -x
 
-_es=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
-_es_port=80
-
-if [[ "${ES_SERVER}" ]]; then
-  _es=${ES_SERVER}
-fi
-
-if [[ "${ES_PORT}" ]]; then
-  _es_port=${ES_PORT}
-fi
+_es=${ES_SERVER:-http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80}
 
 if [ ! -z ${2} ]; then
   export KUBECONFIG=${2}
@@ -51,8 +42,7 @@ spec:
     serviceaccount: backpack-view
     privileged: true
   elasticsearch:
-    server: $_es
-    port: $_es_port
+    url: $_es
   clustername: $cloud_name
   test_user: ${cloud_name}-ci
   workload:
