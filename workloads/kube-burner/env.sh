@@ -22,10 +22,6 @@ export JOB_ITERATIONS=1000
 export NODE_COUNT=4
 export PODS_PER_NODE=250
 
-# ES password
-export ES_USER=""
-export ES_PASSWORD=""
-
 # Metadata
 export METADATA_COLLECTION=true
 
