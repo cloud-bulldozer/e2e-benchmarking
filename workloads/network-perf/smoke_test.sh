@@ -16,8 +16,7 @@ metadata:
   namespace: my-ripsaw
 spec:
   elasticsearch:
-    server: $_es
-    port: $_es_port
+    url: $_es
   clustername: $cloud_name
   test_user: ${cloud_name}-smoke-${pairs}p
   metadata:
