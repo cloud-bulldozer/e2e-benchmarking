@@ -17,6 +17,23 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+if [[ ${COMPARE} = "true" ]] && [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
+  platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
+  num_nodes=$(oc get nodes | grep worker | wc -l)
+  num_router=$(oc get pods -n openshift-ingress --no-headers | wc -l)
+  if [[ -z "GOLD_SDN" ]]; then
+    oc get projects | grep openshift-sdn
+    if [ $? -eq 0 ]; then
+      GOLD_SDN=openshiftsdn
+    else
+      GOLD_SDN=ovnkubernetes
+    fi
+  fi
+  oc get projects | grep openshift-sdn
+  gold_index=$(curl -X GET "${ES_GOLD}/openshift-gold-${platform}-results/_search" -H 'Content-Type: application/json' -d ' {"query": {"term": {"version": '\"${GOLD_OCP_VERSION}\"'}}}')
+  BASELINE_ROUTER_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"$num_router\"'."num_nodes".'\"$num_nodes\"'."uuid"')
+fi
+
 if [[ ${COMPARE} == "true" ]]; then
   echo $BASELINE_CLOUD_NAME,$HTTP_TEST_SUFFIX > uuid.txt
 else

@@ -17,19 +17,19 @@ $ ./run_<test-name>_network_test_fromgit.sh
 ## Environment variables
 
 ### ES_USER
-Default: `` 
+Default: ``    
 Username for elasticsearch instance
 
 ### ES_PASSWORD
-Default: `` 
+Default: ``     
 Password for elasticsearch instance
 
 ### ES_SERVER
-Default: `milton.aws.com`  
+Default: `milton.aws.com`    
 Elasticsearch server to index the results of the current run
 
 ### ES_PORT
-Default: ``  
+Default: ``    
 Port number for elasticsearch server
 
 ### METADATA_COLLECTION
@@ -37,15 +37,32 @@ Default: `true`
 Enable/Disable collection of metadata
 
 ### COMPARE
-Default: `false`   
+Default: `false`        
 Enable/Disable the ability to compare two uperf runs. If set to `true`, the next set of environment variables pertaining to the type of test are required
 
+### COMPARE_WITH_GOLD
+Default: ``     
+If COMPARE is set to true and COMPARE_WITH_GOLD is set to true then the current run will be compared against our gold-index
+Note: Make sure that elasticsearch baseline uuid (example: BASELINE_POD_1P_UUID, BASELINE_POD_2P_UUID ...) vars are not set or else it will override the uuids
+
+### GOLD_SDN
+Default: `openshiftsdn`   
+Compares the current run with gold-index with the sdn type of GOLD_SDN. Options: `openshiftsdn` and `ovnkubernetes`
+
+### GOLD_OCP_VERSION
+Default: ``     
+The openshift version you want to compare the current run to
+
+### ES_GOLD
+Default: ``     
+The ES server that houses gold-index. Format `user:pass@<es_server>:<es_port>
+
 ### ES_USER_BASELINE
-Default: `` 
+Default: ``         
 Username for elasticsearch instance
 
 ### ES_PASSWORD_BASELINE
-Default: ``
+Default: ``     
 Password for elasticsearch instance
 
 ### BASELINE_CLOUD_NAME
@@ -122,9 +139,13 @@ export ES_SERVER=
 export ES_PORT=
 export METADATA_COLLECTION=
 export COMPARE=false
+export COMPARE_WITH_GOLD=
+export GOLD_SDN=
+export GOLD_OCP_VERSION=
+export ES_GOLD=
 export BASELINE_CLOUD_NAME=
 export ES_USER_BASELINE=
-export ES_PASSWORD_BASELINE
+export ES_PASSWORD_BASELINE=
 export ES_SERVER_BASELINE=
 export ES_PORT_BASELINE=
 export BASELINE_HOSTNET_UUID=

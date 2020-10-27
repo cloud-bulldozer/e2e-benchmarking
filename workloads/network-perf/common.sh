@@ -18,6 +18,7 @@ _es_baseline=${ES_SERVER_BASELINE:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.
 _es_baseline_port=${ES_PORT_BASELINE:=80}
 _metadata_collection=${METADATA_COLLECTION:=true}
 COMPARE=${COMPARE:=false}
+gold_sdn=${GOLD_SDN:=openshiftsdn}
 throughput_tolerance=${THROUGHPUT_TOLERANCE:=5}
 latency_tolerance=${LATENCY_TOLERANCE:=5}
 client_server_pairs=(1 2 4)
@@ -34,13 +35,25 @@ if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
    export GSHEET_KEY_LOCATION=$HOME/.secrets/gsheet_key.json
 fi
 
-if [[ ${COMPARE} != "true" ]]; then
-  export COMPARE=false
-  unset ES_SERVER_BASELINE ES_PORT_BASELINE BASELINE_HOSTNET_UUID BASELINE_MULTUS_UUID \
-        BASELINE_POD_1P_UUID BASELINE_POD_2P_UUID BASELINE_POD_4P_UUID \
-        BASELINE_SVC_1P_UUID BASELINE_SVC_2P_UUID BASELINE_SVC_4P_UUID \
-        BASELINE_CLOUD_NAME
+if [[ ${COMPARE} = "true" ]] && [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
+  platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
+  gold_index=$(curl -X GET   "${ES_GOLD}/openshift-gold-${platform}-results/_search" -H 'Content-Type: application/json' -d ' {"query": {"term": {"version": '\"${GOLD_OCP_VERSION}\"'}}}')
+  BASELINE_HOSTNET_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."hostnetwork"."num_pairs"."1"."uuid"')
+  BASELINE_POD_1P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."podnetwork"."num_pairs"."1"."uuid"')
+  BASELINE_POD_2P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."podnetwork"."num_pairs"."2"."uuid"')
+  BASELINE_POD_4P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."podnetwork"."num_pairs"."4"."uuid"')
+  BASELINE_SVC_1P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."serviceip"."num_pairs"."1"."uuid"')
+  BASELINE_SVC_2P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."serviceip"."num_pairs"."2"."uuid"')
+  BASELINE_SVC_4P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."serviceip"."num_pairs"."4"."uuid"')
 fi
+
+_baseline_hostnet_uuid=${BASELINE_HOSTNET_UUID}
+_baseline_pod_1p_uuid=${BASELINE_POD_1P_UUID}
+_baseline_pod_2p_uuid=${BASELINE_POD_2P_UUID}
+_baseline_pod_4p_uuid=${BASELINE_POD_4P_UUID}
+_baseline_svc_1p_uuid=${BASELINE_SVC_1P_UUID}
+_baseline_svc_2p_uuid=${BASELINE_SVC_2P_UUID}
+_baseline_svc_4p_uuid=${BASELINE_SVC_4P_UUID}
 
 if [ ! -z ${2} ]; then
   export KUBECONFIG=${2}
