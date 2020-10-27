@@ -5,14 +5,6 @@ source ./common.sh
 
 pairs=1
 
-if [[ ${COMPARE} == "true" ]]; then
-  _baseline_multus_uuid=
-fi 
-
-if [[ ${BASELINE_MULTUS_UUID} ]]; then
-  _baseline_multus_uuid=${BASELINE_MULTUS_UUID}
-fi
-
 MULTUS=false
 if [[ ${MULTUS_CLIENT_NAD} ]]; then
   MULTUS=true

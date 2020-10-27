@@ -31,6 +31,23 @@ Port number for elasticsearch server
 Default: `false`    
 Enable/Disable the ability to compare two uperf runs. If set to `true`, the next set of environment variables pertaining to the type of test are required
 
+### COMPARE_WITH_GOLD
+Default: ``     
+If COMPARE is set to true and COMPARE_WITH_GOLD is set to true then the current run will be compared against our gold-index
+Note: Make sure that elasticsearch baseline uuid (example: BASELINE_ROUTER_UUID) vars are not set or else it will override the uuids
+
+### GOLD_SDN
+Default: `you current cluster's sdn`   
+Compares the current run with gold-index with the sdn type of GOLD_SDN. Options: `openshiftsdn` and `ovnkubernetes`
+
+### GOLD_OCP_VERSION
+Default: ``     
+The openshift version you want to compare the current run to
+
+### ES_GOLD
+Default: ``     
+The ES server that houses gold-index. Format `user:pass@<es_server>:<es_port>
+
 ### ES_USER_BASELINE
 Default: ``             
 Username for elasticsearch instance

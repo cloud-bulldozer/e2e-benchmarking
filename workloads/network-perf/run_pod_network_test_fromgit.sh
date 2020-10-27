@@ -3,24 +3,6 @@ set -x
 
 source ./common.sh
 
-if [[ ${COMPARE} == "true" ]]; then
-  _baseline_pod_1p_uuid=
-  _baseline_pod_2p_uuid=
-  _baseline_pod_4p_uuid=
-fi
-
-if [[ ${BASELINE_POD_1P_UUID} ]]; then
-  _baseline_pod_1p_uuid=${BASELINE_POD_1P_UUID}
-fi
-
-if [[ ${BASELINE_POD_2P_UUID} ]]; then
-  _baseline_pod_2p_uuid=${BASELINE_POD_2P_UUID}
-fi
-
-if [[ ${BASELINE_POD_4P_UUID} ]]; then
-  _baseline_pod_4p_uuid=${BASELINE_POD_4P_UUID}
-fi
-
 oc -n my-ripsaw delete benchmark/uperf-benchmark
 
 for pairs in "${client_server_pairs[@]}"

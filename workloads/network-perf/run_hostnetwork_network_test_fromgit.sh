@@ -5,14 +5,6 @@ source ./common.sh
 
 pairs=(1)
 
-if [[ ${COMPARE} == "true" ]]; then
-  _baseline_hostnet_uuid=
-fi
-
-if [[ ${BASELINE_HOSTNET_UUID} ]]; then
-  _baseline_hostnet_uuid=${BASELINE_HOSTNET_UUID}
-fi
-
 oc -n my-ripsaw delete benchmark/uperf-benchmark
 
 cat << EOF | oc create -f -
