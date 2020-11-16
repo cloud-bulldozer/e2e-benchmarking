@@ -90,7 +90,7 @@ else
   echo ${compare_uperf_uuid} >> uuid.txt
 fi
 
-./run_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
+../run_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
 pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}p.yaml" )
 
 done
