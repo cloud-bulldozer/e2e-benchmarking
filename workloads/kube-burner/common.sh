@@ -69,7 +69,7 @@ wait_for_benchmark() {
   log "Benchmark in progress"
   until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
     if [[ ${LOG_STREAMING} == "true" ]]; then
-      oc logs -n my-ripsaw -f -l job-name=kube-burner-${suuid}
+      oc logs -n my-ripsaw -f -l job-name=kube-burner-${suuid} --ignore-errors=true
       sleep 20
     fi
     sleep 1

@@ -51,7 +51,7 @@ spec:
       cleanup: ${CLEANUP}
       # Verify object creation
       verify_objects: true
-      # Exit w/o indexint if a verify error happened
+      # Exit w/o indexing if a verify error happened
       error_on_verify: true
       # kube-burner pod tolerations
       tolerations: ${TOLERATIONS}
