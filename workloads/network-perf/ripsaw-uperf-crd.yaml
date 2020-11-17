@@ -1,0 +1,43 @@
+---
+
+apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
+kind: Benchmark
+metadata:
+  name: uperf-benchmark-${WORKLOAD}-network
+  namespace: my-ripsaw
+spec:
+  elasticsearch:
+    server: $_es
+    port: $_es_port
+  clustername: $cloud_name
+  test_user: ${cloud_name}-${WORKLOAD}-ci-${pairs}p
+  metadata:
+    collection: ${_metadata_collection}
+    serviceaccount: backpack-view
+    privileged: true
+  cerberus_url: "$CERBERUS_URL"
+  workload:
+    name: uperf
+    args:
+      hostnetwork: ${hostnetwork}
+      serviceip: ${serviceip}
+      pin: $pin
+      pin_server: "$server"
+      pin_client: "$client"
+      multus:
+        enabled: false
+      samples: 3
+      pair: ${pairs}
+      nthrs:
+        - 1
+      protos:
+        - tcp
+        - udp
+      test_types:
+        - stream
+        - rr
+      sizes:
+        - 64
+        - 1024
+        - 16384
+      runtime: 60

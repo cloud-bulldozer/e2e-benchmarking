@@ -33,6 +33,7 @@ if [[ ${!#} == "mb" ]]; then
 else
   touchstone_compare uperf elasticsearch ripsaw -url $_es:$_es_port $_es_baseline:$_es_baseline_port -u $compare_uuid $base_uuid -o yaml | tee compare_output_${!#}p.yaml
 fi
+set +x
 
 if [[ $? -ne 0 ]] ; then
   echo "Unable to execute compare - Failed to run touchstone"
