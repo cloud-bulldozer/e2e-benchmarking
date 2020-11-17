@@ -3,6 +3,7 @@
 set -e
 
 export WORKLOAD=cluster-density
+export METRICS_PROFILE=${METRICS_PROFILE:-metrics-aggregated.yaml}
 export JOB_ITERATIONS=${JOB_ITERATIONS:-1000}
 
 . common.sh

@@ -17,7 +17,6 @@ export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export WORKLOAD_NODE=${WORKLOAD_NODE}
 export STEP_SIZE=${STEP_SIZE:-30s}
-export METRICS_PROFILE=${METRICS_PROFILE:-metrics-aggregated.yaml}
 export UUID=$(uuidgen)
 export LOG_STREAMING=${LOG_STREAMING:-true}
 export CLEANUP=${CLEANUP:-true}
@@ -69,7 +68,7 @@ wait_for_benchmark() {
   log "Benchmark in progress"
   until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
     if [[ ${LOG_STREAMING} == "true" ]]; then
-      oc logs -n my-ripsaw -f -l job-name=kube-burner-${suuid} --ignore-errors=true
+      oc logs -n my-ripsaw -f -l job-name=kube-burner-${suuid} --ignore-errors=true || true
       sleep 20
     fi
     sleep 1
