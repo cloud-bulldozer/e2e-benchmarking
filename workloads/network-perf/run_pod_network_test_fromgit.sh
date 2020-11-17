@@ -56,7 +56,7 @@ sleep 30
 
 uperf_state=1
 for i in {1..240}; do
-  if [ "$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-pod-network -n my-ripsaw -o jsonpath='{.items[0].status.state}')" == "Error" ]; then
+  if [ "$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-pod-network -n my-ripsaw -o jsonpath='{.status.state}')" == "Error" ]; then
     echo "Cerberus status is False, Cluster is unhealthy"
     exit 1
   fi
@@ -74,7 +74,7 @@ if [ "$uperf_state" == "1" ] ; then
   exit 1
 fi
 
-compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-pod-network -n my-ripsaw -o jsonpath='{.items[0].status.uuid}')
+compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-pod-network -n my-ripsaw -o jsonpath='{.status.uuid}')
 if [ "${pairs}" == "1" ] ; then
   baseline_uperf_uuid=${_baseline_pod_1p_uuid}
 elif [ "${pairs}" == "2" ] ; then

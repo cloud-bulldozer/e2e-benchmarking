@@ -3,7 +3,7 @@ set -x
 
 source ./common.sh
 
-oc -n my-ripsaw delete benchmark/uperf-benchmark
+oc -n my-ripsaw delete benchmark/uperf-benchmark-pod-network
 
 for pairs in "${client_server_pairs[@]}"
 do
@@ -12,7 +12,7 @@ cat << EOF | oc create -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
-  name: uperf-benchmark
+  name: uperf-benchmark-pod-network
   namespace: my-ripsaw
 spec:
   elasticsearch:
@@ -52,11 +52,11 @@ sleep 30
 
 uperf_state=1
 for i in {1..240}; do
-  if [ "$(oc get benchmarks.ripsaw.cloudbulldozer.io -n my-ripsaw -o jsonpath='{.items[0].status.state}')" == "Error" ]; then
+  if [ "$(oc get benchmarks.ripsaw.cloudbulldozer.io uperf-benchmark-pod-network -n my-ripsaw -o jsonpath='{.status.state}')" == "Error" ]; then
     echo "Cerberus status is False, Cluster is unhealthy"
     exit 1
   fi
-  oc describe -n my-ripsaw benchmarks/uperf-benchmark | grep State | grep Complete
+  oc describe -n my-ripsaw benchmarks/uperf-benchmark-pod-network | grep State | grep Complete
   if [ $? -eq 0 ]; then
           echo "UPerf Workload done"
           uperf_state=$?
@@ -70,7 +70,7 @@ if [ "$uperf_state" == "1" ] ; then
   exit 1
 fi
 
-compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io -n my-ripsaw -o jsonpath='{.items[0].status.uuid}')
+compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io uperf-benchmark-pod-network -n my-ripsaw -o jsonpath='{.status.uuid}')
 if [ "${pairs}" == "1" ] ; then
   baseline_uperf_uuid=${_baseline_pod_1p_uuid}
 elif [ "${pairs}" == "2" ] ; then
@@ -88,7 +88,7 @@ fi
 ../run_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
 pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}p.yaml" )
 
-oc -n my-ripsaw delete benchmark/uperf-benchmark
+oc -n my-ripsaw delete benchmark/uperf-benchmark-pod-network
 
 done
 
