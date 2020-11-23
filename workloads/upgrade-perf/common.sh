@@ -70,7 +70,7 @@ echo "Installing snafu in python virtual environment"
 
 rm -rf /tmp/snafu upgrade
 
-git clone git clone https://github.com/cloud-bulldozer/benchmark-wrapper.git /tmp/snafu
+git clone https://github.com/cloud-bulldozer/benchmark-wrapper.git /tmp/snafu
 
 python3 -m venv upgrade
 source upgrade/bin/activate
