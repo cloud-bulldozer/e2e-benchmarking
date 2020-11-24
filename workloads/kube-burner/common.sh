@@ -1,7 +1,7 @@
 export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 export CERBERUS_URL=${CERBERUS_URL}
-export QPS=${QPS:-10}
-export BURST=${BURST:-10}
+export QPS=${QPS:-20}
+export BURST=${BURST:-20}
 export ES_SERVER=${ES_SERVER:-https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
 export ES_PORT=${ES_PORT:-443}
 export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
@@ -83,6 +83,7 @@ wait_for_benchmark() {
   if [[ ${status} == "Failed" ]]; then
     rc=1
   fi
+  oc get benchmark -n my-ripsaw
 }
 
 label_nodes() {
@@ -126,9 +127,10 @@ unlabel_nodes() {
 }
 
 check_running_benchmarks() {
-  benchmarks=$(oc get benchmark -n my-ripsaw --ignore-not-found | grep -vE "Failed|Complete" | wc -l)
+  benchmarks=$(oc get benchmark -n my-ripsaw | awk '{ if ($2 == "kube-burner")print}'| grep -vE "Failed|Complete" | wc -l)
   if [[ ${benchmarks} -gt 1 ]]; then
     log "Another kube-burner benchmark is running at the moment" && exit 1
+    oc get benchmark -n my-ripsaw
   fi
 }
 

@@ -1,7 +1,7 @@
 
 # Common
-export QPS=10
-export BURST=10
+export QPS=20
+export BURST=20
 export ES_SERVER=https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
 export ES_PORT=443
 export ES_INDEX=ripsaw-kube-burner
