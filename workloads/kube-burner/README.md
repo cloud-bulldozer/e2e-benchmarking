@@ -12,8 +12,8 @@ All scripts can be tweaked with the following environment variables:
 
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
-| **QPS**              | Queries/sec                     | 10      |
-| **BURST**            | Burst queries                   | 10      |
+| **QPS**              | Queries/sec                     | 20      |
+| **BURST**            | Burst queries                   | 20      |
 | **ES_SERVER**        | Elastic search endpoint         | https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com|
 | **ES_PORT**          | Elastic search port             | 443 |
 | **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
