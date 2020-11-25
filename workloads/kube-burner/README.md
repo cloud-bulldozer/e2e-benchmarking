@@ -44,7 +44,8 @@ Each iteration creates the following objects:
 - 2 deployments with 1 pod replicas (sleep) mounting two secrets. deployment-1pod
 - 3 services, one pointing to deployment-2pod, and other two pointing to deployment-1pod
 - 3 route. 1 pointing to the service deployment-2pod and other two pointing to deployment-1pod
-- 20 secrets
+- 10 secrets. 2 of them mounted by the previous deployments.
+- 10 configMaps. 2 of them mounted by the previous deployments.
 
 
 ### kubelet-density and kubelet-density-heavy variables
