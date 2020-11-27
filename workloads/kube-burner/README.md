@@ -38,7 +38,7 @@ The `cluster-density` workload supports the environment variable **JOB_ITERATION
 Each iteration creates the following objects:
 
 - 12 imagestreams
-- 3 buidconfigs
+- 3 buildconfigs
 - 6 builds
 - 1 deployment with 2 pod replicas (sleep) mounting two secrets each. deployment-2pod
 - 2 deployments with 1 pod replicas (sleep) mounting two secrets. deployment-1pod
