@@ -23,16 +23,13 @@ export CLEANUP=${CLEANUP:-true}
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
 export LOG_LEVEL=${LOG_LEVEL:-info}
 
-bold=$(tput bold)
-normal=$(tput sgr0)
-
 if [[ ${WORKLOAD_NODE} ]]; then
   PIN_SERVER=$(oc get node ${WORKLOAD_NODE} -o go-template --template='{{index .metadata.labels "kubernetes.io/hostname" }}')
   export PIN_SERVER
 fi
 
 log() {
-  echo ${bold}$(date "+%d-%m-%YT%H:%M:%S") ${@}${normal}
+  echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
 }
 
 deploy_operator() {
