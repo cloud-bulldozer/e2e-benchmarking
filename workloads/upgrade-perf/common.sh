@@ -76,9 +76,9 @@ python3 -m venv upgrade
 source upgrade/bin/activate
 pip3 install -e /tmp/snafu
 
-es_index="openshift-upgrade-timings"
-es=${_es}
-es_port=${_es_port}
+export es_index="openshift-upgrade-timings"
+export es=${_es}
+export es_port=${_es_port}
 _init_version=`oc get clusterversions.config.openshift.io | grep version | awk '{print $2}'`
 
 echo "Starting upgrade test for:"
