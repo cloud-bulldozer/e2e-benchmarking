@@ -21,6 +21,7 @@ spec:
       run_id: "$RUN_ID"
       hostnetwork: ${hostnetwork}
       serviceip: ${serviceip}
+      networkpolicy: ${networkpolicy}
       pin: $pin
       pin_server: "$server"
       pin_client: "$client"
