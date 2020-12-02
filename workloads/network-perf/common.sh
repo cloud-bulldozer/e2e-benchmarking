@@ -38,13 +38,15 @@ export_defaults() {
   latency_tolerance=${LATENCY_TOLERANCE:=5}
   export client_server_pairs=(1 2 4)
   export pin=false
+  export networkpolicy=${NETWORK_POLICY:=false}
+
 
   if [[ $(oc get nodes | grep worker | wc -l) -gt 1 ]]; then
     export server=$(oc get nodes -l node-role.kubernetes.io/worker -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n 1)
     export client=$(oc get nodes -l node-role.kubernetes.io/worker -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n 1)
     export pin=true
   fi
-
+	
   if [ ${WORKLOAD} == "hostnet" ]
   then
     export hostnetwork=true
