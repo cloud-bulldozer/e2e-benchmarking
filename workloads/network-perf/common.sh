@@ -113,6 +113,7 @@ deploy_operator() {
   oc apply -f /tmp/benchmark-operator/deploy
   oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
   oc apply -f /tmp/benchmark-operator/resources/operator.yaml
+  oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
   log "Waiting for benchmark-operator to be available"
   oc wait --for=condition=available -n my-ripsaw deployment/benchmark-operator --timeout=280s
   oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
