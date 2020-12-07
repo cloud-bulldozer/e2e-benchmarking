@@ -19,6 +19,7 @@ spec:
   workload:
     name: uperf
     args:
+      run_id: "$RUN_ID"
       hostnetwork: ${hostnetwork}
       serviceip: ${serviceip}
       pin: $pin
