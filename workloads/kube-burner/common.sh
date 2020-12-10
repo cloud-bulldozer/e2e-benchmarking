@@ -14,6 +14,7 @@ export PROM_TOKEN
 export WAIT_WHEN_FINISHED=true
 export WAIT_FOR=[]
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
+export POD_READY_TIMEOUT=${POD_READY_TIMEOUT:-1200}
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export WORKLOAD_NODE=${WORKLOAD_NODE}
 export STEP_SIZE=${STEP_SIZE:-30s}
@@ -54,13 +55,22 @@ deploy_workload() {
 wait_for_benchmark() {
   rc=0
   log "Waiting for kube-burner job to be created"
+  local timeout=$(date -d "+${POD_READY_TIMEOUT} seconds" +%s)
   until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -q Running; do
     sleep 1
+    if [[ $(date +%s) -gt ${timeout} ]]; then
+      log "Timeout waiting for job to be created"
+      exit 1
+    fi
   done
   log "Waiting for kube-burner job to start"
   suuid=$(oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.suuid}")
   until oc get pod -n my-ripsaw -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -q Running; do
     sleep 1
+    if [[ $(date +%s) -gt ${timeout} ]]; then
+      log "Timeout waiting for job to be running"
+      exit 1
+    fi
   done
   log "Benchmark in progress"
   until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
