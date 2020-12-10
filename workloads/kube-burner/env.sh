@@ -14,6 +14,7 @@ export METRICS_PROFILE=
 export CLEANUP=false
 export CLEANUP_WHEN_FINISH=false
 export LOG_LEVEL=info
+export POD_READY_TIMEOUT=1200
 
 # Cluster density specific
 export JOB_ITERATIONS=1000
