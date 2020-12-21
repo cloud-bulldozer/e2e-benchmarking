@@ -10,7 +10,6 @@ deploy_workload
 wait_for_benchmark
 assign_uuid
 run_benchmark_comparison
-delete_benchmark
 done
 print_uuid
 generate_csv
