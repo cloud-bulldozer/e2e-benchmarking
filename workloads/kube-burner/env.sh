@@ -28,3 +28,8 @@ export METADATA_COLLECTION=true
 
 # kube-burner log streaming
 export LOG_STREAMING=true
+
+# Remote configuration
+export REMOTE_CONFIG=""
+export REMOTE_METRIC_PROFILE=""
+export REMOTE_ALERT_PROFILE=""

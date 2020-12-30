@@ -61,6 +61,12 @@ spec:
       step: ${STEP_SIZE}
       # kube-burner metrics profile
       metrics_profile: ${METRICS_PROFILE}
+      # Remote configuration file
+      remote_config: ${REMOTE_CONFIG}
+      # Remote metric profile
+      remote_metrics_profile: ${REMOTE_METRIC_PROFILE}
+      # Remote alert profile
+      remote_alert_profile: ${REMOTE_ALERT_PROFILE}
       # Pod nodeSelector
       node_selector:
         key: ${NODE_SELECTOR_KEY}
