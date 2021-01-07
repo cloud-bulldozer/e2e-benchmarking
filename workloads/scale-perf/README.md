@@ -33,7 +33,7 @@ Default: 3
 How many times to run the scale up. It will scale down to the original size before running the next itteration
 
 ### ES_SERVER
-Default: `http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80`
+Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
 Elasticsearch server to index the results of the current run. Use the notation `http(s)://[username]:[password]@[address]:[port]` in case you want to use an authenticated ES instance.
 
 ### METADATA_COLLECTION
@@ -49,7 +49,7 @@ Default: ``
 Name you would like to give your baseline cloud. It will appear as a header in the CSV file
 
 ### ES_SERVER_BASELINE 
-Default: `http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80`
+Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
 Elasticsearch server used used by the baseline run 
 
 ### BASELINE_UUID
