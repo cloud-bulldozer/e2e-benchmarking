@@ -7,7 +7,9 @@ export pairs=1
 deploy_workload
 wait_for_benchmark
 assign_uuid
-run_benchmark_comparison
 delete_benchmark
+if [[ ${COMPARE} == "true" ]]; then
+  run_benchmark_comparison
+  generate_csv
+fi
 print_uuid
-generate_csv
