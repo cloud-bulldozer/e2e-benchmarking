@@ -28,8 +28,8 @@ check_cluster_health() {
 
 export_defaults() {
   operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-  export _es=${ES_SERVER:-http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80}
-  _es_baseline=${ES_SERVER_BASELINE:-http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80}
+  export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+  _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
   export _metadata_collection=${METADATA_COLLECTION:=true}
   COMPARE=${COMPARE:=false}
   gold_sdn=${GOLD_SDN:=openshiftsdn}

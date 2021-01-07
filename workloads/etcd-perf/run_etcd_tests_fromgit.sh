@@ -2,7 +2,7 @@
 set -x
 
 trap "rm -rf /tmp/ripsaw" EXIT
-_es=${ES_SERVER:-http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80}
+_es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 latency_th=${LATENCY_TH:-10000000}
 index=ripsaw-fio-results
 curl_body='{"_source": false, "aggs": {"max-fsync-lat-99th": {"max": {"field": "fio.sync.lat_ns.percentile.99.000000"}}}}'
