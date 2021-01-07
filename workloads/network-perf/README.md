@@ -17,7 +17,7 @@ $ ./run_<test-name>_network_test_fromgit.sh
 ## Environment variables
 
 ### ES_SERVER
-Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
+Default: `http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80`
 Elasticsearch server to index the results of the current run. Use the notation `http(s)://[username]:[password]@[address]:[port]` in case you want to use an authenticated ES instance.
 
 ### METADATA_COLLECTION
@@ -50,7 +50,7 @@ Default: ``
 Name you would like to give your baseline cloud. It will appear as a header in the CSV file
 
 ### ES_SERVER_BASELINE 
-Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
+Default: `http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80`
 Elasticsearch server used used by the baseline run. Format `http(s)://[username]:[password]@[address]:[port]`
 
 ### BASELINE_HOSTNET_UUID

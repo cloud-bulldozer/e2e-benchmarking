@@ -12,7 +12,7 @@ $ ./run_router_test.sh
 ## Environment variables
 
 ### ES_SERVER
-Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
+Default: `http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80`
 Elasticsearch server to index the results of the current run. Use the notation `http(s)://[username]:[password]@[address]:[port]` in case you want to use an authenticated ES instance.
 
 ### COMPARE
@@ -37,7 +37,7 @@ Default: ``
 The ES server that houses gold-index. Format `user:pass@<es_server>:<es_port>
 
 ### ES_SERVER_BASELINE 
-Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
+Default: `http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80`
 Elasticsearch server used used by the baseline run. Use the notation `http(s)://[username]:[password]@[address]:[port]` in case you want to use an authenticated ES instance.
 
 ### BASELINE_ROUTER_UUID
