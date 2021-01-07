@@ -11,9 +11,21 @@ $ ./run_router_test.sh
 
 ## Environment variables
 
+### ES_USER
+Default: ``     
+Username for elasticsearch instance
+
+### ES_PASSWORD
+Default: ``             
+Password for elasticsearch instance
+
 ### ES_SERVER
-Default: `http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80`
-Elasticsearch server to index the results of the current run. Use the notation `http(s)://[username]:[password]@[address]:[port]` in case you want to use an authenticated ES instance.
+Default: `milton.aws.com`                
+Elasticsearch server to index the results of the current run
+
+### ES_PORT
+Default: ``              
+Port number for elasticsearch server
 
 ### COMPARE
 Default: `false`    
@@ -36,9 +48,21 @@ The openshift version you want to compare the current run to
 Default: ``     
 The ES server that houses gold-index. Format `user:pass@<es_server>:<es_port>
 
+### ES_USER_BASELINE
+Default: ``             
+Username for elasticsearch instance
+
+### ES_PASSWORD_BASELINE
+Default: ``               
+Password for elasticsearch instance
+
 ### ES_SERVER_BASELINE 
-Default: `http://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:80`
-Elasticsearch server used used by the baseline run. Use the notation `http(s)://[username]:[password]@[address]:[port]` in case you want to use an authenticated ES instance.
+Default: ``    
+Elasticsearch server used used by the baseline run 
+
+### ES_PORT_BASELINE
+Default: `80`   
+Port number for the elasticsearch server used by the baseline run
 
 ### BASELINE_ROUTER_UUID
 Default: ``    

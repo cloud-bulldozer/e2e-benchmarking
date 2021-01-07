@@ -9,14 +9,15 @@ spec:
   uuid: ${UUID}
   # Metadata information
   elasticsearch:
-    url: ${ES_SERVER}
+    server: ${ES_SERVER}
+    port: ${ES_PORT}
   metadata:
     collection: ${METADATA_COLLECTION}
     privileged: true
   cerberus_url: "${CERBERUS_URL}"
   prometheus:
-    # Elastic search instance with full URL format. http://elastic.apps.org:9200
-    es_url: ${ES_SERVER}
+    # Elastic search instance with full URL format. https://elastic.apps.org:9200
+    es_server: ${ES_SERVER}:${ES_PORT}
     # Prometheus bearer token
     prom_token: ${PROM_TOKEN}
     # Prometheus URL with full URL format. https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091
