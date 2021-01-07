@@ -29,6 +29,7 @@ export_defaults() {
   operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
   export _es=${ES_SERVER:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
   export _es_port=${ES_PORT:=80}
+  export RUN_ID=${RUN_ID:=NA}
   _es_baseline=${ES_SERVER_BASELINE:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
   _es_baseline_port=${ES_PORT_BASELINE:=80}
   export _metadata_collection=${METADATA_COLLECTION:=true}
