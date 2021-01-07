@@ -32,7 +32,8 @@ metadata:
 spec:
   uuid: $_uuid
   elasticsearch:
-    url: $_es
+    server: $_es
+    port: $_es_port
   clustername: $cloud_name
   metadata:
     collection: ${_metadata_collection}
