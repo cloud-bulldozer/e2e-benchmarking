@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -x
 
-trap "rm -rf /tmp/ripsaw" EXIT
+trap "rm -rf /tmp/benchmark-operator" EXIT
 _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 latency_th=${LATENCY_TH:-10000000}
 index=ripsaw-fio-results
@@ -18,16 +18,16 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
-rm -rf /tmp/ripsaw
+rm -rf /tmp/benchmark-operator
 
 oc create ns my-ripsaw
 oc create ns backpack
 
-git clone http://github.com/cloud-bulldozer/ripsaw /tmp/ripsaw --depth 1
-oc apply -f /tmp/ripsaw/deploy
-oc apply -f /tmp/ripsaw/resources/backpack_role.yaml
-oc apply -f /tmp/ripsaw/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-oc apply -f /tmp/ripsaw/resources/operator.yaml
+git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator --depth 1
+oc apply -f /tmp/benchmark-operator/deploy
+oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
+oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
+oc apply -f /tmp/benchmark-operator/resources/operator.yaml
 
 oc adm policy add-scc-to-user -n my-ripsaw privileged -z benchmark-operator
 oc adm policy add-scc-to-user -n my-ripsaw privileged -z backpack-view

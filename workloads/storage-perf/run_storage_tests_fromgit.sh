@@ -14,15 +14,15 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
-rm -rf /tmp/ripsaw
+rm -rf /tmp/benchmark-operator
 
 oc create ns my-ripsaw
 
-git clone http://github.com/cloud-bulldozer/ripsaw /tmp/ripsaw
-oc apply -f /tmp/ripsaw/deploy
-oc apply -f /tmp/ripsaw/resources/backpack_role.yaml
-oc apply -f /tmp/ripsaw/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-oc apply -f /tmp/ripsaw/resources/operator.yaml
+git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator
+oc apply -f /tmp/benchmark-operator/deploy
+oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
+oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
+oc apply -f /tmp/benchmark-operator/resources/operator.yaml
 
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
@@ -87,6 +87,6 @@ if [ "$fio_state" == "1" ] ; then
   exit 1
 fi
 
-rm -rf /tmp/ripsaw
+rm -rf /tmp/benchmark-operator
 
 exit 0

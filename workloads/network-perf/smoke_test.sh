@@ -95,6 +95,6 @@ done
 python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance
 
 # Cleanup
-rm -rf /tmp/ripsaw
+rm -rf /tmp/benchmark-operator
 rm -f compare_output_*.yaml
 exit 0
