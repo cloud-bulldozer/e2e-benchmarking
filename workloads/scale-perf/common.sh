@@ -62,15 +62,15 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
-rm -rf /tmp/ripsaw
+rm -rf /tmp/benchmark-operator
 
 oc create ns my-ripsaw
 
-git clone http://github.com/cloud-bulldozer/ripsaw /tmp/ripsaw
-oc apply -f /tmp/ripsaw/deploy
-oc apply -f /tmp/ripsaw/resources/backpack_role.yaml
-oc apply -f /tmp/ripsaw/resources/scale_role.yaml
-oc apply -f /tmp/ripsaw/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
+git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator
+oc apply -f /tmp/benchmark-operator/deploy
+oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
+oc apply -f /tmp/benchmark-operator/resources/scale_role.yaml
+oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
 
 if [[ $(oc get nodes -l node-role.kubernetes.io/workload | wc -l) -gt 1 ]]; then
   echo "      tolerations:
@@ -86,10 +86,10 @@ if [[ $(oc get nodes -l node-role.kubernetes.io/workload | wc -l) -gt 1 ]]; then
                 operator: In
                 values:
                 - ""
-" >> /tmp/ripsaw/resources/operator.yaml
+" >> /tmp/benchmark-operator/resources/operator.yaml
 fi
 
-oc apply -f /tmp/ripsaw/resources/operator.yaml
+oc apply -f /tmp/benchmark-operator/resources/operator.yaml
 
 oc wait --for=condition=available "deployment/benchmark-operator" -n my-ripsaw --timeout=300s
 

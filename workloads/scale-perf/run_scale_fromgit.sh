@@ -98,5 +98,5 @@ else
 fi
 
 # Cleanup
-rm -rf /tmp/ripsaw
+rm -rf /tmp/benchmark-operator
 exit 0
