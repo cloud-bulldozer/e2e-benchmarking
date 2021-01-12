@@ -9,11 +9,12 @@ for pairs in 1 2 4; do
   wait_for_benchmark
   assign_uuid
   if [[ ${COMPARE} == "true" ]]; then
-    run_benchmark_comparison
+    comparison_files=+="compare_output_${pairs}.yaml "
+    run_benchmark_comparison compare_output_${pairs}.yaml
   fi
   delete_benchmark
 done
 print_uuid
 if [[ ${COMPARE} == "true" ]]; then
-  generate_csv
+  generate_csv ${comparison_files}
 fi

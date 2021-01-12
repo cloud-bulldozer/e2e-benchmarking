@@ -5,10 +5,8 @@ source ./common.sh
 
 oc -n my-ripsaw delete benchmark/uperf-benchmark-pod-network
 
-for pairs in "${client_server_pairs[@]}"
-do
-
-cat << EOF | oc create -f -
+for pairs in "${client_server_pairs[@]}"; do
+  cat << EOF | oc create -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
@@ -47,49 +45,45 @@ spec:
         - 1024
       runtime: 30
 EOF
+  sleep 30
+  uperf_state=1
+  for i in {1..240}; do
+    if [ "$(oc get benchmarks.ripsaw.cloudbulldozer.io uperf-benchmark-pod-network -n my-ripsaw -o jsonpath='{.status.state}')" == "Error" ]; then
+      echo "Cerberus status is False, Cluster is unhealthy"
+      exit 1
+    fi
+    oc describe -n my-ripsaw benchmarks/uperf-benchmark-pod-network | grep State | grep Complete
+    if [ $? -eq 0 ]; then
+      echo "UPerf Workload done"
+      uperf_state=$?
+      break
+    fi
+    sleep 60
+  done
 
-sleep 30
-
-uperf_state=1
-for i in {1..240}; do
-  if [ "$(oc get benchmarks.ripsaw.cloudbulldozer.io uperf-benchmark-pod-network -n my-ripsaw -o jsonpath='{.status.state}')" == "Error" ]; then
-    echo "Cerberus status is False, Cluster is unhealthy"
+  if [ "$uperf_state" == "1" ] ; then
+    echo "Workload failed"
     exit 1
   fi
-  oc describe -n my-ripsaw benchmarks/uperf-benchmark-pod-network | grep State | grep Complete
-  if [ $? -eq 0 ]; then
-          echo "UPerf Workload done"
-          uperf_state=$?
-          break
+
+  compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io uperf-benchmark-pod-network -n my-ripsaw -o jsonpath='{.status.uuid}')
+  if [ "${pairs}" == "1" ] ; then
+    baseline_uperf_uuid=${_baseline_pod_1p_uuid}
+  elif [ "${pairs}" == "2" ] ; then
+    baseline_uperf_uuid=${_baseline_pod_2p_uuid}
+  elif [ "${pairs}" == "4" ] ; then
+    baseline_uperf_uuid=${_baseline_pod_4p_uuid}
   fi
-  sleep 60
-done
 
-if [ "$uperf_state" == "1" ] ; then
-  echo "Workload failed"
-  exit 1
-fi
+  if [[ ${COMPARE} == "true" ]]; then
+    echo ${baseline_uperf_uuid},${compare_uperf_uuid} >> uuid.txt
+  else
+    echo ${compare_uperf_uuid} >> uuid.txt
+  fi
 
-compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io uperf-benchmark-pod-network -n my-ripsaw -o jsonpath='{.status.uuid}')
-if [ "${pairs}" == "1" ] ; then
-  baseline_uperf_uuid=${_baseline_pod_1p_uuid}
-elif [ "${pairs}" == "2" ] ; then
-  baseline_uperf_uuid=${_baseline_pod_2p_uuid}
-elif [ "${pairs}" == "4" ] ; then
-  baseline_uperf_uuid=${_baseline_pod_4p_uuid}
-fi
-
-if [[ ${COMPARE} == "true" ]]; then
-  echo ${baseline_uperf_uuid},${compare_uperf_uuid} >> uuid.txt
-else
-  echo ${compare_uperf_uuid} >> uuid.txt
-fi
-
-../run_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
-pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}p.yaml" )
-
-oc -n my-ripsaw delete benchmark/uperf-benchmark-pod-network
-
+  run_benchmark_comparison compare_output_${pairs}.yaml
+  pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}p.yaml" )
+  oc -n my-ripsaw delete benchmark/uperf-benchmark-pod-network
 done
 
 python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance

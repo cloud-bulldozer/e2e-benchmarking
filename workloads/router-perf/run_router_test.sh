@@ -75,6 +75,7 @@ else
   echo ${compare_router_uuid} >> uuid.txt
 fi
 
-../run_compare.sh ${baseline_router_uuid} ${compare_router_uuid} mb
+. ../run_compare.sh
+compare mb "${baseline_router_uuid}" "${compare_router_uuid}" router_compare.yaml
 
-python3 csv_gen.py --files compare.yaml
+python3 csv_gen.py --files router_compare.yaml

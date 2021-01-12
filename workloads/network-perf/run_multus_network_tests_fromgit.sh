@@ -3,7 +3,7 @@ set -x
 
 source ./common.sh
 
-pairs=1
+pairs={$PAIR:-1}
 
 MULTUS=false
 if [[ ${MULTUS_CLIENT_NAD} ]]; then
@@ -13,9 +13,6 @@ if [[ ${MULTUS_SERVER_NAD} ]]; then
   MULTUS=true
 fi
 
-if [[ ${PAIR} ]]; then
-  pairs=${PAIR}
-fi
 
 if ${MULTUS} ; then
 oc -n my-ripsaw delete benchmark/uperf-benchmark-multus-network --wait
@@ -99,17 +96,15 @@ compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-
 baseline_uperf_uuid=${_baseline_multus_uuid}
 
 if [[ ${COMPARE} == "true" ]]; then
+  run_benchmark_comparison compare_output_${pairs}.yaml
   echo ${baseline_uperf_uuid},${compare_uperf_uuid} >> uuid.txt
 else
   echo ${compare_uperf_uuid} >> uuid.txt
 fi
 
-../run_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
-pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}p.yaml" )
+run_benchmark_comparison compare_output_${pairs}.yaml
+generate_csv compare_output_${pairs}.yaml
 
-python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance
-
-fi
 
 # Cleanup
 rm -rf /tmp/ripsaw

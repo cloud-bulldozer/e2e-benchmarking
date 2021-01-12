@@ -190,7 +190,8 @@ assign_uuid() {
 }
 
 run_benchmark_comparison() {
-  ../run_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
+  source ../run_compare.sh
+  compare uperf "${baseline_uperf_uuid}" "${compare_uperf_uuid}" "${1}"
   pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}p.yaml" )
 }
 
