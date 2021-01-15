@@ -141,7 +141,7 @@ wait_for_benchmark() {
       log "Cerberus status is False, Cluster is unhealthy"
       exit 1
     fi
-    oc describe -n my-ripsaw benchmarks/uperf-benchmark-${WORKLOAD}-network | grep State | grep Complete
+    oc describe -n my-ripsaw benchmarks/uperf-benchmark-${WORKLOAD}-network-${pairs} | grep State | grep Complete
     if [ $? -eq 0 ]; then
       log "uperf workload done!"
       uperf_state=$?
@@ -208,13 +208,13 @@ init_cleanup() {
 }
 
 delete_benchmark() {
-  oc delete benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network -n my-ripsaw
+  oc delete benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n my-ripsaw
 }
 
 update() {
-  benchmark_state=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network -n my-ripsaw -o jsonpath='{.status.state}')
-  benchmark_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network -n my-ripsaw -o jsonpath='{.status.uuid}')
-  benchmark_current_pair=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network -n my-ripsaw -o jsonpath='{.spec.workload.args.pair}')
+  benchmark_state=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n my-ripsaw -o jsonpath='{.status.state}')
+  benchmark_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n my-ripsaw -o jsonpath='{.status.uuid}')
+  benchmark_current_pair=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n my-ripsaw -o jsonpath='{.spec.workload.args.pair}')
 }
 
 print_uuid() {
