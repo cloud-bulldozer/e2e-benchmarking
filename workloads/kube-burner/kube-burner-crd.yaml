@@ -9,15 +9,14 @@ spec:
   uuid: ${UUID}
   # Metadata information
   elasticsearch:
-    server: ${ES_SERVER}
-    port: ${ES_PORT}
+    url: ${ES_SERVER}
   metadata:
     collection: ${METADATA_COLLECTION}
     privileged: true
   cerberus_url: "${CERBERUS_URL}"
   prometheus:
-    # Elastic search instance with full URL format. https://elastic.apps.org:9200
-    es_server: ${ES_SERVER}:${ES_PORT}
+    # Elastic search instance with full URL format. http://elastic.apps.org:9200
+    es_url: ${ES_SERVER}
     # Prometheus bearer token
     prom_token: ${PROM_TOKEN}
     # Prometheus URL with full URL format. https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091
@@ -61,6 +60,12 @@ spec:
       step: ${STEP_SIZE}
       # kube-burner metrics profile
       metrics_profile: ${METRICS_PROFILE}
+      # Remote configuration file
+      remote_config: ${REMOTE_CONFIG}
+      # Remote metric profile
+      remote_metrics_profile: ${REMOTE_METRIC_PROFILE}
+      # Remote alert profile
+      remote_alert_profile: ${REMOTE_ALERT_PROFILE}
       # Pod nodeSelector
       node_selector:
         key: ${NODE_SELECTOR_KEY}

@@ -10,10 +10,8 @@ if [[ ${CERBERUS_URL} ]]; then
   fi
 fi
 
-_es=${ES_SERVER:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
-_es_port=${ES_PORT:=80}
-_es_baseline=${ES_SERVER_BASELINE:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
-_es_baseline_port=${ES_PORT_BASELINE:=80}
+_es=${ES_SERVER:=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
+_es_baseline=${ES_SERVER_BASELINE:=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
 _poll_interval=${POLL_INTERVAL:=5}
 COMPARE=${COMPARE:=false}
 _timeout=${TIMEOUT:=240}
@@ -29,14 +27,6 @@ if [[ -n $UUID ]]; then
   _uuid=${UUID}
 else
   _uuid=$(uuidgen)
-fi
-
-if [[ ${ES_SERVER} ]] && [[ ${ES_PORT} ]] && [[ ${ES_USER} ]] && [[ ${ES_PASSWORD} ]]; then
-  _es=${ES_USER}:${ES_PASSWORD}@${ES_SERVER}
-fi
-
-if [[ ${ES_SERVER_BASELINE} ]] && [[ ${ES_PORT_BASELINE} ]] && [[ ${ES_USER_BASELINE} ]] && [[ ${ES_PASSWORD_BASELINE} ]]; then
-  _es_baseline=${ES_USER_BASELINE}:${ES_PASSWORD_BASELINE}@${ES_SERVER_BASELINE}
 fi
 
 if [ ! -z ${2} ]; then
@@ -78,7 +68,6 @@ pip3 install -e /tmp/snafu
 
 export es_index="openshift-upgrade-timings"
 export es=${_es}
-export es_port=${_es_port}
 _init_version=`oc get clusterversions.config.openshift.io | grep version | awk '{print $2}'`
 
 echo "Starting upgrade test for:"

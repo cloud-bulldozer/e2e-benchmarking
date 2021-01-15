@@ -2,8 +2,7 @@
 # Common
 export QPS=20
 export BURST=20
-export ES_SERVER=https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com
-export ES_PORT=443
+export ES_SERVER=https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:443
 export ES_INDEX=ripsaw-kube-burner
 export PROM_URL=https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091
 export JOB_TIMEOUT=17500
@@ -28,3 +27,8 @@ export METADATA_COLLECTION=true
 
 # kube-burner log streaming
 export LOG_STREAMING=true
+
+# Remote configuration
+export REMOTE_CONFIG=""
+export REMOTE_METRIC_PROFILE=""
+export REMOTE_ALERT_PROFILE=""

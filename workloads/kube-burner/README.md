@@ -2,9 +2,11 @@
 
 The purpose of these scripts is to run a kube-burner workload steered by ripsaw. There are 3 types of workloads at the moment:
 
-- cluster-density
-- kubelet-density
-- kubelet-density-heavy
+- **`cluster-density`**
+- **`kubelet-density`**
+- **`kubelet-density-heavy`**
+- **`max-namespaces`**
+- **`max-services`**
 
 ## Environment variables
 
@@ -14,8 +16,7 @@ All scripts can be tweaked with the following environment variables:
 |------------------|-------------------------------------|---------|
 | **QPS**              | Queries/sec                     | 20      |
 | **BURST**            | Burst queries                   | 20      |
-| **ES_SERVER**        | Elastic search endpoint         | https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com|
-| **ES_PORT**          | Elastic search port             | 443 |
+| **ES_SERVER**        | Elastic search endpoint         | https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
 | **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 17500 |
@@ -30,9 +31,9 @@ All scripts can be tweaked with the following environment variables:
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
 | **LOG_LEVEL**        | Kube-burner log level | info |
 
-**Note**: You can use basic authentication when indexing in ES using the notation `http(s)://[username]:[password]@[address]` in **ES_SERVER**.
+**Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
-### cluster-density variables
+### Cluster-density variables
 
 The `cluster-density` workload supports the environment variable **JOB_ITERATIONS**. This variable configures the number of cluster-density jobs iterations to perform (1 namespace per iteration). By default 1000.
 
@@ -49,7 +50,7 @@ Each iteration creates the following objects:
 - 10 configMaps. 2 of them mounted by the previous deployments.
 
 
-### kubelet-density and kubelet-density-heavy variables
+### Kubelet-density and Kubelet-density-heavy variables
 
 The `kubelet-density` and `kubelet-density-heavy` workloads support the following environment variables:
 
@@ -69,8 +70,32 @@ Each iteration of this workload can be broken down in:
   - 1 deployment holding a client application for the previous database
   - 1 service pointing to the postgresl database
 
+### Max-namespaces
 
-### Configuration file
+The number of namespaces created by Kube-burner is defined by the variable `JOB_ITERATIONS`. Each namespace is created with the following objects:
+
+- 1 deployment holding a postgresql database
+- 5 deployments consisting of a client application for the previous database
+- 1 service pointing to the postgresl database
+- 10 secrets
+
+
+### Max-services
+
+It creates n-replicas of an application deployment (hello-openshift) and a service in a single namespace as defined by the environment variable `JOB_ITERATIONS`.
+
+
+### Remote configuration
+
+Apart from the pre-defined workloads and metric profiles available in benchmark-operator, you can create a benchmark that uses a remote configuration, metric or alert profile. These files must be accesible through HTTP protocol by the kube-burner job. The following environment variables can be used to configure the source for the different configuration files:
+
+- **`REMOTE_CONFIG`**: Refers to the remote location of the Kube-burner main configuration file.
+- **`REMOTE_METRIC_PROFILE`**: Points to a URL of a valid metric profile.
+- **`REMOTE_ALERT_PROFILE`**: Points to a URL of a valid alert profile.
+
+> Note: These can be used separately and/or combined with the kube-burner workloads available in the benchmark-operator.
+
+## Configuration file
 
 An [env.sh](env.sh) file is provided with all available configuration parameters.
 

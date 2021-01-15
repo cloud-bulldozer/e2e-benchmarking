@@ -16,21 +16,9 @@ $ ./run_<test-name>_network_test_fromgit.sh
 
 ## Environment variables
 
-### ES_USER
-Default: ``    
-Username for elasticsearch instance
-
-### ES_PASSWORD
-Default: ``     
-Password for elasticsearch instance
-
 ### ES_SERVER
-Default: `milton.aws.com`    
-Elasticsearch server to index the results of the current run
-
-### ES_PORT
-Default: ``    
-Port number for elasticsearch server
+Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
+Elasticsearch server to index the results of the current run. Use the notation `http(s)://[username]:[password]@[address]:[port]` in case you want to use an authenticated ES instance.
 
 ### METADATA_COLLECTION
 Default: `true`   
@@ -55,27 +43,15 @@ The openshift version you want to compare the current run to
 
 ### ES_GOLD
 Default: ``     
-The ES server that houses gold-index. Format `user:pass@<es_server>:<es_port>
-
-### ES_USER_BASELINE
-Default: ``         
-Username for elasticsearch instance
-
-### ES_PASSWORD_BASELINE
-Default: ``     
-Password for elasticsearch instance
+The ES server that houses gold-index. Format `http(s)://[username]:[password]@[address]:[port]`
 
 ### BASELINE_CLOUD_NAME
 Default: ``    
 Name you would like to give your baseline cloud. It will appear as a header in the CSV file
 
 ### ES_SERVER_BASELINE 
-Default: ``   
-Elasticsearch server used used by the baseline run 
-
-### ES_PORT_BASELINE
-Default: `80`  
-Port number for the elasticsearch server used by the baseline run
+Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
+Elasticsearch server used used by the baseline run. Format `http(s)://[username]:[password]@[address]:[port]`
 
 ### BASELINE_HOSTNET_UUID
 Default: ``   
@@ -133,10 +109,7 @@ It will push your local results CSV to Google Spreadsheets and send an email wit
 ## Suggested configurations
 
 ```sh
-export ES_USER=
-export ES_PASSWORD=
 export ES_SERVER=
-export ES_PORT=
 export METADATA_COLLECTION=
 export COMPARE=false
 export COMPARE_WITH_GOLD=
@@ -144,10 +117,7 @@ export GOLD_SDN=
 export GOLD_OCP_VERSION=
 export ES_GOLD=
 export BASELINE_CLOUD_NAME=
-export ES_USER_BASELINE=
-export ES_PASSWORD_BASELINE=
 export ES_SERVER_BASELINE=
-export ES_PORT_BASELINE=
 export BASELINE_HOSTNET_UUID=
 export BASELINE_POD_1P_UUID=
 export BASELINE_POD_2P_UUID=

@@ -34,8 +34,7 @@ metadata:
   namespace: my-ripsaw
 spec:
   elasticsearch:
-    server: $_es
-    port: $_es_port
+    url: $_es
   clustername: $cloud_name
   test_user: ${cloud_name}-multus-ci-${_pair}p
   metadata:
@@ -113,6 +112,6 @@ python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$late
 fi
 
 # Cleanup
-rm -rf /tmp/ripsaw
+rm -rf /tmp/benchmark-operator
 rm -f compare_output_*.yaml
 exit 0

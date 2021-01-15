@@ -10,10 +10,8 @@ if [[ ${CERBERUS_URL} ]]; then
   fi
 fi
 
-_es=${ES_SERVER:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
-_es_port=${ES_PORT:=80}
-_es_baseline=${ES_SERVER_BASELINE:=search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com}
-_es_baseline_port=${ES_PORT_BASELINE:=80}
+_es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+_es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 _metadata_collection=${METADATA_COLLECTION:=false}
 _poll_interval=${POLL_INTERVAL:=5}
 _post_sleep=${POST_SLEEP:=0}
@@ -32,14 +30,6 @@ if [[ -n $UUID ]]; then
   _uuid=${UUID}
 else
   _uuid=$(uuidgen)
-fi
-
-if [[ ${ES_SERVER} ]] && [[ ${ES_PORT} ]] && [[ ${ES_USER} ]] && [[ ${ES_PASSWORD} ]]; then
-  _es=${ES_USER}:${ES_PASSWORD}@${ES_SERVER}
-fi
-
-if [[ ${ES_SERVER_BASELINE} ]] && [[ ${ES_PORT_BASELINE} ]] && [[ ${ES_USER_BASELINE} ]] && [[ ${ES_PASSWORD_BASELINE} ]]; then
-  _es_baseline=${ES_USER_BASELINE}:${ES_PASSWORD_BASELINE}@${ES_SERVER_BASELINE}
 fi
 
 if [ ! -z ${2} ]; then
@@ -72,15 +62,15 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
-rm -rf /tmp/ripsaw
+rm -rf /tmp/benchmark-operator
 
 oc create ns my-ripsaw
 
-git clone http://github.com/cloud-bulldozer/ripsaw /tmp/ripsaw
-oc apply -f /tmp/ripsaw/deploy
-oc apply -f /tmp/ripsaw/resources/backpack_role.yaml
-oc apply -f /tmp/ripsaw/resources/scale_role.yaml
-oc apply -f /tmp/ripsaw/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
+git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator
+oc apply -f /tmp/benchmark-operator/deploy
+oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
+oc apply -f /tmp/benchmark-operator/resources/scale_role.yaml
+oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
 
 if [[ $(oc get nodes -l node-role.kubernetes.io/workload | wc -l) -gt 1 ]]; then
   echo "      tolerations:
@@ -96,10 +86,10 @@ if [[ $(oc get nodes -l node-role.kubernetes.io/workload | wc -l) -gt 1 ]]; then
                 operator: In
                 values:
                 - ""
-" >> /tmp/ripsaw/resources/operator.yaml
+" >> /tmp/benchmark-operator/resources/operator.yaml
 fi
 
-oc apply -f /tmp/ripsaw/resources/operator.yaml
+oc apply -f /tmp/benchmark-operator/resources/operator.yaml
 
 oc wait --for=condition=available "deployment/benchmark-operator" -n my-ripsaw --timeout=300s
 

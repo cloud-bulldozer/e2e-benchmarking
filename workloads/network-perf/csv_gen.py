@@ -42,13 +42,13 @@ def read_yaml(yaml_files):
 def create_table_mappings(data, uuid_map):
     tables = {}
     for file_num, datum in data.items():
-        for test_type in datum["test_type.keyword"]:
-            for protocol in datum["test_type.keyword"][test_type]["protocol"]:
-                for size in datum["test_type.keyword"][test_type]["protocol"][protocol]["message_size"]:
-                    for threads in datum["test_type.keyword"][test_type]["protocol"][protocol]["message_size"][size][
+        for test_type in datum["test_type"]:
+            for protocol in datum["test_type"][test_type]["protocol"]:
+                for size in datum["test_type"][test_type]["protocol"][protocol]["message_size"]:
+                    for threads in datum["test_type"][test_type]["protocol"][protocol]["message_size"][size][
                         "num_threads"
                     ]:
-                        level_dict = datum["test_type.keyword"][test_type]["protocol"][protocol]["message_size"][size][
+                        level_dict = datum["test_type"][test_type]["protocol"][protocol]["message_size"][size][
                             "num_threads"
                         ][threads]
                         table = tables.setdefault(
@@ -189,7 +189,7 @@ parser.add_argument(
 )
 params = parser.parse_args()
 generate_csv(params.yaml_files, f"{params.sheetname}.csv")
-if "EMAIL_ID_FOR_RESULTS_SHEET" and "GSHEET_KEY_LOCATION" in os.environ:
+if "EMAIL_ID_FOR_RESULTS_SHEET" in os.environ and "GSHEET_KEY_LOCATION" in os.environ:
     push_to_gsheet(
         f"{params.sheetname}.csv", os.environ["GSHEET_KEY_LOCATION"], os.environ["EMAIL_ID_FOR_RESULTS_SHEET"],
     )
