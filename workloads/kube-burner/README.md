@@ -16,7 +16,7 @@ All scripts can be tweaked with the following environment variables:
 |------------------|-------------------------------------|---------|
 | **QPS**              | Queries/sec                     | 20      |
 | **BURST**            | Burst queries                   | 20      |
-| **ES_SERVER**        | Elastic search endpoint         | https://search-cloud-perf-lqrf3jjtaqo7727m7ynd2xyt4y.us-west-2.es.amazonaws.com:443|
+| **ES_SERVER**        | Elastic search endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
 | **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 17500 |
