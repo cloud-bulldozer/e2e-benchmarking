@@ -31,6 +31,7 @@ export_defaults() {
   export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
   _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
   export _metadata_collection=${METADATA_COLLECTION:=true}
+  export _metadata_targeted=true
   COMPARE=${COMPARE:=false}
   gold_sdn=${GOLD_SDN:=openshiftsdn}
   throughput_tolerance=${THROUGHPUT_TOLERANCE:=5}
@@ -52,6 +53,7 @@ export_defaults() {
     export serviceip=false
   elif [ ${WORKLOAD} == "service" ]
   then
+    export _metadata_targeted=false
     export hostnetwork=false
     export serviceip=true
   else

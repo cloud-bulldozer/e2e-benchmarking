@@ -14,6 +14,7 @@ spec:
     collection: ${_metadata_collection}
     serviceaccount: backpack-view
     privileged: true
+    targeted: ${_metadata_targeted}
   cerberus_url: "$CERBERUS_URL"
   workload:
     name: uperf
