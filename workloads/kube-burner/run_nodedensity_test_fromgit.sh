@@ -2,7 +2,7 @@
 
 set -e
 
-export WORKLOAD=kubelet-density-heavy
+export WORKLOAD=node-density
 export METRICS_PROFILE=${METRICS_PROFILE:-metrics.yaml}
 export NODE_COUNT=${NODE_COUNT:-4}
 export PODS_PER_NODE=${PODS_PER_NODE:-250}
@@ -11,7 +11,7 @@ export PODS_PER_NODE=${PODS_PER_NODE:-250}
 
 deploy_operator
 check_running_benchmarks
-label_nodes heavy
+label_nodes regular
 deploy_workload
 wait_for_benchmark ${WORKLOAD}
 unlabel_nodes

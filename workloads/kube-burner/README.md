@@ -3,8 +3,8 @@
 The purpose of these scripts is to run a kube-burner workload steered by ripsaw. There are 3 types of workloads at the moment:
 
 - **`cluster-density`**
-- **`kubelet-density`**
-- **`kubelet-density-heavy`**
+- **`node-density`**
+- **`node-density-heavy`**
 - **`max-namespaces`**
 - **`max-services`**
 
@@ -24,7 +24,7 @@ All scripts can be tweaked with the following environment variables:
 | **WORKLOAD_NODE**    | Workload node name              | "" (don't pin kube-burner to any server)|
 | **CERBERUS_URL**     | URL to check the health of the cluster using [Cerberus](https://github.com/openshift-scale/cerberus) | "" (don't check)|
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
-| **METRICS_PROFILE**        | Metric profile that indicates what prometheus metrics kube-burner will collect, accepts __metrics.yaml__ or __metrics-aggregated.yaml__ | metrics.yaml for kubelet-density workloads and metrics-aggregated.yaml for cluster-density workloads |
+| **METRICS_PROFILE**        | Metric profile that indicates what prometheus metrics kube-burner will collect, accepts __metrics.yaml__ or __metrics-aggregated.yaml__ | metrics.yaml for node-density workloads and metrics-aggregated.yaml for cluster-density workloads |
 | **METADATA_COLLECTION**    | Enable metadata collection | true |
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
@@ -50,21 +50,21 @@ Each iteration creates the following objects:
 - 10 configMaps. 2 of them mounted by the previous deployments.
 
 
-### Kubelet-density and Kubelet-density-heavy variables
+### Node-density and Node-density-heavy variables
 
-The `kubelet-density` and `kubelet-density-heavy` workloads support the following environment variables:
+The `node-density` and `node-density-heavy` workloads support the following environment variables:
 
-- **NODE_COUNT**: Number of worker nodes to deploy the pods on. During the workload nodes will be labeled with `kubelet-density=true`. Defaults to 4.
+- **NODE_COUNT**: Number of worker nodes to deploy the pods on. During the workload nodes will be labeled with `node-density=true`. Defaults to 4.
 - **PODS_PER_NODE**: Define the maximum number of pods to deploy on each labeled node. Defaults to 250
 
 These workloads create different objects each:
 
-- **kubelet-density**: Creates a single namespace with a number of Deployments proportional to the calculated number of pod.
+- **node-density**: Creates a single namespace with a number of Deployments proportional to the calculated number of pod.
 Each iteration of this workload creates the following object:
   - 1 pod. (sleep)
 
 
-- **kubelet-density-heavy**. Creates a **single namespace with a number of applications proportional to the calculated number of pods / 2**. This application consists on two deployments (a postgresql database and a simple client that generates some CPU load) and a service that is used by the client to reach the database.
+- **node-density-heavy**. Creates a **single namespace with a number of applications proportional to the calculated number of pods / 2**. This application consists on two deployments (a postgresql database and a simple client that generates some CPU load) and a service that is used by the client to reach the database.
 Each iteration of this workload can be broken down in:
   - 1 deployment holding a postgresql database
   - 1 deployment holding a client application for the previous database
