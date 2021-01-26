@@ -18,7 +18,7 @@ export POD_READY_TIMEOUT=1200
 # Cluster density specific
 export JOB_ITERATIONS=1000
 
-# Kubelet-density and kubelet-density-heavy specific
+# Node-density and node-density-heavy specific
 export NODE_COUNT=4
 export PODS_PER_NODE=250
 

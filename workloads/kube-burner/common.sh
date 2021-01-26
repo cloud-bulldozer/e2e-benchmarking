@@ -93,7 +93,7 @@ wait_for_benchmark() {
 }
 
 label_nodes() {
-  export NODE_SELECTOR_KEY="kubelet-density"
+  export NODE_SELECTOR_KEY="node-density"
   export NODE_SELECTOR_VALUE="enabled"
   if [[ ${NODE_COUNT} -le 0 ]]; then
     log "Node count <= 0: ${NODE_COUNT}"
@@ -119,16 +119,16 @@ label_nodes() {
     total_pod_count=$((total_pod_count / 2))
   fi
   export JOB_ITERATIONS=${total_pod_count}
-  log "Labeling ${NODE_COUNT} worker nodes with kubelet-density=enabled"
+  log "Labeling ${NODE_COUNT} worker nodes with node-density=enabled"
   for n in ${nodes}; do
-    oc label ${n} kubelet-density=enabled --overwrite
+    oc label ${n} node-density=enabled --overwrite
   done
 }
 
 unlabel_nodes() {
-  log "Removing kubelet-density=enabled label from worker nodes"
+  log "Removing node-density=enabled label from worker nodes"
   for n in ${nodes}; do
-    oc label ${n} kubelet-density-
+    oc label ${n} node-density-
   done
 }
 
