@@ -33,6 +33,13 @@ log() {
 }
 
 deploy_operator() {
+  log "Running ${WORKLOAD} with the following parameters:"
+  log "JOB_ITERATIONS: ${JOB_ITERATIONS}"
+  log "NODE_COUNT: ${NODE_COUNT}"
+  log "PODS_PER_NODE: ${PODS_PER_NODE}"
+  log "QPS: ${QPS}"
+  log "BURST: ${BURST}"
+  log "METADATA_COLLECTION: ${METADATA_COLLECTION}"
   log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
   rm -rf benchmark-operator
   git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
