@@ -22,6 +22,9 @@ export JOB_ITERATIONS=1000
 export NODE_COUNT=4
 export PODS_PER_NODE=250
 
+# Pod-density specific
+export PODS=25000
+
 # Metadata
 export METADATA_COLLECTION=true
 
