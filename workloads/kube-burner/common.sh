@@ -99,7 +99,7 @@ label_nodes() {
     log "Node count <= 0: ${NODE_COUNT}"
     exit 1
   fi
-  nodes=$(oc get node -o name -l node-role.kubernetes.io/worker= | head -${NODE_COUNT})
+  nodes=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT})
   if [[ $(echo "${nodes}" | wc -l) -lt ${NODE_COUNT} ]]; then
     log "Not enough worker nodes to label"
     exit 1
