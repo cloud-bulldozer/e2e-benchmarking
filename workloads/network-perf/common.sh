@@ -43,12 +43,17 @@ export_defaults() {
   export networkpolicy=${NETWORK_POLICY:=false}
 
 
-  if [[ $(oc get nodes | grep worker | wc -l) -gt 1 ]]; then
-    export server=$(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="" -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n 1)
-    export client=$(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="" -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n 1)
+  # Get AZs from worker nodes
+  zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq -u))
+  if [[ ${#zones[@]} -gt 1 ]]; then
+    export server=$(oc get node -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker,topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}')
+    export client=$(oc get node -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker,topology.kubernetes.io/zone=${zones[1]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}')
     export pin=true
+  else
+    log "At least 2 worker nodes placed in different topology zones are required"
+    exit 1
   fi
-	
+
   if [ ${WORKLOAD} == "hostnet" ]
   then
     export hostnetwork=true
