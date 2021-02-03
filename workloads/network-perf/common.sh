@@ -28,6 +28,7 @@ check_cluster_health() {
 
 export_defaults() {
   operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
+  CRD=${CRD:-ripsaw-uperf-crd.yaml}
   export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
   _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
   export _metadata_collection=${METADATA_COLLECTION:=true}
@@ -118,7 +119,7 @@ deploy_operator() {
 
 deploy_workload() {
   log "Deploying uperf benchmark"
-  envsubst < ripsaw-uperf-crd.yaml | oc apply -f -
+  envsubst < $CRD | oc apply -f -
   log "Sleeping for 60 seconds"
   sleep 60
 }
