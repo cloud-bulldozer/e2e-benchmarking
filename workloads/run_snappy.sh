@@ -3,6 +3,7 @@ export LC_ALL=en_US.utf-8
 export LANG=en_US.utf-8
 python3 -m pip install --user pipx
 export PATH="${PATH}:$(python3 -c 'import site; print(site.USER_BASE)')/bin"
+export SNAPPY_FILE_DIR=$2
 pipx install git+https://github.com/openshift-scale/data-server-cli.git
 snappy install
 
@@ -16,7 +17,6 @@ export DATA_SERVER_USERNAME=amit@redhat.com
 export DATA_SERVER_PASSWORD=amit
 
 export file_path=$1
-export SNAPPY_FILE_DIR=$2
 
 set -x
 snappy script-login
