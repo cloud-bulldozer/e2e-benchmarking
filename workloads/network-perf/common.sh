@@ -42,8 +42,8 @@ export_defaults() {
 
 
   if [[ $(oc get nodes | grep worker | wc -l) -gt 1 ]]; then
-    export server=$(oc get nodes -l node-role.kubernetes.io/worker -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n 1)
-    export client=$(oc get nodes -l node-role.kubernetes.io/worker -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n 1)
+    export server=$(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="" -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n 1)
+    export client=$(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="" -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n 1)
     export pin=true
   fi
 	
