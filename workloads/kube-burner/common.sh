@@ -112,7 +112,13 @@ label_nodes() {
     pods=$(oc describe ${n} | awk '/Non-terminated/{print $3}' | sed "s/(//g")
     pod_count=$((pods + pod_count))
   done
-  total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count))
+  if [[ -z ${WORKLOAD_NODE} ]]; then
+    # Number of pods to deploy per node * number of labeled nodes - pods running - kube-burner pod
+    total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count -1))
+  else
+    # Number of pods to deploy per node * number of labeled nodes - pods running
+    total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count))
+  fi
   log "Total running pods across nodes: ${pod_count}"
   if [[ ${total_pod_count} -le 0 ]]; then
     log "Number of pods to deploy <= 0"
