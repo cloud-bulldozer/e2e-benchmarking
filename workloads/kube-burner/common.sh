@@ -1,15 +1,19 @@
-export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 export CERBERUS_URL=${CERBERUS_URL}
 export QPS=${QPS:-20}
 export BURST=${BURST:-20}
-export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
-export PROM_URL=${PROM_URL:-https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091}
+# If ES_SERVER is set and empty we disable ES indexing and metadata collection
+if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
+  export METADATA_COLLECTION=false
+else
+  export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+  export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
+  export PROM_URL=${PROM_URL:-https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091}
+  export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
+  export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
+fi
 OPERATOR_REPO=https://github.com/cloud-bulldozer/benchmark-operator.git
 export NODE_SELECTOR_KEY="node-role.kubernetes.io/worker"
 export NODE_SELECTOR_VALUE=""
-PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
-export PROM_TOKEN
 export WAIT_WHEN_FINISHED=true
 export WAIT_FOR=[]
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
