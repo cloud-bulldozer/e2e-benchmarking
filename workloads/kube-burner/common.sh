@@ -19,18 +19,13 @@ export WAIT_FOR=[]
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
 export POD_READY_TIMEOUT=${POD_READY_TIMEOUT:-1200}
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
-export WORKLOAD_NODE=${WORKLOAD_NODE}
+export WORKLOAD_NODE=${WORKLOAD_NODE:-{"node-role.kubernetes.io/worker": ""}}
 export STEP_SIZE=${STEP_SIZE:-30s}
 export UUID=$(uuidgen)
 export LOG_STREAMING=${LOG_STREAMING:-true}
 export CLEANUP=${CLEANUP:-true}
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
 export LOG_LEVEL=${LOG_LEVEL:-info}
-
-if [[ ${WORKLOAD_NODE} ]]; then
-  PIN_SERVER=$(oc get node ${WORKLOAD_NODE} -o go-template --template='{{index .metadata.labels "kubernetes.io/hostname" }}')
-  export PIN_SERVER
-fi
 
 log() {
   echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
@@ -112,9 +107,9 @@ label_nodes() {
     pods=$(oc describe ${n} | awk '/Non-terminated/{print $3}' | sed "s/(//g")
     pod_count=$((pods + pod_count))
   done
-  if [[ -z ${WORKLOAD_NODE} ]]; then
+  if [[ ${WORKLOAD_NODE} == '{"node-role.kubernetes.io/worker": ""}' ]]; then
     # Number of pods to deploy per node * number of labeled nodes - pods running - kube-burner pod
-    total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count -1))
+    total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count - 1))
   else
     # Number of pods to deploy per node * number of labeled nodes - pods running
     total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count))

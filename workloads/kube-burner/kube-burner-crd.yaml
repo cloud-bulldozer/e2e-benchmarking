@@ -33,7 +33,7 @@ spec:
       # Number of job iterations
       job_iterations: ${JOB_ITERATIONS}
       # Pin kube-burner to a node using the value of the label kubernetes.io/hostname
-      pin_server: ${PIN_SERVER}
+      pin_server: ${WORKLOAD_NODE}
       # Wait for pods to be runnig before finishing kube-burner workload
       wait_when_finished: ${WAIT_WHEN_FINISHED}
       # Wait for all pods to be running before moving forward to the next job iteration
