@@ -19,7 +19,7 @@ export WAIT_FOR=[]
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
 export POD_READY_TIMEOUT=${POD_READY_TIMEOUT:-1200}
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
-export WORKLOAD_NODE=${WORKLOAD_NODE:-{"node-role.kubernetes.io/worker": ""}}
+export WORKLOAD_NODE=${WORKLOAD_NODE:-'{"node-role.kubernetes.io/worker": ""}'}
 export STEP_SIZE=${STEP_SIZE:-30s}
 export UUID=$(uuidgen)
 export LOG_STREAMING=${LOG_STREAMING:-true}
@@ -107,14 +107,15 @@ label_nodes() {
     pods=$(oc describe ${n} | awk '/Non-terminated/{print $3}' | sed "s/(//g")
     pod_count=$((pods + pod_count))
   done
-  if [[ ${WORKLOAD_NODE} == '{"node-role.kubernetes.io/worker": ""}' ]]; then
+  log "Total running pods across nodes: ${pod_count}"
+  if [[ ${WORKLOAD_NODE} =~ 'node-role.kubernetes.io/worker' ]]; then
     # Number of pods to deploy per node * number of labeled nodes - pods running - kube-burner pod
+    log "kube-burner will run on a worker node, decreasing by one the number of pods to deploy"
     total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count - 1))
   else
     # Number of pods to deploy per node * number of labeled nodes - pods running
     total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count))
   fi
-  log "Total running pods across nodes: ${pod_count}"
   if [[ ${total_pod_count} -le 0 ]]; then
     log "Number of pods to deploy <= 0"
     exit 1
