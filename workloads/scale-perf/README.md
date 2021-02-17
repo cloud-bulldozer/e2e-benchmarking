@@ -12,6 +12,14 @@ $ ./run_<test-name>_fromgit.sh
 
 ## Environment variables
 
+### OPERATOR_REPO
+Default: `https://github.com/cloud-bulldozer/benchmark-operator.git`  
+Benchmark-operator repo that you want to clone
+
+### OPERATOR_BRANCH
+Default: `master`     
+Branch name for benchmark-operator repo
+
 ### SCALE
 Default: ''
 The target scale of the workers in the cluster. THIS IS A REQUIRED VARIABLE
@@ -77,4 +85,3 @@ export POST_SLEEP=
 export TIMEOUT=
 export RUNS=
 ```
-

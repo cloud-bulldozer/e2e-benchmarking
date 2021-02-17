@@ -10,6 +10,9 @@ if [[ ${CERBERUS_URL} ]]; then
   fi
 fi
 
+
+operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
+operator_branch=${OPERATOR_BRANCH:=master}
 _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 _metadata_collection=${METADATA_COLLECTION:=false}
@@ -66,7 +69,7 @@ rm -rf /tmp/benchmark-operator
 
 oc create ns my-ripsaw
 
-git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator
+git clone --single-branch --branch ${operator_branch} ${operator_repo} /tmp/benchmark-operator --depth 1
 oc apply -f /tmp/benchmark-operator/deploy
 oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
 oc apply -f /tmp/benchmark-operator/resources/scale_role.yaml

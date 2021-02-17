@@ -11,7 +11,8 @@ else
   export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
   export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 fi
-OPERATOR_REPO=https://github.com/cloud-bulldozer/benchmark-operator.git
+operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
+operator_branch=${OPERATOR_BRANCH:=master}
 export NODE_SELECTOR_KEY="node-role.kubernetes.io/worker"
 export NODE_SELECTOR_VALUE=""
 export WAIT_WHEN_FINISHED=true
@@ -32,9 +33,9 @@ log() {
 }
 
 deploy_operator() {
-  log "Cloning benchmark-operator from ${OPERATOR_REPO}"
+  log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
   rm -rf benchmark-operator
-  git clone ${OPERATOR_REPO} --depth 1
+  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
   log "Deploying benchmark-operator"
   oc apply -f benchmark-operator/resources/namespace.yaml
   oc apply -f benchmark-operator/deploy

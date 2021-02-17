@@ -28,6 +28,7 @@ check_cluster_health() {
 
 export_defaults() {
   operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
+  operator_branch=${OPERATOR_BRANCH:=master}
   CRD=${CRD:-ripsaw-uperf-crd.yaml}
   export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
   _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
@@ -204,9 +205,9 @@ generate_csv() {
 }
 
 init_cleanup() {
-  log "Cloning benchmark-operator from ${operator_repo}"
+  log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
   rm -rf /tmp/benchmark-operator
-  git clone ${operator_repo} /tmp/benchmark-operator
+  git clone --single-branch --branch ${operator_branch} ${operator_repo} /tmp/benchmark-operator --depth 1
   oc delete -f /tmp/benchmark-operator/deploy
   oc delete -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
   oc delete -f /tmp/benchmark-operator/resources/operator.yaml  

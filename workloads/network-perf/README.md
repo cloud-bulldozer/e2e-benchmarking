@@ -16,6 +16,14 @@ $ ./run_<test-name>_network_test_fromgit.sh
 
 ## Environment variables
 
+### OPERATOR_REPO
+Default: `https://github.com/cloud-bulldozer/benchmark-operator.git`    
+Benchmark-operator repo that you want to clone
+
+### OPERATOR_BRANCH
+Default: `master`     
+Branch name for benchmark-operator repo
+
 ### ES_SERVER
 Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
 Elasticsearch server to index the results of the current run. Use the notation `http(s)://[username]:[password]@[address]:[port]` in case you want to use an authenticated ES instance.
@@ -132,4 +140,3 @@ export CERBERUS_URL=http://1.2.3.4:8080
 #export GSHEET_KEY_LOCATION=
 #export EMAIL_ID_FOR_RESULTS_SHEET=<your_email_id>  # Will only work if you have google service account key
 ```
-
