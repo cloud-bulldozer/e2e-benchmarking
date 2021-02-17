@@ -14,6 +14,8 @@ All scripts can be tweaked with the following environment variables:
 
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
+| **OPERATOR_REPO**              | benchmark-operator repo                     | https://github.com/cloud-bulldozer/benchmark-operator.git      |
+| **OPERATOR_BRANCH**              | benchmark-operator branch                     | master      |
 | **QPS**              | Queries/sec                     | 20      |
 | **BURST**            | Burst queries                   | 20      |
 | **ES_SERVER**        | Elastic search endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 (You can disable indexing eith `export ES_SERVER=""`)|
@@ -98,4 +100,3 @@ Apart from the pre-defined workloads and metric profiles available in benchmark-
 ## Configuration file
 
 An [env.sh](env.sh) file is provided with all available configuration parameters.
-
