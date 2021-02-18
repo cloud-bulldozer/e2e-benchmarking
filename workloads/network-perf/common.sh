@@ -39,19 +39,30 @@ export_defaults() {
   throughput_tolerance=${THROUGHPUT_TOLERANCE:=5}
   latency_tolerance=${LATENCY_TOLERANCE:=5}
   export client_server_pairs=(1 2 4)
-  export pin=false
+  export pin=true
   export networkpolicy=${NETWORK_POLICY:=false}
+  export multi_az=${MULTI_AZ:=true}
+  zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}'))
 
-
-  # Get AZs from worker nodes
-  zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq -u))
-  if [[ ${#zones[@]} -gt 1 ]]; then
-    export server=$(oc get node -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker,topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}')
-    export client=$(oc get node -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker,topology.kubernetes.io/zone=${zones[1]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}')
-    export pin=true
+  if [[ ${multi_az} == "true" ]]; then
+    # Get AZs from worker nodes
+    log "Colocating uperf pods in different AZs"
+    if [[ ${#zones[@]} -gt 1 ]]; then
+      export server=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -1)
+      export client=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",topology.kubernetes.io/zone=${zones[1]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' \ tail -1)
+    else
+      log "At least 2 worker nodes placed in different topology zones are required"
+      exit 1
+    fi
   else
-    log "At least 2 worker nodes placed in different topology zones are required"
-    exit 1
+    nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
+    if [[ ${#nodes[@]} -lt 2 ]]; then
+      log "At least 2 worker nodes placed in the topology zone ${zones[0]}"
+      exit 1
+    fi
+    log "Colocating uperf pods in the same AZ"
+    export server=${nodes[0]}
+    export client=${nodes[1]}
   fi
 
   if [ ${WORKLOAD} == "hostnet" ]

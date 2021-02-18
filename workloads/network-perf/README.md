@@ -114,6 +114,13 @@ Default: *Commented out*
 For this you will have to place Google Service Account Key in the $GSHEET_KEY_LOCATION   
 It will push your local results CSV to Google Spreadsheets and send an email with the attachment
 
+### MULTI_AZ
+Default: `true`
+If true, uperf client and server pods will be colocated in different topology zones or AZs (`topology.kubernetes.io/zone` in k8s terminology).
+You need at least 2 worker nodes placed in different in different topology zones to enable this flag.
+If false, uperf client and server pods will be colocated in the same topology zone. You need at least 2 worker nodes in that topology zone.
+
+
 ## Suggested configurations
 
 ```sh
