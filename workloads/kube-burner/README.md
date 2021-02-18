@@ -7,6 +7,7 @@ The purpose of these scripts is to run a kube-burner workload steered by ripsaw.
 - **`node-density-heavy`**
 - **`max-namespaces`**
 - **`max-services`**
+- **`pod-density`**
 
 ## Environment variables
 
@@ -85,6 +86,11 @@ The number of namespaces created by Kube-burner is defined by the variable `JOB_
 ### Max-services
 
 It creates n-replicas of an application deployment (hello-openshift) and a service in a single namespace as defined by the environment variable `JOB_ITERATIONS`.
+
+
+### Pod-density
+
+It creates as many "sleep" pods as configured in the environment variable `PODS`.
 
 
 ### Remote configuration
