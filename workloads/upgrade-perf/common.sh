@@ -16,13 +16,6 @@ _poll_interval=${POLL_INTERVAL:=5}
 COMPARE=${COMPARE:=false}
 _timeout=${TIMEOUT:=240}
 
-if [[ -n $VERSION ]]; then
-  _version=${VERSION}
-else
-  echo "Desired version not set. Exiting"
-  exit 1
-fi
-
 if [[ -n $UUID ]]; then
   _uuid=${UUID}
 else
@@ -76,6 +69,18 @@ echo "Target version: $_version"
 echo "Current version $_init_version"
 echo "UUID: $_uuid"
 
-if [[ -n $TOIMAGE ]]; then
+# fail if the version to upgrade to is not set
+if [[ -z $TOIMAGE ]] && [[ -z $LATEST ]] && [[ -z $VERSION ]]; then
+  echo "Looks like the version to upgrade to is not set, please set either TOIMAGE, LATEST or VERSION environment vars"
+  exit 1
+fi
+
+# fail if both TOIMAGE and LATEST vars are set to make sure the correct version is picked to upgrade to
+if [[ -n $TOIMAGE ]] && [[ -n $LATEST ]]; then
+  echo "Looks like both TOIMAGE and LATEST vars are set, please select one of the options"
+  exit 1
+elif [[ -n $TOIMAGE ]]; then
   echo "To-Image: $TOIMAGE"
+elif [[ -n $LATEST ]]; then
+  echo "LATEST option is set, upgrading to the latest version available in the channel"
 fi
