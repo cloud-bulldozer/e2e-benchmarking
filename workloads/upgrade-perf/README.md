@@ -13,12 +13,19 @@ $ ./run_<test-name>_fromgit.sh
 
 ### VERSION
 Default: ''
-The target version of the cluster. THIS IS A REQUIRED VARIABLE
+The version to upgrade to. The version must be on the list of previous or available updates.
 
-## TOIMAGE
+### TOIMAGE
 Default: ''
-This is an optional location of an image to upgrade to. If set you will STILL need to assign
-the VERSION variable as well to match what the end result will be.
+This is an optional location of an image to upgrade to.
+
+### LATEST
+Default: ''
+Upgrades to the latest version available in the channel when set to true.
+
+### CHANNEL
+Channel to set for the upgrade to find the image to upgrade to, they can found at https://github.com/openshift/cincinnati-graph-data/blob/master/channels/. 
+The channel set on the cluster is not tweaked if this variable is not set.
 
 ### POLL_INTERVAL
 Default: 5

@@ -3,10 +3,20 @@ set -x
 
 source ./common.sh
 
-if [[ -n $TOIMAGE ]]; then
-  run_snafu --tool upgrade -u ${_uuid} --version ${_version} --toimage ${TOIMAGE} --timeout ${_timeout} --poll_interval ${_poll_interval}
+# set the channel to find the builds to upgrade to
+if [[ -n $CHANNEL ]]; then
+  echo "Setting the upgrade channel to $CHANNEL"
+  oc patch clusterversion/version -p '{"spec":{"channel":"'$CHANNEL'"}}' --type=merge
 else
-  run_snafu --tool upgrade -u ${_uuid} --version ${_version} --timeout ${_timeout} --poll_interval ${_poll_interval}
+  echo "Using the default upgrade channel set on the cluster for the upgrades"
+fi
+
+if [[ -n $TOIMAGE ]]; then
+  run_snafu --tool upgrade -u ${_uuid} --toimage ${TOIMAGE} --timeout ${_timeout} --poll_interval ${_poll_interval}
+elif [[ -n $LATEST ]]; then
+  run_snafu --tool upgrade -u ${_uuid} --latest ${LATEST} --timeout ${_timeout} --poll_interval ${_poll_interval}
+elif [[ -n $VERSION ]]; then
+  run_snafu --tool upgrade -u ${_uuid} --version ${VERSION} --timeout ${_timeout} --poll_interval ${_poll_interval}
 fi
 
 _snafu_rc=$?
@@ -15,16 +25,12 @@ _current_version=`oc get clusterversions.config.openshift.io | grep version | aw
 if [[ $_snafu_rc -ne 0 ]]; then
   echo "run_snafu upgrade command failed"
   _rc=1
-elif [[ $_current_version != $_version ]]; then
-  echo "run_snafu command upgrade completed but not at target version"
-  _rc=1
 else
   echo "run_snafu upgrade command completed successfully"
   _rc=0
 fi
 
 echo "UUID: $_uuid"
-echo "Target version: $_version"
 echo "Current version: $_current_version"
 
 # Check cluster's health
