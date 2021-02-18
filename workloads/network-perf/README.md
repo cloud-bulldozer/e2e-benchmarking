@@ -94,11 +94,11 @@ Default: ``
 Baseline UUID for multus test
 
 ### THROUGHPUT_TOLERANCE
-Default: `5`   
+Default: `10`   
 Accepeted deviation in percentage for throughput when compared to a baseline run
 
 ### LATENCY_TOLERANCE
-Default: `5`   
+Default: `10`   
 Accepeted deviation in percentage for latency when compared to a baseline run
 
 ### CERBERUS_URL
@@ -141,8 +141,8 @@ export BASELINE_SVC_1P_UUID=
 export BASELINE_SVC_2P_UUID=
 export BASELINE_SVC_4P_UUID=
 export BASELINE_MULTUS_UUID=
-export THROUGHPUT_TOLERANCE=5
-export LATENCY_TOLERANCE=5
+export THROUGHPUT_TOLERANCE=10
+export LATENCY_TOLERANCE=10
 export CERBERUS_URL=http://1.2.3.4:8080
 #export GSHEET_KEY_LOCATION=
 #export EMAIL_ID_FOR_RESULTS_SHEET=<your_email_id>  # Will only work if you have google service account key
