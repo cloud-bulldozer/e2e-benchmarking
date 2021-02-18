@@ -34,6 +34,7 @@ export_defaults() {
   export _metadata_collection=${METADATA_COLLECTION:=true}
   export _metadata_targeted=true
   COMPARE=${COMPARE:=false}
+  network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
   gold_sdn=${GOLD_SDN:=openshiftsdn}
   throughput_tolerance=${THROUGHPUT_TOLERANCE:=5}
   latency_tolerance=${LATENCY_TOLERANCE:=5}
@@ -92,7 +93,7 @@ export_defaults() {
 
   cloud_name=$1
   if [ "$cloud_name" == "" ]; then
-    export cloud_name="test_cloud_${platform}_${cluster_version}"
+    export cloud_name="${network_type}_${platform}_${cluster_version}"
   fi
 
   if [[ ${COMPARE} == "true" ]]; then

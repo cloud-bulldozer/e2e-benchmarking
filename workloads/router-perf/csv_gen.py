@@ -6,6 +6,7 @@ import argparse
 import datetime
 import os
 import re
+from math import isnan
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
 from gspread_formatting import *
@@ -20,15 +21,17 @@ main_metric_latency = {"passthrough": "avg(latency_95pctl)", "reencrypt": "avg(l
 def get_uuid_mapping(file_name):
     uuid_map = {}
     uuid_titles = []
+    uid = []
     with open(file_name, "r") as f:
         for line in f.readlines():
+            uid.append([uid.strip() for uid in line.split(',')]+["\n"])
             if not uuid_titles:
                 uuid_titles = [title.strip() for title in line.split(",")]
                 continue
             uuids = line.split(",")
             for i, title in enumerate(uuid_titles):
                 uuid_map[uuids[i].strip()] = title
-    return uuid_map, uuid_titles
+    return uuid_map, uuid_titles, uid
 
 
 def read_yaml(yaml_files):
@@ -59,7 +62,7 @@ def create_table_mappings(data, uuid_map, metric_map):
 
 
 def write_to_csv(
-    table_dictionary, uuid_titles, metric_write, extract_thread_count=None, result_csv_file="results.csv",
+    table_dictionary, uuid_titles, uid, metric_write, extract_thread_count=None, result_csv_file="results.csv",
 ):
     with open(result_csv_file, "a+") as csv_file:
         w = csv.writer(csv_file, quotechar="'")
@@ -80,7 +83,7 @@ def write_to_csv(
                     w.writerow(header_row)
                 for file_num in table_dictionary[key].keys():
                     for cpt, value in table_dictionary[key][file_num].items():
-                        row = [cpt] + [value.get(k, "NaN") for k in uuid_titles]
+                        row = [cpt] + [value.get(k, "nan") for k in uuid_titles]
                         row.append(" ")
                         if os.environ["COMPARE"] == "true":
                             row.append("%.1f%%" % percent_change(float(row[-2]), float(row[-3])))
@@ -92,6 +95,8 @@ def write_to_csv(
                 w.writerow([])
         w.writerow([])
         w.writerow([])
+        for row in uid:
+            w.writerow(row)
 
  
 def percent_change(value, reference):
@@ -103,6 +108,8 @@ def percent_change(value, reference):
 
 def get_pass_fail(val, ref, tolerance, ltcy_flag=False):
     percent_diff = abs(percent_change(val, ref))
+    if isnan(val) or isnan(ref):
+        return "nan"
     if val < ref and percent_diff > tolerance:
         if ltcy_flag:
             return "Pass"
@@ -118,12 +125,12 @@ def get_pass_fail(val, ref, tolerance, ltcy_flag=False):
 
 
 def generate_csv(yaml_files, result_csv_file="results.csv", extract_keepalive=None):
-    uuid_map, uuid_titles = get_uuid_mapping(file_name="uuid.txt")
+    uuid_map, uuid_titles, uid = get_uuid_mapping(file_name="uuid.txt")
     data = read_yaml(yaml_files)
     metric_type = ["rps", "latency"]
     for metric in metric_type:
         tables = create_table_mappings(data, uuid_map, metric_map=metric)
-        write_to_csv(tables, uuid_titles, metric, extract_keepalive, result_csv_file)
+        write_to_csv(tables, uuid_titles, uid, metric, extract_keepalive, result_csv_file)
     print(f"\n            Test Completed!\n            Results file generated -> {params.sheetname}.csv")
 
 
@@ -149,6 +156,8 @@ def push_to_gsheet(csv_file_name, google_svc_acc_key, email_id):
     worksheet = sh.get_worksheet(0)
     format_cell_range(worksheet, "1:1000", fmt)
     set_column_width(worksheet, "A", 290)
+    set_column_width(worksheet, "B", 190)
+    set_column_width(worksheet, "C", 450)
     print(f"            Google Spreadsheet link -> {spreadsheet_url}\n")
 
 

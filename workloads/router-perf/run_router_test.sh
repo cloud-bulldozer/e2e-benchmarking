@@ -17,8 +17,12 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+cluster_version=$(oc get clusterversion --no-headers | awk '{ print $2 }')
+platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
+network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
+cloud_name="${network_type}_${platform}_${cluster_version}_${HTTP_TEST_SUFFIX}"
+
 if [[ ${COMPARE} = "true" ]] && [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
-  platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
   num_nodes=$(oc get nodes | grep worker | wc -l)
   num_router=$(oc get pods -n openshift-ingress --no-headers | wc -l)
   if [[ -z "GOLD_SDN" ]]; then
@@ -35,9 +39,9 @@ if [[ ${COMPARE} = "true" ]] && [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
 fi
 
 if [[ ${COMPARE} == "true" ]]; then
-  echo $BASELINE_CLOUD_NAME,$HTTP_TEST_SUFFIX > uuid.txt
+  echo $BASELINE_CLOUD_NAME,$cloud_name > uuid.txt
 else
-  echo $HTTP_TEST_SUFFIX > uuid.txt
+  echo $cloud_name > uuid.txt
 fi
 
 echo "Starting test for: $HTTP_TEST_SUFFIX"
