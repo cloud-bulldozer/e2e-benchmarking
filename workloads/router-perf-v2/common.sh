@@ -29,7 +29,7 @@ log(){
 deploy_infra(){
   log "Deploying benchmark infrastructure"
   envsubst < ${INFRA_TEMPLATE} > ${INFRA_CONFIG}
-  ${ENGINE} run --rm -v $(pwd)/templates:/templates -v ${KUBECONFIG}:/root/.kube/config -v $(pwd)/${INFRA_CONFIG}:/http-perf.yml ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=$(uuidgen)
+  ${ENGINE} run --rm -v $(pwd)/templates:/templates -v ${KUBECONFIG}:/root/.kube/config -v $(pwd)/${INFRA_CONFIG}:/http-perf.yml ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
 }
 
 tune_liveness_probe(){
@@ -76,4 +76,10 @@ enable_ingress_opreator(){
   log "Enabling cluster version and ingress operators"
   kubectl scale --replicas=1 -n openshift-cluster-version deploy/cluster-version-operator
   kubectl scale --replicas=1 -n openshift-ingress-operator deploy/ingress-operator
+}
+
+cleanup_infra(){
+  log "Deleting infra"
+  kubectl delete ns -l kube-burner-uuid=${UUID}
+  kubectl delete ns http-scale-client
 }

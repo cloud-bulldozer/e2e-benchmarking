@@ -11,3 +11,4 @@ for N_CLIENTS in ${CLIENTS}; do
   done
 done
 enable_ingress_opreator
+cleanup_infra
