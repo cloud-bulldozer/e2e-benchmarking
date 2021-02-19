@@ -1,0 +1,113 @@
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-operators-redhat 
+  annotations:
+    openshift.io/node-selector: ""
+  labels:
+    openshift.io/cluster-monitoring: "true" 
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-logging
+  annotations:
+    openshift.io/node-selector: ""
+  labels:
+    openshift.io/cluster-monitoring: "true"
+
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-operators-redhat
+  namespace: openshift-operators-redhat 
+spec: {}
+
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: cluster-logging
+  namespace: openshift-logging
+spec:
+  targetNamespaces:
+  - openshift-logging
+
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: "elasticsearch-operator"
+  namespace: "openshift-operators-redhat" 
+spec:
+  channel: "$CHANNEL"
+  installPlanApproval: "Automatic"
+  source: "redhat-operators" 
+  sourceNamespace: "openshift-marketplace"
+  name: "elasticsearch-operator"
+
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: cluster-logging
+  namespace: openshift-logging 
+spec:
+  channel: "$CHANNEL"
+  name: cluster-logging
+  source: redhat-operators 
+  sourceNamespace: openshift-marketplace
+
+---
+apiVersion: "logging.openshift.io/v1"
+kind: "ClusterLogging"
+metadata:
+  name: "instance"
+  namespace: "openshift-logging"
+spec:
+  managementState: "Managed"
+  logStore:
+    type: "elasticsearch"
+    retentionPolicy:
+      application:
+        maxAge: 30d
+      infra:
+        maxAge: 30d
+      audit:
+        maxAge: 30d
+    elasticsearch:
+      nodeCount: $ES_NODE_COUNT
+      storage:
+        storageClassName: $ES_STORAGE_CLASS
+        size: $ES_STORAGE_SIZE
+        resources:
+          requests:
+            memory: $ES_MEMORY_REQUESTS
+        proxy:
+          limits:
+            memory: $ES_PROXY_MEMORY_LIMITS
+          requests:
+             memory: $ES_PROXY_MEMORY_REQUESTS
+      redundancyPolicy: $ES_REDUNDANCY_POLICY
+  visualization:
+    type: "kibana"
+    kibana:
+      replicas: 1
+  curation:
+    type: "curator"
+    curator:
+      schedule: "30 3 * * *"
+  collection:
+    logs:
+      type: "fluentd"
+      fluentd:
+        resources:
+          limits:
+            memory: $FLUENTD_MEMORY_LIMITS
+          requests:
+            cpu: $FLUENTD_CPU_REQUESTS
+            memory: $FLUENTD_MEMORY_REQUESTS
