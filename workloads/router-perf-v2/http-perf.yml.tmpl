@@ -1,0 +1,84 @@
+---
+jobs:
+- name: http-scale-http
+  jobIterations: 1
+  qps: 100
+  burst: 100
+  namespacedIterations: false
+  namespace: http-scale-http
+  cleanup: true
+  waitWhenFinished: true
+  objects:
+    - objectTemplate: templates/nginx-pod.yml
+      replicas: ${NUMBER_OF_ROUTES}
+      inputVars:
+        nodeSelector: "{node-role.kubernetes.io/worker: }"
+
+    - objectTemplate: templates/http-service.yml
+      replicas: ${NUMBER_OF_ROUTES}
+
+    - objectTemplate: templates/http-route.yml
+      replicas: ${NUMBER_OF_ROUTES}
+
+
+- name: http-scale-edge
+  jobIterations: 1
+  qps: 100
+  burst: 100
+  namespacedIterations: false
+  namespace: http-scale-edge
+  cleanup: true
+  waitWhenFinished: true
+  objects:
+    - objectTemplate: templates/nginx-pod.yml
+      replicas: ${NUMBER_OF_ROUTES}
+      inputVars:
+        nodeSelector: "{node-role.kubernetes.io/worker: }"
+
+    - objectTemplate: templates/http-service.yml
+      replicas: ${NUMBER_OF_ROUTES}
+
+    - objectTemplate: templates/edge-route.yml
+      replicas: ${NUMBER_OF_ROUTES}
+
+
+- name: http-scale-passthrough
+  jobIterations: 1
+  qps: 100
+  burst: 100
+  namespacedIterations: false
+  namespace: http-scale-passthrough
+  cleanup: true
+  waitWhenFinished: true
+  objects:
+    - objectTemplate: templates/nginx-pod.yml
+      replicas: ${NUMBER_OF_ROUTES}
+      inputVars:
+        nodeSelector: "{node-role.kubernetes.io/worker: }"
+
+    - objectTemplate: templates/http-service.yml
+      replicas: ${NUMBER_OF_ROUTES}
+
+    - objectTemplate: templates/passthrough-route.yml
+      replicas: ${NUMBER_OF_ROUTES}
+
+
+- name: http-scale-reencrypt
+  jobIterations: 1
+  qps: 100
+  burst: 100
+  namespacedIterations: false
+  namespace: http-scale-reencrypt
+  cleanup: true
+  waitWhenFinished: true
+  objects:
+    - objectTemplate: templates/nginx-pod.yml
+      replicas: ${NUMBER_OF_ROUTES}
+      inputVars:
+        nodeSelector: "{node-role.kubernetes.io/worker: }"
+
+    - objectTemplate: templates/http-service.yml
+      replicas: ${NUMBER_OF_ROUTES}
+
+    - objectTemplate: templates/reencrypt-route.yml
+      replicas: ${NUMBER_OF_ROUTES}
