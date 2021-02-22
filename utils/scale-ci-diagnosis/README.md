@@ -47,13 +47,13 @@ DATA_SERVER_PASSWORD=your_password
 ### Visualize the captured data locally on prometheus server
 Launch a prometheus server and load the captured/unpacked DB:
 ```
-$ podman run --privileged --name=prometheus-server --net=host -v <path-to-unpacked-prom-db>:/prometheus -p 9090:9090 docker.io/prom/prometheus
+$ podman run --privileged --name=prometheus-server --net=host -v <path-to-unpacked-prom-db>:/prometheus -p 9090:9090 quay.io/prometheus/prometheus
 ```
 This installs prometheus server and loads up the DB, the server can be accessed at https://0.0.0.0:9090.
 
 Run grafana container with pre-loaded dashboards from https://github.com/cloud-bulldozer/performance-dashboards with prometheus as the default datasource, it can be accessed at http://0.0.0.0:3000:
 ```
-$ podman run --name=scale-ci-diagnosis --net=host -d -p 3000:3000 quay.io/openshift-scale/visualize-metrics:latest 
+$ podman run --name=scale-ci-diagnosis --net=host -d -p 3000:3000 quay.io/openshift-scale/visualize-metrics:latest
 ```
 
 ### Conformance
