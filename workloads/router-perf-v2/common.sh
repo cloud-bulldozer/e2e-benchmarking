@@ -30,6 +30,11 @@ deploy_infra(){
   log "Deploying benchmark infrastructure"
   envsubst < ${INFRA_TEMPLATE} > ${INFRA_CONFIG}
   ${ENGINE} run --rm -v $(pwd)/templates:/templates -v ${KUBECONFIG}:/root/.kube/config -v $(pwd)/${INFRA_CONFIG}:/http-perf.yml ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
+  kubectl create configmap -n http-scale-client workload --from-file=workload.py
+  log "Adding workload.py to the client pod"
+  oc set volumes -n http-scale-client deploy/http-scale-client --type=configmap --mount-path=/workload --configmap-name=workload --add
+  kubectl rollout status -n http-scale-client deploy/http-scale-client
+  client_pod=$(kubectl get pod -l app=http-scale-client -n http-scale-client | grep Running | awk '{print $1}')
 }
 
 tune_liveness_probe(){
@@ -43,29 +48,19 @@ tune_liveness_probe(){
   kubectl rollout status -n openshift-ingress deploy/router-default
 }
 
-
-deploy_client(){
-  log "Deploying HTTP client resources"
-  kubectl create configmap workload --from-file=workload.py
-  log "Deploying client"
-  envsubst < http-client-resources.yml | kubectl apply -f -
-  kubectl rollout status -n http-scale-client deploy/http-scale-client
-  client_pod=$(kubectl get pod -l app=http-scale-client -n http-scale-client | grep Running | awk '{print $1}')
-}
-
 run_mb(){
-  log "Generating configmaps with ${N_CLIENTS} clients ${N_KEEPALIVE_REQUESTS} keep alive requests and path ${URL_PATH}"
-  ./gen-mb-config.sh -t ${TLS_REUSE} -c ${N_CLIENTS} -n http-scale-http -p ${URL_PATH} -k ${N_KEEPALIVE_REQUESTS} -s http > mb-http.json
-  ./gen-mb-config.sh -t ${TLS_REUSE} -c ${N_CLIENTS} -n http-scale-edge -p ${URL_PATH} -k ${N_KEEPALIVE_REQUESTS} -s https > mb-edge.json
-  ./gen-mb-config.sh -t ${TLS_REUSE} -c ${N_CLIENTS} -n http-scale-passthrough -p ${URL_PATH} -k ${N_KEEPALIVE_REQUESTS} -s https > mb-passthrough.json
-  ./gen-mb-config.sh -t ${TLS_REUSE} -c ${N_CLIENTS} -n http-scale-reencrypt -p ${URL_PATH} -k ${N_KEEPALIVE_REQUESTS} -s https > mb-reencrypt.json
+  log "Generating config with ${N_CLIENTS} clients ${N_KEEPALIVE_REQUESTS} keep alive requests and path ${URL_PATH}"
+  gen_mb_config http-scale-http 80 mb-http.json
+  gen_mb_config http-scale-edge 443 mb-edge.json
+  gen_mb_config http-scale-passthrough 443 mb-passthrough.json
+  gen_mb_config http-scale-reencrypt 443 mb-reencrypt.json
   jq -s '[.[][]]' *.json > mb-mix.json
   for TERMINATION in ${TERMINATIONS}; do
       log "Copying mb config mb-${TERMINATION}.json to pod ${client_pod}"
-      kubectl cp mb-${TERMINATION}.json ${client_pod}:/tmp/mb-${TERMINATION}.json
+      kubectl cp -n http-scale-client mb-${TERMINATION}.json ${client_pod}:/tmp/mb-${TERMINATION}.json
     for sample in ${SAMPLES}; do
       log "Executing sample ${sample} from termination ${TERMINATION} with ${N_CLIENTS} clients and ${N_KEEPALIVE_REQUESTS} keepalive requests"
-      kubectl exec -it ${client_pod} -- python3 /workload/workload.py --mb-config /tmp/mb-${TERMINATION}.json --termination ${TERMINATION} --runtime ${RUNTIME} --ramp-up ${RAMP_UP} --output /tmp/results.csv --sample ${sample} 
+      kubectl exec -n http-scale-client -it ${client_pod} -- python3 /workload/workload.py --mb-config /tmp/mb-${TERMINATION}.json --termination ${TERMINATION} --runtime ${RUNTIME} --ramp-up ${RAMP_UP} --output /tmp/results.csv --sample ${sample}
       log "Sleeping for ${QUIET_PERIOD} before next test"
       sleep ${QUIET_PERIOD}
     done
@@ -79,7 +74,38 @@ enable_ingress_opreator(){
 }
 
 cleanup_infra(){
-  log "Deleting infra"
-  kubectl delete ns -l kube-burner-uuid=${UUID}
-  kubectl delete ns http-scale-client
+  log "Deleting infrastructure"
+  kubectl delete ns -l kube-burner-uuid=${UUID} --ignore-not-found
+}
+
+gen_mb_config(){
+  if [[ ${2} == 80 ]]; then
+    local SCHEME=http
+  else
+    local SCHEME=https
+  fi
+  local first=true
+  (echo "["
+  while read n r s p t w; do
+    if [[ ${first} == "true" ]]; then
+        echo "{"
+        first=false
+    else
+        echo ",{"
+    fi
+    echo '"scheme": "'${SCHEME}'",
+      "tls-session-reuse": '${TLS_REUSE}',
+      "host": "'${n}'",
+      "port": '${2}',
+      "method": "GET",
+      "path": "'${URL_PATH}'",
+      "delay": {
+        "min": 0,
+        "max":0 
+      },
+      "keep-alive-requests": '${N_KEEPALIVE_REQUESTS}',
+      "clients": '${N_CLIENTS}'
+    }'
+  done <<< $(oc get route -n ${1} --no-headers | awk '{print $2}')
+  echo "]") | python -m json.tool > ${3}
 }

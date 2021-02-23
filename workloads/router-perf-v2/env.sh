@@ -1,0 +1,17 @@
+export KUBECONFIG=~/.kube/config
+export ENGINE=podman
+export RUNTIME=120
+export TERMINATION="http edge passthrough reencrypt mix"
+export URL_PATH="/1024.html"
+export NUMBER_OF_ROUTES=100
+export KEEPALIVE_REQUESTS="1 40 200"
+export CLIENTS="1 10 100"
+export TLS_REUSE=true
+export RAMP_UP=0
+export SAMPLES=1
+export HOST_NETWORK=true
+export NUMBER_OF_ROUTERS=2
+export NODE_SELECTOR='{"node-role.kubernetes.io/workload": ""}'
+export QUIET_PERIOD=10s
+export ES_SERVER=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443
+export ES_INDEX=router-test-results

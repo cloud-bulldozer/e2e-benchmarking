@@ -74,3 +74,6 @@ Each indexed document looks like:
     "0": 17
 }
 ```
+
+## Configuration file
+The `env.sh` file is provided with all available configuration parameters. You can modify and source this file to tweak the workload.
