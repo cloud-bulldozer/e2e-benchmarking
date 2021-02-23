@@ -36,7 +36,7 @@ It's possible to tune the default configuration through environment variables. T
 | KUBECONFIG            | Kubeconfig file | `-~/.kube/config` |
 | ENGINE                | Engine to spin up the local kube-burner container that creates the required infrastructure | `podman` |
 | RUNTIME				| Workload duration in seconds | `120` |
-| TERMINATION			| List of HTTP terminations to test | `http edge passthrough reencrypt mix` |
+| TERMINATIONS  		| List of HTTP terminations to test | `http edge passthrough reencrypt mix` |
 | URL_PATH              | URL path to use in the benchmark | `/1024.html` |
 | NUMBER_OF_ROUTES		| Number of routes of each termination to test. (the mix scenario test all of them together | `100` |
 | KEEPALIVE_REQUESTS	| List with the number of keep alive requests to perform in the same HTTP session | `1 40 200` |

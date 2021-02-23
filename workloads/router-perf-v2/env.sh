@@ -1,7 +1,7 @@
 export KUBECONFIG=~/.kube/config
 export ENGINE=podman
 export RUNTIME=120
-export TERMINATION="http edge passthrough reencrypt mix"
+export TERMINATIONS="http edge passthrough reencrypt mix"
 export URL_PATH="/1024.html"
 export NUMBER_OF_ROUTES=100
 export KEEPALIVE_REQUESTS="1 40 200"

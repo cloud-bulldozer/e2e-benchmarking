@@ -15,6 +15,7 @@ spec:
       labels:
         app: http-scale-client
     spec:
+      nodeSelector: {{.nodeSelector}}
       serviceAccountName: http-scale-client
       imagePullPolicy: Always
       hostNetwork: {{.hostNetwork}}
