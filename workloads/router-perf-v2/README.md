@@ -71,7 +71,8 @@ Each indexed document looks like:
     "keepalive_requests": 10,
     "tls_reuse": false,
     "200": 1755889,
-    "0": 17
+    "0": 17,
+	"number_of_routers": 1
 }
 ```
 

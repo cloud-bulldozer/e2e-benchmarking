@@ -4,8 +4,8 @@
 
 deploy_infra
 tune_liveness_probe
-for N_CLIENTS in ${CLIENTS}; do
-  for N_KEEPALIVE_REQUESTS in ${KEEPALIVE_REQUESTS}; do
+for clients in ${CLIENTS}; do
+  for keepalive_requests in ${KEEPALIVE_REQUESTS}; do
     run_mb
   done
 done

@@ -29,6 +29,8 @@ spec:
           value: {{.UUID}}
         - name: HOST_NETWORK
           value: "{{.hostNetwork}}"
+        - name: NUMBER_OF_ROUTERS
+          value: "{{.numberOfRouters}}"
         command:
         - sleep
         - inf

@@ -14,6 +14,7 @@ es_server = os.getenv("ES_SERVER")
 es_index = os.getenv("ES_INDEX")
 uuid = os.getenv("UUID")
 host_network = os.getenv("HOST_NETWORK", "")
+number_of_routers = os.getenv("NUMBER_OF_ROUTERS", "")
 
 
 def index_result(payload):
@@ -72,7 +73,8 @@ def main():
                "routes": len(mb_config),
                "conn_per_targetroute": mb_config[0]["clients"],
                "keepalive_requests": mb_config[0]["keep-alive-requests"],
-               "tls_reuse": mb_config[0]["tls-session-reuse"]}
+               "tls_reuse": mb_config[0]["tls-session-reuse"],
+               "number_of_routers": number_of_routers}
     payload.update(result_codes)
     print("Workload finished, results:")
     print(json.dumps(payload, indent=4))

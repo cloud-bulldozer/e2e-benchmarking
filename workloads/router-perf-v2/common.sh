@@ -8,7 +8,6 @@ KEEPALIVE_REQUESTS=${KEEPALIVE_REQUESTS:-"1 10 100"}
 CLIENTS=${CLIENTS:-"1 40 200"}
 SAMPLES=${SAMPLES:-1}
 QUIET_PERIOD=${QUIET_PERIOD:-10s}
-NUMBER_OF_ROUTERS=${NUMBER_OF_ROUTERS:-2}
 
 export TLS_REUSE=${TLS_REUSE:-true}
 export UUID=$(uuidgen)
@@ -20,6 +19,7 @@ export HOST_NETWORK=${HOST_NETWORK:-true}
 export KUBECONFIG=${KUBECONFIG:-~/.kube/config}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/workload: }'}
 export NUMBER_OF_ROUTES=${NUMBER_OF_ROUTES:-100}
+export NUMBER_OF_ROUTERS=${NUMBER_OF_ROUTERS:-2}
 export CERBERUS_URL=${CERBERUS_URL}
 
 log(){
@@ -49,18 +49,18 @@ tune_liveness_probe(){
 }
 
 run_mb(){
-  log "Generating config with ${N_CLIENTS} clients ${N_KEEPALIVE_REQUESTS} keep alive requests and path ${URL_PATH}"
-  gen_mb_config http-scale-http 80 mb-http.json
-  gen_mb_config http-scale-edge 443 mb-edge.json
-  gen_mb_config http-scale-passthrough 443 mb-passthrough.json
-  gen_mb_config http-scale-reencrypt 443 mb-reencrypt.json
-  jq -s '[.[][]]' *.json > mb-mix.json
+  log "Generating config with ${clients} clients ${keepalive_requests} keep alive requests and path ${URL_PATH}"
+  gen_mb_config http-scale-http 80
+  gen_mb_config http-scale-edge 443
+  gen_mb_config http-scale-passthrough 443
+  gen_mb_config http-scale-reencrypt 443
+  jq -s '[.[][]]' *.json > http-scale-mix.json
   for TERMINATION in ${TERMINATIONS}; do
       log "Copying mb config mb-${TERMINATION}.json to pod ${client_pod}"
-      oc cp -n http-scale-client mb-${TERMINATION}.json ${client_pod}:/tmp/mb-${TERMINATION}.json
+      oc cp -n http-scale-client http-scale-${TERMINATION}.json ${client_pod}:/tmp/http-scale-${TERMINATION}.json
     for sample in ${SAMPLES}; do
-      log "Executing sample ${sample} from termination ${TERMINATION} with ${N_CLIENTS} clients and ${N_KEEPALIVE_REQUESTS} keepalive requests"
-      oc exec -n http-scale-client -it ${client_pod} -- python3 /workload/workload.py --mb-config /tmp/mb-${TERMINATION}.json --termination ${TERMINATION} --runtime ${RUNTIME} --ramp-up ${RAMP_UP} --output /tmp/results.csv --sample ${sample}
+      log "Executing sample ${sample} from termination ${TERMINATION} with ${clients} clients and ${keepalive_requests} keepalive requests"
+      oc exec -n http-scale-client -it ${client_pod} -- python3 /workload/workload.py --mb-config http-scale-${TERMINATION}.json  --termination ${TERMINATION} --runtime ${RUNTIME} --ramp-up ${RAMP_UP} --output /tmp/results.csv --sample ${sample}
       log "Sleeping for ${QUIET_PERIOD} before next test"
       sleep ${QUIET_PERIOD}
     done
@@ -78,6 +78,7 @@ cleanup_infra(){
   oc delete ns -l kube-burner-uuid=${UUID} --ignore-not-found
 }
 
+# Receives 2 arguments: namespace and port. It writes a mb configuration file named <namespace>.json
 gen_mb_config(){
   if [[ ${2} == 80 ]]; then
     local SCHEME=http
@@ -103,9 +104,9 @@ gen_mb_config(){
         "min": 0,
         "max":0 
       },
-      "keep-alive-requests": '${N_KEEPALIVE_REQUESTS}',
-      "clients": '${N_CLIENTS}'
+      "keep-alive-requests": '${keepalive_requests}',
+      "clients": '${clients}'
     }'
   done <<< $(oc get route -n ${1} --no-headers | awk '{print $2}')
-  echo "]") | python -m json.tool > ${3}
+  echo "]") | python -m json.tool > ${1}.json
 }
