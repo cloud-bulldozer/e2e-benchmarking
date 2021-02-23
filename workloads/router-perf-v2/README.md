@@ -33,7 +33,7 @@ It's possible to tune the default configuration through environment variables. T
 
 | Variable              | Description     | Default	          |
 |-----------------------|-----------------|-------------------|
-| KUBECONFIG            | Kubeconfig file | `-~/.kube/config` |
+| KUBECONFIG            | Kubeconfig file | `~/.kube/config` |
 | ENGINE                | Engine to spin up the local kube-burner container that creates the required infrastructure | `podman` |
 | RUNTIME				| Workload duration in seconds | `120` |
 | TERMINATIONS  		| List of HTTP terminations to test | `http edge passthrough reencrypt mix` |
@@ -46,7 +46,7 @@ It's possible to tune the default configuration through environment variables. T
 | SAMPLES				| Number of samples to perform of each test | `1` |
 | HOST_NETWORK			| Enable hostNetwork in the mb client | `true` |
 | NUMBER_OF_ROUTERS		| Number of routers to test | `2` |
-| NODE_SELECTOR			| Node selector of the mb client | `{"node-role.kubernetes.io/workload": ""}` |
+| NODE_SELECTOR			| Node selector of the mb client | `{node-role.kubernetes.io/workload: }` |
 | QUIET_PERIOD			| Quiet period after each test iteration | `10s` |
 | ES_SERVER             | Elasticsearch endpoint to send metrics | `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443` |
 | ES_INDEX              | Elasticsearch index | `router-test-results` |

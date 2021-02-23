@@ -18,7 +18,7 @@ export ES_INDEX=${ES_INDEX:-router-test-results}
 export RAMP_UP=${RAMP_UP:-0}
 export HOST_NETWORK=${HOST_NETWORK:-true}
 export KUBECONFIG=${KUBECONFIG:-~/.kube/config}
-export NODE_SELECTOR=${NODE_SELECTOR:-'{"node-role.kubernetes.io/workload": ""}'}
+export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/workload: }'}
 export NUMBER_OF_ROUTES=${NUMBER_OF_ROUTES:-100}
 export CERBERUS_URL=${CERBERUS_URL}
 
@@ -30,22 +30,22 @@ deploy_infra(){
   log "Deploying benchmark infrastructure"
   envsubst < ${INFRA_TEMPLATE} > ${INFRA_CONFIG}
   ${ENGINE} run --rm -v $(pwd)/templates:/templates -v ${KUBECONFIG}:/root/.kube/config -v $(pwd)/${INFRA_CONFIG}:/http-perf.yml ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
-  kubectl create configmap -n http-scale-client workload --from-file=workload.py
+  oc create configmap -n http-scale-client workload --from-file=workload.py
   log "Adding workload.py to the client pod"
   oc set volumes -n http-scale-client deploy/http-scale-client --type=configmap --mount-path=/workload --configmap-name=workload --add
-  kubectl rollout status -n http-scale-client deploy/http-scale-client
-  client_pod=$(kubectl get pod -l app=http-scale-client -n http-scale-client | grep Running | awk '{print $1}')
+  oc rollout status -n http-scale-client deploy/http-scale-client
+  client_pod=$(oc get pod -l app=http-scale-client -n http-scale-client | grep Running | awk '{print $1}')
 }
 
 tune_liveness_probe(){
   log "Disabling cluster version and ingress operators"
-  kubectl scale --replicas=0 -n openshift-cluster-version deploy/cluster-version-operator
-  kubectl scale --replicas=0 -n openshift-ingress-operator deploy/ingress-operator
+  oc scale --replicas=0 -n openshift-cluster-version deploy/cluster-version-operator
+  oc scale --replicas=0 -n openshift-ingress-operator deploy/ingress-operator
   log "Increasing ingress controller liveness probe period to $((RUNTIME * 2))s"
   oc set probe -n openshift-ingress --liveness --period-seconds=$((RUNTIME * 2)) deploy/router-default
   log "Scaling number of routers to ${NUMBER_OF_ROUTERS}"
   oc scale --replicas=${NUMBER_OF_ROUTERS} -n openshift-ingress deploy/router-default
-  kubectl rollout status -n openshift-ingress deploy/router-default
+  oc rollout status -n openshift-ingress deploy/router-default
 }
 
 run_mb(){
@@ -57,25 +57,25 @@ run_mb(){
   jq -s '[.[][]]' *.json > mb-mix.json
   for TERMINATION in ${TERMINATIONS}; do
       log "Copying mb config mb-${TERMINATION}.json to pod ${client_pod}"
-      kubectl cp -n http-scale-client mb-${TERMINATION}.json ${client_pod}:/tmp/mb-${TERMINATION}.json
+      oc cp -n http-scale-client mb-${TERMINATION}.json ${client_pod}:/tmp/mb-${TERMINATION}.json
     for sample in ${SAMPLES}; do
       log "Executing sample ${sample} from termination ${TERMINATION} with ${N_CLIENTS} clients and ${N_KEEPALIVE_REQUESTS} keepalive requests"
-      kubectl exec -n http-scale-client -it ${client_pod} -- python3 /workload/workload.py --mb-config /tmp/mb-${TERMINATION}.json --termination ${TERMINATION} --runtime ${RUNTIME} --ramp-up ${RAMP_UP} --output /tmp/results.csv --sample ${sample}
+      oc exec -n http-scale-client -it ${client_pod} -- python3 /workload/workload.py --mb-config /tmp/mb-${TERMINATION}.json --termination ${TERMINATION} --runtime ${RUNTIME} --ramp-up ${RAMP_UP} --output /tmp/results.csv --sample ${sample}
       log "Sleeping for ${QUIET_PERIOD} before next test"
       sleep ${QUIET_PERIOD}
     done
   done
 }
 
-enable_ingress_opreator(){
+enable_ingress_operator(){
   log "Enabling cluster version and ingress operators"
-  kubectl scale --replicas=1 -n openshift-cluster-version deploy/cluster-version-operator
-  kubectl scale --replicas=1 -n openshift-ingress-operator deploy/ingress-operator
+  oc scale --replicas=1 -n openshift-cluster-version deploy/cluster-version-operator
+  oc scale --replicas=1 -n openshift-ingress-operator deploy/ingress-operator
 }
 
 cleanup_infra(){
   log "Deleting infrastructure"
-  kubectl delete ns -l kube-burner-uuid=${UUID} --ignore-not-found
+  oc delete ns -l kube-burner-uuid=${UUID} --ignore-not-found
 }
 
 gen_mb_config(){

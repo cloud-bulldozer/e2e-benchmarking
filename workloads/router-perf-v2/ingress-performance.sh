@@ -9,5 +9,5 @@ for N_CLIENTS in ${CLIENTS}; do
     run_mb
   done
 done
-enable_ingress_opreator
+enable_ingress_operator
 cleanup_infra
