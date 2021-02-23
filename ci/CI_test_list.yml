@@ -1,0 +1,13 @@
+etcd-perf:run_etcd_tests_fromgit.sh 
+scale-perf:run_scale_fromgit.sh 
+network-perf:smoke_test.sh 
+kube-burner:run_clusterdensity_test_fromgit.sh
+kube-burner:run_maxnamespaces_test_fromgit.sh 
+kube-burner:run_maxservices_test_fromgit.sh 
+kube-burner:run_nodedensity_test_fromgit.sh 
+kube-burner:run_nodedensity-heavy_test_fromgit.sh 
+storage-perf:run_storage_tests_fromgit.sh 
+upgrade-perf:run_upgrade_fromgit.sh 
+router-perf:run_router_test.sh 
+
+

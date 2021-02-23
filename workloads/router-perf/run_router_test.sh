@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -x
-
+set +u
 # Check cluster's health
 if [[ ${CERBERUS_URL} ]]; then
   response=$(curl ${CERBERUS_URL})
@@ -12,7 +12,7 @@ fi
 
 date
 oc get clusterversion
-if [ $? -ne 0 ]; then
+if [ "$?" -ne 0 ]; then
   echo "Workload Failed for $HTTP_TEST_SUFFIX , Unable to connect to the cluster"
   exit 1
 fi
@@ -23,7 +23,7 @@ if [[ ${COMPARE} = "true" ]] && [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
   num_router=$(oc get pods -n openshift-ingress --no-headers | wc -l)
   if [[ -z "GOLD_SDN" ]]; then
     oc get projects | grep openshift-sdn
-    if [ $? -eq 0 ]; then
+    if [ "$?" -eq 0 ]; then
       GOLD_SDN=openshiftsdn
     else
       GOLD_SDN=ovnkubernetes
@@ -51,7 +51,7 @@ do
   pod_status=$(oc get pods -n scale-ci-tooling | grep scale-ci-http | awk '{print $3}')
   echo "$pod_name -> $pod_status"
   sleep 10
-  if [ $pod_status == "Running" ]; then
+  if [ "$pod_status" == "Running" ]; then
     oc logs -f $pod_name -n scale-ci-tooling
   else
     break
