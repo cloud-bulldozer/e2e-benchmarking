@@ -16,14 +16,14 @@ $ ./run_snappy.sh <file_path> <snappy_file_dir>
 
 ## Environment variables
 
-### DATA_SERVER_URL
+### SNAPPY_DATA_SERVER_URL
 Default: ''
 The Snappy data server url, where you want to move files.
 
-### DATA_SERVER_USERNAME
+### SNAPPY_DATA_SERVER_USERNAME
 Default: ''
 Username for the Snappy data-server.
 
-### DATA_SERVER_PASSWORD
+### SNAPPY_DATA_SERVER_PASSWORD
 Default: ''
 Password for the Snappy data-server.
