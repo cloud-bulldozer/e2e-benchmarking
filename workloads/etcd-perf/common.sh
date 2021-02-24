@@ -1,4 +1,5 @@
-OPERATOR_REPO=https://github.com/cloud-bulldozer/benchmark-operator.git
+OPERATOR_REPO=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
+OPERATOR_BRANCH=${OPERATOR_BRANCH:=master}
 CURL_BODY='{"_source": false, "aggs": {"max-fsync-lat-99th": {"max": {"field": "fio.sync.lat_ns.percentile.99.000000"}}}}'
 
 export TERM=screen-256color
@@ -24,7 +25,7 @@ log() {
 deploy_operator() {
   log "Cloning benchmark-operator from ${OPERATOR_REPO}"
   rm -rf benchmark-operator
-  git clone ${OPERATOR_REPO} --depth 1
+  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
   log "Deploying benchmark-operator"
   oc apply -f benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
   oc apply -f benchmark-operator/resources/namespace.yaml

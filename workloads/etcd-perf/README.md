@@ -24,6 +24,8 @@ All scripts can be tweaked with the following environment variables:
 | **FILE_SIZE**        | FIO File size | 50MiB |
 | **SAMPLES**          | FIO samples | 5 |
 | **LATENCY_TH**       | Latency threshold in ns | 10000000 |
+| **OPERATOR_REPO**    | benchmark-operator repo   | https://github.com/cloud-bulldozer/benchmark-operator.git |
+| **OPERATOR_BRANCH**  | benchmark-operator branch                     | master  |
 
 **Note**: You can use basic authentication when indexing in ES using the notation `http(s)://[username]:[password]@[address]` in **ES_SERVER**.
 
