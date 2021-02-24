@@ -10,13 +10,6 @@ log() {
   echo ${bold}$(date -u):  ${@}${normal}
 }
 
-# Initialize kubeconfig to get access to the OpenShift cluster
-if [[ -n $KUBECONFIG_PATH ]]; then
-  export KUBECONFIG=$KUBECONFIG_PATH
-else
-  log "Looks like kubeconfig path is not set, assuming that it's in the default location - $HOME/.kube/config"
-fi
-
 # Check if oc client is installed
 log "Checking if oc client is installed"
 which oc &>/dev/null
@@ -29,7 +22,7 @@ fi
 # Check if cluster exists and print the clusterversion under test
 oc get clusterversion
 if [[ $? -ne 0 ]]; then
-  log "Unable to connect to the cluster, please check if it's up and make sure the KUBECONFIG_PATH is set correctly"
+  log "Unable to connect to the cluster, please check if it's up and make sure the KUBECONFIG is set correctly"
   exit 1
 fi
 
