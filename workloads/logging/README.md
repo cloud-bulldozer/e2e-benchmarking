@@ -11,17 +11,14 @@ This deploys the cluster-logging-operator which creates and manages the Elastics
 
 
 ## Environment variables
-
-### KUBECONFIG_PATH
-Default: `$HOME/.kube/config`
-Path to the kubeconfig to get access to the OpenShift cluster.
+Ensure to have `KUBECONFIG` set to the proper path to your desired cluster.
 
 ### CHANNEL
 Default: `4.6`
 Update channel for the Elasticsearch and Cluster logging operators.
 
 ### ES_NODE_COUNT
-Default: 3     
+Default: 3
 Number of Elasticsearch nodes.
 
 ### ES_STORAGE_CLASS
