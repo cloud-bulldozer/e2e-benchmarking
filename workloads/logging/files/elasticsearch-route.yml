@@ -1,0 +1,14 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: elasticsearch
+  namespace: openshift-logging
+spec:
+  host:
+  to:
+    kind: Service
+    name: elasticsearch
+  tls:
+    termination: reencrypt
+    destinationCACertificate: |

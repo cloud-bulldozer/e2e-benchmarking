@@ -55,7 +55,7 @@ log "Installing the necessary objects for setting up elastic and logging operato
 install
 
 # Wait till the logging stack is up
-log "Waiting for the logging stack is up"
+log "Waiting for the logging stack to be up and running"
 log "Sleeping for 60 seconds for the cluster logging operator to initialize and create the logging stack deployments and daemonsets before checking the status"
 sleep 60
 oc wait --for=condition=available -n openshift-logging deployment/cluster-logging-operator --timeout=180s
@@ -67,8 +67,17 @@ while [[ $( oc get daemonset.apps/fluentd -n openshift-logging -o=jsonpath='{.st
   sleep 5
   wait_time=$((wait_time+5))
   if [[ $wait_time -ge $TIMEOUT ]]; then
-    log "FLuentd daemonset is not ready after $TIMEOUT, please check. Exiting"
+    log "Fluentd daemonset is not ready after $TIMEOUT, please check. Exiting"
     exit 1
   fi
 done
-log "Logging stack including Elasticsearch, Fluend and Kibana is up"
+log "Logging stack including Elasticsearch, Fluend and Kibana are up"
+
+# Expose the elasticsearch service
+echo "Exposing the elasticsearch service by creating a route"
+oc extract secret/elasticsearch --to=/tmp/ --keys=admin-ca --confirm -n openshift-logging
+cp files/elasticsearch-route.yml /tmp/elasticsearch-route.yml
+cat /tmp/admin-ca | sed -e "s/^/      /" >> /tmp/elasticsearch-route.yml
+oc create -f /tmp/elasticsearch-route.yml -n openshift-logging
+routeES=`oc get route elasticsearch -n openshift-logging -o jsonpath={.spec.host}`
+echo "Elasticsearch is exposed at $routeES, bearer token is needed to access it"
