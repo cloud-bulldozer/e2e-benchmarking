@@ -50,15 +50,15 @@ export_defaults() {
     # Get AZs from worker nodes
     log "Colocating uperf pods in different AZs"
     if [[ ${#zones[@]} -gt 1 ]]; then
-      export server=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n1)
-      export client=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",topology.kubernetes.io/zone=${zones[1]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n1)
+      export server=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n1)
+      export client=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[1]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n1)
     else
       log "At least 2 worker nodes placed in different topology zones are required"
       exit 1
     fi
   # If multi_az is disabled we use the two first nodes from the first AZ
   else
-    nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
+    nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
     if [[ ${#nodes[@]} -lt 2 ]]; then
       log "At least 2 worker nodes placed in the topology zone ${zones[0]} are required"
       exit 1
