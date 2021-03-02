@@ -43,7 +43,7 @@ export_defaults() {
   export pin=true
   export networkpolicy=${NETWORK_POLICY:=false}
   export multi_az=${MULTI_AZ:=true}
-  zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}'))
+  zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
 
   # If multi_az we use one node from the two first AZs
   if [[ ${multi_az} == "true" ]]; then
