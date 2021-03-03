@@ -12,7 +12,7 @@ for clients in CLIENTS; do
     for termination in TERMINATIONS; do
       for sample in SAMPLES; do
         run_test
-		sleep QUIER_PERIOD
+        sleep QUIER_PERIOD
       done
     done
   done
