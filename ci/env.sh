@@ -12,7 +12,13 @@ export JOB_ITERATIONS=3
 export CLEANUP=true
 export CLEANUP_WHEN_FINISH=true
 export NODE_COUNT=`oc get nodes -l node-role.kubernetes.io/worker | grep -v NAME | wc -l`
-export PODS_PER_NODE=40
+nodes=$(oc get nodes -l node-role.kubernetes.io/worker -o name)
+for n in ${nodes}; do
+  pods_in_node=$(oc get pod --field-selector=spec.nodeName=${n} -A --field-selector=status.phase=Running | wc -l)
+  pod_count=$((pod_count+pods_in_node))
+done
+# Create only 10 pods
+export PODS_PER_NODE=$((pod_count / NODE_COUNT + 10))
 
 #for upgrade perf
 export VERSION=`oc get clusterversion | grep -o [0-9.]* | head -1`
