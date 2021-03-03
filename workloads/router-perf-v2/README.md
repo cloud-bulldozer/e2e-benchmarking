@@ -39,7 +39,7 @@ It's possible to tune the default configuration through environment variables. T
 | RUNTIME				| Workload duration in seconds | `120` |
 | TERMINATIONS  		| List of HTTP terminations to test | `http edge passthrough reencrypt mix` |
 | URL_PATH              | URL path to use in the benchmark | `/1024.html` |
-| NUMBER_OF_ROUTES		| Number of routes of each termination to test. (the mix scenario test all of them together | `100` |
+| NUMBER_OF_ROUTES		| Number of routes of each termination to test. (the mix scenario test all of them together) | `100` |
 | KEEPALIVE_REQUESTS	| List with the number of keep alive requests to perform in the same HTTP session | `1 40 200` |
 | CLIENTS				| List with the number of clients (threads per target route) | `1 10 100`|
 | TLS_REUSE				| Reuse TLS session | `true` |

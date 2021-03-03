@@ -34,7 +34,7 @@ log(){
 deploy_infra(){
   log "Deploying benchmark infrastructure"
   envsubst < ${INFRA_TEMPLATE} > ${INFRA_CONFIG}
-  ${ENGINE} run --rm -v $(pwd)/templates:/templates -v ${KUBECONFIG}:/root/.kube/config -v $(pwd)/${INFRA_CONFIG}:/http-perf.yml ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
+  ${ENGINE} run --rm -v $(pwd)/templates:/templates:z -v ${KUBECONFIG}:/root/.kube/config:z -v $(pwd)/${INFRA_CONFIG}:/http-perf.yml:z ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
   oc create configmap -n http-scale-client workload --from-file=workload.py
   log "Adding workload.py to the client pod"
   oc set volumes -n http-scale-client deploy/http-scale-client --type=configmap --mount-path=/workload --configmap-name=workload --add

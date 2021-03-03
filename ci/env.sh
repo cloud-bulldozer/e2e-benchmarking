@@ -13,11 +13,6 @@ export CLEANUP=true
 export CLEANUP_WHEN_FINISH=true
 export NODE_COUNT=`oc get nodes -l node-role.kubernetes.io/worker | grep -v NAME | wc -l`
 export PODS_PER_NODE=40
-if [[ -n $KUBECONFIG_PATH ]]; then
-  export KUBECONFIG=$KUBECONFIG_PATH
-else
-  echo "Looks like kubeconfig path is not set, assuming that it's in the default location - $HOME/.kube/config"
-fi
 
 #for upgrade perf
 export VERSION=`oc get clusterversion | grep -o [0-9.]* | head -1`
@@ -31,9 +26,11 @@ export HTTP_TEST_ROUTE_TERMINATION='http'
 export HTTP_TEST_RUNTIME=10
 
 # For router perf v2
+export NUMBER_OF_ROUTES=10
 export RUNTIME=10
 export SAMPLES=2
 export TERMINATIONS=http
 export KEEPALIVE_REQUESTS="1 40"
 export CLIENTS="1 10"
 export QUIET_PERIOD=1s
+export NODE_SELECTOR='{node-role.kubernetes.io/worker: }'
