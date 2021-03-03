@@ -36,3 +36,8 @@ spec:
         - inf
         image: quay.io/rsevilla/http-stress:latest
         name: http-stress
+        tolerations:
+        - effect: NoSchedule
+          key: role
+          operator: Equal
+          value: workload

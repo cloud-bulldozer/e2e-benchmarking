@@ -12,6 +12,7 @@ for clients in CLIENTS; do
     for termination in TERMINATIONS; do
       for sample in SAMPLES; do
         run_test
+		sleep QUIER_PERIOD
       done
     done
   done
@@ -43,13 +44,21 @@ It's possible to tune the default configuration through environment variables. T
 | CLIENTS				| List with the number of clients (threads per target route) | `1 10 100`|
 | TLS_REUSE				| Reuse TLS session | `true` |
 | RAMP_UP				| Ramp-up period | `0 ` |
-| SAMPLES				| Number of samples to perform of each test | `1` |
+| SAMPLES				| Number of samples to perform of each test | `3` |
 | HOST_NETWORK			| Enable hostNetwork in the mb client | `true` |
 | NUMBER_OF_ROUTERS		| Number of routers to test | `2` |
 | NODE_SELECTOR			| Node selector of the mb client | `{node-role.kubernetes.io/workload: }` |
 | QUIET_PERIOD			| Quiet period after each test iteration | `10s` |
 | ES_SERVER             | Elasticsearch endpoint to send metrics | `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443` |
+| ES_SERVER_BASELINE    | Elasticsearch endpoint used to fetch baseline results | "" |
 | ES_INDEX              | Elasticsearch index | `router-test-results` |
+| BASELINE_UUID         | Baseline UUID to compare the results with (optional) | "" |
+| PREFIX                | Test name prefix (optional) | Result of `oc get clusterversion version -o jsonpath="{.status.desired.version}"` |
+| BASELINE_PREFIX       | Baseline test name prefix (optional) | `baseline` |
+| GSHEET_KEY_LOCATION   | Path to service account key to generate google sheets (optional) | "" |
+| EMAIL_ID_FOR_RESULTS_SHEET | It will push your local results CSV to Google Spreadsheets and send an email with the attachment (optional) | "" |
+| THROUGHPUT_TOLERANCE | Accepeted deviation in percentage for throughput when compared to a baseline run | 5 |
+| LATENCY_TOLERANCE | Accepeted deviation in percentage for latency when compared to a baseline run | 5 |
 
 ## Metrics
 

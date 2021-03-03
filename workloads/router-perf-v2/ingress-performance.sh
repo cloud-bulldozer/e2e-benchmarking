@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash -e
+set -e
 
 . common.sh
 
@@ -11,3 +12,9 @@ for clients in ${CLIENTS}; do
 done
 enable_ingress_operator
 cleanup_infra
+if [[ -n ${ES_SERVER} ]]; then
+  log "Generating results in results.yaml"
+  ../../utils/touchstone-compare/run_compare.sh mb ${BASELINE_UUID} ${UUID}
+  log "Generating CSV results"
+  ./csv_gen.py -f results.yaml -u ${UUID} ${BASELINE_UUID} -p ${TEST_PREFIX} ${BASELINE_PREFIX} -l ${LATENCY_TOLERANCE} -t ${THROUGHPUT_TOLERANCE}
+fi

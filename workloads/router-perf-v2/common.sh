@@ -6,8 +6,12 @@ URL_PATH=${URL_PATH:-"/1024.html"}
 TERMINATIONS=${TERMINATIONS:-"http edge passthrough reencrypt mix"}
 KEEPALIVE_REQUESTS=${KEEPALIVE_REQUESTS:-"1 10 100"}
 CLIENTS=${CLIENTS:-"1 40 200"}
-SAMPLES=${SAMPLES:-1}
+SAMPLES=${SAMPLES:-3}
 QUIET_PERIOD=${QUIET_PERIOD:-10s}
+THROUGHPUT_TOLERANCE=${THROUGHPUT_TOLERANCE:-5}
+LATENCY_TOLERANCE=${LATENCY_TOLERANCE:-5}
+PREFIX=${PREFIX:-$(oc get clusterversion version -o jsonpath="{.status.desired.version}")}
+
 
 export TLS_REUSE=${TLS_REUSE:-true}
 export UUID=$(uuidgen)
@@ -21,6 +25,7 @@ export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/workload: }'}
 export NUMBER_OF_ROUTES=${NUMBER_OF_ROUTES:-100}
 export NUMBER_OF_ROUTERS=${NUMBER_OF_ROUTERS:-2}
 export CERBERUS_URL=${CERBERUS_URL}
+export TOUCHSTONE_CONFIG=$(pwd)/mb.json
 
 log(){
   echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
@@ -56,11 +61,11 @@ run_mb(){
   gen_mb_config http-scale-reencrypt 443
   jq -s '[.[][]]' *.json > http-scale-mix.json
   for TERMINATION in ${TERMINATIONS}; do
-      log "Copying mb config mb-${TERMINATION}.json to pod ${client_pod}"
+      log "Copying mb config http-scale-${TERMINATION}.json to pod ${client_pod}"
       oc cp -n http-scale-client http-scale-${TERMINATION}.json ${client_pod}:/tmp/http-scale-${TERMINATION}.json
     for sample in ${SAMPLES}; do
-      log "Executing sample ${sample} from termination ${TERMINATION} with ${clients} clients and ${keepalive_requests} keepalive requests"
-      oc exec -n http-scale-client -it ${client_pod} -- python3 /workload/workload.py --mb-config http-scale-${TERMINATION}.json  --termination ${TERMINATION} --runtime ${RUNTIME} --ramp-up ${RAMP_UP} --output /tmp/results.csv --sample ${sample}
+      log "Executing sample ${sample}/${SAMPLES} from termination ${TERMINATION} with ${clients} clients and ${keepalive_requests} keepalive requests"
+      oc exec -n http-scale-client -it ${client_pod} -- python3 /workload/workload.py --mb-config /tmp/http-scale-${TERMINATION}.json  --termination ${TERMINATION} --runtime ${RUNTIME} --ramp-up ${RAMP_UP} --output /tmp/results.csv --sample ${sample}
       log "Sleeping for ${QUIET_PERIOD} before next test"
       sleep ${QUIET_PERIOD}
     done
