@@ -29,3 +29,11 @@ export HTTP_TEST_SUFFIX='smoke-test'
 export HTTP_TEST_SMOKE_TEST=true
 export HTTP_TEST_ROUTE_TERMINATION='http' 
 export HTTP_TEST_RUNTIME=10
+
+# For router perf v2
+export RUNTIME=10
+export SAMPLES=2
+export TERMINATIONS=http
+export KEEPALIVE_REQUESTS="1 40"
+export CLIENTS="1 10"
+export QUIET_PERIOD=1s
