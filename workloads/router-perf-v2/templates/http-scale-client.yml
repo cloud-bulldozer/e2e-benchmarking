@@ -19,6 +19,11 @@ spec:
       serviceAccountName: http-scale-client
       imagePullPolicy: Always
       hostNetwork: {{.hostNetwork}}
+      tolerations:
+      - effect: NoSchedule
+        key: role
+        operator: Equal
+        value: workload
       containers:
       - env:
         - name: ES_SERVER
@@ -36,8 +41,3 @@ spec:
         - inf
         image: quay.io/rsevilla/http-stress:latest
         name: http-stress
-        tolerations:
-        - effect: NoSchedule
-          key: role
-          operator: Equal
-          value: workload
