@@ -67,9 +67,11 @@ Each indexed document looks like:
 
 ```json
 {
+    "test_type": "mix",
     "termination": "mix",
     "uuid": "babdc414-09bd-4da1-815f-b95da239faa5",
     "requests_per_second": 58529,
+    "avg_latency": 477226,
     "latency_95pctl": 377226,
     "latency_99pctl": 1198476,
     "host_network": "true",
@@ -78,7 +80,7 @@ Each indexed document looks like:
     "ramp_up": 0,
     "routes": 40,
     "threads_per_target": 200,
-    "keepalive_requests": 10,
+    "keepalive": 10,
     "tls_reuse": false,
     "200": 1755889,
     "0": 17,

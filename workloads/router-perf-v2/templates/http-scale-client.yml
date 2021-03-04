@@ -39,5 +39,5 @@ spec:
         command:
         - sleep
         - inf
-        image: quay.io/rsevilla/http-stress:latest
-        name: http-stress
+        image: quay.io/cloud-bulldozer/mb:latest
+        name: mb

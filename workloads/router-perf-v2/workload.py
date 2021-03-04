@@ -45,7 +45,8 @@ def run_mb(mb_config, runtime, ramp_up, output):
         latency_list.append(int(hit[1]))
     p95_latency = numpy.percentile(latency_list, 95)
     p99_latency = numpy.percentile(latency_list, 99)
-    return result_codes, p95_latency, p99_latency
+    avg_latency = numpy.average(latency_list)
+    return result_codes, p95_latency, p99_latency, avg_latency
 
 
 def main():
@@ -59,12 +60,13 @@ def main():
     args = parser.parse_args()
     mb_config = json.load(open(args.mb_config, "r"))
     timestamp = datetime.datetime.utcnow()
-    result_codes, p95_latency, p99_latency = run_mb(args.mb_config, args.runtime, args.ramp_up, args.output)
+    result_codes, p95_latency, p99_latency, avg_latency = run_mb(args.mb_config, args.runtime, args.ramp_up, args.output)
     requests_per_second = result_codes.get("200", 0) / args.runtime
     payload = {"termination": args.termination,
                "test_type": args.termination,
                "uuid": uuid,
                "requests_per_second": int(requests_per_second),
+               "avg_latency": int(avg_latency),
                "latency_95pctl": int(p95_latency),
                "latency_99pctl": int(p99_latency),
                "host_network": host_network,
