@@ -25,6 +25,7 @@ export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/workload: }'}
 export NUMBER_OF_ROUTES=${NUMBER_OF_ROUTES:-100}
 export NUMBER_OF_ROUTERS=${NUMBER_OF_ROUTERS:-2}
 export CERBERUS_URL=${CERBERUS_URL}
+export SERVICE_TYPE=${SERVICE_TYPE:-NodePort}
 
 log(){
   echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"

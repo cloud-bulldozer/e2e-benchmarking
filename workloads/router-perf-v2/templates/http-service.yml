@@ -16,4 +16,4 @@ spec:
     targetPort: 8443
   selector:
     app: nginx-{{.Replica}}
-  type: ClusterIP
+  type: {{.serviceType}}

@@ -57,8 +57,9 @@ It's possible to tune the default configuration through environment variables. T
 | BASELINE_PREFIX       | Baseline test name prefix (optional) | `baseline` |
 | GSHEET_KEY_LOCATION   | Path to service account key to generate google sheets (optional) | "" |
 | EMAIL_ID_FOR_RESULTS_SHEET | It will push your local results CSV to Google Spreadsheets and send an email with the attachment (optional) | "" |
-| THROUGHPUT_TOLERANCE | Accepeted deviation in percentage for throughput when compared to a baseline run | 5 |
-| LATENCY_TOLERANCE | Accepeted deviation in percentage for latency when compared to a baseline run | 5 |
+| THROUGHPUT_TOLERANCE  | Accepeted deviation in percentage for throughput when compared to a baseline run | 5 |
+| LATENCY_TOLERANCE     | Accepeted deviation in percentage for latency when compared to a baseline run | 5 |
+| SERVICE_TYPE          | K8S service type to use | `NodePort` |
 
 ## Metrics
 

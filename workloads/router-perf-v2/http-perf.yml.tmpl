@@ -16,6 +16,8 @@ jobs:
 
     - objectTemplate: templates/http-service.yml
       replicas: ${NUMBER_OF_ROUTES}
+      inputVars:
+        serviceType: ${SERVICE_TYPE}
 
     - objectTemplate: templates/http-route.yml
       replicas: ${NUMBER_OF_ROUTES}
@@ -37,6 +39,8 @@ jobs:
 
     - objectTemplate: templates/http-service.yml
       replicas: ${NUMBER_OF_ROUTES}
+      inputVars:
+        serviceType: ${SERVICE_TYPE}
 
     - objectTemplate: templates/edge-route.yml
       replicas: ${NUMBER_OF_ROUTES}
@@ -58,6 +62,8 @@ jobs:
 
     - objectTemplate: templates/http-service.yml
       replicas: ${NUMBER_OF_ROUTES}
+      inputVars:
+        serviceType: ${SERVICE_TYPE}
 
     - objectTemplate: templates/passthrough-route.yml
       replicas: ${NUMBER_OF_ROUTES}
@@ -79,6 +85,8 @@ jobs:
 
     - objectTemplate: templates/http-service.yml
       replicas: ${NUMBER_OF_ROUTES}
+      inputVars:
+        serviceType: ${SERVICE_TYPE}
 
     - objectTemplate: templates/reencrypt-route.yml
       replicas: ${NUMBER_OF_ROUTES}
