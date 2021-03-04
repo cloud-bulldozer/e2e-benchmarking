@@ -62,6 +62,7 @@ def main():
     result_codes, p95_latency, p99_latency = run_mb(args.mb_config, args.runtime, args.ramp_up, args.output)
     requests_per_second = result_codes.get("200", 0) / args.runtime
     payload = {"termination": args.termination,
+               "test_type": args.termination,
                "uuid": uuid,
                "requests_per_second": int(requests_per_second),
                "latency_95pctl": int(p95_latency),
@@ -72,7 +73,7 @@ def main():
                "ramp_up": args.ramp_up,
                "routes": len(mb_config),
                "conn_per_targetroute": mb_config[0]["clients"],
-               "keepalive_requests": mb_config[0]["keep-alive-requests"],
+               "keepalive": mb_config[0]["keep-alive-requests"],
                "tls_reuse": mb_config[0]["tls-session-reuse"],
                "number_of_routers": number_of_routers}
     payload.update(result_codes)

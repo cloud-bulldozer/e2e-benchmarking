@@ -43,18 +43,18 @@ def read_yaml(yaml_files):
 def create_table_mappings(data, uuid_map, metric_map):
     tables = {}
     for file_num, datum in data.items():
-        for termination in datum["termination"]:
-            for routes in datum["termination"][termination]["routes"]:
-                for cpt in datum["termination"][termination]["routes"][routes]["conn_per_targetroute"]:
-                    for keepalive_requests in datum["termination"][termination]["routes"][routes]["conn_per_targetroute"][cpt]["keepalive_requests"]:
-                        level_dict = datum["termination"][termination]["routes"][routes]["conn_per_targetroute"][cpt]["keepalive_requests"][keepalive_requests]
-                        table = tables.setdefault((routes, label_map[termination], cpt), defaultdict(lambda: defaultdict(dict)),)
+        for test_type in datum["test_type"]:
+            for routes in datum["test_type"][test_type]["routes"]:
+                for cpt in datum["test_type"][test_type]["routes"][routes]["conn_per_targetroute"]:
+                    for keepalive in datum["test_type"][test_type]["routes"][routes]["conn_per_targetroute"][cpt]["keepalive"]:
+                        level_dict = datum["test_type"][test_type]["routes"][routes]["conn_per_targetroute"][cpt]["keepalive"][keepalive]
+                        table = tables.setdefault((routes, label_map[test_type], cpt), defaultdict(lambda: defaultdict(dict)),)
                         if metric_map == "rps":
-                            for uuid in level_dict[main_metric_rps[termination]]:
-                                table[file_num][f"{keepalive_requests}"][uuid_map[uuid]] = level_dict[main_metric_rps[termination]][uuid]
+                            for uuid in level_dict[main_metric_rps[test_type]]:
+                                table[file_num][f"{keepalive}"][uuid_map[uuid]] = level_dict[main_metric_rps[test_type]][uuid]
                         else:
-                            for uuid in level_dict[main_metric_latency[termination]]:
-                                table[file_num][f"{keepalive_requests}"][uuid_map[uuid]] = level_dict[main_metric_latency[termination]][uuid]
+                            for uuid in level_dict[main_metric_latency[test_type]]:
+                                table[file_num][f"{keepalive}"][uuid_map[uuid]] = level_dict[main_metric_latency[test_type]][uuid]
     return tables
 
 
