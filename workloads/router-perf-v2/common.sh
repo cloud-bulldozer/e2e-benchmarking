@@ -59,7 +59,7 @@ run_mb(){
   gen_mb_config http-scale-edge 443
   gen_mb_config http-scale-passthrough 443
   gen_mb_config http-scale-reencrypt 443
-  jq -s '[.[][]]' *.json > http-scale-mix.json
+  jq -s '[.[][]]' http-scale-*.json > http-scale-mix.json
   for TERMINATION in ${TERMINATIONS}; do
       log "Copying mb config http-scale-${TERMINATION}.json to pod ${client_pod}"
       oc cp -n http-scale-client http-scale-${TERMINATION}.json ${client_pod}:/tmp/http-scale-${TERMINATION}.json

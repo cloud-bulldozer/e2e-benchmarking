@@ -28,7 +28,7 @@ export PBENCH_SERVER='pbench.dev.openshift.com'
 export COMPARE=false
 export HTTP_TEST_SUFFIX='smoke-test'
 export HTTP_TEST_SMOKE_TEST=true
-export HTTP_TEST_ROUTE_TERMINATION='http' 
+export HTTP_TEST_ROUTE_TERMINATION='http edge mix'
 export HTTP_TEST_RUNTIME=10
 
 # For router perf v2
