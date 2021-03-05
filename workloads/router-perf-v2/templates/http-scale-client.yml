@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: http-scale-client
+  name: http-scale-client
+  namespace: http-scale-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: http-scale-client
+  template:
+    metadata:
+      labels:
+        app: http-scale-client
+    spec:
+      nodeSelector: {{.nodeSelector}}
+      serviceAccountName: http-scale-client
+      imagePullPolicy: Always
+      hostNetwork: {{.hostNetwork}}
+      tolerations:
+      - effect: NoSchedule
+        key: role
+        operator: Equal
+        value: workload
+      containers:
+      - env:
+        - name: ES_SERVER
+          value: "{{.ESServer}}"
+        - name: ES_INDEX
+          value: {{.ESIndex}}
+        - name: UUID
+          value: {{.UUID}}
+        - name: HOST_NETWORK
+          value: "{{.hostNetwork}}"
+        - name: NUMBER_OF_ROUTERS
+          value: "{{.numberOfRouters}}"
+        command:
+        - sleep
+        - inf
+        image: quay.io/cloud-bulldozer/mb:latest
+        name: mb

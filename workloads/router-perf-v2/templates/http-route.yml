@@ -1,0 +1,10 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: http-perf-{{.Replica}}
+spec:
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: http-perf-{{.Replica}}

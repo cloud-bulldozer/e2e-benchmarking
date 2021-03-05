@@ -104,7 +104,7 @@ else
   echo ${compare_uperf_uuid} >> uuid.txt
 fi
 
-../../utils/touchstone-compare/run_compare.sh ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
+../../utils/touchstone-compare/run_compare.sh uperf ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
 pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}p.yaml" )
 
 python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance

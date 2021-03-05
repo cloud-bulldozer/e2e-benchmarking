@@ -1,0 +1,9 @@
+FROM registry.access.redhat.com/ubi8:latest as builder
+RUN dnf install -y python3 git make libtool
+RUN git clone https://github.com/jmencak/mb.git
+RUN pushd mb && make
+
+FROM registry.access.redhat.com/ubi8:latest           
+RUN dnf install -y python3 iproute procps-ng net-tools && dnf clean all
+RUN pip3 install elasticsearch numpy
+COPY --from=builder /mb/mb /usr/bin/mb

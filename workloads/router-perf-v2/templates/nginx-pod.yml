@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: http-perf
+    app: nginx-{{.Replica}}
+  name: http-perf-{{.Replica}}
+spec:
+  nodeSelector: {{.nodeSelector}}
+  containers:
+  - image: quay.io/openshift-scale/nginx
+    name: nginx
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
