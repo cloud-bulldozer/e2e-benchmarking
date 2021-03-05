@@ -21,6 +21,7 @@ _post_sleep=${POST_SLEEP:=0}
 COMPARE=${COMPARE:=false}
 _timeout=${TIMEOUT:=240}
 _runs=${RUNS:=3}
+_workload_node_role=${WORKLOAD_NODE_ROLE:=worker}
 
 if [[ -n $SCALE ]]; then
   _scale=${SCALE}
