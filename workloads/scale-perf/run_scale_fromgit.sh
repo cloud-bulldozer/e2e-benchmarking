@@ -44,7 +44,7 @@ spec:
     name: scale_openshift
     args:
       label:
-        key: node-role.kubernetes.io/${NODE_TO_SCALE:=worker}
+        key: node-role.kubernetes.io/${_workload_node_role}
         value: ""
       tolerations:
         key: role
