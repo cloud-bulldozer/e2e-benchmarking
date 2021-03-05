@@ -24,6 +24,9 @@ Branch name for benchmark-operator repo
 Default: ''
 The target scale of the workers in the cluster. THIS IS A REQUIRED VARIABLE
 
+### NODE_TO_SCALE
+Default : worker
+
 ### POLL_INTERVAL
 Default: 5
 How long (in seconds) to have the scale test wait inbetween ready checks
