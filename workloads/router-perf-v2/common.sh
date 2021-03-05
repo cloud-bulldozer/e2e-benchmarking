@@ -63,7 +63,7 @@ run_mb(){
   for TERMINATION in ${TERMINATIONS}; do
       log "Copying mb config http-scale-${TERMINATION}.json to pod ${client_pod}"
       oc cp -n http-scale-client http-scale-${TERMINATION}.json ${client_pod}:/tmp/http-scale-${TERMINATION}.json
-    for sample in ${SAMPLES}; do
+    for sample in $(seq ${SAMPLES}); do
       log "Executing sample ${sample}/${SAMPLES} from termination ${TERMINATION} with ${clients} clients and ${keepalive_requests} keepalive requests"
       oc exec -n http-scale-client -it ${client_pod} -- python3 /workload/workload.py --mb-config /tmp/http-scale-${TERMINATION}.json  --termination ${TERMINATION} --runtime ${RUNTIME} --ramp-up ${RAMP_UP} --output /tmp/results.csv --sample ${sample}
       log "Sleeping for ${QUIET_PERIOD} before next test"
