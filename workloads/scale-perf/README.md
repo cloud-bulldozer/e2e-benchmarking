@@ -24,7 +24,7 @@ Branch name for benchmark-operator repo
 Default: ''
 The target scale of the workers in the cluster. THIS IS A REQUIRED VARIABLE
 
-### NODE_TO_SCALE
+### WORKLOAD_NODE_ROLE 
 Default : worker
 
 ### POLL_INTERVAL
