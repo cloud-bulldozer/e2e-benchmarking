@@ -4,6 +4,7 @@ set -e
 . common.sh
 
 deploy_infra
+tune_workload_node create
 tune_liveness_probe
 for clients in ${CLIENTS}; do
   for keepalive_requests in ${KEEPALIVE_REQUESTS}; do
@@ -11,6 +12,7 @@ for clients in ${CLIENTS}; do
   done
 done
 enable_ingress_operator
+tune_workload_node delete
 cleanup_infra
 if [[ -n ${ES_SERVER} ]]; then
   log "Generating results in compare.yaml"
