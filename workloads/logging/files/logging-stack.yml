@@ -63,7 +63,7 @@ spec:
   sourceNamespace: openshift-marketplace
 
 ---
-apiVersion: "logging.openshift.io/v1"
+apiVersion: logging.openshift.io/v1
 kind: "ClusterLogging"
 metadata:
   name: "instance"
@@ -111,3 +111,17 @@ spec:
           requests:
             cpu: $FLUENTD_CPU_REQUESTS
             memory: $FLUENTD_MEMORY_REQUESTS
+
+---
+apiVersion: logging.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  namespace: openshift-logging
+  name: instance
+  labels: {}
+spec:
+  pipelines:
+    - name: forward-logs
+      inputRefs: $FORWARD_LOGS
+      outputRefs:
+      - default

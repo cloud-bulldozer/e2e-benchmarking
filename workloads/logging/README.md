@@ -58,6 +58,10 @@ CPU requests for the Fluentd as needed.
 Default: `1Gi`
 Memory requests for the Fluentd as needed.
 
+### FORWARD_LOGS
+Default: [application]
+Logs to forward to the Elasticsearch backend. Only application logs are forwarded by default, the parameter can be tweaked to forward infra and audit logs. Supported options: [infra, application, audit].
+
 ### TIMEOUT
 Default: 180
 Time to wait for resources created to be up before exiting
@@ -80,5 +84,6 @@ export ES_REDUNDANCY_POLICY=SingleRedundancy
 export FLUENTD_MEMORY_LIMITS=
 export FLUENTD_CPU_REQUESTS=
 export FLUENTD_MEMORY_REQUESTS=
+export FORWARD_LOGS=[infra, application, audit]
 export TIMEOUT=180
 ```
