@@ -6,7 +6,11 @@ source ./common.sh
 # set the channel to find the builds to upgrade to
 if [[ -n $CHANNEL ]]; then
   echo "Setting the upgrade channel to $CHANNEL"
-  oc patch clusterversion/version -p '{"spec":{"channel":"'$CHANNEL'"}}' --type=merge
+  if [[ "$CHANNEL" == "nightlies" ]]; then
+    oc patch clusterversion version --type json -p '[{"op": "add", "path": "/spec/upstream", "value": "https://amd64.ocp.releases.ci.openshift.org/graph"}, {"op": "add", "path": "/spec/channel", "value": "nightly"}]'
+  else
+    oc patch clusterversion version -p '{"spec":{"channel":"'$CHANNEL'"}}' --type=merge
+  fi
 else
   echo "Using the default upgrade channel set on the cluster for the upgrades"
 fi

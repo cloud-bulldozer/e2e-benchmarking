@@ -24,7 +24,8 @@ Default: ''
 Upgrades to the latest version available in the channel when set to true.
 
 ### CHANNEL
-Channel to set for the upgrade to find the image to upgrade to, they can found at https://github.com/openshift/cincinnati-graph-data/blob/master/channels/. 
+Channel to set for the upgrade to find the image to upgrade to, they can found at https://github.com/openshift/cincinnati-graph-data/blob/master/channels/.
+Set CHANNEL=nightlies in case of upgrading to nightly builds which are not part of the upgrade path in cincinnati.
 The channel set on the cluster is not tweaked if this variable is not set.
 
 ### POLL_INTERVAL
