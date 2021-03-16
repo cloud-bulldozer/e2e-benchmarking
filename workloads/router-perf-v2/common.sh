@@ -4,31 +4,44 @@ INFRA_CONFIG=http-perf.yml
 KUBE_BURNER_IMAGE=quay.io/cloud-bulldozer/kube-burner:latest
 URL_PATH=${URL_PATH:-"/1024.html"}
 TERMINATIONS=${TERMINATIONS:-"http edge passthrough reencrypt mix"}
-KEEPALIVE_REQUESTS=${KEEPALIVE_REQUESTS:-"1 10 100"}
-CLIENTS=${CLIENTS:-"1 40 200"}
-SAMPLES=${SAMPLES:-3}
-QUIET_PERIOD=${QUIET_PERIOD:-10s}
+KEEPALIVE_REQUESTS=${KEEPALIVE_REQUESTS:-"0 1 50"}
+SAMPLES=${SAMPLES:-2}
+QUIET_PERIOD=${QUIET_PERIOD:-60s}
 THROUGHPUT_TOLERANCE=${THROUGHPUT_TOLERANCE:-5}
 LATENCY_TOLERANCE=${LATENCY_TOLERANCE:-5}
 PREFIX=${PREFIX:-$(oc get clusterversion version -o jsonpath="{.status.desired.version}")}
+LARGE_SCALE_THRESHOLD=${LARGE_SCALE_THRESHOLD:-24}
 
 
 export TLS_REUSE=${TLS_REUSE:-true}
 export UUID=$(uuidgen)
-export RUNTIME=${RUNTIME:-120}
+export RUNTIME=${RUNTIME:-60}
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=${ES_INDEX:-router-test-results}
-export RAMP_UP=${RAMP_UP:-0}
 export HOST_NETWORK=${HOST_NETWORK:-true}
 export KUBECONFIG=${KUBECONFIG:-~/.kube/config}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/workload: }'}
-export NUMBER_OF_ROUTES=${NUMBER_OF_ROUTES:-100}
 export NUMBER_OF_ROUTERS=${NUMBER_OF_ROUTERS:-2}
 export CERBERUS_URL=${CERBERUS_URL}
 export SERVICE_TYPE=${SERVICE_TYPE:-NodePort}
 
 log(){
   echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
+}
+
+get_scenario(){
+  # We consider a large scale scenario any cluster with more than the given threshold
+  if [[ $(oc get node -l node-role.kubernetes.io/worker --no-headers | grep -cw Ready) -ge ${LARGE_SCALE_THRESHOLD} ]]; then
+    log "Large scale scenario detected: #workers >= ${LARGE_SCALE_THRESHOLD}"
+    export NUMBER_OF_ROUTES=${LARGE_SCALE_ROUTES:-500}
+    export CLIENTS=${LARGE_SCALE_CLIENTS:-"1 20 80"}
+    export CLIENTS_MIX=${LARGE_SCALE_CLIENTS_MIX:-"1 10 20"}
+  else
+    log "Small scale scenario detected: #workers < ${LARGE_SCALE_THRESHOLD}"
+    export NUMBER_OF_ROUTES=${SMALL_SCALE_ROUTES:-100}
+    export CLIENTS=${SMALL_SCALE_CLIENTS:-"1 40 200"}
+    export CLIENTS_MIX=${SMALL_SCALE_CLIENTS_MIX:-"1 20 80"}
+  fi
 }
 
 deploy_infra(){
@@ -39,7 +52,6 @@ deploy_infra(){
   log "Adding workload.py to the client pod"
   oc set volumes -n http-scale-client deploy/http-scale-client --type=configmap --mount-path=/workload --configmap-name=workload --add
   oc rollout status -n http-scale-client deploy/http-scale-client
-  client_pod=$(oc get pod -l app=http-scale-client -n http-scale-client | grep Running | awk '{print $1}')
 }
 
 tune_liveness_probe(){
@@ -60,21 +72,18 @@ tune_workload_node(){
 }
 
 run_mb(){
-  log "Generating config with ${clients} clients ${keepalive_requests} keep alive requests and path ${URL_PATH}"
-  gen_mb_config http-scale-http 80
-  gen_mb_config http-scale-edge 443
-  gen_mb_config http-scale-passthrough 443
-  gen_mb_config http-scale-reencrypt 443
-  jq -s '[.[][]]' http-scale-*.json > http-scale-mix.json
-  for TERMINATION in ${TERMINATIONS}; do
-      log "Copying mb config http-scale-${TERMINATION}.json to pod ${client_pod}"
-      oc cp -n http-scale-client http-scale-${TERMINATION}.json ${client_pod}:/tmp/http-scale-${TERMINATION}.json
-    for sample in $(seq ${SAMPLES}); do
-      log "Executing sample ${sample}/${SAMPLES} from termination ${TERMINATION} with ${clients} clients and ${keepalive_requests} keepalive requests"
-      oc exec -n http-scale-client -it ${client_pod} -- python3 /workload/workload.py --mb-config /tmp/http-scale-${TERMINATION}.json  --termination ${TERMINATION} --runtime ${RUNTIME} --ramp-up ${RAMP_UP} --output /tmp/results.csv --sample ${sample}
-      log "Sleeping for ${QUIET_PERIOD} before next test"
-      sleep ${QUIET_PERIOD}
-    done
+  if [[ ${termination} == "mix" ]]; then
+    gen_mb_mix_config
+  else
+    gen_mb_config
+  fi
+  log "Copying mb config http-scale-${termination}.json to pod ${client_pod}"
+  oc cp -n http-scale-client http-scale-${termination}.json ${client_pod}:/tmp/http-scale-${termination}.json
+  for sample in $(seq ${SAMPLES}); do
+    log "Executing sample ${sample}/${SAMPLES} using termination ${termination} with ${clients} clients and ${keepalive_requests} keepalive requests"
+    oc exec -n http-scale-client -it ${client_pod} -- python3 /workload/workload.py --mb-config /tmp/http-scale-${termination}.json  --termination ${termination} --runtime ${RUNTIME} --output /tmp/results.csv --sample ${sample}
+    log "Sleeping for ${QUIET_PERIOD} before next test"
+    sleep ${QUIET_PERIOD}
   done
 }
 
@@ -89,14 +98,16 @@ cleanup_infra(){
   oc delete ns -l kube-burner-uuid=${UUID} --ignore-not-found
 }
 
-# Receives 2 arguments: namespace and port. It writes a mb configuration file named <namespace>.json
 gen_mb_config(){
-  if [[ ${2} == 80 ]]; then
-    local SCHEME=http
-  else
-    local SCHEME=https
-  fi
+  log "Generating config for termination ${termination} with ${clients} clients ${keepalive_requests} keep alive requests and path ${URL_PATH}"
   local first=true
+  if [[ ${termination} == "http" ]]; then
+    local scheme=http
+    local port=80
+  else
+    local scheme=https
+    local port=443
+  fi
   (echo "["
   while read n r s p t w; do
     if [[ ${first} == "true" ]]; then
@@ -105,19 +116,56 @@ gen_mb_config(){
     else
         echo ",{"
     fi
-    echo '"scheme": "'${SCHEME}'",
+    echo '"scheme": "'${scheme}'",
       "tls-session-reuse": '${TLS_REUSE}',
       "host": "'${n}'",
-      "port": '${2}',
+      "port": '${port}',
       "method": "GET",
       "path": "'${URL_PATH}'",
       "delay": {
         "min": 0,
-        "max":0 
+        "max": 0
       },
       "keep-alive-requests": '${keepalive_requests}',
       "clients": '${clients}'
     }'
-  done <<< $(oc get route -n ${1} --no-headers | awk '{print $2}')
-  echo "]") | python -m json.tool > ${1}.json
+  done <<< $(oc get route -n http-scale-${termination} --no-headers | awk '{print $2}')
+  echo "]") | python -m json.tool > http-scale-${termination}.json
+}
+
+gen_mb_mix_config(){
+  log "Generating config for termination ${termination} with ${clients} clients ${keepalive_requests} keep alive requests and path ${URL_PATH}"
+  local first=true
+  (echo "["
+  for mix_termination in http edge passthrough reencrypt; do
+    if [[ ${mix_termination} == "http" ]]; then
+      local scheme=http
+      local port=80
+    else
+      local scheme=https
+      local port=443
+    fi
+    while read n r s p t w; do
+      if [[ ${first} == "true" ]]; then
+          echo "{"
+          first=false
+      else
+          echo ",{"
+      fi
+      echo '"scheme": "'${scheme}'",
+        "tls-session-reuse": '${TLS_REUSE}',
+        "host": "'${n}'",
+        "port": '${port}',
+        "method": "GET",
+        "path": "'${URL_PATH}'",
+        "delay": {
+          "min": 0,
+          "max": 0
+        },
+        "keep-alive-requests": '${keepalive_requests}',
+        "clients": '${clients}'
+      }'
+    done <<< $(oc get route -n http-scale-${mix_termination} --no-headers | awk '{print $2}')
+  done
+  echo "]") | python -m json.tool > http-scale-mix.json
 }

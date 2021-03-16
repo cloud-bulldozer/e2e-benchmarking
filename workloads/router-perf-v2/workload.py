@@ -23,10 +23,10 @@ def index_result(payload):
     es.index(index=es_index, body=payload)
 
 
-def run_mb(mb_config, runtime, ramp_up, output):
+def run_mb(mb_config, runtime, output):
     result_codes = {}
     latency_list = []
-    cmd = f"mb -i {mb_config} -d {runtime} -r {ramp_up} -o {output}"
+    cmd = f"mb -i {mb_config} -d {runtime} -o {output}"
     print(f"Executing '{cmd}'")
     result = subprocess.run(cmd,
                             shell=True,
@@ -54,13 +54,12 @@ def main():
     parser.add_argument("--mb-config", required=True)
     parser.add_argument("--termination", required=True)
     parser.add_argument("--runtime", required=True, type=int)
-    parser.add_argument("--ramp-up", required=True, type=int, default=0)
     parser.add_argument("--output", required=True)
     parser.add_argument("--sample", required=True)
     args = parser.parse_args()
     mb_config = json.load(open(args.mb_config, "r"))
     timestamp = datetime.datetime.utcnow()
-    result_codes, p95_latency, p99_latency, avg_latency = run_mb(args.mb_config, args.runtime, args.ramp_up, args.output)
+    result_codes, p95_latency, p99_latency, avg_latency = run_mb(args.mb_config, args.runtime, args.output)
     requests_per_second = result_codes.get("200", 0) / args.runtime
     payload = {"termination": args.termination,
                "test_type": args.termination,
@@ -72,7 +71,6 @@ def main():
                "host_network": host_network,
                "sample": args.sample,
                "runtime": args.runtime,
-               "ramp_up": args.ramp_up,
                "routes": len(mb_config),
                "conn_per_targetroute": mb_config[0]["clients"],
                "keepalive": mb_config[0]["keep-alive-requests"],
