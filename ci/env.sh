@@ -32,11 +32,11 @@ export HTTP_TEST_ROUTE_TERMINATION='http edge mix'
 export HTTP_TEST_RUNTIME=10
 
 # For router perf v2
-export NUMBER_OF_ROUTES=10
 export RUNTIME=10
 export SAMPLES=2
-export TERMINATIONS=http
-export KEEPALIVE_REQUESTS="1 10"
-export CLIENTS="1 40"
+export TERMINATIONS="http mix"
+export SMALL_SCALE_CLIENTS="1 40"
+export SMALL_SCALE_CLIENTS_MIX="1 20"
+export KEEPALIVE_REQUESTS="0 1"
 export QUIET_PERIOD=1s
 export NODE_SELECTOR='{node-role.kubernetes.io/worker: }'
