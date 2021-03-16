@@ -1,4 +1,4 @@
-router-perf-v2:ingress-performance.sh
+router-perf-v2:ingress-performance-small.sh
 etcd-perf:run_etcd_tests_fromgit.sh 
 scale-perf:run_scale_fromgit.sh 
 network-perf:smoke_test.sh 
