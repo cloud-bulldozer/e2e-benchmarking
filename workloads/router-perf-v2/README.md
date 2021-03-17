@@ -30,6 +30,7 @@ This test uses a [python wrapper](workload.py) on top of mb. This wrapper takes 
 Apart from the k8s/oc clients, running this script has several requirements:
 
 - podman
+- pip install -r requirements.txt
 
 ## Configuration
 It's possible to tune the default configuration through environment variables. They are described in the table below:
