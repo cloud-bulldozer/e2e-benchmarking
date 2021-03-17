@@ -27,6 +27,7 @@ Apart from the k8s/oc clients, running this script has several requirements:
 
 - jq
 - podman
+- pip install -r requirements.txt
 
 ## Configuration
 It's possible to tune the default configuration through environment variables. They are described in the table below:
