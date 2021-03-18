@@ -59,13 +59,15 @@ It's possible to tune the default configuration through environment variables. T
 | ES_SERVER             | Elasticsearch endpoint to send metrics | `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443` |
 | ES_SERVER_BASELINE    | Elasticsearch endpoint used to fetch baseline results | "" |
 | ES_INDEX              | Elasticsearch index | `router-test-results` |
-| BASELINE_UUID         | Baseline UUID to compare the results with (optional) | "" |
+| SMALL_SCALE_BASELINE_UUID | Baseline UUID to compare small scale results with (optional) | "" |
+| LARGE_SCALE_BASELINE_UUID | Baseline UUID to compare large scale results with (optional) | "" |
 | PREFIX                | Test name prefix (optional) | Result of `oc get clusterversion version -o jsonpath="{.status.desired.version}"` |
-| BASELINE_PREFIX       | Baseline test name prefix (optional) | `baseline` |
+| SMALL_SCALE_BASELINE_PREFIX | Small scale baseline test name prefix (optional) | `baseline` |
+| LARGE_SCALE_BASELINE_PREFIX | Large scale baseline test name prefix (optional) | `baseline` |
 | GSHEET_KEY_LOCATION   | Path to service account key to generate google sheets (optional) | "" |
 | EMAIL_ID_FOR_RESULTS_SHEET | It will push your local results CSV to Google Spreadsheets and send an email with the attachment (optional) | "" |
-| THROUGHPUT_TOLERANCE  | Accepeted deviation in percentage for throughput when compared to a baseline run | `5` |
-| LATENCY_TOLERANCE     | Accepeted deviation in percentage for latency when compared to a baseline run | `5` |
+| THROUGHPUT_TOLERANCE  | Accepted deviation in percentage for throughput when compared to a baseline run | `5` |
+| LATENCY_TOLERANCE     | Accepted deviation in percentage for latency when compared to a baseline run | `5` |
 | SERVICE_TYPE          | K8S service type to use | `NodePort` |
 
 ## Metrics
