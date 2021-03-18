@@ -1,11 +1,13 @@
 #!/usr/bin/bash
 
 . common.sh
+. build_helper.sh
 
 remove_update_taint
 deploy_operator
 check_running_benchmarks
 
+label=""
 case ${WORKLOAD} in
   cluster-density)
     WORKLOAD_TEMPLATE=workloads/cluster-density/cluster-density.yml
@@ -17,28 +19,36 @@ case ${WORKLOAD} in
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-245}
-    label_nodes regular
+    label="node-density=enabled"
+    label_node_with_label $label
+    find_running_pods_num regular
   ;;
   node-density-heavy)
     WORKLOAD_TEMPLATE=workloads/node-density-heavy/node-density-heavy.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-245}
-    label_nodes heavy
+    label="node-density=enabled"
+    label_node_with_label $label
+    find_running_pods_num heavy
   ;;
   node-density-cni)
     WORKLOAD_TEMPLATE=workloads/node-density-cni/node-density-cni.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-245}
-    label_nodes cni
+    label="node-density=enabled"
+    label_node_with_label $label
+    find_running_pods_num cni
   ;;
   node-density-cni-networkpolicy)
     WORKLOAD_TEMPLATE=workloads/node-density-cni-networkpolicy/node-density-cni-networkpolicy.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-245}
-    label_nodes cni
+    label="node-density=enabled"
+    label_node_with_label $label
+    find_running_pods_num cni
   ;;
   pod-density)
     WORKLOAD_TEMPLATE=workloads/node-pod-density/node-pod-density.yml
@@ -59,6 +69,25 @@ case ${WORKLOAD} in
     WORKLOAD_TEMPLATE=workloads/max-services/max-services.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
     export TEST_JOB_ITERATIONS=${SERVICE_COUNT:-1000}
+  ;;
+  concurrent-builds)
+    rm -rf conc_builds_results.out
+    WORKLOAD_TEMPLATE=workloads/concurrent-builds/concurrent-builds.yml
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
+    export build_test_repo=${BUILD_TEST_REPO:=https://github.com/openshift/svt.git}
+    export build_test_branch=${BUILD_TEST_BRANCH:=master}
+    install_svt_repo
+    export build_array=($BUILD_LIST)
+    label="concurrent-builds=enabled"
+    label_node_with_label $label
+    max=1
+    for v in ${build_array[@]}; do
+        if (( $v > $max )); then
+          max=$v
+        fi
+    done
+    export MAX_CONC_BUILDS=$((max + 1))
+    export TEST_JOB_ITERATIONS=${MAX_CONC_BUILDS:-$max}
   ;;
   custom)
   ;;
@@ -86,11 +115,23 @@ if [[ ${PPROF_COLLECTION} == "true" ]] ; then
   delete_pprof_secrets
   delete_oldpprof_folder
   get_pprof_secrets
-fi 
-run_workload kube-burner-crd.yaml
-if [[ ${WORKLOAD} == node-density* ]]; then
-  unlabel_nodes
 fi
+
+if [[ ${WORKLOAD} -eq "concurrent-builds" ]]; then
+   app_array=($APP_LIST)
+   for app in "${app_array[@]}"
+    do
+      run_build_workload $app
+  done
+  unlabel_nodes_with_label $label
+  cat conc_builds_results.out
+else
+  run_workload kube-burner-crd.yaml
+fi
+if [[ ${WORKLOAD} == node-density* ]]; then
+  unlabel_nodes_with_label $label
+fi
+
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
 fi

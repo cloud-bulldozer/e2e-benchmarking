@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{.JobName}}-{{.Replica}}
+data:
+  key1: "{{rand 4}}"
+  key2: "{{rand 10}}"

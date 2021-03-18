@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Benchark-operator
+# Benchmark-operator
 export OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
 export OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
 export POD_READY_TIMEOUT=${POD_READY_TIMEOUT:-180}
@@ -50,6 +50,22 @@ export HYPERSHIFT=${HYPERSHIFT:-false}
 export MGMT_CLUSTER_NAME=${MGMT_CLUSTER_NAME:-perf-management-cluster}
 export HOSTED_CLUSTER_NS=${HOSTED_CLUSTER_NS:-clusters-perf-hosted-1}
 export THANOS_RECEIVER_URL=${THANOS_RECEIVER_URL:-http://thanos.apps.cluster.devcluster/api/v1/receive}
+
+# # Concurrent Builds variables
+# Space seperated list of build numbers and build app types
+export BUILD_LIST=${BUILD_LIST:-"1 8 15 30 45 60 75"}
+export APP_LIST=${APP_LIST:-'cakephp eap django nodejs'}
+
+# Concurrent Build Specific
+export APP_SUBNAME=""
+export APP=""
+export BUILD_IMAGE_STREAM=""
+export SOURCE_STRAT_ENV=""
+export SOURCE_STRAT_FROM=""
+export POST_COMMIT_SCRIPT=""
+export SOURCE_STRAT_FROM_VERSION=""
+export BUILD_IMAGE=""
+export GIT_URL=""
 
 # Thresholds
 export POD_READY_THRESHOLD=${POD_READY_THRESHOLD:-5000ms}

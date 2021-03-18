@@ -12,6 +12,7 @@ In order to kick off one of these benchmarks you must use the run.sh script. The
 - **`pod-density`**: `WORKLOAD=pod-density ./run.sh`
 - **`pod-density-heavy`**: `WORKLOAD=pod-density-heavy ./run.sh`
 - **`custom`**: `WORKLOAD=custom ./run.sh`
+- **`concurrent-builds`**: `WORKLOAD=concurrent-builds ./run.sh`
 
 ## Environment variables
 
@@ -138,6 +139,18 @@ $ INDEXING=false WORKLOAD_TEMPLATE=my-config/kube-burner.cfg METRICS_PROFILE=my-
 
 will launch a pod running a kube-burner process that will use the configuration file defined at https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml
 
+### Concurrent Builds
+
+Creates a buildconfig and imagestream for a specified application(s) (defined in **APP_LIST** env variable). **This
+ will create as many namespaces with these objects as the configured job_iterations**.
+After the initial creation of the objects the script will concurrently build different numbers (defined by
+ **BUILD_LIST**) of the builds and output the average times. 
+To edit any of the build information edit the bash script correlating with the application of interest under the
+ [builds](./builds) folder
+
+**NOTE**: Do not edit parameters other than BUILD_LIST and APP_LIST in env variables file. They will be overwritten
+ be the data in builds folder. If you need to make updates to application data, edit environment variables under
+  builds/<application_name>.sh
 
 ### Snappy integration configurations
 

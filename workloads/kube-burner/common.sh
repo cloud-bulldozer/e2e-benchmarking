@@ -23,7 +23,7 @@ export UUID=${UUID:-$(uuidgen)}
 
 export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
 
-#Check to see if the infrastructure type is baremetal to adjust script as necessary 
+#Check to see if the infrastructure type is baremetal to adjust script as necessary
 if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
   log "BareMetal infastructure: setting isBareMetal accordingly"
   export isBareMetal=true
@@ -38,8 +38,9 @@ if [[ "${isBareMetal}" == "true" ]]; then
 fi
 
 if [[ ${HYPERSHIFT} == "true" ]]; then
+  # shellcheck disable=SC2143
   if [[ $(oc get project | grep grafana-agent) ]]; then
-    echo "Grafana agent is already installed"
+    log "Grafana agent is already installed"
   else
     export CLUSTER_NAME=${HOSTED_CLUSTER_NAME}
     export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
@@ -96,20 +97,9 @@ run_workload() {
   rc=$?
 }
 
-label_nodes() {
-  export POD_NODE_SELECTOR="{node-density: enabled}"
-  if [[ ${NODE_COUNT} -le 0 ]]; then
-    log "Node count <= 0: ${NODE_COUNT}"
-    exit 1
-  fi
-  nodes=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT})
-  unlabel_nodes
-  if [[ $(echo "${nodes}" | wc -l) -lt ${NODE_COUNT} ]]; then
-    log "Not enough worker nodes to label"
-    exit 1
-  fi
+find_running_pods_num() {
   pod_count=0
-  for n in ${nodes}; do
+  for n in ${WORKER_NODE_NAMES}; do
     pods=$(oc describe ${n} | awk '/Non-terminated/{print $3}' | sed "s/(//g")
     pod_count=$((pods + pod_count))
   done
@@ -131,17 +121,6 @@ label_nodes() {
     total_pod_count=$((total_pod_count / 2))
   fi
   export TEST_JOB_ITERATIONS=${total_pod_count}
-  log "Labeling ${NODE_COUNT} worker nodes with node-density=enabled"
-  for n in ${nodes}; do
-    oc label ${n} node-density=enabled --overwrite
-  done
-}
-
-unlabel_nodes() {
-  log "Removing node-density=enabled label from worker nodes"
-  for n in $(oc get node -o name --no-headers -l node-density=enabled); do
-    oc label ${n} node-density-
-  done
 }
 
 check_running_benchmarks() {
@@ -194,4 +173,38 @@ snappy_backup() {
 remove_update_taint() {
   # This is only here until BZ https://bugzilla.redhat.com/show_bug.cgi?id=2035005 gets resolved
   oc adm taint nodes UpdateInProgress:PreferNoSchedule- --all || true
+}
+
+
+label_node_with_label() {
+  colon_param=$(echo $1 | tr "=" ":" | sed 's/:/: /g')
+  export POD_NODE_SELECTOR="{$colon_param}"
+  export NODE_SELECTOR="$1"
+  NODE_COUNT=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | wc -l )
+  if [[ ${NODE_COUNT} -le 0 ]]; then
+    log "Node count <= 0: ${NODE_COUNT}"
+    exit 1
+  fi
+  WORKER_NODE_NAMES=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -n ${NODE_COUNT})
+  if [[ $(echo "${WORKER_NODE_NAMES}" | wc -l) -lt ${NODE_COUNT} ]]; then
+    log "Not enough worker nodes to label"
+    exit 1
+  fi
+
+  log "Labeling ${NODE_COUNT} worker nodes with $1"
+  for n in ${WORKER_NODE_NAMES}; do
+    oc label ${n} $1 --overwrite
+  done
+
+}
+
+unlabel_nodes_with_label() {
+  split_param=$(echo $1 | tr "=" " ")
+  log "Removing $1 label from worker nodes"
+  for p in ${split_param}; do
+    for n in ${WORKER_NODE_NAMES}; do
+      oc label ${n} $p-
+    done
+  break
+  done
 }
