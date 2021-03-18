@@ -34,13 +34,17 @@ get_scenario(){
   if [[ $(oc get node -l node-role.kubernetes.io/worker --no-headers | grep -cw Ready) -ge ${LARGE_SCALE_THRESHOLD} ]]; then
     log "Large scale scenario detected: #workers >= ${LARGE_SCALE_THRESHOLD}"
     export NUMBER_OF_ROUTES=${LARGE_SCALE_ROUTES:-500}
-    export CLIENTS=${LARGE_SCALE_CLIENTS:-"1 20 80"}
-    export CLIENTS_MIX=${LARGE_SCALE_CLIENTS_MIX:-"1 10 20"}
+    CLIENTS=${LARGE_SCALE_CLIENTS:-"1 20 80"}
+    CLIENTS_MIX=${LARGE_SCALE_CLIENTS_MIX:-"1 10 20"}
+    BASELINE_UUID=${LARGE_SCALE_BASELINE_UUID}
+    BASELINE_PREFIX=${LARGE_SCALE_BASELINE_PREFIX:-baseline}
   else
     log "Small scale scenario detected: #workers < ${LARGE_SCALE_THRESHOLD}"
     export NUMBER_OF_ROUTES=${SMALL_SCALE_ROUTES:-100}
-    export CLIENTS=${SMALL_SCALE_CLIENTS:-"1 40 200"}
-    export CLIENTS_MIX=${SMALL_SCALE_CLIENTS_MIX:-"1 20 80"}
+    CLIENTS=${SMALL_SCALE_CLIENTS:-"1 40 200"}
+    CLIENTS_MIX=${SMALL_SCALE_CLIENTS_MIX:-"1 20 80"}
+    BASELINE_UUID=${SMALL_SCALE_BASELINE_UUID}
+    BASELINE_PREFIX=${SMALL_SCALE_BASELINE_PREFIX:-baseline}
   fi
 }
 
