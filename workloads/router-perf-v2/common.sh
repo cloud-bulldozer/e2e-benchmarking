@@ -53,6 +53,12 @@ tune_liveness_probe(){
   oc rollout status -n openshift-ingress deploy/router-default
 }
 
+tune_workload_node(){
+  TUNED_SELECTOR=$(echo ${NODE_SELECTOR} | tr -d {:})
+  log "${1} tuned profile for node labeled with ${TUNED_SELECTOR}"
+  sed "s#TUNED_SELECTOR#${TUNED_SELECTOR}#g" tuned-profile.yml | oc ${1} -f -
+}
+
 run_mb(){
   log "Generating config with ${clients} clients ${keepalive_requests} keep alive requests and path ${URL_PATH}"
   gen_mb_config http-scale-http 80
