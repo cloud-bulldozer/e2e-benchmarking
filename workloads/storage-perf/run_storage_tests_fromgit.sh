@@ -15,6 +15,9 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
+echo "Removing my-ripsaw namespace, if it already exists"
+oc delete namespace my-ripsaw --ignore-not-found
+
 rm -rf /tmp/benchmark-operator
 
 oc create ns my-ripsaw

@@ -2,6 +2,9 @@
 source ../../utils/common.sh
 set -x
 
+# Removing my-ripsaw namespace, if it exists
+oc delete namespace my-ripsaw --ignore-not-found
+
 trap "rm -rf /tmp/benchmark-operator" EXIT
 _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 latency_th=${LATENCY_TH:-10000000}
