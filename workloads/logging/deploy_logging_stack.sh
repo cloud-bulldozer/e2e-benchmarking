@@ -52,7 +52,7 @@ function cleanup() {
 }
 
 # Delete the namespaces if already exists
-log "Deteting openshift-logging/openshift-operators-redhat namespaces if exists"
+log "Deleting openshift-logging/openshift-operators-redhat namespaces if exists"
 cleanup
 
 # Install the necessary objects for setting up elastic and logging operators and create a cluster logging instance

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source ../../utils/common.sh
 set -x
 
 trap "rm -rf /tmp/benchmark-operator" EXIT
@@ -28,6 +29,8 @@ oc apply -f /tmp/benchmark-operator/deploy
 oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
 oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
 oc apply -f /tmp/benchmark-operator/resources/operator.yaml
+
+oc wait --for=condition=available "deployment/benchmark-operator" -n my-ripsaw --timeout=300s
 
 oc adm policy add-scc-to-user -n my-ripsaw privileged -z benchmark-operator
 oc adm policy add-scc-to-user -n my-ripsaw privileged -z backpack-view
@@ -67,6 +70,22 @@ spec:
     - ioengine=sync
     - direct=0
 EOF
+
+# Get the uuid of newly created etcd-fio benchmark.
+long_uuid=$(get_uuid 30)
+if [ $? -ne 0 ]; 
+then 
+  exit 1
+fi
+
+uuid=${long_uuid:0:8}
+
+# Checks the presence of etcd-fio pod. Should exit if pod is not available.
+etcd_pod=$(get_pod "app=fio-benchmark-$uuid" 300)
+if [ $? -ne 0 ]; 
+then 
+  exit 1
+fi
 
 fio_state=1
 for i in {1..60}; do
