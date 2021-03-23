@@ -79,9 +79,14 @@ EOF
         echo "Desired worker count: "${size}
         oc describe -n my-ripsaw benchmarks/scale | grep State | grep Complete
         if [ $? -eq 0 ]; then
-          echo "Scaling Complete"
-          scale_state=$?
-          break
+          if [ $current_workers -eq $size ]; then
+            echo "Scaling Complete"
+            scale_state=$?
+            break
+          else
+            echo "Scaling completed but desired worker count is not equal to current worker count!"
+            break
+          fi
         fi
         sleep 60
       done
