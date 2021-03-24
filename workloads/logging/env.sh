@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Vars and respective defaults
+
+# Deploy Variables
 export CHANNEL=${CHANNEL:=4.6}
 export CUSTOM_ES_URL=${CUSTOM_ES_URL:=""}
 export ES_NODE_COUNT=${ES_NODE_COUNT:=3}
