@@ -17,14 +17,6 @@ export PODS_PER_NODE=100
 #for upgrade perf
 export VERSION=`oc get clusterversion | grep -o [0-9.]* | head -1`
 
-#for router perf
-export PBENCH_SERVER='pbench.dev.openshift.com'
-export COMPARE=false
-export HTTP_TEST_SUFFIX='smoke-test'
-export HTTP_TEST_SMOKE_TEST=true
-export HTTP_TEST_ROUTE_TERMINATION='http edge mix'
-export HTTP_TEST_RUNTIME=10
-
 # For router perf v2
 export RUNTIME=10
 export SAMPLES=2
