@@ -60,7 +60,7 @@ jobs:
       inputVars:
         nodeSelector: "{node-role.kubernetes.io/worker: }"
 
-    - objectTemplate: templates/http-service.yml
+    - objectTemplate: templates/https-service.yml
       replicas: ${NUMBER_OF_ROUTES}
       inputVars:
         serviceType: ${SERVICE_TYPE}
@@ -83,7 +83,7 @@ jobs:
       inputVars:
         nodeSelector: "{node-role.kubernetes.io/worker: }"
 
-    - objectTemplate: templates/http-service.yml
+    - objectTemplate: templates/https-service.yml
       replicas: ${NUMBER_OF_ROUTES}
       inputVars:
         serviceType: ${SERVICE_TYPE}
