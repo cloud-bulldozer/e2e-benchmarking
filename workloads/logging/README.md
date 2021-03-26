@@ -17,6 +17,11 @@ Ensure to have `KUBECONFIG` set to the proper path to your desired cluster.
 Default: `4.6`
 Update channel for the Elasticsearch and Cluster logging operators.
 
+### CUSTOM_ES_URL
+Default: ""
+The external Elasticsearch url to direct logs to
+NOTE: If set, internal ElasticSearch will not be configured
+
 ### ES_NODE_COUNT
 Default: 3
 Number of Elasticsearch nodes.
