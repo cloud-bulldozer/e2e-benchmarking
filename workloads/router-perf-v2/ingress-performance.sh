@@ -30,5 +30,5 @@ if [[ -n ${ES_SERVER} ]]; then
   log "Generating results in compare.yaml"
   ../../utils/touchstone-compare/run_compare.sh mb ${BASELINE_UUID} ${UUID}
   log "Generating CSV results"
-  ./csv_gen.py -f compare.yaml -u ${BASELINE_UUID} ${UUID} -p ${PREFIX} ${BASELINE_PREFIX} -l ${LATENCY_TOLERANCE} -t ${THROUGHPUT_TOLERANCE}
+  ./csv_gen.py -f compare.yaml -u ${BASELINE_UUID} ${UUID} -p ${BASELINE_PREFIX} ${PREFIX} -l ${LATENCY_TOLERANCE} -t ${THROUGHPUT_TOLERANCE}
 fi
