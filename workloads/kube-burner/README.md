@@ -75,7 +75,7 @@ Each iteration of this workload can be broken down in:
 
 ### Max-namespaces
 
-The number of namespaces created by Kube-burner is defined by the variable `JOB_ITERATIONS`. Each namespace is created with the following objects:
+The number of namespaces created by Kube-burner is defined by the variable `NAMESPACE_COUNT`. Each namespace is created with the following objects:
 
 - 1 deployment holding a postgresql database
 - 5 deployments consisting of a client application for the previous database
@@ -85,7 +85,7 @@ The number of namespaces created by Kube-burner is defined by the variable `JOB_
 
 ### Max-services
 
-It creates n-replicas of an application deployment (hello-openshift) and a service in a single namespace as defined by the environment variable `JOB_ITERATIONS`.
+It creates n-replicas of an application deployment (hello-openshift) and a service in a single namespace as defined by the environment variable `SERVICE_COUNT`.
 
 
 ### Pod-density
