@@ -7,7 +7,7 @@ source env.sh
 
 # Logging format
 log() {
-  echo ${bold}$(date -u):  ${@}${normal}
+  echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
 }
 
 # Check if oc client is installed
@@ -28,8 +28,13 @@ fi
 
 function install() {
   # create cluster logging and elasticsearch resources
-  log "Creating cluster logging and elastisearch resources"
-  envsubst < ./files/logging-stack.yml | oc create -f -
+  if [[ $CUSTOM_ES_URL != "" ]]; then
+    log "Creating cluster logging with custom elasticsearch backend"
+    envsubst < ./files/logging-stack_custom_es.yml | oc create -f -
+  else
+    log "Creating cluster logging and elastisearch resources"
+    envsubst < ./files/logging-stack.yml | oc create -f -
+  fi
 }
 
 wait_time=0
@@ -71,13 +76,15 @@ while [[ $( oc get daemonset.apps/fluentd -n openshift-logging -o=jsonpath='{.st
     exit 1
   fi
 done
-log "Logging stack including Elasticsearch, Fluend and Kibana are up"
+log "Logging stack is up"
 
-# Expose the elasticsearch service
-echo "Exposing the elasticsearch service by creating a route"
-oc extract secret/elasticsearch --to=/tmp/ --keys=admin-ca --confirm -n openshift-logging
-cp files/elasticsearch-route.yml /tmp/elasticsearch-route.yml
-cat /tmp/admin-ca | sed -e "s/^/      /" >> /tmp/elasticsearch-route.yml
-oc create -f /tmp/elasticsearch-route.yml -n openshift-logging
-routeES=`oc get route elasticsearch -n openshift-logging -o jsonpath={.spec.host}`
-echo "Elasticsearch is exposed at $routeES, bearer token is needed to access it"
+if [[ $CUSTOM_ES_URL == "" ]]; then
+  # Expose the elasticsearch service
+  log "Exposing the elasticsearch service by creating a route"
+  oc extract secret/elasticsearch --to=/tmp/ --keys=admin-ca --confirm -n openshift-logging
+  cp files/elasticsearch-route.yml /tmp/elasticsearch-route.yml
+  cat /tmp/admin-ca | sed -e "s/^/      /" >> /tmp/elasticsearch-route.yml
+  oc create -f /tmp/elasticsearch-route.yml -n openshift-logging
+  routeES=`oc get route elasticsearch -n openshift-logging -o jsonpath={.spec.host}`
+  log "Elasticsearch is exposed at $routeES, bearer token is needed to access it"
+fi
