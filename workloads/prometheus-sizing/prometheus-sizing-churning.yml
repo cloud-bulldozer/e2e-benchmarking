@@ -1,0 +1,46 @@
+---
+global:
+  writeToFile: false
+  indexerConfig:
+    enabled: true
+    esServers: [{{ .ES_SERVER }}]
+    insecureSkipVerify: true
+    defaultIndex: {{ .ES_INDEX }}
+    type: elastic
+jobs:
+  - name: prometheus-sizing-churning
+    namespacedIterations: true
+    namespace: prometheus-sizing-churning
+    jobIterations: {{ .NUMBER_OF_NS }}
+    waitWhenFinished: true
+    cleanup: true
+    qps: {{ .QPS }}
+    burst: {{ .BURST }}
+    jobPause: {{ .POD_CHURNING_PERIOD }}
+    objects:
+      - objectTemplate: templates/pod.yml
+        replicas: {{ .PODS_PER_NS }}
+        inputVars:
+          containerImage: gcr.io/google_containers/pause-amd64:3.0
+{{ range $pos, $val := sequence 1 .NUMBER_OF_NS }}
+  - name: prometheus-sizing-churning-delete-{{ $val }}
+    jobType: delete
+    waitForDeletion: false
+    objects:
+    - kind: Namespace
+      labelSelector: {name: prometheus-sizing-churning-{{ $val }}}
+
+  - name: prometheus-sizing-churning-churn-{{ $val }}
+    namespacedIterations: false
+    namespace: prometheus-sizing-churning-churn-{{ $val }}
+    waitWhenFinished: true
+    jobIterations: 1
+    qps: {{ $.QPS }}
+    burst: {{ $.BURST }}
+    jobPause: {{ $.POD_CHURNING_PERIOD }}
+    objects:
+      - objectTemplate: templates/pod.yml
+        replicas: {{ $.PODS_PER_NS }}
+        inputVars:
+          containerImage: gcr.io/google_containers/pause-amd64:3.0
+{{ end }}
