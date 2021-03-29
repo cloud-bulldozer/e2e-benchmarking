@@ -43,10 +43,14 @@ def run_mb(mb_config, runtime, output):
             result_codes[hit[2]] = 0
         result_codes[hit[2]] += 1
         latency_list.append(int(hit[1]))
-    p95_latency = numpy.percentile(latency_list, 95)
-    p99_latency = numpy.percentile(latency_list, 99)
-    avg_latency = numpy.average(latency_list)
-    return result_codes, p95_latency, p99_latency, avg_latency
+    if latency_list:
+        p95_latency = numpy.percentile(latency_list, 95)
+        p99_latency = numpy.percentile(latency_list, 99)
+        avg_latency = numpy.average(latency_list)
+        return result_codes, p95_latency, p99_latency, avg_latency
+    else:
+        print("Warning: Empty latency result list, returning 0")
+        return result_codes, 0, 0, 0
 
 
 def main():
