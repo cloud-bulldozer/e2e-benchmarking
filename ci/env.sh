@@ -9,6 +9,8 @@ export RUNS=1
 
 #for kube burner 
 export JOB_ITERATIONS=3
+export NAMESPACE_COUNT=3
+export SERVICE_COUNT=3
 export CLEANUP=true
 export CLEANUP_WHEN_FINISH=true
 export NODE_COUNT=1
