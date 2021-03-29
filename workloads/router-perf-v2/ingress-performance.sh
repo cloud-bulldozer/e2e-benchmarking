@@ -8,6 +8,7 @@ deploy_infra
 tune_workload_node apply
 client_pod=$(oc get pod -l app=http-scale-client -n http-scale-client | grep Running | awk '{print $1}')
 tune_liveness_probe
+test_routes
 for termination in ${TERMINATIONS}; do
   if [[ ${termination} ==  "mix" ]]; then
     for clients in ${CLIENTS_MIX}; do

@@ -113,7 +113,7 @@ gen_mb_config(){
     local port=443
   fi
   (echo "["
-  while read n r s p t w; do
+  while read host; do
     if [[ ${first} == "true" ]]; then
         echo "{"
         first=false
@@ -122,7 +122,7 @@ gen_mb_config(){
     fi
     echo '"scheme": "'${scheme}'",
       "tls-session-reuse": '${TLS_REUSE}',
-      "host": "'${n}'",
+      "host": "'${host}'",
       "port": '${port}',
       "method": "GET",
       "path": "'${URL_PATH}'",
@@ -149,7 +149,7 @@ gen_mb_mix_config(){
       local scheme=https
       local port=443
     fi
-    while read n r s p t w; do
+    while read host; do
       if [[ ${first} == "true" ]]; then
           echo "{"
           first=false
@@ -158,7 +158,7 @@ gen_mb_mix_config(){
       fi
       echo '"scheme": "'${scheme}'",
         "tls-session-reuse": '${TLS_REUSE}',
-        "host": "'${n}'",
+        "host": "'${host}'",
         "port": '${port}',
         "method": "GET",
         "path": "'${URL_PATH}'",
@@ -172,4 +172,17 @@ gen_mb_mix_config(){
     done <<< $(oc get route -n http-scale-${mix_termination} --no-headers | awk '{print $2}')
   done
   echo "]") | python -m json.tool > http-scale-mix.json
+}
+
+test_routes(){
+  log "Testing all routes before triggering the workload"
+  for termination in http edge passthrough reencrypt; do
+    local scheme="https://"
+    if [[ ${termination} == "http" ]]; then
+      local scheme="http://"
+    fi
+    while read host; do
+      curl -sSk ${scheme}${host}/${URL_PATH} -o /dev/null
+    done <<< $(oc get route -n http-scale-${termination} --no-headers | awk '{print $2}')
+  done
 }
