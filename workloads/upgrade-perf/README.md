@@ -35,14 +35,6 @@ How long (in seconds) to have the test wait inbetween ready checks
 Default: 240
 Timeout value (in minutes) for the upgrade. NOTE: there is no rollback on failure
 
-### ES_USER
-Default: `` 
-Username for elasticsearch instance
-
-### ES_PASSWORD
-Default: `` 
-Password for elasticsearch instance
-
 ### ES_SERVER
 Default: `milton.aws.com`  
 Elasticsearch server to index the results of the current run
@@ -54,14 +46,6 @@ Port number for elasticsearch server
 ### COMPARE (not implemented yet)
 Default: `false`   
 Enable/Disable the ability to compare two runs. If set to `true`, the next set of environment variables pertaining to the type of test are required
-
-### ES_USER_BASELINE
-Default: `` 
-Username for elasticsearch instance
-
-### ES_PASSWORD_BASELINE
-Default: ``
-Password for elasticsearch instance
 
 ### BASELINE_CLOUD_NAME
 Default: ``    
@@ -86,14 +70,10 @@ URL to check the health of the cluster using Cerberus (https://github.com/opensh
 ## Suggested configurations
 
 ```sh
-export ES_USER=
-export ES_PASSWORD=
 export ES_SERVER=
 export ES_PORT=
 export COMPARE=false
 export BASELINE_CLOUD_NAME=
-export ES_USER_BASELINE=
-export ES_PASSWORD_BASELINE
 export ES_SERVER_BASELINE=
 export ES_PORT_BASELINE=
 export BASELINE_UUID=

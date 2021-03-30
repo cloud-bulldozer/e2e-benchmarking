@@ -78,7 +78,6 @@ export ES_SERVER=
 export METADATA_COLLECTION=
 export COMPARE=false
 export BASELINE_CLOUD_NAME=
-export ES_USER_BASELINE=
 export ES_SERVER_BASELINE=
 export BASELINE_UUID=
 export CERBERUS_URL=http://1.2.3.4:8080
