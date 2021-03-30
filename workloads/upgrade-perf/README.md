@@ -39,6 +39,8 @@ Timeout value (in minutes) for the upgrade. NOTE: there is no rollback on failur
 Default: `milton.aws.com`  
 Elasticsearch server to index the results of the current run
 
+You can use following format if your Elastic server needs authentication : `https://<user>:<pass>@<es-instance>:<port-no>`
+
 ### ES_PORT
 Default: ``  
 Port number for elasticsearch server
@@ -70,7 +72,7 @@ URL to check the health of the cluster using Cerberus (https://github.com/opensh
 ## Suggested configurations
 
 ```sh
-export ES_SERVER=
+export ES_SERVER=https://<user>:<pass>@<es-instance>:<port-no>
 export ES_PORT=
 export COMPARE=false
 export BASELINE_CLOUD_NAME=
