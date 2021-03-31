@@ -74,11 +74,12 @@ EOF
 
       scale_state=1
       for i in $(seq 1 $_timeout); do
-        current_workers=`oc get nodes -l node-role.kubernetes.io/worker= | grep -v NAME | wc -l`
+        current_workers=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/master!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/workload!="" --ignore-not-found | grep -v NAME | wc -l`
         echo "Current worker count: "${current_workers}
         echo "Desired worker count: "${size}
         oc describe -n my-ripsaw benchmarks/scale | grep State | grep Complete
         if [ $? -eq 0 ]; then
+
           if [ $current_workers -eq $size ]; then
             echo "Scaling Complete"
             scale_state=$?
