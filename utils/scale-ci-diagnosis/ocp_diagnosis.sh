@@ -135,7 +135,7 @@ function store() {
 		$1;
 	elif [[ $STORAGE_MODE == "data_server" ]]; then
 		snappy script-login
-		$1 && snappy post-file "$OUTPUT_DIR/$2"
+		$1 && snappy post-file "$OUTPUT_DIR/$2" --filedir $SNAPPY_FILE_DIR
 		snappy logout
 	else
 		echo "Invalid storage mode chosen. STORAGE_MODE is $STORAGE_MODE"
