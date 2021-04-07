@@ -8,7 +8,7 @@ export PATH="${PATH}:$(python3 -c 'import site; print(site.USER_BASE)')/bin"
 export file_path=$1
 export SNAPPY_FILE_DIR=$2
 
-pipx install git+https://github.com/openshift-scale/data-server-cli.git
+pipx install git+https://github.com/openshift-scale/data-server-cli.git  --force
 snappy install
 
 if [[ $? -ne 0 ]] ; then
