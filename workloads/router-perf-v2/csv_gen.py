@@ -13,9 +13,28 @@ from gspread_formatting import *
 regexp = re.compile(r"^\D*(\d+)\D*$")
 
 # Globals
-main_metric_rps = {"passthrough": "avg(requests_per_second)", "reencrypt": "avg(requests_per_second)", "http": "avg(requests_per_second)", "edge": "avg(requests_per_second)", "mix": "avg(requests_per_second)"}
-label_map = {"passthrough": "passthrough", "reencrypt": "reencrypt", "http": "http", "edge": "edge", "mix": "mix"}
-main_metric_latency = {"passthrough": "avg(latency_95pctl)", "reencrypt": "avg(latency_95pctl)", "http": "avg(latency_95pctl)", "edge": "avg(latency_95pctl)", "mix": "avg(latency_95pctl)"}
+main_metric_rps = {
+    "passthrough": "avg(requests_per_second)",
+    "reencrypt": "avg(requests_per_second)",
+    "http": "avg(requests_per_second)",
+    "edge": "avg(requests_per_second)",
+    "mix": "avg(requests_per_second)",
+}
+label_map = {
+    "passthrough": "passthrough",
+    "reencrypt": "reencrypt",
+    "http": "http",
+    "edge": "edge",
+    "mix": "mix",
+}
+main_metric_latency = {
+    "passthrough": "avg(latency_95pctl)",
+    "reencrypt": "avg(latency_95pctl)",
+    "http": "avg(latency_95pctl)",
+    "edge": "avg(latency_95pctl)",
+    "mix": "avg(latency_95pctl)",
+}
+
 
 def get_uuid_mapping(file_name):
     uuid_map = {}
@@ -46,20 +65,36 @@ def create_table_mappings(data, uuid_map, metric_map):
         for test_type in datum["test_type"]:
             for routes in datum["test_type"][test_type]["routes"]:
                 for cpt in datum["test_type"][test_type]["routes"][routes]["conn_per_targetroute"]:
-                    for keepalive in datum["test_type"][test_type]["routes"][routes]["conn_per_targetroute"][cpt]["keepalive"]:
-                        level_dict = datum["test_type"][test_type]["routes"][routes]["conn_per_targetroute"][cpt]["keepalive"][keepalive]
-                        table = tables.setdefault((routes, label_map[test_type], cpt), defaultdict(lambda: defaultdict(dict)),)
+                    for keepalive in datum["test_type"][test_type]["routes"][routes]["conn_per_targetroute"][
+                        cpt
+                    ]["keepalive"]:
+                        level_dict = datum["test_type"][test_type]["routes"][routes]["conn_per_targetroute"][
+                            cpt
+                        ]["keepalive"][keepalive]
+                        table = tables.setdefault(
+                            (routes, label_map[test_type], cpt),
+                            defaultdict(lambda: defaultdict(dict)),
+                        )
                         if metric_map == "rps":
                             for uuid in level_dict[main_metric_rps[test_type]]:
-                                table[file_num][f"{keepalive}"][uuid_map[uuid]] = level_dict[main_metric_rps[test_type]][uuid]
+                                table[file_num][f"{keepalive}"][uuid_map[uuid]] = level_dict[
+                                    main_metric_rps[test_type]
+                                ][uuid]
                         else:
                             for uuid in level_dict[main_metric_latency[test_type]]:
-                                table[file_num][f"{keepalive}"][uuid_map[uuid]] = level_dict[main_metric_latency[test_type]][uuid]
+                                table[file_num][f"{keepalive}"][uuid_map[uuid]] = level_dict[
+                                    main_metric_latency[test_type]
+                                ][uuid]
     return tables
 
 
 def write_to_csv(
-    table_dictionary, uuid_titles, metric_write, extract_thread_count=None, result_csv_file="results.csv"):
+    table_dictionary,
+    uuid_titles,
+    metric_write,
+    extract_thread_count=None,
+    result_csv_file="results.csv",
+):
     with open(result_csv_file, "a+") as csv_file:
         w = csv.writer(csv_file, quotechar="'")
         if metric_write == "rps":
@@ -84,15 +119,29 @@ def write_to_csv(
                         if len(uuid_titles) == 2:
                             row.append("%.1f%%" % percent_change(float(row[-2]), float(row[-3])))
                             if "latency" in metric_write.lower():
-                                row.append(get_pass_fail(float(row[-3]), float(row[-4]), int(params.latency_tolerance[0]), ltcy_flag=True,))
+                                row.append(
+                                    get_pass_fail(
+                                        float(row[-3]),
+                                        float(row[-4]),
+                                        int(params.latency_tolerance[0]),
+                                        ltcy_flag=True,
+                                    )
+                                )
                             else:
-                                row.append(get_pass_fail(float(row[-3]), float(row[-4]), int(params.throughput_tolerance[0]), ltcy_flag=False,))
+                                row.append(
+                                    get_pass_fail(
+                                        float(row[-3]),
+                                        float(row[-4]),
+                                        int(params.throughput_tolerance[0]),
+                                        ltcy_flag=False,
+                                    )
+                                )
                         w.writerow(row)
                 w.writerow([])
         w.writerow([])
         w.writerow([])
 
- 
+
 def percent_change(value, reference):
     if reference:
         return ((value - reference) * 1.0 / reference) * 100
@@ -163,16 +212,43 @@ def push_to_gsheet(csv_file_name, google_svc_acc_key, email_id):
 now = datetime.datetime.today()
 timestamp = now.strftime("%Y-%m-%d-%H.%M.%S")
 parser = argparse.ArgumentParser()
-parser.add_argument("--sheetname", help="Google Spreadsheet name",
-                    default=f"Router-Test-Results-{str(timestamp)}")
-parser.add_argument("-f", "--files", help="YAML files to scrape output from", nargs="+", required=True,
-                    dest="yaml_files",)
-parser.add_argument("-l", "--latency_tolerance", help="Accepted deviation (+/-) from the reference result",
-                    required=False, default="5")
-parser.add_argument("-t", "--throughput_tolerance", help="Accepted deviation (+/-) from the reference result",
-                    required=False, default="5")
-parser.add_argument("-u", "--uuids", help="""List of UUID to compare, if two uuids are passed first one will 
-                                             be used as baseline""", required=True, nargs="+")
+parser.add_argument(
+    "--sheetname",
+    help="Google Spreadsheet name",
+    default=f"Router-Test-Results-{str(timestamp)}",
+)
+parser.add_argument(
+    "-f",
+    "--files",
+    help="YAML files to scrape output from",
+    nargs="+",
+    required=True,
+    dest="yaml_files",
+)
+parser.add_argument(
+    "-l",
+    "--latency_tolerance",
+    help="Accepted deviation (+/-) from the reference result",
+    nargs=1,
+    required=False,
+    default="5",
+)
+parser.add_argument(
+    "-t",
+    "--throughput_tolerance",
+    help="Accepted deviation (+/-) from the reference result",
+    nargs=1,
+    required=False,
+    default="5",
+)
+parser.add_argument(
+    "-u",
+    "--uuids",
+    help="""List of UUID to compare, if two uuids are passed first one will 
+                                             be used as baseline""",
+    required=True,
+    nargs="+",
+)
 parser.add_argument("-p", "--prefix", help="Test prefix list", required=True, nargs="+")
 params = parser.parse_args()
 if len(params.uuids) > 2:
@@ -181,5 +257,7 @@ if len(params.uuids) > 2:
 generate_csv(params, f"{params.sheetname}.csv")
 if "EMAIL_ID_FOR_RESULTS_SHEET" and "GSHEET_KEY_LOCATION" in os.environ:
     push_to_gsheet(
-        f"{params.sheetname}.csv", os.environ["GSHEET_KEY_LOCATION"], os.environ["EMAIL_ID_FOR_RESULTS_SHEET"],
+        f"{params.sheetname}.csv",
+        os.environ["GSHEET_KEY_LOCATION"],
+        os.environ["EMAIL_ID_FOR_RESULTS_SHEET"],
     )
