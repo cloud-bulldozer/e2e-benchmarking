@@ -182,7 +182,7 @@ test_routes(){
       local scheme="http://"
     fi
     while read host; do
-      curl -sSk ${scheme}${host}/${URL_PATH} -o /dev/null
+      curl --retry 3 --connect-timeout 5 -sSk ${scheme}${host}/${URL_PATH} -o /dev/null
     done <<< $(oc get route -n http-scale-${termination} --no-headers | awk '{print $2}')
   done
 }
