@@ -1,4 +1,5 @@
 ENGINE=${ENGINE:-podman}
+KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.9.1/kube-burner-0.9.1-Linux-x86_64.tar.gz}
 INFRA_TEMPLATE=http-perf.yml.tmpl
 INFRA_CONFIG=http-perf.yml
 KUBE_BURNER_IMAGE=quay.io/cloud-bulldozer/kube-burner:latest
@@ -51,7 +52,13 @@ get_scenario(){
 deploy_infra(){
   log "Deploying benchmark infrastructure"
   envsubst < ${INFRA_TEMPLATE} > ${INFRA_CONFIG}
-  ${ENGINE} run --rm -v $(pwd)/templates:/templates:z -v ${KUBECONFIG}:/root/.kube/config:z -v $(pwd)/${INFRA_CONFIG}:/http-perf.yml:z ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
+  if [[ ${ENGINE} == "local" ]]; then
+    log "Downloading and extracting kube-burner binary"
+    curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz
+    ./kube-burner init -c http-perf.yml --uuid=${UUID}
+  else
+    ${ENGINE} run --rm -v $(pwd)/templates:/templates:z -v ${KUBECONFIG}:/root/.kube/config:z -v $(pwd)/${INFRA_CONFIG}:/http-perf.yml:z ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
+  fi
   oc create configmap -n http-scale-client workload --from-file=workload.py
   log "Adding workload.py to the client pod"
   oc set volumes -n http-scale-client deploy/http-scale-client --type=configmap --mount-path=/workload --configmap-name=workload --add

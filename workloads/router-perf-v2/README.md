@@ -38,11 +38,12 @@ It's possible to tune the default configuration through environment variables. T
 | Variable              | Description     | Default	          |
 |-----------------------|-----------------|-------------------|
 | KUBECONFIG            | Kubeconfig file | `~/.kube/config` |
-| ENGINE                | Engine to spin up the local kube-burner container that creates the required infrastructure | `podman` |
+| ENGINE                | Engine to spin up the local kube-burner container that creates the required infrastructure, if you set this to `local` it will try to download kube-burner binary locally using `KUBE_BURNER_RELEASE_URL` and use that instead of creating a container. | `podman` |
 | RUNTIME               | Workload duration in seconds | `60` |
 | TERMINATIONS          | List of HTTP terminations to test | `http edge passthrough reencrypt mix` |
 | URL_PATH              | URL path to use in the benchmark | `/1024.html` |
 | KEEPALIVE_REQUESTS    | List with the number of keep alive requests to perform in the same HTTP session | `0 1 50` |
+| KUBE_BURNER_RELEASE_URL    | Used when ENGINE is set to `local`, ignored otherwise | `https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.9.1/kube-burner-0.9.1-Linux-x86_64.tar.gz` |
 | LARGE_SCALE_THRESHOLD | Number of worker nodes required to consider a large scale scenario | `24` |
 | SMALL_SCALE_ROUTES    | Number of routes of each termination to create in the small scale scenario | `100` |
 | SMALL_SCALE_CLIENTS   | Threads/route to use in the small scale scenario | `1 40 200` |
