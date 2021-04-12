@@ -1,41 +1,26 @@
-export CERBERUS_URL=${CERBERUS_URL}
-export QPS=${QPS:-20}
-export BURST=${BURST:-20}
+source env.sh
+
 # If ES_SERVER is set and empty we disable ES indexing and metadata collection
 if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
   export METADATA_COLLECTION=false
 else
-  export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-  export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
-  export PROM_URL=${PROM_URL:-https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091}
   export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
-  export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 fi
-operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-operator_branch=${OPERATOR_BRANCH:=master}
 export NODE_SELECTOR_KEY="node-role.kubernetes.io/worker"
 export NODE_SELECTOR_VALUE=""
 export WAIT_WHEN_FINISHED=true
 export WAIT_FOR=[]
-export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
-export POD_READY_TIMEOUT=${POD_READY_TIMEOUT:-1200}
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
-export WORKLOAD_NODE=${WORKLOAD_NODE:-'{"node-role.kubernetes.io/worker": ""}'}
-export STEP_SIZE=${STEP_SIZE:-30s}
 export UUID=$(uuidgen)
-export LOG_STREAMING=${LOG_STREAMING:-true}
-export CLEANUP=${CLEANUP:-true}
-export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
-export LOG_LEVEL=${LOG_LEVEL:-info}
 
 log() {
   echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
 }
 
 deploy_operator() {
-  log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
   rm -rf benchmark-operator
-  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
+  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
   log "Deploying benchmark-operator"
   oc apply -f benchmark-operator/resources/namespace.yaml
   oc apply -f benchmark-operator/deploy

@@ -103,6 +103,3 @@ Apart from the pre-defined workloads and metric profiles available in benchmark-
 
 > Note: These can be used separately and/or combined with the kube-burner workloads available in the benchmark-operator.
 
-## Configuration file
-
-An [env.sh](env.sh) file is provided with all available configuration parameters.
