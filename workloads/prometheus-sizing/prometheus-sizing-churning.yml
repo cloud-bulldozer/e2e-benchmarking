@@ -2,7 +2,7 @@
 global:
   writeToFile: false
   indexerConfig:
-    enabled: true
+    enabled: {{ .ENABLE_INDEXING }}
     esServers: [{{ .ES_SERVER }}]
     insecureSkipVerify: true
     defaultIndex: {{ .ES_INDEX }}
@@ -12,7 +12,7 @@ jobs:
     namespacedIterations: true
     namespace: prometheus-sizing-churning
     jobIterations: {{ .NUMBER_OF_NS }}
-    waitWhenFinished: true
+    waitWhenFinished: false
     cleanup: true
     qps: {{ .QPS }}
     burst: {{ .BURST }}
@@ -33,7 +33,7 @@ jobs:
   - name: prometheus-sizing-churning-churn-{{ $val }}
     namespacedIterations: false
     namespace: prometheus-sizing-churning-churn-{{ $val }}
-    waitWhenFinished: true
+    waitWhenFinished: false
     jobIterations: 1
     qps: {{ $.QPS }}
     burst: {{ $.BURST }}

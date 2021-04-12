@@ -1,10 +1,6 @@
+source env.sh
+
 export UUID=$(uuidgen)
-export QPS=${QPS:-40}
-export BURST=${BURSTS:-40}
-export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-true}
-export LOG_LEVEL=${LOG_LEVEL:-info}
-export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
 export PROM_URL=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
 export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
 
@@ -40,5 +36,10 @@ get_pods_per_namespace(){
 run_test(){
   log "Running kube-burner using config ${1}"
   export POD_REPLICAS
-  kube-burner init -c ${1} --uuid=${UUID} -u=${PROM_URL} --token=${PROM_TOKEN} --log-level=${LOG_LEVEL} -m=metrics.yaml
+  curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz
+  ./kube-burner init -c ${1} --uuid=${UUID} -u=${PROM_URL} --token=${PROM_TOKEN} -m=metrics.yaml
+if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
+  log "Cleaning up benchmark stuff"
+  kube-burner destroy -u ${UUID}
+fi
 }

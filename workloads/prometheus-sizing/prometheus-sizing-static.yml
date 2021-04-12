@@ -2,7 +2,7 @@
 global:
   writeToFile: false
   indexerConfig:
-    enabled: true
+    enabled: {{ .ENABLE_INDEXING }}
     esServers: [{{.ES_SERVER}}]
     insecureSkipVerify: true
     defaultIndex: {{.ES_INDEX}}
@@ -11,15 +11,15 @@ jobs:
   - name: prometheus-sizing-static
     jobIterations: 1
     cleanup: true
-    qps: {{.QPS}}
-    burst: {{.BURST}}
+    qps: {{ .QPS }}
+    burst: {{ .BURST }}
     namespacedIterations: false
     namespace: prometheus-sizing-static
     waitWhenFinished: true
-    jobPause: {{.JOB_PAUSE}}
+    jobPause: {{ .JOB_PAUSE }}
     objects:
       - objectTemplate: templates/pod.yml
-        replicas: {{.POD_REPLICAS}}
+        replicas: {{ .POD_REPLICAS }}
         inputVars:
           containerImage: gcr.io/google_containers/pause-amd64:3.0
 
