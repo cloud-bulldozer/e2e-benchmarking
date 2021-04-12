@@ -1,35 +1,22 @@
 
 # Common
-export QPS=20
-export BURST=20
-export ES_SERVER=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443
-export ES_INDEX=ripsaw-kube-burner
-export PROM_URL=https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091
-export JOB_TIMEOUT=17500
-export WORKLOAD_NODE=""
-export CERBERUS_URL=""
-export STEP_SIZE=30s
-export METRICS_PROFILE=
-export CLEANUP=false
-export CLEANUP_WHEN_FINISH=false
-export LOG_LEVEL=info
-export POD_READY_TIMEOUT=1200
-
-# Cluster density specific
-export JOB_ITERATIONS=1000
-
-# Node-density and node-density-heavy specific
-export NODE_COUNT=4
-export PODS_PER_NODE=250
-
-# Pod-density specific
-export PODS=1000
-
-# Metadata
-export METADATA_COLLECTION=true
-
-# kube-burner log streaming
-export LOG_STREAMING=true
+export OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
+export OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
+export QPS=${QPS:-20}
+export BURST=${BURST:-20}
+export POD_READY_TIMEOUT=${POD_READY_TIMEOUT:-1200}
+export WORKLOAD_NODE=${WORKLOAD_NODE:-'{"node-role.kubernetes.io/worker": ""}'}
+export CERBERUS_URL=${CERBERUS_URL}
+export STEP_SIZE=${STEP_SIZE:-30s}
+export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
+export PROM_URL=${PROM_URL:-https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091}
+export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
+export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
+export LOG_STREAMING=${LOG_STREAMING:-true}
+export CLEANUP=${CLEANUP:-true}
+export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
+export LOG_LEVEL=${LOG_LEVEL:-info}
 
 # Remote configuration
 export REMOTE_CONFIG=""
