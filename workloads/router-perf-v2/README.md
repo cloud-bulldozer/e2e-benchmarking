@@ -72,6 +72,10 @@ It's possible to tune the default configuration through environment variables. T
 | LATENCY_TOLERANCE     | Accepted deviation in percentage for latency when compared to a baseline run | `5` |
 | SERVICE_TYPE          | K8S service type to use | `NodePort` |
 | METADATA_COLLECTION   | Collect metadata prior to trigger the workload | `true` |
+| COMPARE_WITH_GOLD | Set it to true if the baseline uuids need to be from gold-index| "" |
+| ES_GOLD | Elasticsearch server where the gold index is stored | `ES_SERVER` |
+| GOLD_SDN | SDN that you want to compare your current run to | `openshiftsdn` |
+| GOLD_OCP_VERSION | OCP version for the gold baseline run | "" |
 
 ## Metrics
 

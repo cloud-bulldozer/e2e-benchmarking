@@ -27,6 +27,15 @@ export NUMBER_OF_ROUTERS=${NUMBER_OF_ROUTERS:-2}
 export CERBERUS_URL=${CERBERUS_URL}
 export SERVICE_TYPE=${SERVICE_TYPE:-NodePort}
 
+if [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
+  ES_GOLD=${ES_GOLD:-${ES_SERVER}}
+  PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
+  GOLD_SDN=${GOLD_SDN:-openshiftsdn}
+  NUM_ROUTER=$(oc get pods -n openshift-ingress --no-headers | wc -l)
+  GOLD_INDEX=$(curl -X GET "${ES_GOLD}/openshift-gold-${PLATFORM}-results/_search" -H 'Content-Type: application/json' -d ' {"query": {"term": {"version": '\"${GOLD_OCP_VERSION}\"'}}}')
+  LARGE_SCALE_BASELINE_UUID=$(echo $GOLD_INDEX | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"$NUM_ROUTER\"'."num_nodes".'\"25\"'."uuid"')
+  SMALL_SCALE_BASELINE_UUID=$(echo $GOLD_INDEX | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"$NUM_ROUTER\"'."num_nodes".'\"3\"'."uuid"')
+fi
 
 log(){
   echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
