@@ -38,8 +38,8 @@ run_test(){
   export POD_REPLICAS
   curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz
   ./kube-burner init -c ${1} --uuid=${UUID} -u=${PROM_URL} --token=${PROM_TOKEN} -m=metrics.yaml
-if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
-  log "Cleaning up benchmark stuff"
-  kube-burner destroy -u ${UUID}
-fi
+  if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
+    log "Cleaning up benchmark stuff"
+    kube-burner destroy -u ${UUID}
+  fi
 }

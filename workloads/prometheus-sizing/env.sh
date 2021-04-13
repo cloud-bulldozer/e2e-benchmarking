@@ -12,8 +12,8 @@ export JOB_PAUSE=${JOB_PAUSE:-125m}
 
 # prometheus-sizing-churning specific
 # How many pods to create in each node
-export PODS_PER_NODE=50
+export PODS_PER_NODE=${PODS_PER_NODE:-50}
 # How often pod churning happens
-export POD_CHURNING_PERIOD=15m
+export POD_CHURNING_PERIOD=${POD_CHURNING_PERIOD:-15m}
 # Number of namespaces
-export NUMBER_OF_NS=8
+export NUMBER_OF_NS=${NUMBER_OF_NS:-8}
