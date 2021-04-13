@@ -71,6 +71,7 @@ It's possible to tune the default configuration through environment variables. T
 | THROUGHPUT_TOLERANCE  | Accepted deviation in percentage for throughput when compared to a baseline run | `5` |
 | LATENCY_TOLERANCE     | Accepted deviation in percentage for latency when compared to a baseline run | `5` |
 | SERVICE_TYPE          | K8S service type to use | `NodePort` |
+| METADATA_COLLECTION   | Collect metadata prior to trigger the workload | `true` |
 
 ## Metrics
 
