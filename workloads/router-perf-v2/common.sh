@@ -12,6 +12,7 @@ THROUGHPUT_TOLERANCE=${THROUGHPUT_TOLERANCE:-5}
 LATENCY_TOLERANCE=${LATENCY_TOLERANCE:-5}
 PREFIX=${PREFIX:-$(oc get clusterversion version -o jsonpath="{.status.desired.version}")}
 LARGE_SCALE_THRESHOLD=${LARGE_SCALE_THRESHOLD:-24}
+METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 
 
 export TLS_REUSE=${TLS_REUSE:-true}
@@ -25,6 +26,7 @@ export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/workload: }'}
 export NUMBER_OF_ROUTERS=${NUMBER_OF_ROUTERS:-2}
 export CERBERUS_URL=${CERBERUS_URL}
 export SERVICE_TYPE=${SERVICE_TYPE:-NodePort}
+
 
 log(){
   echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
@@ -80,6 +82,15 @@ tune_workload_node(){
   TUNED_SELECTOR=$(echo ${NODE_SELECTOR} | tr -d {:})
   log "${1} tuned profile for node labeled with ${TUNED_SELECTOR}"
   sed "s#TUNED_SELECTOR#${TUNED_SELECTOR}#g" tuned-profile.yml | oc ${1} -f -
+}
+
+collect_metadata(){
+  log "Collecting metadata for UUID: ${UUID}"
+  git clone https://github.com/cloud-bulldozer/metadata-collector.git --depth=1
+  pushd metadata-collector
+  ./run_backpack.sh -x -c true -s ${ES_SERVER} -u ${UUID}
+  popd
+  rm -rf metadata-collector
 }
 
 run_mb(){

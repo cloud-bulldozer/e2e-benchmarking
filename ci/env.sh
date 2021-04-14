@@ -20,9 +20,10 @@ export PODS_PER_NODE=100
 export VERSION=`oc get clusterversion | grep -o [0-9.]* | head -1`
 
 # For router perf v2
-export RUNTIME=10
+export RUNTIME=5
 export SAMPLES=2
 export TERMINATIONS="http mix"
+export SMALL_SCALE_ROUTES="10"
 export SMALL_SCALE_CLIENTS="1 40"
 export SMALL_SCALE_CLIENTS_MIX="1 20"
 export KEEPALIVE_REQUESTS="0 1"
