@@ -32,7 +32,7 @@ tune_workload_node delete
 cleanup_infra
 if [[ -n ${ES_SERVER} ]]; then
   log "Generating results in compare.yaml"
-  ../../utils/touchstone-compare/run_compare.sh mb ${BASELINE_UUID} ${UUID}
+  ../../utils/touchstone-compare/run_compare.sh mb ${BASELINE_UUID} ${UUID} ${NUM_NODES}
   log "Generating CSV results"
-  ./csv_gen.py -f compare.yaml -u ${BASELINE_UUID} ${UUID} -p ${BASELINE_PREFIX} ${PREFIX} -l ${LATENCY_TOLERANCE} -t ${THROUGHPUT_TOLERANCE}
+  ./csv_gen.py -f compare_output_${NUM_NODES} -u ${BASELINE_UUID} ${UUID} -p ${BASELINE_PREFIX} ${PREFIX} -l ${LATENCY_TOLERANCE} -t ${THROUGHPUT_TOLERANCE}
 fi

@@ -216,7 +216,7 @@ assign_uuid() {
 
 run_benchmark_comparison() {
   ../../utils/touchstone-compare/run_compare.sh uperf ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
-  pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}p.yaml" )
+  pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}.yaml" )
 }
 
 generate_csv() {
