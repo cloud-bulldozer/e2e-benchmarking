@@ -14,15 +14,7 @@ if [[ $? -ne 0 ]] ; then
 fi
 
 set -x
-if [[ ${tool} != "uperf" ]]; then
-  if [[ -n ${TOUCHSTONE_CONFIG} ]]; then
-    touchstone_compare ${tool} elasticsearch ripsaw -url $_es $_es_baseline -u ${2} ${3} -o yaml --config ${TOUCHSTONE_CONFIG} | tee compare.yaml
-  else
-    touchstone_compare ${tool} elasticsearch ripsaw -url $_es $_es_baseline -u ${2} ${3} -o yaml | tee compare.yaml
-  fi
-else
-  touchstone_compare uperf elasticsearch ripsaw -url $_es $_es_baseline -u ${2} ${3} -o yaml | tee compare_output_${!#}p.yaml
-fi
+  touchstone_compare ${tool} elasticsearch ripsaw -url $_es $_es_baseline -u ${2} ${3} -o yaml --config config/${tool}.json --tolerancy-rules tolerancy-configs/${tool}.yaml | tee compare_output_${!#}.yaml
 set +x
 
 if [[ $? -ne 0 ]] ; then

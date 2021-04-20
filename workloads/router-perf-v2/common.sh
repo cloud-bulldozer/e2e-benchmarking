@@ -13,7 +13,7 @@ LATENCY_TOLERANCE=${LATENCY_TOLERANCE:-5}
 PREFIX=${PREFIX:-$(oc get clusterversion version -o jsonpath="{.status.desired.version}")}
 LARGE_SCALE_THRESHOLD=${LARGE_SCALE_THRESHOLD:-24}
 METADATA_COLLECTION=${METADATA_COLLECTION:-true}
-
+NUM_NODES=$(oc get node -l node-role.kubernetes.io/worker --no-headers | grep -cw Ready)
 
 export TLS_REUSE=${TLS_REUSE:-true}
 export UUID=$(uuidgen)
@@ -43,7 +43,7 @@ log(){
 
 get_scenario(){
   # We consider a large scale scenario any cluster with more than the given threshold
-  if [[ $(oc get node -l node-role.kubernetes.io/worker --no-headers | grep -cw Ready) -ge ${LARGE_SCALE_THRESHOLD} ]]; then
+  if [[ ${NUM_NODES} -ge ${LARGE_SCALE_THRESHOLD} ]]; then
     log "Large scale scenario detected: #workers >= ${LARGE_SCALE_THRESHOLD}"
     export NUMBER_OF_ROUTES=${LARGE_SCALE_ROUTES:-500}
     CLIENTS=${LARGE_SCALE_CLIENTS:-"1 20 80"}
