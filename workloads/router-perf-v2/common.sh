@@ -89,6 +89,11 @@ tune_liveness_probe(){
 
 tune_workload_node(){
   TUNED_SELECTOR=$(echo ${NODE_SELECTOR} | tr -d {:})
+  NUM_WORKLOAD_NODES=$(oc get node --show-labels -l ${TUNED_SELECTOR} --no-headers | grep node-role.kubernetes.io/workload -c)
+  if [[ $NUM_WORKLOAD_NODES -le 0 ]]; then
+    log "No nodes with label ${TUNED_SELECTOR} found, proceeding to label a worker node at random."
+    oc label node $(oc get nodes -l "node-role.kubernetes.io/worker=" -o custom-columns=:.metadata.name | shuf -n 1) ${TUNED_SELECTOR}=""
+  fi
   log "${1} tuned profile for node labeled with ${TUNED_SELECTOR}"
   sed "s#TUNED_SELECTOR#${TUNED_SELECTOR}#g" tuned-profile.yml | oc ${1} -f -
 }
