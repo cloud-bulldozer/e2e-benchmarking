@@ -14,7 +14,7 @@ if [[ $? -ne 0 ]] ; then
 fi
 
 set -x
-  touchstone_compare ${tool} elasticsearch ripsaw -url $_es $_es_baseline -u ${2} ${3} -o yaml --config config/${tool}.json --tolerancy-rules tolerancy-configs/${tool}.yaml | tee compare_output_${!#}.yaml
+  touchstone_compare --database elasticsearch -url $_es $_es_baseline -u ${2} ${3} -o yaml --config config/${tool}.json --tolerancy-rules tolerancy-configs/${tool}.yaml | tee compare_output_${!#}.yaml
 set +x
 
 if [[ $? -ne 0 ]] ; then
