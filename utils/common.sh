@@ -46,9 +46,9 @@ function get_uuid () {
 }
 
 # The argument is 'timeout and 'pod name' in seconds'
-funtion check_pod_ready_state () {
+function check_pod_ready_state () {
   pod_name=$1
   timeout=$2
-  kubectl wait --for=condition=ready pods --namespace ${3:-my-ripsaw}g $pod_name --timeout=$timeout
+  kubectl wait --for=condition=ready pods --namespace ${3:-my-ripsaw} $pod_name --timeout=$timeout
   return $?
 }
