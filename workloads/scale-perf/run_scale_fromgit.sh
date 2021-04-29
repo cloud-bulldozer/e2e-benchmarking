@@ -58,8 +58,8 @@ spec:
 EOF
       # Get the uuid of newly created scale benchmark.
       long_uuid=$(get_uuid 30)
-      if [ $? -ne 0 ]; 
-      then 
+      if [ $? -ne 0 ];
+      then
         exit 1
       fi
 
@@ -67,8 +67,15 @@ EOF
 
       # Checks the presence of scale pod. Should exit if pod is not available.
       scale_pod=$(get_pod "app=scale-$uuid" 300)
-      if [ $? -ne 0 ]; 
-      then 
+      if [ $? -ne 0 ];
+      then
+        exit 1
+      fi
+
+      check_pod_ready_state $scale_pod 150s
+      if [ $? -ne 0 ];
+      then
+        "Pod wasn't able to move into Running state! Exiting...."
         exit 1
       fi
 

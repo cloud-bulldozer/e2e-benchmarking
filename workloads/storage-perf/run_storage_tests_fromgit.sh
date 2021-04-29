@@ -88,7 +88,14 @@ uuid=${long_uuid:0:8}
 # Checks the presence of fio pod. Should exit if pod is not available.
 fio_pod=$(get_pod "app=fio-benchmark-$uuid" 300)
 if [ $? -ne 0 ];
-then 
+then
+  exit 1
+fi
+
+check_pod_ready_state $fio_pod 150s
+if [ $? -ne 0 ];
+then
+  "Pod wasn't able to move into Running state! Exiting...."
   exit 1
 fi
 
