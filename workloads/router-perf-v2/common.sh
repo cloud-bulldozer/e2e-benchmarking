@@ -63,7 +63,7 @@ get_scenario(){
 deploy_infra(){
   log "Deploying benchmark infrastructure"
   WORKLOAD_NODE_SELECTOR=$(echo ${NODE_SELECTOR} | tr -d {:} | tr -d " ") # Remove braces and spaces
-  if [[ $(oc get node --show-labels -l ${WORKLOAD_NODE_SELECTOR} --no-headers | grep node-role.kubernetes.io/workload -c) -eq 0 ]]; then
+  if [[ $(oc get node --show-labels -l ${WORKLOAD_NODE_SELECTOR} --no-headers | grep ${WORKLOAD_NODE_SELECTOR} -c) -eq 0 ]]; then
     log "No nodes with label ${WORKLOAD_NODE_SELECTOR} found, proceeding to label a worker node at random."
     SELECTED_NODE=$(oc get nodes -l "node-role.kubernetes.io/worker=" -o custom-columns=:.metadata.name | tail -n1)
     log "Selected ${SELECTED_NODE} to label as ${WORKLOAD_NODE_SELECTOR}"
