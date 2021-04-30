@@ -17,7 +17,7 @@ options supported:
 	PROMETHEUS_CAPTURE=str,               str=true or false, enables/disables prometheus capture
 	PROMETHEUS_CAPTURE_TYPE=str,          str=wal or full, wal captures the write ahead log and full captures the entire prometheus DB
 	OPENSHIFT_MUST_GATHER=str,            str=true or false, gathers cluster data including information about all the operator managed components
-	STORAGE_MODE=str,                     str=pbench, moves the results to the pbench results dir to be shipped to the pbench server in case the tool is run using pbench
+	STORAGE_MODE=str,                     str=pbench or snappy, moves the results to the pbench or snappy data server results dir 
 	DATA_SERVER_URL=str                   str=url that points to http server that hosts data
 ```
 
@@ -37,12 +37,20 @@ $ source env.sh; pbench-user-benchmark --sysinfo=none -- <path to ocp_diagnosis.
 
 [Snappy CLI](https://github.com/mfleader/snappyCLI) is a client you can use in your shell scripting.
 
-Declare environment variables:
+#### Environment variables:
 
-```shell
-DATA_SERVER_USERNAME=your_username@email.com
-DATA_SERVER_PASSWORD=your_password
-```
+#### SNAPPY_DATA_SERVER_URL
+Default: ''
+The Snappy data server url, where you want to move files.
+#### SNAPPY_DATA_SERVER_USERNAME
+Default: ''
+Username for the Snappy data-server.
+#### SNAPPY_DATA_SERVER_PASSWORD
+Default: ''
+Password for the Snappy data-server.
+#### SNAPPY_USER_FOLDER
+Default: 'perf-ci'
+To store the data for a specific user
 
 ### Visualize the captured data locally on prometheus server
 Launch a prometheus server and load the captured/unpacked DB:
