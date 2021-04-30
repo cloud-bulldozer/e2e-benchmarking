@@ -95,6 +95,7 @@ tune_liveness_probe(){
 }
 
 tune_workload_node(){
+  TUNED_SELECTOR=$(echo ${NODE_SELECTOR} | tr -d {:})
   log "${1} tuned profile for node labeled with ${TUNED_SELECTOR}"
   sed "s#TUNED_SELECTOR#${TUNED_SELECTOR}#g" tuned-profile.yml | oc ${1} -f -
 }
