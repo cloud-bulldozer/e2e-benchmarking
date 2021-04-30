@@ -62,6 +62,13 @@ get_scenario(){
 
 deploy_infra(){
   log "Deploying benchmark infrastructure"
+  WORKLOAD_NODE_SELECTOR=$(echo ${NODE_SELECTOR} | tr -d {:} | tr -d " ") # Remove braces and spaces
+  if [[ $(oc get node --show-labels -l ${WORKLOAD_NODE_SELECTOR} --no-headers | grep node-role.kubernetes.io/workload -c) -eq 0 ]]; then
+    log "No nodes with label ${WORKLOAD_NODE_SELECTOR} found, proceeding to label a worker node at random."
+    SELECTED_NODE=$(oc get nodes -l "node-role.kubernetes.io/worker=" -o custom-columns=:.metadata.name | tail -n1)
+    log "Selected ${SELECTED_NODE} to label as ${WORKLOAD_NODE_SELECTOR}"
+    oc label node ${SELECTED_NODE} ${WORKLOAD_NODE_SELECTOR}=""
+  fi
   envsubst < ${INFRA_TEMPLATE} > ${INFRA_CONFIG}
   if [[ ${ENGINE} == "local" ]]; then
     log "Downloading and extracting kube-burner binary"
@@ -88,12 +95,6 @@ tune_liveness_probe(){
 }
 
 tune_workload_node(){
-  TUNED_SELECTOR=$(echo ${NODE_SELECTOR} | tr -d {:})
-  NUM_WORKLOAD_NODES=$(oc get node --show-labels -l ${TUNED_SELECTOR} --no-headers | grep node-role.kubernetes.io/workload -c)
-  if [[ $NUM_WORKLOAD_NODES -le 0 ]]; then
-    log "No nodes with label ${TUNED_SELECTOR} found, proceeding to label a worker node at random."
-    oc label node $(oc get nodes -l "node-role.kubernetes.io/worker=" -o custom-columns=:.metadata.name | shuf -n 1) ${TUNED_SELECTOR}=""
-  fi
   log "${1} tuned profile for node labeled with ${TUNED_SELECTOR}"
   sed "s#TUNED_SELECTOR#${TUNED_SELECTOR}#g" tuned-profile.yml | oc ${1} -f -
 }
