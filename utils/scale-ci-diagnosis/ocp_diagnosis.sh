@@ -137,7 +137,7 @@ function store() {
 		export platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
  		export cluster_version=$(oc get clusterversion | grep -o [0-9.]* | head -1)
  		export network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
- 		export folder_date_time=$(date +"%Y-%m-%d_%I:%M_%p")
+ 		export folder_date_time=$(TZ=UTC date +"%Y-%m-%d_%I:%M_%p")
 		if [[ -n $RUNID ]];then 
             runid=$RUNID-
         fi
@@ -154,15 +154,13 @@ function store() {
 
 
 if [[ $PROMETHEUS_CAPTURE == "true" ]]; then
-	export uuid=
- 	export workload=prometheus 
+	export workload=prometheus 
 	store prometheus_capture "prometheus-$ts.tar.xz"
 fi
 
 
 if [[ $OPENSHIFT_MUST_GATHER == "true" ]]; then
-	export uuid=
- 	export workload=must_gather
+	export workload=must_gather
 	store must_gather "must-gather-$ts.tar.xz"
 fi
 
