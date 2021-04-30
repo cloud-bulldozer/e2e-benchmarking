@@ -133,10 +133,19 @@ function store() {
 	elif [[ $STORAGE_MODE == "pbench" ]]; then
 		set_pbench;
 		$1;
-	elif [[ $STORAGE_MODE == "data_server" ]]; then
-		snappy script-login
-		$1 && snappy post-file "$OUTPUT_DIR/$2" --filedir $SNAPPY_FILE_DIR
-		snappy logout
+	elif [[ $STORAGE_MODE == "snappy" ]]; then
+		export platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
+ 		export cluster_version=$(oc get clusterversion | grep -o [0-9.]* | head -1)
+ 		export network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
+ 		export folder_date_time=$(date +"%Y-%m-%d_%I:%M_%p")
+		if [[ -n $RUNID ]];then 
+            runid=$RUNID-
+        fi
+		../../utils/snappy-move-results/generate_metadata.sh > metadata.json 
+ 		../snappy-move-results/run_snappy.sh "$OUTPUT_DIR/$2" "$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
+		../snappy-move-results/run_snappy.sh metadata.json "$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
+		
+
 	else
 		echo "Invalid storage mode chosen. STORAGE_MODE is $STORAGE_MODE"
 		exit 1
@@ -145,11 +154,15 @@ function store() {
 
 
 if [[ $PROMETHEUS_CAPTURE == "true" ]]; then
+	export uuid=
+ 	export workload=prometheus 
 	store prometheus_capture "prometheus-$ts.tar.xz"
 fi
 
 
 if [[ $OPENSHIFT_MUST_GATHER == "true" ]]; then
+	export uuid=
+ 	export workload=must_gather
 	store must_gather "must-gather-$ts.tar.xz"
 fi
 

@@ -147,3 +147,29 @@ export CERBERUS_URL=http://1.2.3.4:8080
 #export GSHEET_KEY_LOCATION=
 #export EMAIL_ID_FOR_RESULTS_SHEET=<your_email_id>  # Will only work if you have google service account key
 ```
+
+## Snappy integration configurations
+To backup data to a given snappy data-server
+
+### Environment Variables
+
+#### ENABLE_SNAPPY_BACKUP
+Default: ''
+Set to true to backup the logs/files generated during a workload run
+
+#### SNAPPY_DATA_SERVER_URL
+Default: ''
+The Snappy data server url, where you want to move files.
+
+#### SNAPPY_DATA_SERVER_USERNAME
+Default: ''
+Username for the Snappy data-server.
+
+#### SNAPPY_DATA_SERVER_PASSWORD
+Default: ''
+Password for the Snappy data-server.
+
+#### SNAPPY_USER_FOLDER
+Default: 'perf-ci'
+To store the data for a specific user
+
