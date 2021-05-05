@@ -1,7 +1,7 @@
 #!/usr/bin/bash -e
 set -e
 
-. common.sh
+source ./common.sh
 
 get_scenario
 deploy_infra
@@ -51,7 +51,7 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  
 
  ../../utils/snappy-move-results/generate_metadata.sh > metadata.json 
- ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz "$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$uuid-$workload/$folder_date_time/"
- ../../utils/snappy-move-results/run_snappy.sh metadata.json "$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$uuid-$workload/$folder_date_time/"
+ ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz "$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$UUID-$workload/$folder_date_time/"
+ ../../utils/snappy-move-results/run_snappy.sh metadata.json "$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$UUID-$workload/$folder_date_time/"
  rm -rf files_list
 fi
