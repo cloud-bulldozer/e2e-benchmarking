@@ -40,12 +40,12 @@ fi
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  echo -e "snappy server as backup enabled"
- ../../utils/snappy-move-results/common.sh
+ source ../../utils/snappy-move-results/common.sh
  csv_list=`find . -name "*.csv"` 
  json_list=`find . -name "*.json"`
  compare_file=`find . -name "compare*"`
  mkdir files_list
- cp $csv_list $compare_file $json_list http-perf.yml results.csv ./files_list
+ cp $csv_list $compare_file $json_list http-perf.yml ./files_list
  tar -zcvf snappy_files.tar.gz ./files_list
  export workload=router-perf-v2
  
