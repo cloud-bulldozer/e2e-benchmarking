@@ -13,7 +13,7 @@ generate_csv
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  echo -e "snappy server as backup enabled"
- ../../utils/snappy-move-results/common.sh
+ source ../../utils/snappy-move-results/common.sh
  csv_list=`find . -name "*.csv"` 
  mkdir files_list
  cp $csv_list ./files_list
