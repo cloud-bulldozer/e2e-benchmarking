@@ -28,6 +28,7 @@ for termination in ${TERMINATIONS}; do
   fi
 done
 enable_ingress_operator
+oc rsync -n http-scale-client $(oc get pod -l app=http-scale-client -n http-scale-client | grep Running | awk '{print $1}'):/tmp/results.csv ./
 tune_workload_node delete
 cleanup_infra
 if [[ -n ${ES_SERVER} ]]; then
@@ -39,20 +40,15 @@ fi
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  echo -e "snappy server as backup enabled"
+ ../../utils/snappy-move-results/common.sh
  csv_list=`find . -name "*.csv"` 
+ json_list=`find . -name "*.json"`
+ compare_file=`find . -name "compare*"`
  mkdir files_list
- cp $csv_list compare.yaml http-scale-mix.json http-scale-http.json http-perf.yml ./files_list
+ cp $csv_list $compare_file $json_list http-perf.yml results.csv ./files_list
  tar -zcvf snappy_files.tar.gz ./files_list
  export workload=router-perf-v2
- export platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
- export cluster_version=$(oc get clusterversion | grep -o [0-9.]* | head -1)
- export network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
- export folder_date_time=$(TZ=UTC date +"%Y-%m-%d_%I:%M_%p")
- export SNAPPY_USER_FOLDER=${SNAPPY_USER_FOLDER:=perf-ci}
-
- if [[ -n $RUNID ]];then 
-    runid=$RUNID-
- fi
+ 
 
  ../../utils/snappy-move-results/generate_metadata.sh > metadata.json 
  ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz "$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$uuid-$workload/$folder_date_time/"
