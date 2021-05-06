@@ -122,14 +122,22 @@ export_defaults() {
   fi
 }
 
+safe_create(){
+  log "Trying to safely create resource at $1"
+  while [[ ! $(oc apply -f $1) ]]; do
+    log "Cloning ${operator_branch} ${operator_repo} to  /tmp/benchmark-operator again, as that directory was not found."
+    git clone --single-branch --branch ${operator_branch} ${operator_repo} /tmp/benchmark-operator --depth 1
+  done
+}
+
 deploy_operator() {
   log "Starting test for cloud: $cloud_name"
   log "Deploying benchmark-operator"
-  oc apply -f /tmp/benchmark-operator/resources/namespace.yaml
-  oc apply -f /tmp/benchmark-operator/deploy
-  oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-  oc apply -f /tmp/benchmark-operator/resources/operator.yaml
-  oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
+  safe_create /tmp/benchmark-operator/resources/namespace.yaml
+  safe_create /tmp/benchmark-operator/deploy
+  safe_create /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
+  safe_create /tmp/benchmark-operator/resources/operator.yaml
+  safe_create /tmp/benchmark-operator/resources/backpack_role.yaml
   log "Waiting for benchmark-operator to be available"
   oc wait --for=condition=available -n my-ripsaw deployment/benchmark-operator --timeout=280s
   oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
