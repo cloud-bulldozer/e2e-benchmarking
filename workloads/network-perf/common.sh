@@ -160,6 +160,11 @@ if [ ! -z "$client_pod" ]; then
     log "Encountered CRITICAL condition more than 3 times in uperf-client logs"
     log "Log dump of uperf-client pod"
     oc logs $client_pod -n my-ripsaw
+    log "Following Server pods were present"
+    server_pod=$(oc get pods -n my-ripsaw --no-headers | awk '{print $1}' | grep uperf-server | awk 'NR==1{print $1}')
+    oc logs $server_pod -n my-ripsaw
+    log "Following services were also present before calling delete_benchmark due to failure"
+    oc describe svc -n my-ripsaw
     delete_benchmark
     exit 1
   fi
