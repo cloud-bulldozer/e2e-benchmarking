@@ -89,7 +89,7 @@ deploy_operator() {
 deploy_logging_stack() {
   log "Deploying logging stack"
   source env.sh
-  deploy_logging_stack.sh
+  ./deploy_logging_stack.sh
 }
 
 run_workload() {
@@ -148,7 +148,7 @@ wait_for_benchmark() {
   rc=0
   log "Waiting for benchmark to be created"
   local timeout=$(date -d "+${TEST_TIMEOUT} seconds" +%s)
-  until oc get benchmark -n my-ripsaw log-generator-${UUID} -o jsonpath="{.status.state}" | grep -q Running; do
+  until oc get benchmark -n my-ripsaw log-generator -o jsonpath="{.status.state}" | grep -q Running; do
     sleep 1
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for job to be created"
@@ -156,8 +156,8 @@ wait_for_benchmark() {
     fi
   done
   log "Waiting for log-generator pods to start"
-  suuid=$(oc get benchmark -n my-ripsaw log-generator-${UUID} -o jsonpath="{.status.suuid}")
-  until oc get pod -n my-ripsaw -l job-name=log-generator-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep Running | wc -l -eq $POD_COUNT; do
+  suuid=$(oc get benchmark -n my-ripsaw log-generator -o jsonpath="{.status.suuid}")
+  until [[ $(oc get pod -n my-ripsaw -l job-name=log-generator-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep Running | wc -l) -eq $POD_COUNT ]]; do
     sleep 1
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for all pods to be running"
@@ -165,14 +165,14 @@ wait_for_benchmark() {
     fi
   done
   log "Benchmark in progress"
-  until oc get benchmark -n my-ripsaw log-generator-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed" | wc -l -eq $POD_COUNT; do
+  until [[ $(oc get benchmark -n my-ripsaw log-generator -o jsonpath="{.status.state}" | grep -E "Complete|Failed" | wc -l) -eq $POD_COUNT ]]; do
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for Benchmark to complete"
       exit 1
     fi
     sleep 1
   done
-  status=$(oc get benchmark -n my-ripsaw log-generator-${UUID} -o jsonpath="{.status.state}")
+  status=$(oc get benchmark -n my-ripsaw log-generator -o jsonpath="{.status.state}")
   log "Benchmark log-generator-${UUID} finished with status: ${status}"
   if [[ ${status} == "Failed" ]]; then
     rc=1
