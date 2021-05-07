@@ -24,43 +24,46 @@ if [[ ${CERBERUS_URL} ]]; then
   fi
 fi
 
+# UUID
+export UUID=${UUID:-`uuidgen`}
+
 # Operator
-operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-operator_branch=${OPERATOR_BRANCH:=master}
+operator_repo=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
+operator_branch=${OPERATOR_BRANCH:-master}
 timestamp=`date "+%d-%m-%YT%H:%M:%S"`
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-export METADATA_COLLECTION=${METADATA_COLLECTION:=false}
+export METADATA_COLLECTION=${METADATA_COLLECTION:-false}
 
 # Logging workload args
-export MESSAGE_SIZE=${MESSAGE_SIZE:=512}
-export DURATION=${DURATION:=1}
-export MESSAGES_PER_SECOND=${MESSAGES_PER_SECOND:=0}
-export POD_COUNT=${POD_COUNT:=1}
-export TIMEOUT=${TIMEOUT:=600}
+export MESSAGE_SIZE=${MESSAGE_SIZE:-512}
+export DURATION=${DURATION:-1}
+export MESSAGES_PER_SECOND=${MESSAGES_PER_SECOND:-0}
+export POD_COUNT=${POD_COUNT:-1}
+export TIMEOUT=${TIMEOUT:-600}
 
 # ES backend information
-export ES_BACKEND_URL=${ES_BACKEND_URL:=""}
-export ES_BACKEND_INDEX=${ES_BACKEND_INDEX:=""}
-export ES_BACKEND_TOKEN=${ES_BACKEND_TOKEN:=""}
+export ES_BACKEND_URL=${ES_BACKEND_URL:-""}
+export ES_BACKEND_INDEX=${ES_BACKEND_INDEX:-""}
+export ES_BACKEND_TOKEN=${ES_BACKEND_TOKEN:-""}
 
 # AWS CloudWatch backend information
-export CLOUDWATCH_LOG_GROUP=${CLOUDWATCH_LOG_GROUP:=""}
-export AWS_REGION=${AWS_REGION:=""}
-export AWS_ACCESS_KEY=${AWS_ACCESS_KEY:=""}
-export AWS_SECRET_KEY=${AWS_SECRET_KEY:=""}
+export CLOUDWATCH_LOG_GROUP=${CLOUDWATCH_LOG_GROUP:-""}
+export AWS_REGION=${AWS_REGION:-""}
+export AWS_ACCESS_KEY=${AWS_ACCESS_KEY:-""}
+export AWS_SECRET_KEY=${AWS_SECRET_KEY:-""}
 
 # Node Selector
-export NODE_SELECTOR_KEY=${NODE_SELECTOR_KEY:=""}
-export NODE_SELECTOR_VALUE=${NODE_SELECTOR_VALUE:=""}
+export NODE_SELECTOR_KEY=${NODE_SELECTOR_KEY:-""}
+export NODE_SELECTOR_VALUE=${NODE_SELECTOR_VALUE:-""}
 
 # Deploy Logging
-export DEPLOY_LOGGING=${DEPLOY_LOGGING:=true}
+export DEPLOY_LOGGING=${DEPLOY_LOGGING:-true}
 
 # Overall test timeout in seconds (NOTE: this is different than the timeout for the benchmark)
-export TEST_TIMEOUT=${TEST_TIMEOUT:=7200}
+export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
 
 # Cleanup benchmark when done
-export TEST_CLEANUP=${TEST_CLEANUP:="false"}
+export TEST_CLEANUP=${TEST_CLEANUP:-"false"}
 
 deploy_operator() {
   log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
@@ -91,7 +94,7 @@ deploy_logging_stack() {
 
 run_workload() {
   log "Customizing log-generator CR file"
-  cp log_generator.yaml log_generator_$timestamp.yaml
+  envsubst < files/log_generator.yaml > log_generator_$timestamp.yaml
   if [[ ${DEPLOY_LOGGING} == "true" ]]; then
     # Get bearer token and ES url if applicable
     if [[ ${CUSTOM_ES_URL} == "" ]]; then
