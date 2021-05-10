@@ -1,0 +1,20 @@
+apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
+kind: Benchmark
+metadata:
+  name: log-generator
+  namespace: my-ripsaw
+spec:
+  uuid: ${UUID}
+  elasticsearch:
+    url: ${ES_SERVER}
+    index_name: log-generator
+  metadata:
+    collection: ${METADATA_COLLECTION}
+  workload:
+    name: log_generator
+    args:
+      pod_count: ${POD_COUNT}
+      size: ${MESSAGE_SIZE}
+      messages_per_second: ${MESSAGES_PER_SECOND}
+      duration: ${DURATION}
+      timeout: ${TIMEOUT}
