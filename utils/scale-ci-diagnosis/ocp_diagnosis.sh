@@ -135,6 +135,7 @@ function store() {
 		$1;
 	elif [[ $STORAGE_MODE == "snappy" ]]; then
 		echo -e "snappy server as backup enabled"
+		source ../snappy-move-results/common.sh
 		export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
  		../snappy-move-results/generate_metadata.sh > metadata.json 
  		../snappy-move-results/run_snappy.sh "$OUTPUT_DIR/$2" $snappy_path
