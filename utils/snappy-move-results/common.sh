@@ -15,6 +15,7 @@ if [[ -n $RUNID ]];then
     export runid=$RUNID-
 fi
 
+#Function to store the run id, snappy path and other cluster details on elasticsearch
 store_on_elastic()
 {
     if [[ -n $RUNID ]];then 
