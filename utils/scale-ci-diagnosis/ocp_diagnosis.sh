@@ -135,12 +135,12 @@ function store() {
 		$1;
 	elif [[ $STORAGE_MODE == "snappy" ]]; then
 		echo -e "snappy server as backup enabled"
- 		source ../snappy-move-results/common.sh
-		../snappy-move-results/generate_metadata.sh > metadata.json 
- 		../snappy-move-results/run_snappy.sh "$OUTPUT_DIR/$2" "$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
-		../snappy-move-results/run_snappy.sh metadata.json "$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
-		
-
+		export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
+ 		../snappy-move-results/generate_metadata.sh > metadata.json 
+ 		../snappy-move-results/run_snappy.sh "$OUTPUT_DIR/$2" $snappy_path
+ 		../snappy-move-results/run_snappy.sh metadata.json $snappy_path
+ 		store_on_elastic
+ 		
 	else
 		echo "Invalid storage mode chosen. STORAGE_MODE is $STORAGE_MODE"
 		exit 1
