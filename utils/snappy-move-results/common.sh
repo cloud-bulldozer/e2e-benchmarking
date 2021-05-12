@@ -24,6 +24,7 @@ store_on_elastic()
 
         curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
             "run_id" : "'$RUNID'",
+            "snappy_directory_url" : "'$SNAPPY_DATA_SERVER_URL/index/$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/'",
             "snappy_folder_path" : "'$snappy_path'",
             "platform": "'$platform'",
             "cluster_name": "'$cluster_name'",
