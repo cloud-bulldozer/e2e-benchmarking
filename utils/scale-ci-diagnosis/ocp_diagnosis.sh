@@ -65,7 +65,7 @@ fi
 prometheus_pod=$(oc get pods -n $prometheus_namespace | grep -w "Running" | awk -F " " '/prometheus-k8s/{print $1}' | tail -n1)
 
 # get the timestamp
-ts=$(date +"%Y%m%d-%H%M%S")
+ts=$(TZ=UTC date +"%Y-%m-%d_%I:%M_%p")
 
 function capture_wal() {
 	echo "================================================================================="
