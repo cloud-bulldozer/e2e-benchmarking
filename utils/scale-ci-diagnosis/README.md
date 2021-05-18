@@ -17,23 +17,13 @@ options supported:
 	PROMETHEUS_CAPTURE=str,               str=true or false, enables/disables prometheus capture
 	PROMETHEUS_CAPTURE_TYPE=str,          str=wal or full, wal captures the write ahead log and full captures the entire prometheus DB
 	OPENSHIFT_MUST_GATHER=str,            str=true or false, gathers cluster data including information about all the operator managed components
-	STORAGE_MODE=str,                     str=pbench or snappy, moves the results to the pbench or snappy data server results dir 
-	DATA_SERVER_URL=str                   str=url that points to http server that hosts data
-```
-
-### Pbench server for storage
-[Pbench](https://github.com/distributed-system-analysis/pbench.git) does a great job in terms of both collection and long term storage. The tool currently supports pbench as the storage mode instead of just storing the results on the local file system, we will be adding support to store results in Amazon S3 in the future.
-
-In order to use pbench as the storage, the tool needs to be run using pbench and STORAGE_MODE should be set to pbench:
-
-```
-$ source env.sh; pbench-user-benchmark --sysinfo=none -- <path to ocp_diagnosis.sh>
-# pbench-move-results --prefix ocp-diagnosis-$(date +"%Y%m%d-%H%M%S")
+	STORAGE_MODE=str,                     str=snappy, moves the results to the snappy data server results dir 
+	
 ```
 
 ### Snappy data server for storage
 
-[Snappy data server](https://github.com/openshift-scale/snappy-data-server) is a second option for storage on a filesystem. The easiest option is to deploy the data server on your host. Refer to [setup](https://github.com/openshift-scale/snappy-data-server#Setup) and [usage](https://github.com/openshift-scale/snappy-data-server#Usage) to deploy the data server. Once deployed, you can read over it's API at it's `/docs` route.
+[Snappy data server](https://github.com/openshift-scale/snappy-data-server) is for storage on a filesystem. The easiest option is to deploy the data server on your host. Refer to [setup](https://github.com/openshift-scale/snappy-data-server#Setup) and [usage](https://github.com/openshift-scale/snappy-data-server#Usage) to deploy the data server. Once deployed, you can read over it's API at it's `/docs` route.
 
 [Snappy CLI](https://github.com/mfleader/snappyCLI) is a client you can use in your shell scripting.
 
