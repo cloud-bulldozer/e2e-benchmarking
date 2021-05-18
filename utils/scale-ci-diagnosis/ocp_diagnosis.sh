@@ -112,16 +112,6 @@ function prometheus_capture() {
 }
 
 
-function set_pbench() {
-	echo "Detected storage mode as $STORAGE_MODE"
-	echo "Assuming that the ocp diagnosis tool is run using pbench-user-benchmark"
-	echo "Fetching the latest pbench results dir"
-	result_dir="/var/lib/pbench-agent/$(ls -t /var/lib/pbench-agent/ | grep "pbench-user" | head -1)"/1-default/reference-result
-	OUTPUT_DIR="/var/lib/pbench-agent/$(ls -t /var/lib/pbench-agent/ | grep "pbench-user" | head -1)"/1-default
-	echo "Copying the collected data to $result_dir"
-}
-
-
 function store() {
 	# parameters
 	# 	1 function to capture data
@@ -130,10 +120,8 @@ function store() {
 	if [[ -z $STORAGE_MODE ]]; then
 		echo "Looks like STORAGE_MODE is not defined, storing the results on local file system"
 		$1;
-	elif [[ $STORAGE_MODE == "pbench" ]]; then
-		set_pbench;
-		$1;
 	elif [[ $STORAGE_MODE == "snappy" ]]; then
+		$1;
 		echo -e "snappy server as backup enabled"
 		source ../snappy-move-results/common.sh
 		export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
