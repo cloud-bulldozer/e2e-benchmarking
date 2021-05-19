@@ -65,7 +65,7 @@ fi
 prometheus_pod=$(oc get pods -n $prometheus_namespace | grep -w "Running" | awk -F " " '/prometheus-k8s/{print $1}' | tail -n1)
 
 # get the timestamp
-ts=$(TZ=UTC date +"%Y-%m-%d_%I:%M_%p")
+ts=$(TZ=UTC date +"%Y-%m-%d_%I-%M_%p")
 
 function capture_wal() {
 	echo "================================================================================="
@@ -126,7 +126,7 @@ function store() {
 		source ../snappy-move-results/common.sh
 		export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
  		../snappy-move-results/generate_metadata.sh > metadata.json 
- 		../snappy-move-results/run_snappy.sh "$OUTPUT_DIR/$2" $snappy_path
+ 		../snappy-move-results/run_snappy.sh "$2" $snappy_path
  		../snappy-move-results/run_snappy.sh metadata.json $snappy_path
  		store_on_elastic
  		
