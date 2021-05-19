@@ -212,7 +212,7 @@ assign_uuid() {
   else
     echo ${compare_uperf_uuid} >> uuid.txt
   fi
-  export UUID=${compare_uperf_uuid}
+  export SUUID=${compare_uperf_uuid}
 }
 
 run_benchmark_comparison() {
