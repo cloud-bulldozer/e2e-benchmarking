@@ -6,7 +6,7 @@ export masters=$(oc get nodes -l node-role.kubernetes.io/master --no-headers=tru
 export workers=$(oc get nodes -l node-role.kubernetes.io/worker --no-headers=true | wc -l)
 export infra=$(oc get nodes -l node-role.kubernetes.io/infra --no-headers=true | wc -l)
 export platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
-export cluster_version=$(oc get clusterversion | grep -o [0-9.]* | head -1)
+export cluster_version=$(oc get clusterversion -o jsonpath='{.items[0].status.desired.version}')
 export network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
 export folder_date_time=$(TZ=UTC date +"%Y-%m-%d_%I:%M_%p")
 export SNAPPY_USER_FOLDER=${SNAPPY_USER_FOLDER:=perf-ci}
@@ -19,8 +19,8 @@ fi
 store_on_elastic()
 {
     if [[ -n $RUNID ]];then 
-        export ES_SERVER="https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443"
-        export ES_INDEX=snappy
+        export ES_SERVER_SNAPPY="https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443"
+        export ES_INDEX_SNAPPY=snappy
 
         curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
             "run_id" : "'$RUNID'",
@@ -34,6 +34,6 @@ store_on_elastic()
             "worker_count": "'$workers'",
             "infra_count": "'$infra'",            
             "timestamp": "'$folder_date_time'"
-            }' $ES_SERVER/$ES_INDEX/_doc/    
+            }' $ES_SERVER_SNAPPY/$ES_INDEX_SNAPPY/_doc/    
     fi
 }
