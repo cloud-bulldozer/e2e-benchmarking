@@ -26,7 +26,7 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  export workload=network_perf_smoke_test
 
  export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$SUUID-$workload/$folder_date_time/"
- ../../utils/snappy-move-results/generate_metadata.sh > metadata.json 
+ generate_metadata > metadata.json  
  ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz $snappy_path
  ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
  store_on_elastic
