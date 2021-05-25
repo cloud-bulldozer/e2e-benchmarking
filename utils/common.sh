@@ -8,7 +8,7 @@ function get_pod () {
   pod_name="False"
   until [ $pod_name != "False" ] ; do
     sleep $sleep_time
-    pod_name=$(kubectl get pods -l $1 --namespace ${3:-my-ripsaw} -o name | cut -d/ -f2)
+    pod_name=$(oc get pods -l $1 --namespace ${3:-my-ripsaw} -o name | cut -d/ -f2)
     if [ -z $pod_name ]; then
       pod_name="False"
     fi
@@ -30,7 +30,7 @@ function get_uuid () {
   counter_max=6
   uuid="False"
   until [ $uuid != "False" ] ; do
-    uuid=$(kubectl -n my-ripsaw get benchmarks -o jsonpath='{.items[0].status.uuid}')
+    uuid=$(oc -n my-ripsaw get benchmarks -o jsonpath='{.items[0].status.uuid}')
     if [ -z $uuid ]; then
       sleep $sleep_time
       uuid="False"
@@ -49,6 +49,7 @@ function get_uuid () {
 function check_pod_ready_state () {
   pod_name=$1
   timeout=$2
-  kubectl wait --for=condition=ready pods --namespace ${3:-my-ripsaw} $pod_name --timeout=$timeout
+  echo "Waiting $timeout for $pod_name pod to transition to the ready state..."
+  oc wait --for=condition=ready pods --namespace ${3:-my-ripsaw} $pod_name --timeout=$timeout
   return $?
 }
