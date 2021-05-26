@@ -89,6 +89,7 @@ label_nodes() {
     log "Not enough worker nodes to label"
     exit 1
   fi
+  pod_count=0
   for n in ${nodes}; do
     pods=$(oc describe ${n} | awk '/Non-terminated/{print $3}' | sed "s/(//g")
     pod_count=$((pods + pod_count))
