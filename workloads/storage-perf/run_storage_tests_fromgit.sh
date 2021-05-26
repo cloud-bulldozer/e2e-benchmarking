@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -x
+source ../../utils/common.sh
 
 _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 
@@ -14,6 +15,9 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
+echo "Removing my-ripsaw namespace, if it already exists"
+oc delete namespace my-ripsaw --ignore-not-found
+
 rm -rf /tmp/benchmark-operator
 
 oc create ns my-ripsaw
@@ -23,6 +27,7 @@ oc apply -f /tmp/benchmark-operator/deploy
 oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
 oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
 oc apply -f /tmp/benchmark-operator/resources/operator.yaml
+oc wait --for=condition=available -n my-ripsaw deployment/benchmark-operator --timeout=280s
 
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
 oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
@@ -70,6 +75,29 @@ spec:
         - sync=1
         - direct=0
 EOF
+
+# Get the uuid of newly created fio benchmark.
+long_uuid=$(get_uuid 30)
+if [ $? -ne 0 ]; 
+then 
+  exit 1
+fi
+
+uuid=${long_uuid:0:8}
+
+# Checks the presence of fio pod. Should exit if pod is not available.
+fio_pod=$(get_pod "app=fio-benchmark-$uuid" 300)
+if [ $? -ne 0 ];
+then
+  exit 1
+fi
+
+check_pod_ready_state $fio_pod 150s
+if [ $? -ne 0 ];
+then
+  "Pod wasn't able to move into Running state! Exiting...."
+  exit 1
+fi
 
 fio_state=1
 for i in {1..60}; do
