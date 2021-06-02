@@ -12,7 +12,7 @@ export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
 export WRITE_TO_FILE=${WRITE_TO_FILE:-false}
 
 # Time duration for which kube-burner will collect metrics
-export WATCH_TIME=${WATCH_TIME:-15}
+export WATCH_TIME=${WATCH_TIME:-30}
 
 
 export UUID=$(uuidgen)
