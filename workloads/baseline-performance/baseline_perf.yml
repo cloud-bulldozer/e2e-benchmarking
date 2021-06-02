@@ -1,0 +1,9 @@
+---
+global:
+  writeToFile: {{ .WRITE_TO_FILE }}
+  indexerConfig:
+    enabled: {{ .ENABLE_INDEXING }}
+    esServers: [{{.ES_SERVER}}]
+    insecureSkipVerify: true
+    defaultIndex: {{.ES_INDEX}}
+    type: elastic
