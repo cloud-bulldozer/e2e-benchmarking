@@ -6,7 +6,7 @@ source ./common.sh
 start_time=`date +%s`
 log "Sleeping for ${WATCH_TIME}M "
 sleep ${WATCH_TIME}m 
-end_time='date +%s'
+end_time=`date +%s`
 log "Running kube-burner index to measure  the performance of the cluster over the past ${WATCH_TIME}M"
   
 curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz
