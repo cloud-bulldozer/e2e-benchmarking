@@ -113,7 +113,7 @@ label_nodes() {
   if [[ ${1} == "heavy" ]]; then
     total_pod_count=$((total_pod_count / 2))
   fi
-  export JOB_ITERATIONS=${total_pod_count}
+  export TEST_JOB_ITERATIONS=${total_pod_count}
   log "Labeling ${NODE_COUNT} worker nodes with node-density=enabled"
   for n in ${nodes}; do
     oc label ${n} node-density=enabled --overwrite
