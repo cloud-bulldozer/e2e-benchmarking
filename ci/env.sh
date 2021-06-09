@@ -2,7 +2,7 @@
 export EACH_TEST_TIMEOUT=900s
 
 #for scale perf
-export ORIGINAL_WORKER_COUNT=`oc get nodes -l node-role.kubernetes.io/worker | grep -v NAME | wc -l`
+export ORIGINAL_WORKER_COUNT=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/master!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/workload!="" --ignore-not-found | grep -v NAME | wc -l`
 export NEW_WORKER_COUNT=$((ORIGINAL_WORKER_COUNT + 1))
 export SCALE=$NEW_WORKER_COUNT
 export RUNS=1

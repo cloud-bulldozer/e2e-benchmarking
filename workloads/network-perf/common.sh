@@ -124,6 +124,8 @@ export_defaults() {
 
 deploy_operator() {
   log "Starting test for cloud: $cloud_name"
+  log "Removing my-ripsaw namespace, if it already exists"
+  oc delete namespace my-ripsaw --ignore-not-found
   log "Deploying benchmark-operator"
   oc apply -f /tmp/benchmark-operator/resources/namespace.yaml
   oc apply -f /tmp/benchmark-operator/deploy
