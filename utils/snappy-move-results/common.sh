@@ -11,19 +11,19 @@ export network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}
 export folder_date_time=$(TZ=UTC date +"%Y-%m-%d_%I:%M_%p")
 export SNAPPY_USER_FOLDER=${SNAPPY_USER_FOLDER:=perf-ci}
 
-if [[ -n $RUNID ]];then 
-    export runid=$RUNID-
+if [[ -n $RUN_ID ]];then 
+    export runid=$RUN_ID-
 fi
 
 #Function to store the run id, snappy path and other cluster details on elasticsearch
 store_on_elastic()
 {
-    if [[ -n $RUNID ]];then 
+    if [[ -n $RUN_ID ]];then 
         export ES_SERVER_SNAPPY="https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443"
         export ES_INDEX_SNAPPY=snappy
 
         curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
-            "run_id" : "'$RUNID'",
+            "run_id" : "'$RUN_ID'",
             "snappy_directory_url" : "'$SNAPPY_DATA_SERVER_URL/index/$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/'",
             "snappy_folder_path" : "'$snappy_path'",
             "platform": "'$platform'",

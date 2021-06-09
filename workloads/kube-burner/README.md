@@ -25,7 +25,7 @@ All scripts can be tweaked with the following environment variables:
 | **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 17500 |
 | **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 1200 |
 | **WORKLOAD_NODE**    | Workload node selector          | {"node-role.kubernetes.io/worker": ""} |
-| **CERBERUS_URL**     | URL to check the health of the cluster using [Cerberus](https://github.com/openshift-scale/cerberus) | "" (don't check)|
+| **CERBERUS_URL**     | URL to check the health of the cluster using [Cerberus](https://github.com/cloud-bulldozer/cerberus) | "" (don't check)|
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
 | **METRICS_PROFILE**        | Metric profile that indicates what prometheus metrics kube-burner will collect, accepts __metrics.yaml__ or __metrics-aggregated.yaml__ | metrics.yaml for node-density workloads and metrics-aggregated.yaml for cluster-density workloads |
 | **METADATA_COLLECTION**    | Enable metadata collection | true |

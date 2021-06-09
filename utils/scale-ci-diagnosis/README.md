@@ -23,9 +23,9 @@ options supported:
 
 ### Snappy data server for storage
 
-[Snappy data server](https://github.com/openshift-scale/snappy-data-server) is for storage on a filesystem. The easiest option is to deploy the data server on your host. Refer to [setup](https://github.com/openshift-scale/snappy-data-server#Setup) and [usage](https://github.com/openshift-scale/snappy-data-server#Usage) to deploy the data server. Once deployed, you can read over it's API at it's `/docs` route.
+[Snappy data server](https://github.com/cloud-bulldozer/snappy-data-server) is for storage on a filesystem. The easiest option is to deploy the data server on your host. Refer to [setup](https://github.com/cloud-bulldozer/snappy-data-server#Setup) and [usage](https://github.com/openshift-scale/snappy-data-server#Usage) to deploy the data server. Once deployed, you can read over it's API at it's `/docs` route.
 
-[Snappy CLI](https://github.com/mfleader/snappyCLI) is a client you can use in your shell scripting.
+[Snappy CLI](https://github.com/cloud-bulldozer/data-server-cli) is a client you can use in your shell scripting.
 
 #### Environment variables:
 
