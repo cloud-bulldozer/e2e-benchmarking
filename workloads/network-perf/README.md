@@ -103,7 +103,7 @@ Accepeted deviation in percentage for latency when compared to a baseline run
 
 ### CERBERUS_URL
 Default: ``     
-URL to check the health of the cluster using Cerberus (https://github.com/openshift-scale/cerberus).
+URL to check the health of the cluster using Cerberus (https://github.com/cloud-bulldozer/cerberus).
 
 ### GSHEET_KEY_LOCATION
 Default: *Commented out*      

@@ -69,7 +69,7 @@ Baseline UUID
 
 ### CERBERUS_URL
 Default: ``     
-URL to check the health of the cluster using Cerberus (https://github.com/openshift-scale/cerberus).
+URL to check the health of the cluster using Cerberus (https://github.com/cloud-bulldozer/cerberus).
 
 ## Suggested configurations
 
