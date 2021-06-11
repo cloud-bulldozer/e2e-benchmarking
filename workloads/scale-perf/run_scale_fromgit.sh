@@ -74,7 +74,7 @@ EOF
       check_pod_ready_state $scale_pod 150s
       if [ $? -ne 0 ];
       then
-        "Pod wasn't able to move into Running state! Exiting...."
+        echo "Pod wasn't able to move into Running state! Exiting...."
         exit 1
       fi
       
