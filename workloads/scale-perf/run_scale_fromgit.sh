@@ -4,10 +4,9 @@ set -x
 source ./common.sh
 source ../../utils/common.sh
 
-oc -n my-ripsaw delete benchmark/scale --ignore-not-found --wait
-
 # Scale up/down $_runs times
 for x in $(seq 1 $_runs); do
+  oc -n my-ripsaw delete benchmark/scale --ignore-not-found --wait
   for size in ${_init_worker_count} ${_scale}; do
     # Check cluster's health
     if [[ ${CERBERUS_URL} ]]; then
