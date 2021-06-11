@@ -21,6 +21,7 @@ store_on_elastic()
     if [[ -n $RUN_ID ]];then 
         export ES_SERVER_SNAPPY="https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443"
         export ES_INDEX_SNAPPY=snappy
+        export ts=`date +"%Y-%m-%dT%T.%3N"`
 
         curl -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
             "run_id" : "'$RUN_ID'",
@@ -33,7 +34,7 @@ store_on_elastic()
             "master_count": "'$masters'",
             "worker_count": "'$workers'",
             "infra_count": "'$infra'",            
-            "timestamp": "'$folder_date_time'"
+            "Timestamp": "'$ts'"
             }' $ES_SERVER_SNAPPY/$ES_INDEX_SNAPPY/_doc/    
     fi
 }
