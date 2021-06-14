@@ -157,7 +157,7 @@ wait_for_benchmark() {
   done
   log "Waiting for log-generator pods to start"
   suuid=$(oc get benchmark -n my-ripsaw log-generator -o jsonpath="{.status.suuid}")
-  until [[ $(oc get pod -n my-ripsaw -l job-name=log-generator-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep Running | wc -w) -eq $POD_COUNT ]]; do
+  until [[ $(oc get pod -n my-ripsaw -l job-name=log-generator-${suuid} --ignore-not-found -o go-template='{{ range .items}}{{.status.phase}}{{"\n"}}{{end}}' | grep Running | wc -l) -eq $POD_COUNT ]]; do
     sleep 1
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for all pods to be running"
