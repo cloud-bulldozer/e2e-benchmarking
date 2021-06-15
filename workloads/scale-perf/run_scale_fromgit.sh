@@ -114,6 +114,7 @@ EOF
       
     fi
     oc delete pod $scale_pod -n my-ripsaw --ignore-not-found --wait
+    oc -n my-ripsaw delete benchmark/scale --ignore-not-found --wait
   done
 done
 
