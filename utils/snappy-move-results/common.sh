@@ -1,4 +1,5 @@
 #!/bin/bash
+set -xeEo pipefail
 
 # Get OpenShift cluster details
 export cluster_name=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
