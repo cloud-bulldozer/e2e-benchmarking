@@ -125,9 +125,9 @@ function store() {
 		echo -e "snappy server as backup enabled"
 		source ../snappy-move-results/common.sh
 		export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
- 		generate_metadata > metadata.json  
+ 		#generate_metadata > metadata.json  
  		../snappy-move-results/run_snappy.sh "$2" $snappy_path
- 		../snappy-move-results/run_snappy.sh metadata.json $snappy_path
+ 		#../snappy-move-results/run_snappy.sh metadata.json $snappy_path
  		store_on_elastic
  		
 	else
