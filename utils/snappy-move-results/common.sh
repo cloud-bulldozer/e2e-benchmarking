@@ -7,7 +7,7 @@ export masters=$(oc get nodes -l node-role.kubernetes.io/master --no-headers=tru
 export workers=$(oc get nodes -l node-role.kubernetes.io/worker --no-headers=true | wc -l)
 export infra=$(oc get nodes -l node-role.kubernetes.io/infra --no-headers=true | wc -l)
 export platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
-export cluster_version=$(oc get clusterversion -o jsonpath='{.items[0].status.desired.version}')
+export cluster_version=$(oc get clusterversion | grep -o [0-9.]* | head -1)
 export network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
 export folder_date_time=$(TZ=UTC date +"%Y-%m-%d_%I:%M_%p")
 export SNAPPY_USER_FOLDER=${SNAPPY_USER_FOLDER:=perf-ci}
