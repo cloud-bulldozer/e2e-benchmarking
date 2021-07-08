@@ -22,7 +22,7 @@ rm -rf /tmp/benchmark-operator
 
 oc create ns my-ripsaw
 
-git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator
+git clone -b v0.1 http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator
 oc apply -f /tmp/benchmark-operator/deploy
 oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
 oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml

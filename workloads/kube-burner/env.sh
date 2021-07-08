@@ -1,7 +1,7 @@
 
 # Common
 export OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
-export OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
+export OPERATOR_BRANCH=${OPERATOR_BRANCH:-v0.1}
 export QPS=${QPS:-20}
 export BURST=${BURST:-20}
 export POD_READY_TIMEOUT=${POD_READY_TIMEOUT:-1200}
