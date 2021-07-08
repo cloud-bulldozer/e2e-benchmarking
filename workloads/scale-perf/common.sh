@@ -12,7 +12,7 @@ fi
 
 
 operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-operator_branch=${OPERATOR_BRANCH:=master}
+operator_branch=${OPERATOR_BRANCH:=v0.1}
 _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 _metadata_collection=${METADATA_COLLECTION:=false}
