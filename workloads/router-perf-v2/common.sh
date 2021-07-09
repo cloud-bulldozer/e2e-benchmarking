@@ -220,3 +220,6 @@ test_routes(){
     done <<< $(oc get route -n http-scale-${termination} --no-headers | awk '{print $2}')
   done
 }
+
+python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
+
