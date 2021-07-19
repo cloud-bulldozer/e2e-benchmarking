@@ -4,7 +4,7 @@ apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
   name: kube-burner-${WORKLOAD}-${UUID}
-  namespace: my-ripsaw
+  namespace: benchmark-operator
 spec:
   uuid: ${UUID}
   # Metadata information

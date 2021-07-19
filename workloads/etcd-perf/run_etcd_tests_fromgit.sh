@@ -2,8 +2,8 @@
 source ../../utils/common.sh
 set -x
 
-# Removing my-ripsaw namespace, if it exists
-oc delete namespace my-ripsaw --ignore-not-found
+# Removing benchmark-operator namespace, if it exists
+oc delete namespace benchmark-operator --ignore-not-found
 
 trap "rm -rf /tmp/benchmark-operator" EXIT
 _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
@@ -24,26 +24,22 @@ echo "Starting test for cloud: $cloud_name"
 
 rm -rf /tmp/benchmark-operator
 
-oc create ns my-ripsaw
+oc create ns benchmark-operator
 oc create ns backpack
 
-git clone -b v0.1 http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator --depth 1
-oc apply -f /tmp/benchmark-operator/deploy
-oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
-oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-oc apply -f /tmp/benchmark-operator/resources/operator.yaml
+git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator --depth 1
+cd /tmp/benchmark-operator && make deploy
+oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 
-oc wait --for=condition=available "deployment/benchmark-operator" -n my-ripsaw --timeout=300s
+oc adm policy add-scc-to-user -n benchmark-operator privileged -z benchmark-operator
+oc adm policy add-scc-to-user -n benchmark-operator privileged -z backpack-view
 
-oc adm policy add-scc-to-user -n my-ripsaw privileged -z benchmark-operator
-oc adm policy add-scc-to-user -n my-ripsaw privileged -z backpack-view
-
-cat << EOF | oc create -n my-ripsaw -f -
+cat << EOF | oc create -n benchmark-operator -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
   name: etcd-fio
-  namespace: my-ripsaw
+  namespace: benchmark-operator
 spec:
   elasticsearch:
     url: ${_es}
@@ -99,10 +95,10 @@ fi
 
 fio_state=1
 for i in {1..60}; do
-  if [[ $(oc get benchmark -n my-ripsaw etcd-fio -o jsonpath='{.status.complete}') == true ]]; then
+  if [[ $(oc get benchmark -n benchmark-operator etcd-fio -o jsonpath='{.status.complete}') == true ]]; then
     echo "FIO Workload done"
     fio_state=$?
-    uuid=$(oc get benchmark -n my-ripsaw etcd-fio -o jsonpath="{.status.uuid}")
+    uuid=$(oc get benchmark -n benchmark-operator etcd-fio -o jsonpath="{.status.uuid}")
     break
   fi
   sleep 30

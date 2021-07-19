@@ -6,7 +6,7 @@ source ../../utils/common.sh
 
 # Scale up/down $_runs times
 for x in $(seq 1 $_runs); do
-  oc -n my-ripsaw delete benchmark/scale --ignore-not-found --wait
+  oc -n benchmark-operator delete benchmark/scale --ignore-not-found --wait
   for size in ${_init_worker_count} ${_scale}; do
     # Check cluster's health
     if [[ ${CERBERUS_URL} ]]; then
@@ -28,7 +28,7 @@ apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
   name: scale
-  namespace: my-ripsaw
+  namespace: benchmark-operator
 spec:
   uuid: $_uuid
   elasticsearch:
@@ -83,7 +83,7 @@ EOF
         current_workers=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/master!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/workload!="" --ignore-not-found | grep -v NAME | wc -l`
         echo "Current worker count: "${current_workers}
         echo "Desired worker count: "${size}
-        oc describe -n my-ripsaw benchmarks/scale | grep State | grep Complete
+        oc describe -n benchmark-operator benchmarks/scale | grep State | grep Complete
         if [ $? -eq 0 ]; then
           
           if [ $current_workers -eq $size ]; then
@@ -113,8 +113,8 @@ EOF
       fi
       
     fi
-    oc delete pod $scale_pod -n my-ripsaw --ignore-not-found --wait
-    oc -n my-ripsaw delete benchmark/scale --ignore-not-found --wait
+    oc delete pod $scale_pod -n benchmark-operator --ignore-not-found --wait
+    oc -n benchmark-operator delete benchmark/scale --ignore-not-found --wait
   done
 done
 

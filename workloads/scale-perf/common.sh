@@ -12,7 +12,7 @@ fi
 
 
 operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-operator_branch=${OPERATOR_BRANCH:=v0.1}
+operator_branch=${OPERATOR_BRANCH:=master}
 _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 _metadata_collection=${METADATA_COLLECTION:=false}
@@ -66,18 +66,13 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
-echo "Removing my-ripsaw namespace, if it already exists"
-oc delete namespace my-ripsaw --ignore-not-found
-
-rm -rf /tmp/benchmark-operator
-
-oc create ns my-ripsaw
-
-git clone --single-branch --branch ${operator_branch} ${operator_repo} /tmp/benchmark-operator --depth 1
-oc apply -f /tmp/benchmark-operator/deploy
-oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
-oc apply -f /tmp/benchmark-operator/resources/scale_role.yaml
-oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
+log "Removing benchmark-operator namespace, if it already exists"
+oc delete namespace benchmark-operator --ignore-not-found
+log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+rm -rf benchmark-operator
+git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
+cd benchmark-operator && make deploy
+oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 
 if [[ $(oc get nodes -l node-role.kubernetes.io/workload | wc -l) -gt 1 ]]; then
   echo "      tolerations:
@@ -98,7 +93,7 @@ fi
 
 oc apply -f /tmp/benchmark-operator/resources/operator.yaml
 
-oc wait --for=condition=available "deployment/benchmark-operator" -n my-ripsaw --timeout=300s
+oc wait --for=condition=available "deployment/benchmark-operator" -n benchmark-operator --timeout=300s
 
-oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
-oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
+oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
+oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view

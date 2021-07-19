@@ -15,32 +15,27 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
-echo "Removing my-ripsaw namespace, if it already exists"
-oc delete namespace my-ripsaw --ignore-not-found
 
-rm -rf /tmp/benchmark-operator
+log "Removing benchmark-operator namespace, if it already exists"
+oc delete namespace benchmark-operator --ignore-not-found
+log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+rm -rf benchmark-operator
+git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
+cd benchmark-operator && make deploy
+oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 
-oc create ns my-ripsaw
+oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
+oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
 
-git clone -b v0.1 http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator
-oc apply -f /tmp/benchmark-operator/deploy
-oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
-oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-oc apply -f /tmp/benchmark-operator/resources/operator.yaml
-oc wait --for=condition=available -n my-ripsaw deployment/benchmark-operator --timeout=280s
-
-oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
-oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
-
-oc delete -n my-ripsaw benchmark/fio-benchmark --wait
+oc delete -n benchmark-operator benchmark/fio-benchmark --wait
 sleep 30
 
-cat << EOF | oc create -n my-ripsaw -f -
+cat << EOF | oc create -n benchmark-operator -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
   name: fio-benchmark
-  namespace: my-ripsaw
+  namespace: benchmark-operator
 spec:
   metadata:
     collection: true
@@ -101,7 +96,7 @@ fi
 
 fio_state=1
 for i in {1..60}; do
-  oc describe -n my-ripsaw benchmarks/fio-benchmark | grep State | grep Complete
+  oc describe -n benchmark-operator benchmarks/fio-benchmark | grep State | grep Complete
   if [ $? -eq 0 ]; then
 	  echo "FIO Workload done"
           fio_state=$?
