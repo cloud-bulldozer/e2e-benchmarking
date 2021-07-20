@@ -15,15 +15,16 @@ fi
 
 echo "Starting test for cloud: $cloud_name"
 
-
-log "Removing benchmark-operator namespace, if it already exists"
+echo "Removing benchmark-operator namespace, if it already exists"
 oc delete namespace benchmark-operator --ignore-not-found
-log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
-rm -rf benchmark-operator
-git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
-(cd benchmark-operator && make deploy)
-oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 
+rm -rf /tmp/benchmark-operator
+
+oc create ns benchmark-operator
+
+git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator
+(cd /tmp/benchmark-operator && make deploy)
+oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
 oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
 
