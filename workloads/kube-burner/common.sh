@@ -20,7 +20,7 @@ log() {
 deploy_operator() {
   log "Removing my-ripsaw namespace, if it already exists"
   oc delete namespace my-ripsaw --ignore-not-found
-  log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
   rm -rf benchmark-operator
   git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
   log "Deploying benchmark-operator"
