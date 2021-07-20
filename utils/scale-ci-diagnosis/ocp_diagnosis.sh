@@ -92,7 +92,8 @@ function capture_full_db() {
 
 
 function must_gather() {
-	oc adm must-gather --dest-dir=$OUTPUT_DIR/must-gather-$ts
+	oc adm must-gather -- bash -c 'gather && gather_network_logs && gather_network_ovn_trace'
+	mv must-gather* $OUTPUT_DIR/must-gather-$ts 
 	XZ_OPT=--threads=0 tar cJf $OUTPUT_DIR/must-gather-$ts.tar.xz $OUTPUT_DIR/must-gather-$ts
 	if [[ $? -eq 0 ]]; then
 		rm -rf $OUTPUT_DIR/must-gather-$ts
