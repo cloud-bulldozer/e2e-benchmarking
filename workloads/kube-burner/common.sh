@@ -24,6 +24,7 @@ deploy_operator() {
   rm -rf benchmark-operator
   git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
   (cd benchmark-operator && make deploy)
+  kubectl apply -f benchmark-operator/resources/kube-burner-role.yml
   oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 }
 
