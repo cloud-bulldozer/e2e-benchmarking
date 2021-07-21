@@ -73,27 +73,5 @@ rm -rf benchmark-operator
 git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
 (cd benchmark-operator && make deploy)
 oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
-
-if [[ $(oc get nodes -l node-role.kubernetes.io/workload | wc -l) -gt 1 ]]; then
-  echo "      tolerations:
-      - key: role
-        value: workload
-        effect: NoSchedule
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: node-role.kubernetes.io/workload
-                operator: In
-                values:
-                - ""
-" >> /tmp/benchmark-operator/resources/operator.yaml
-fi
-
-oc apply -f /tmp/benchmark-operator/resources/operator.yaml
-
-oc wait --for=condition=available "deployment/benchmark-operator" -n benchmark-operator --timeout=300s
-
 oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
 oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
