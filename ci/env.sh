@@ -1,5 +1,5 @@
 #smoke test environment specifications:
-export EACH_TEST_TIMEOUT=1200s
+export EACH_TEST_TIMEOUT=2400s
 
 #for scale perf
 export ORIGINAL_WORKER_COUNT=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/master!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/workload!="" --ignore-not-found | grep -v NAME | wc -l`
