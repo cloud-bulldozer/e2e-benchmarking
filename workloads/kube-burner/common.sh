@@ -22,7 +22,7 @@ deploy_operator() {
   oc delete namespace benchmark-operator --ignore-not-found
   log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
   rm -rf benchmark-operator
-  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
+  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
   (cd benchmark-operator && make deploy)
   oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 }
