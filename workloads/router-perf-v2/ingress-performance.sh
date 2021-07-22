@@ -1,4 +1,4 @@
-#!/usr/bin/bash -e
+#!/usr/bin/env bash
 set -e
 
 source ./common.sh
