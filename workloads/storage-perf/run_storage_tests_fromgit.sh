@@ -24,6 +24,7 @@ oc create ns benchmark-operator
 
 git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator
 (cd /tmp/benchmark-operator && make deploy)
+oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
 oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
 oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
