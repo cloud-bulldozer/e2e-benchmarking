@@ -148,8 +148,7 @@ gen_mb_config(){
     local port=443
   fi
   (echo "["
-  oc get route -n http-scale-${termination} --no-headers | awk '{print $2}' > /tmp/temp-route-mb.txt
-  while IFS="\n" read host; do
+  for host in $(oc get route -n http-scale-${termination} --no-headers -o custom-columns="route:.spec.host"); do
     if [[ ${first} == "true" ]]; then
         echo "{"
         first=false
@@ -169,7 +168,7 @@ gen_mb_config(){
       "keep-alive-requests": '${keepalive_requests}',
       "clients": '${clients}'
     }'
-  done < /tmp/temp-route-mb.txt
+  done
   echo "]") | python -m json.tool > http-scale-${termination}.json
 }
 
@@ -185,8 +184,7 @@ gen_mb_mix_config(){
       local scheme=https
       local port=443
     fi
-    oc get route -n http-scale-${mix_termination} --no-headers | awk '{print $2}' > /tmp/temp-route-mb-mix.txt
-    while IFS="\n" read host; do
+    for host in $(oc get route -n http-scale-${mix_termination} --no-headers -o custom-columns="route:.spec.host"); do
       if [[ ${first} == "true" ]]; then
           echo "{"
           first=false
@@ -206,7 +204,7 @@ gen_mb_mix_config(){
         "keep-alive-requests": '${keepalive_requests}',
         "clients": '${clients}'
       }'
-    done < /tmp/temp-route-mb-mix.txt
+    done
   done
   echo "]") | python -m json.tool > http-scale-mix.json
 }
@@ -218,9 +216,8 @@ test_routes(){
     if [[ ${termination} == "http" ]]; then
       local scheme="http://"
     fi
-    oc get route -n http-scale-${termination} --no-headers | awk '{print $2}' > /tmp/temp-route.txt
-    while IFS="\n" read host; do
+    for host in $(oc get route -n http-scale-${termination} --no-headers -o custom-columns="route:.spec.host"); do
       curl --retry 3 --connect-timeout 5 -sSk ${scheme}${host}/${URL_PATH} -o /dev/null
-    done < /tmp/temp-route.txt
+    done
   done
 }
