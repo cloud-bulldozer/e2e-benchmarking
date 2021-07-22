@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -xeEo pipefail
+set -e
 
 source ./common.sh
 
