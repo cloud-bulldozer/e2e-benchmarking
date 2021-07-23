@@ -26,6 +26,7 @@ export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/workload: }'}
 export NUMBER_OF_ROUTERS=${NUMBER_OF_ROUTERS:-2}
 export CERBERUS_URL=${CERBERUS_URL}
 export SERVICE_TYPE=${SERVICE_TYPE:-NodePort}
+export COMPARE_WITH_GOLD=${COMPARE_WITH_GOLD:-false}
 
 if [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
   ES_GOLD=${ES_GOLD:-${ES_SERVER}}
