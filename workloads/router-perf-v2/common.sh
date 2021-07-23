@@ -222,5 +222,5 @@ test_routes(){
   done
 }
 
-python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
+python3 -m pip install -r requirements.txt
 
