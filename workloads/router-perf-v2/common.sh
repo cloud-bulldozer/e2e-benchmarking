@@ -1,41 +1,10 @@
-ENGINE=${ENGINE:-podman}
-KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.9.1/kube-burner-0.9.1-Linux-x86_64.tar.gz}
-INFRA_TEMPLATE=http-perf.yml.tmpl
-INFRA_CONFIG=http-perf.yml
-KUBE_BURNER_IMAGE=quay.io/cloud-bulldozer/kube-burner:latest
-URL_PATH=${URL_PATH:-"/1024.html"}
-TERMINATIONS=${TERMINATIONS:-"http edge passthrough reencrypt mix"}
-KEEPALIVE_REQUESTS=${KEEPALIVE_REQUESTS:-"0 1 50"}
-SAMPLES=${SAMPLES:-2}
-QUIET_PERIOD=${QUIET_PERIOD:-60s}
-THROUGHPUT_TOLERANCE=${THROUGHPUT_TOLERANCE:-5}
-LATENCY_TOLERANCE=${LATENCY_TOLERANCE:-5}
-PREFIX=${PREFIX:-$(oc get clusterversion version -o jsonpath="{.status.desired.version}")}
-LARGE_SCALE_THRESHOLD=${LARGE_SCALE_THRESHOLD:-24}
-METADATA_COLLECTION=${METADATA_COLLECTION:-true}
-NUM_NODES=$(oc get node -l node-role.kubernetes.io/worker --no-headers | grep -cw Ready)
-
-export TLS_REUSE=${TLS_REUSE:-true}
-export UUID=$(uuidgen)
-export RUNTIME=${RUNTIME:-60}
-export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-export ES_INDEX=${ES_INDEX:-router-test-results}
-export HOST_NETWORK=${HOST_NETWORK:-true}
-export KUBECONFIG=${KUBECONFIG:-~/.kube/config}
-export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/workload: }'}
-export NUMBER_OF_ROUTERS=${NUMBER_OF_ROUTERS:-2}
-export CERBERUS_URL=${CERBERUS_URL}
-export SERVICE_TYPE=${SERVICE_TYPE:-NodePort}
-export COMPARE_WITH_GOLD=${COMPARE_WITH_GOLD:-false}
+source env.sh
 
 if [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
-  ES_GOLD=${ES_GOLD:-${ES_SERVER}}
   PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
-  GOLD_SDN=${GOLD_SDN:-openshiftsdn}
-  NUM_ROUTER=$(oc get pods -n openshift-ingress --no-headers | wc -l)
   GOLD_INDEX=$(curl -X GET "${ES_GOLD}/openshift-gold-${PLATFORM}-results/_search" -H 'Content-Type: application/json' -d ' {"query": {"term": {"version": '\"${GOLD_OCP_VERSION}\"'}}}')
-  LARGE_SCALE_BASELINE_UUID=$(echo $GOLD_INDEX | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"$NUM_ROUTER\"'."num_nodes".'\"25\"'."uuid"')
-  SMALL_SCALE_BASELINE_UUID=$(echo $GOLD_INDEX | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"$NUM_ROUTER\"'."num_nodes".'\"3\"'."uuid"')
+  LARGE_SCALE_BASELINE_UUID=$(echo $GOLD_INDEX | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"${NUMBER_OF_ROUTERS}\"'."num_nodes".'\"25\"'."uuid"')
+  SMALL_SCALE_BASELINE_UUID=$(echo $GOLD_INDEX | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"${NUMBER_OF_ROUTERS}\"'."num_nodes".'\"3\"'."uuid"')
 fi
 
 log(){
@@ -221,6 +190,3 @@ test_routes(){
     done <<< $(oc get route -n http-scale-${termination} --no-headers | awk '{print $2}')
   done
 }
-
-python3 -m pip install -r requirements.txt
-
