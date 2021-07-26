@@ -32,10 +32,24 @@ oc rsync -n http-scale-client $(oc get pod -l app=http-scale-client -n http-scal
 tune_workload_node delete
 cleanup_infra
 if [[ -n ${ES_SERVER} ]]; then
-  log "Generating results in compare.yaml"
-  ../../utils/touchstone-compare/run_compare.sh mb ${BASELINE_UUID} ${UUID} ${NUM_NODES}
-  log "Generating CSV results"
-  ./csv_gen.py -f compare_output_${NUM_NODES}.yaml -u ${BASELINE_UUID} ${UUID} -p ${BASELINE_PREFIX} ${PREFIX} -l ${LATENCY_TOLERANCE} -t ${THROUGHPUT_TOLERANCE}
+  if [[ ${COMPARE_WITH_GOLD} == "true" ]]; then 
+    log "Generating results in compare.yaml"
+    ../../utils/touchstone-compare/run_compare.sh mb ${BASELINE_UUID} ${UUID} ${NUM_NODES}
+    python3 -m venv ./venv
+    source ./venv/bin/activate
+    python3 -m pip install -r requirements.txt
+    log "Generating CSV results"
+    ./csv_gen.py -f compare_output_${NUM_NODES}.yaml -u ${BASELINE_UUID} ${UUID} -p ${BASELINE_PREFIX} ${PREFIX} -l ${LATENCY_TOLERANCE} -t ${THROUGHPUT_TOLERANCE}
+  else
+    log "Generating results in compare.yaml"
+    ../../utils/touchstone-compare/run_compare.sh mb ${UUID} ${NUM_NODES}
+    python3 -m venv ./venv
+    source ./venv/bin/activate
+    python3 -m pip install -r requirements.txt
+    log "Generating CSV results"
+    ./csv_gen.py -f compare_output_${NUM_NODES}.yaml -u ${UUID} -p ${PREFIX} -l ${LATENCY_TOLERANCE} -t ${THROUGHPUT_TOLERANCE}
+  fi
+  deactivate && rm -rf venv
 fi
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
