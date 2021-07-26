@@ -8,7 +8,7 @@ export PATH="${PATH}:$(python3 -c 'import site; print(site.USER_BASE)')/bin"
 export file_path=$1
 export SNAPPY_FILE_DIR=$2
 
-pipx install git+https://github.com/openshift-scale/data-server-cli.git  --force
+pipx install git+https://github.com/cloud-bulldozer/data-server-cli.git  --force
 snappy install
 
 if [[ $? -ne 0 ]] ; then
@@ -46,5 +46,3 @@ if [[ $? -ne 0 ]] ; then
   exit 1
 fi
 
-deactivate
-rm -rf venv

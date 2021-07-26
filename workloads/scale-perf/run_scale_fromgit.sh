@@ -2,11 +2,11 @@
 set -x
 
 source ./common.sh
-
-oc -n my-ripsaw delete benchmark/scale --ignore-not-found --wait
+source ../../utils/common.sh
 
 # Scale up/down $_runs times
 for x in $(seq 1 $_runs); do
+  oc -n my-ripsaw delete benchmark/scale --ignore-not-found --wait
   for size in ${_init_worker_count} ${_scale}; do
     # Check cluster's health
     if [[ ${CERBERUS_URL} ]]; then
@@ -16,8 +16,8 @@ for x in $(seq 1 $_runs); do
         exit 1
       fi
     fi
-  
-
+    
+    
     if [[ $x -eq 1 && $size -eq $_init_worker_count ]]
     then
       # Don't try to scale down on the first iteration
@@ -55,28 +55,54 @@ spec:
       poll_interval: $_poll_interval
       post_sleep: $_post_sleep
 EOF
-
-      sleep 30
-
+      # Get the uuid of newly created scale benchmark.
+      long_uuid=$(get_uuid 30)
+      if [ $? -ne 0 ];
+      then
+        exit 1
+      fi
+      
+      uuid=${long_uuid:0:8}
+      
+      # Checks the presence of scale pod. Should exit if pod is not available.
+      scale_pod=$(get_pod "app=scale-$uuid" 300)
+      if [ $? -ne 0 ];
+      then
+        exit 1
+      fi
+      
+      check_pod_ready_state $scale_pod 150s
+      if [ $? -ne 0 ];
+      then
+        echo "Pod wasn't able to move into Running state! Exiting...."
+        exit 1
+      fi
+      
       scale_state=1
       for i in $(seq 1 $_timeout); do
-        current_workers=`oc get nodes -l node-role.kubernetes.io/worker= | grep -v NAME | wc -l`
+        current_workers=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/master!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/workload!="" --ignore-not-found | grep -v NAME | wc -l`
         echo "Current worker count: "${current_workers}
         echo "Desired worker count: "${size}
         oc describe -n my-ripsaw benchmarks/scale | grep State | grep Complete
         if [ $? -eq 0 ]; then
-          echo "Scaling Complete"
-          scale_state=$?
-          break
+          
+          if [ $current_workers -eq $size ]; then
+            echo "Scaling Complete"
+            scale_state=$?
+            break
+          else
+            echo "Scaling completed but desired worker count is not equal to current worker count!"
+            break
+          fi
         fi
         sleep 60
       done
-
+      
       if [ "$scale_state" == "1" ] ; then
         echo "Scaling failed"
         exit 1
       fi
-
+      
       # Check cluster's health
       if [[ ${CERBERUS_URL} ]]; then
         response=$(curl ${CERBERUS_URL})
@@ -85,9 +111,10 @@ EOF
           exit 1
         fi
       fi
-
+      
     fi
-
+    oc delete pod $scale_pod -n my-ripsaw --ignore-not-found --wait
+    oc -n my-ripsaw delete benchmark/scale --ignore-not-found --wait
   done
 done
 

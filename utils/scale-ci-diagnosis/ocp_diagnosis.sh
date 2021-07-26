@@ -65,7 +65,7 @@ fi
 prometheus_pod=$(oc get pods -n $prometheus_namespace | grep -w "Running" | awk -F " " '/prometheus-k8s/{print $1}' | tail -n1)
 
 # get the timestamp
-ts=$(date +"%Y%m%d-%H%M%S")
+ts=$(TZ=UTC date +"%Y-%m-%d_%I-%M_%p")
 
 function capture_wal() {
 	echo "================================================================================="
@@ -92,7 +92,8 @@ function capture_full_db() {
 
 
 function must_gather() {
-	oc adm must-gather --dest-dir=$OUTPUT_DIR/must-gather-$ts
+	oc adm must-gather -- bash -c 'gather && gather_network_logs && gather_network_ovn_trace'
+	mv must-gather* $OUTPUT_DIR/must-gather-$ts 
 	XZ_OPT=--threads=0 tar cJf $OUTPUT_DIR/must-gather-$ts.tar.xz $OUTPUT_DIR/must-gather-$ts
 	if [[ $? -eq 0 ]]; then
 		rm -rf $OUTPUT_DIR/must-gather-$ts
@@ -112,16 +113,6 @@ function prometheus_capture() {
 }
 
 
-function set_pbench() {
-	echo "Detected storage mode as $STORAGE_MODE"
-	echo "Assuming that the ocp diagnosis tool is run using pbench-user-benchmark"
-	echo "Fetching the latest pbench results dir"
-	result_dir="/var/lib/pbench-agent/$(ls -t /var/lib/pbench-agent/ | grep "pbench-user" | head -1)"/1-default/reference-result
-	OUTPUT_DIR="/var/lib/pbench-agent/$(ls -t /var/lib/pbench-agent/ | grep "pbench-user" | head -1)"/1-default
-	echo "Copying the collected data to $result_dir"
-}
-
-
 function store() {
 	# parameters
 	# 	1 function to capture data
@@ -130,13 +121,16 @@ function store() {
 	if [[ -z $STORAGE_MODE ]]; then
 		echo "Looks like STORAGE_MODE is not defined, storing the results on local file system"
 		$1;
-	elif [[ $STORAGE_MODE == "pbench" ]]; then
-		set_pbench;
+	elif [[ $STORAGE_MODE == "snappy" ]]; then
 		$1;
-	elif [[ $STORAGE_MODE == "data_server" ]]; then
-		snappy script-login
-		$1 && snappy post-file "$OUTPUT_DIR/$2" --filedir $SNAPPY_FILE_DIR
-		snappy logout
+		echo -e "snappy server as backup enabled"
+		source ../snappy-move-results/common.sh
+		export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
+ 		#generate_metadata > metadata.json  
+ 		../snappy-move-results/run_snappy.sh "$2" $snappy_path
+ 		#../snappy-move-results/run_snappy.sh metadata.json $snappy_path
+ 		store_on_elastic
+ 		
 	else
 		echo "Invalid storage mode chosen. STORAGE_MODE is $STORAGE_MODE"
 		exit 1
@@ -145,11 +139,13 @@ function store() {
 
 
 if [[ $PROMETHEUS_CAPTURE == "true" ]]; then
+	export workload=prometheus 
 	store prometheus_capture "prometheus-$ts.tar.xz"
 fi
 
 
 if [[ $OPENSHIFT_MUST_GATHER == "true" ]]; then
+	export workload=must_gather
 	store must_gather "must-gather-$ts.tar.xz"
 fi
 

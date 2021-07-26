@@ -62,7 +62,7 @@ for test in ${test_list}; do
 
 done  
 
-CURRENT_WORKER_COUNT=`oc get nodes -l node-role.kubernetes.io/worker | grep -v NAME | wc -l`
+CURRENT_WORKER_COUNT=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/master!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/workload!="" --ignore-not-found | grep -v NAME | wc -l`
 if [[ ( $CURRENT_WORKER_COUNT != $ORIGINAL_WORKER_COUNT ) ]]; #check number of worker nodes and to bring it back
   then                                                        #to the original count after running all other tests 
     export SCALE=$ORIGINAL_WORKER_COUNT

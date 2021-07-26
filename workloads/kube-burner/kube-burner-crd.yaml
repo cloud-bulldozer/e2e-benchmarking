@@ -31,7 +31,7 @@ spec:
       # ES index name
       default_index: ${ES_INDEX}
       # Number of job iterations
-      job_iterations: ${JOB_ITERATIONS}
+      job_iterations: ${TEST_JOB_ITERATIONS}
       # Pin kube-burner to a node using the value of the label kubernetes.io/hostname
       pin_server: ${WORKLOAD_NODE}
       # Wait for pods to be runnig before finishing kube-burner workload

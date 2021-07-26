@@ -27,3 +27,4 @@ Username for the Snappy data-server.
 ### SNAPPY_DATA_SERVER_PASSWORD
 Default: ''
 Password for the Snappy data-server.
+

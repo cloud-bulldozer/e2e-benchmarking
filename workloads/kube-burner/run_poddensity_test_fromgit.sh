@@ -4,7 +4,7 @@ set -e
 
 export WORKLOAD=pod-density
 export METRICS_PROFILE=${METRICS_PROFILE:-metrics.yaml}
-export JOB_ITERATIONS=${PODS:-1000}
+export TEST_JOB_ITERATIONS=${PODS:-1000}
 
 . common.sh
 

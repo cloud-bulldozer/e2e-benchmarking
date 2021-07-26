@@ -18,6 +18,8 @@ log() {
 }
 
 deploy_operator() {
+  log "Removing my-ripsaw namespace, if it already exists"
+  oc delete namespace my-ripsaw --ignore-not-found
   log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
   rm -rf benchmark-operator
   git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
@@ -89,6 +91,7 @@ label_nodes() {
     log "Not enough worker nodes to label"
     exit 1
   fi
+  pod_count=0
   for n in ${nodes}; do
     pods=$(oc describe ${n} | awk '/Non-terminated/{print $3}' | sed "s/(//g")
     pod_count=$((pods + pod_count))
@@ -110,7 +113,7 @@ label_nodes() {
   if [[ ${1} == "heavy" ]]; then
     total_pod_count=$((total_pod_count / 2))
   fi
-  export JOB_ITERATIONS=${total_pod_count}
+  export TEST_JOB_ITERATIONS=${total_pod_count}
   log "Labeling ${NODE_COUNT} worker nodes with node-density=enabled"
   for n in ${nodes}; do
     oc label ${n} node-density=enabled --overwrite

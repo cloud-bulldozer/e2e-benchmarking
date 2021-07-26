@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
+source ../../utils/common.sh
 set -x
+
+# Removing my-ripsaw namespace, if it exists
+oc delete namespace my-ripsaw --ignore-not-found
 
 trap "rm -rf /tmp/benchmark-operator" EXIT
 _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
@@ -23,11 +27,13 @@ rm -rf /tmp/benchmark-operator
 oc create ns my-ripsaw
 oc create ns backpack
 
-git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator --depth 1
+git clone -b v0.1 http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-operator --depth 1
 oc apply -f /tmp/benchmark-operator/deploy
 oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
 oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
 oc apply -f /tmp/benchmark-operator/resources/operator.yaml
+
+oc wait --for=condition=available "deployment/benchmark-operator" -n my-ripsaw --timeout=300s
 
 oc adm policy add-scc-to-user -n my-ripsaw privileged -z benchmark-operator
 oc adm policy add-scc-to-user -n my-ripsaw privileged -z backpack-view
@@ -67,6 +73,29 @@ spec:
     - ioengine=sync
     - direct=0
 EOF
+
+# Get the uuid of newly created etcd-fio benchmark.
+long_uuid=$(get_uuid 30)
+if [ $? -ne 0 ]; 
+then 
+  exit 1
+fi
+
+uuid=${long_uuid:0:8}
+
+# Checks the presence of etcd-fio pod. Should exit if pod is not available.
+etcd_pod=$(get_pod "app=fio-benchmark-$uuid" 300)
+if [ $? -ne 0 ];
+then
+  exit 1
+fi
+
+check_pod_ready_state $etcd_pod 150s
+if [ $? -ne 0 ];
+then
+  "Pod wasn't able to move into Running state! Exiting...."
+  exit 1
+fi
 
 fio_state=1
 for i in {1..60}; do

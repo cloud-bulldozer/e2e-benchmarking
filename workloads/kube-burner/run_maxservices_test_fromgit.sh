@@ -4,7 +4,7 @@ set -e
 
 export WORKLOAD=max-services
 export METRICS_PROFILE=${METRICS_PROFILE:-metrics-aggregated.yaml}
-export JOB_ITERATIONS=${SERVICE_COUNT:-1000}
+export TEST_JOB_ITERATIONS=${SERVICE_COUNT:-1000}
 
 . common.sh
 

@@ -28,7 +28,7 @@ check_cluster_health() {
 
 export_defaults() {
   operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-  operator_branch=${OPERATOR_BRANCH:=master}
+  operator_branch=${OPERATOR_BRANCH:=v0.1}
   CRD=${CRD:-ripsaw-uperf-crd.yaml}
   export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
   _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
@@ -124,6 +124,8 @@ export_defaults() {
 
 deploy_operator() {
   log "Starting test for cloud: $cloud_name"
+  log "Removing my-ripsaw namespace, if it already exists"
+  oc delete namespace my-ripsaw --ignore-not-found
   log "Deploying benchmark-operator"
   oc apply -f /tmp/benchmark-operator/resources/namespace.yaml
   oc apply -f /tmp/benchmark-operator/deploy
@@ -212,6 +214,7 @@ assign_uuid() {
   else
     echo ${compare_uperf_uuid} >> uuid.txt
   fi
+  
 }
 
 run_benchmark_comparison() {
