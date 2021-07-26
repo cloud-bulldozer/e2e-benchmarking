@@ -104,6 +104,7 @@ enable_ingress_operator(){
 cleanup_infra(){
   log "Deleting infrastructure"
   oc delete ns -l kube-burner-uuid=${UUID} --ignore-not-found
+  rm -f /tmp/temp-route*.txt
 }
 
 gen_mb_config(){
@@ -117,7 +118,7 @@ gen_mb_config(){
     local port=443
   fi
   (echo "["
-  while read host; do
+  for host in $(oc get route -n http-scale-${termination} --no-headers -o custom-columns="route:.spec.host"); do
     if [[ ${first} == "true" ]]; then
         echo "{"
         first=false
@@ -137,7 +138,7 @@ gen_mb_config(){
       "keep-alive-requests": '${keepalive_requests}',
       "clients": '${clients}'
     }'
-  done <<< $(oc get route -n http-scale-${termination} --no-headers | awk '{print $2}')
+  done
   echo "]") | python -m json.tool > http-scale-${termination}.json
 }
 
@@ -153,7 +154,7 @@ gen_mb_mix_config(){
       local scheme=https
       local port=443
     fi
-    while read host; do
+    for host in $(oc get route -n http-scale-${mix_termination} --no-headers -o custom-columns="route:.spec.host"); do
       if [[ ${first} == "true" ]]; then
           echo "{"
           first=false
@@ -173,7 +174,7 @@ gen_mb_mix_config(){
         "keep-alive-requests": '${keepalive_requests}',
         "clients": '${clients}'
       }'
-    done <<< $(oc get route -n http-scale-${mix_termination} --no-headers | awk '{print $2}')
+    done
   done
   echo "]") | python -m json.tool > http-scale-mix.json
 }
@@ -185,8 +186,8 @@ test_routes(){
     if [[ ${termination} == "http" ]]; then
       local scheme="http://"
     fi
-    while read host; do
+    for host in $(oc get route -n http-scale-${termination} --no-headers -o custom-columns="route:.spec.host"); do
       curl --retry 3 --connect-timeout 5 -sSk ${scheme}${host}/${URL_PATH} -o /dev/null
-    done <<< $(oc get route -n http-scale-${termination} --no-headers | awk '{print $2}')
+    done
   done
 }
