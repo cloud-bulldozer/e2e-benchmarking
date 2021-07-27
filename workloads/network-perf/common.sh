@@ -47,12 +47,12 @@ export_defaults() {
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
 
   #If using baremetal we use different query to find worker nodes
-  if [[ {$baremetal} != "No resources found openshift-machine-api namespace"]]; then
+  if [[ {$baremetal} != "No resources found openshift-machine-api namespace" ]]; then
   log "Colocating uperf pods for baremetal"
   export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk '{print $1}')
   export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk '{print $2}')
   
-  elif [[ {$baremetal} == "No resources found openshift-machine-api namespace"; then
+  elif [[ {$baremetal} == "No resources found openshift-machine-api namespace" ]]; then
   # If multi_az we use one node from the two first AZs
     if [[ ${multi_az} == "true" ]]; then
       # Get AZs from worker nodes
