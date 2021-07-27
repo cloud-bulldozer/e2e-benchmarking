@@ -52,7 +52,7 @@ export_defaults() {
   export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk '{print $1}')
   export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk '{print $2}')
   
-  elif [ "$baremetal" == "No resources found in openshift-machine-api namespace." ]; then
+  else
     # If multi_az we use one node from the two first AZs
     if [[ ${multi_az} == "true" ]]; then
       # Get AZs from worker nodes
