@@ -47,7 +47,7 @@ export_defaults() {
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
 
   #If using baremetal we use different query to find worker nodes
-  if [[ ${baremetalCheck} == "BareMetal" ]]; then
+  if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
   log "Colocating uperf pods for baremetal"
   export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR==1{print $1}')
   export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR==2{print $1}')
