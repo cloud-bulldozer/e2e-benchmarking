@@ -43,11 +43,11 @@ export_defaults() {
   export pin=true
   export networkpolicy=${NETWORK_POLICY:=false}
   export multi_az=${MULTI_AZ:=true}
-  export baremetalCheck=$(oc get bmh -n openshift-machine-api)
+  export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
 
   #If using baremetal we use different query to find worker nodes
-  if [ "$baremetal" != "No resources found in openshift-machine-api namespace." ]; then
+  if [[ ${baremetalCheck} == "BareMetal" ]]; then
   log "Colocating uperf pods for baremetal"
   export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR==1{print $1}')
   export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR==2{print $1}')
