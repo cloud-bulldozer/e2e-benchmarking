@@ -1,0 +1,100 @@
+---
+global:
+  writeToFile: false
+  indexerConfig:
+    enabled: {{ .INDEXING }}
+    esServers: ["{{.ES_SERVER}}"]
+    insecureSkipVerify: true
+    defaultIndex: {{ .ES_INDEX }}
+    type: elastic
+  measurements:
+    - name: podLatency
+      esIndex: {{.ES_SERVER}}
+
+jobs:
+  - name: cluster-density
+    jobIterations: {{.JOB_ITERATIONS}}
+    qps: {{.QPS}}
+    burst: {{.BURST}}
+    namespacedIterations: true
+    namespace: cluster-density-{{.UUID}}
+    podWait: {{.POD_WAIT}}
+    cleanup: {{.CLEANUP}}
+    waitFor: {{.WAIT_FOR}}
+    waitWhenFinished: {{.WAIT_WHEN_FINISHED}}
+    verifyObjects: {{.VERIFY_OBJECTS}}
+    errorOnVerify: {{.ERROR_ON_VERIFY}}
+    objects:
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/imagestream.yml
+        replicas: 3
+        inputVars:
+          prefix: cluster-density-src
+          image: quay.io/cloud-bulldozer/ubi8-go-toolset
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/imagestream.yml
+        replicas: 3
+        inputVars:
+          prefix: cluster-density-dst
+          image: quay.io/cloud-bulldozer/ubi8-go-toolset
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/buildconfig.yml
+        replicas: 3
+        inputVars:
+          from: cluster-density-src
+          to: cluster-density-dst
+          gitUri: https://github.com/cloud-bulldozer/hello-openshift.git  
+          nodeSelector: "{{.NODE_SELECTOR}}"
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/imagestream.yml
+        replicas: 6
+        inputVars:
+          prefix: cluster-density
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/build.yml
+        replicas: 6
+        inputVars:
+          prefix: cluster-density
+          nodeSelector: "{{.NODE_SELECTOR}}"
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/deployment.yml
+        replicas: 1
+        inputVars:
+          podReplicas: 2
+          name: deployment-2pod
+          envVar: {{rand 700}}
+          nodeSelector: "{{.NODE_SELECTOR}}"
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/service.yml
+        replicas: 1
+        inputVars:
+          name: deployment-2pod
+        
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/deployment.yml
+        replicas: 2
+        inputVars:
+          podReplicas: 1
+          name: deployment-1pod
+          envVar: {{rand 700}}
+          nodeSelector: "{{.NODE_SELECTOR}}"
+      
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/service.yml
+        replicas: 2
+        inputVars:
+          name: deployment-1pod
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/route.yml
+        replicas: 1
+        inputVars:
+          name: deployment-2pod
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/route.yml
+        replicas: 2
+        inputVars:
+          name: deployment-1pod
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/secret.yml
+        replicas: 10
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/configmap.yml
+        replicas: 10
