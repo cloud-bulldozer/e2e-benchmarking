@@ -28,7 +28,7 @@ check_cluster_health() {
 
 export_defaults() {
   operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-  operator_branch=${OPERATOR_BRANCH:=v0.1}
+  operator_branch=${OPERATOR_BRANCH:=master}
   CRD=${CRD:-ripsaw-uperf-crd.yaml}
   export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
   _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
@@ -123,19 +123,15 @@ export_defaults() {
 }
 
 deploy_operator() {
-  log "Starting test for cloud: $cloud_name"
-  log "Removing my-ripsaw namespace, if it already exists"
-  oc delete namespace my-ripsaw --ignore-not-found
-  log "Deploying benchmark-operator"
-  oc apply -f /tmp/benchmark-operator/resources/namespace.yaml
-  oc apply -f /tmp/benchmark-operator/deploy
-  oc apply -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-  oc apply -f /tmp/benchmark-operator/resources/operator.yaml
-  oc apply -f /tmp/benchmark-operator/resources/backpack_role.yaml
-  log "Waiting for benchmark-operator to be available"
-  oc wait --for=condition=available -n my-ripsaw deployment/benchmark-operator --timeout=280s
-  oc adm policy -n my-ripsaw add-scc-to-user privileged -z benchmark-operator
-  oc adm policy -n my-ripsaw add-scc-to-user privileged -z backpack-view
+  log "Removing benchmark-operator namespace, if it already exists"
+  oc delete namespace benchmark-operator --ignore-not-found
+  log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  rm -rf benchmark-operator
+  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
+  (cd benchmark-operator && make deploy)
+  oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
+  oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
+  oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
   oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
 }
 
@@ -147,13 +143,13 @@ deploy_workload() {
 }
 
 check_logs_for_errors() {
-client_pod=$(oc get pods -n my-ripsaw --no-headers | awk '{print $1}' | grep uperf-client | awk 'NR==1{print $1}')
+client_pod=$(oc get pods -n benchmark-operator --no-headers | awk '{print $1}' | grep uperf-client | awk 'NR==1{print $1}')
 if [ ! -z "$client_pod" ]; then
-  num_critical=$(oc logs ${client_pod} -n my-ripsaw | grep CRITICAL | wc -l)
+  num_critical=$(oc logs ${client_pod} -n benchmark-operator | grep CRITICAL | wc -l)
   if [ $num_critical -gt 3 ] ; then
     log "Encountered CRITICAL condition more than 3 times in uperf-client logs"
     log "Log dump of uperf-client pod"
-    oc logs $client_pod -n my-ripsaw
+    oc logs $client_pod -n benchmark-operator
     delete_benchmark
     exit 1
   fi
@@ -168,7 +164,7 @@ wait_for_benchmark() {
       log "Cerberus status is False, Cluster is unhealthy"
       exit 1
     fi
-    oc describe -n my-ripsaw benchmarks/uperf-benchmark-${WORKLOAD}-network-${pairs} | grep State | grep Complete
+    oc describe -n benchmark-operator benchmarks/uperf-benchmark-${WORKLOAD}-network-${pairs} | grep State | grep Complete
     if [ $? -eq 0 ]; then
       log "uperf workload done!"
       uperf_state=$?
@@ -236,13 +232,13 @@ init_cleanup() {
 }
 
 delete_benchmark() {
-  oc delete benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n my-ripsaw
+  oc delete benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator
 }
 
 update() {
-  benchmark_state=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n my-ripsaw -o jsonpath='{.status.state}')
-  benchmark_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n my-ripsaw -o jsonpath='{.status.uuid}')
-  benchmark_current_pair=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n my-ripsaw -o jsonpath='{.spec.workload.args.pair}')
+  benchmark_state=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.state}')
+  benchmark_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.uuid}')
+  benchmark_current_pair=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.spec.workload.args.pair}')
 }
 
 print_uuid() {

@@ -18,7 +18,7 @@ if [[ ${PAIR} ]]; then
 fi
 
 if ${MULTUS} ; then
-oc -n my-ripsaw delete benchmark/uperf-benchmark-multus-network --wait
+oc -n benchmark-operator delete benchmark/uperf-benchmark-multus-network --wait
 if [[ ${MULTUS_SERVER_NAD} ]]; then
   MULTUS_SERVER="server: ${MULTUS_SERVER_NAD}"
 fi
@@ -31,7 +31,7 @@ apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
   name: uperf-benchmark-multus-network
-  namespace: my-ripsaw
+  namespace: benchmark-operator
 spec:
   elasticsearch:
     url: $_es
@@ -77,11 +77,11 @@ sleep 30
 
 uperf_state=1
 for i in {1..240}; do
-  if [ "$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-multus-network -n my-ripsaw -o jsonpath='{.status.state}')" == "Error" ]; then
+  if [ "$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-multus-network -n benchmark-operator -o jsonpath='{.status.state}')" == "Error" ]; then
     echo "Cerberus status is False, Cluster is unhealthy"
     exit 1
   fi
-  oc describe -n my-ripsaw benchmarks/uperf-benchmark-multus-network | grep State | grep Complete
+  oc describe -n benchmark-operator benchmarks/uperf-benchmark-multus-network | grep State | grep Complete
   if [ $? -eq 0 ]; then
           echo "UPerf Workload done"
           uperf_state=$?
@@ -95,7 +95,7 @@ if [ "$uperf_state" == "1" ] ; then
   exit 1
 fi
 
-compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-multus-network -n my-ripsaw -o jsonpath='{.status.uuid}')
+compare_uperf_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-multus-network -n benchmark-operator -o jsonpath='{.status.uuid}')
 baseline_uperf_uuid=${_baseline_multus_uuid}
 
 if [[ ${COMPARE} == "true" ]]; then

@@ -29,7 +29,7 @@ export UUID=${UUID:-`uuidgen`}
 
 # Operator
 operator_repo=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
-operator_branch=${OPERATOR_BRANCH:-v0.1}
+operator_branch=${OPERATOR_BRANCH:-master}
 timestamp=`date "+%d-%m-%YT%H:%M:%S"`
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export METADATA_COLLECTION=${METADATA_COLLECTION:-false}
@@ -66,24 +66,13 @@ export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
 export TEST_CLEANUP=${TEST_CLEANUP:-"false"}
 
 deploy_operator() {
+  log "Removing benchmark-operator namespace, if it already exists"
+  oc delete namespace benchmark-operator --ignore-not-found
   log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
   rm -rf benchmark-operator
   git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
-  log "Deploying benchmark-operator"
-  oc apply -f benchmark-operator/resources/namespace.yaml
-  oc apply -f benchmark-operator/deploy
-  oc apply -f benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-  oc apply -f benchmark-operator/resources/operator.yaml
-  log "Waiting for benchmark-operator to be available"
-  bo_rc=`oc wait --for=condition=available -n my-ripsaw deployment/benchmark-operator --timeout=180s`
-  if [[ $bo_rc -ne 0 ]]; then
-    log "Benchmark-operator failed to deploy. Exiting"
-    exit 1
-  fi
-  log "Benchmark-operator is available"
-  if [[ ${METADATA_COLLECTION} == "true" ]]; then
-    oc apply -f benchmark-operator/resources/backpack_role.yaml
-  fi
+  (cd benchmark-operator && make deploy)
+  oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 }
 
 deploy_logging_stack() {
@@ -148,7 +137,7 @@ wait_for_benchmark() {
   rc=0
   log "Waiting for benchmark to be created"
   local timeout=$(date -d "+${TEST_TIMEOUT} seconds" +%s)
-  until oc get benchmark -n my-ripsaw log-generator -o jsonpath="{.status.state}" | grep -q Running; do
+  until oc get benchmark -n benchmark-operator log-generator -o jsonpath="{.status.state}" | grep -q Running; do
     sleep 1
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for job to be created"
@@ -156,8 +145,8 @@ wait_for_benchmark() {
     fi
   done
   log "Waiting for log-generator pods to start"
-  suuid=$(oc get benchmark -n my-ripsaw log-generator -o jsonpath="{.status.suuid}")
-  until [[ $(oc get pod -n my-ripsaw -l job-name=log-generator-${suuid} --ignore-not-found -o go-template='{{ range .items}}{{.status.phase}}{{"\n"}}{{end}}' | grep Running | wc -l) -eq $POD_COUNT ]]; do
+  suuid=$(oc get benchmark -n benchmark-operator log-generator -o jsonpath="{.status.suuid}")
+  until [[ $(oc get pod -n benchmark-operator -l job-name=log-generator-${suuid} --ignore-not-found -o go-template='{{ range .items}}{{.status.phase}}{{"\n"}}{{end}}' | grep Running | wc -l) -eq $POD_COUNT ]]; do
     sleep 1
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for all pods to be running"
@@ -165,14 +154,14 @@ wait_for_benchmark() {
     fi
   done
   log "Benchmark in progress"
-  until [[ $(oc get benchmark -n my-ripsaw log-generator -o jsonpath="{.status.state}" | grep -E "Complete|Failed" | wc -l) -eq "1" ]]; do
+  until [[ $(oc get benchmark -n benchmark-operator log-generator -o jsonpath="{.status.state}" | grep -E "Complete|Failed" | wc -l) -eq "1" ]]; do
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for Benchmark to complete"
       exit 1
     fi
     sleep 1
   done
-  status=$(oc get benchmark -n my-ripsaw log-generator -o jsonpath="{.status.state}")
+  status=$(oc get benchmark -n benchmark-operator log-generator -o jsonpath="{.status.state}")
   log "Benchmark log-generator-${UUID} finished with status: ${status}"
   if [[ ${status} == "Failed" ]]; then
     rc=1

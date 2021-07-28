@@ -18,19 +18,14 @@ log() {
 }
 
 deploy_operator() {
-  log "Removing my-ripsaw namespace, if it already exists"
-  oc delete namespace my-ripsaw --ignore-not-found
+  log "Removing benchmark-operator namespace, if it already exists"
+  oc delete namespace benchmark-operator --ignore-not-found
   log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
   rm -rf benchmark-operator
   git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
-  log "Deploying benchmark-operator"
-  oc apply -f benchmark-operator/resources/namespace.yaml
-  oc apply -f benchmark-operator/deploy
-  oc apply -f benchmark-operator/resources/kube-burner-role.yml
-  oc apply -f benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-  oc apply -f benchmark-operator/resources/operator.yaml
-  log "Waiting for benchmark-operator to be available"
-  oc wait --for=condition=available -n my-ripsaw deployment/benchmark-operator --timeout=180s
+  (cd benchmark-operator && make deploy)
+  kubectl apply -f benchmark-operator/resources/kube-burner-role.yml
+  oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 }
 
 deploy_workload() {
@@ -42,7 +37,7 @@ wait_for_benchmark() {
   rc=0
   log "Waiting for kube-burner job to be created"
   local timeout=$(date -d "+${POD_READY_TIMEOUT} seconds" +%s)
-  until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -q Running; do
+  until oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -q Running; do
     sleep 1
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for job to be created"
@@ -50,8 +45,8 @@ wait_for_benchmark() {
     fi
   done
   log "Waiting for kube-burner job to start"
-  suuid=$(oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.suuid}")
-  until oc get pod -n my-ripsaw -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -q Running; do
+  suuid=$(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.suuid}")
+  until oc get pod -n benchmark-operator -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -q Running; do
     sleep 1
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for job to be running"
@@ -59,24 +54,24 @@ wait_for_benchmark() {
     fi
   done
   log "Benchmark in progress"
-  until oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
+  until oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
     if [[ ${LOG_STREAMING} == "true" ]]; then
-      oc logs -n my-ripsaw -f -l job-name=kube-burner-${suuid} --ignore-errors=true || true
+      oc logs -n benchmark-operator -f -l job-name=kube-burner-${suuid} --ignore-errors=true || true
       sleep 20
     fi
     sleep 1
   done
   log "Benchmark finished, waiting for benchmark/kube-burner-${1}-${UUID} object to be updated"
   if [[ ${LOG_STREAMING} == "false" ]]; then
-    oc logs -n my-ripsaw --tail=-1 -l job-name=kube-burner-${suuid}
+    oc logs -n benchmark-operator --tail=-1 -l job-name=kube-burner-${suuid}
   fi
-  oc get pod -l job-name=kube-burner-${suuid} -n my-ripsaw
-  status=$(oc get benchmark -n my-ripsaw kube-burner-${1}-${UUID} -o jsonpath="{.status.state}")
+  oc get pod -l job-name=kube-burner-${suuid} -n benchmark-operator
+  status=$(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.state}")
   log "Benchmark kube-burner-${1}-${UUID} finished with status: ${status}"
   if [[ ${status} == "Failed" ]]; then
     rc=1
   fi
-  oc get benchmark -n my-ripsaw
+  oc get benchmark -n benchmark-operator
 }
 
 label_nodes() {
@@ -128,10 +123,10 @@ unlabel_nodes() {
 }
 
 check_running_benchmarks() {
-  benchmarks=$(oc get benchmark -n my-ripsaw | awk '{ if ($2 == "kube-burner")print}'| grep -vE "Failed|Complete" | wc -l)
+  benchmarks=$(oc get benchmark -n benchmark-operator | awk '{ if ($2 == "kube-burner")print}'| grep -vE "Failed|Complete" | wc -l)
   if [[ ${benchmarks} -gt 1 ]]; then
     log "Another kube-burner benchmark is running at the moment" && exit 1
-    oc get benchmark -n my-ripsaw
+    oc get benchmark -n benchmark-operator
   fi
 }
 
