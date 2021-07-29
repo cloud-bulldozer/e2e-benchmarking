@@ -1,0 +1,44 @@
+---
+global:
+  writeToFile: false
+  indexerConfig:
+    enabled: {{.INDEXING}}
+    esServers: ["{{.ES_SERVER}}"]
+    insecureSkipVerify: true
+    defaultIndex: {{.ES_INDEX}}
+    type: elastic
+  measurements:
+    - name: podLatency
+      esIndex: {{.ES_INDEX}}
+jobs:
+  - name: max-namespaces
+    jobIterations: {{.JOB_ITERATIONS}}
+    qps: {{.QPS}}
+    burst: {{.BURST}}
+    namespacedIterations: true
+    namespace: max-namespaces-{{.UUID}}
+    podWait: {{.POD_WAIT}}
+    cleanup: {{.CLEANUP}}
+    waitFor: {{.WAIT_FOR}}
+    waitWhenFinished: {{.WAIT_WHEN_FINISHED}}
+    verifyObjects: {{.VERIFY_OBJECTS}}
+    errorOnVerify: {{.ERROR_ON_VERIFY}}
+    objects:
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-namespaces/templates/postgres-deployment.yml
+        replicas: 1
+        inputVars:
+          nodeSelector: "{{.NODE_SELECTOR}}"
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-namespaces/templates/app-deployment.yml
+        replicas: 5
+        inputVars:
+          readinessPeriod: 10
+          livenessPeriod: 10
+          nodeSelector: "{{.NODE_SELECTOR}}"
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-namespaces/templates/postgres-service.yml
+        replicas: 1
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-namespaces/templates/secret.yml
+        replicas: 10
