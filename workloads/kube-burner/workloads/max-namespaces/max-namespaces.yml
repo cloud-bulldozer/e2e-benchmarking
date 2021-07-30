@@ -26,20 +26,20 @@ jobs:
     maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
     objects:
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-namespaces/templates/postgres-deployment.yml
+      - objectTemplate: https://raw.githubusercontent.com/rsevilla87/e2e-benchmarking/kube-burner-workloads/workloads/kube-burner/workloads/max-namespaces/templates/postgres-deployment.yml
         replicas: 1
         inputVars:
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-namespaces/templates/app-deployment.yml
+      - objectTemplate: https://raw.githubusercontent.com/rsevilla87/e2e-benchmarking/kube-burner-workloads/workloads/kube-burner/workloads/max-namespaces/templates/app-deployment.yml
         replicas: 5
         inputVars:
           readinessPeriod: 10
           livenessPeriod: 10
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-namespaces/templates/postgres-service.yml
+      - objectTemplate: https://raw.githubusercontent.com/rsevilla87/e2e-benchmarking/kube-burner-workloads/workloads/kube-burner/workloads/max-namespaces/templates/postgres-service.yml
         replicas: 1
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-namespaces/templates/secret.yml
+      - objectTemplate: https://raw.githubusercontent.com/rsevilla87/e2e-benchmarking/kube-burner-workloads/workloads/kube-burner/workloads/max-namespaces/templates/secret.yml
         replicas: 10

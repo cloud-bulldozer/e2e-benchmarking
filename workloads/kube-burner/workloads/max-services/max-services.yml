@@ -25,13 +25,13 @@ jobs:
     errorOnVerify: {{.ERROR_ON_VERIFY}}
     maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
     objects:
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-services/templates/deployment.yml
+      - objectTemplate: https://raw.githubusercontent.com/rsevilla87/e2e-benchmarking/kube-burner-workloads/workloads/kube-burner/workloads/max-services/templates/deployment.yml
         replicas: 1
         inputVars:
           name: max-serv
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-services/templates/service.yml
+      - objectTemplate: https://raw.githubusercontent.com/rsevilla87/e2e-benchmarking/kube-burner-workloads/workloads/kube-burner/workloads/max-services/templates/service.yml
         replicas: 1
         inputVars:
           name: max-serv
