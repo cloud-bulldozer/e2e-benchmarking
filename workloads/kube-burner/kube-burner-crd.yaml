@@ -24,6 +24,7 @@ spec:
   workload:
     name: kube-burner
     args:
+      workload: ""
       extra_env_vars:
         QPS: ${QPS} 
         BURST: ${BURST}
