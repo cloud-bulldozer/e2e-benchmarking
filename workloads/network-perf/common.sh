@@ -48,9 +48,15 @@ export_defaults() {
 
   #If using baremetal we use different query to find worker nodes
   if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
-  log "Colocating uperf pods for baremetal"
-  export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR==1{print $1}')
-  export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR==2{print $1}')
+    log "Colocating uperf pods for baremetal"
+    nodeCount=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | wc -l)
+    if [[ ${nodeCount} -ge 2 ]]; then
+      export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR==1{print $1}')
+      export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR==2{print $1}')
+    else
+      log "At least 2 worker nodes are required"
+      exit 1
+    fi  
   
   else
     # If multi_az we use one node from the two first AZs
