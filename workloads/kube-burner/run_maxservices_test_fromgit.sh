@@ -3,8 +3,9 @@
 set -e
 
 JOB_ITERATIONS=${SERVICE_COUNT:-1000}
+export WORKLOAD=max-services
 export REMOTE_CONFIG=https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-services/max-services.yml
-export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE:-https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/metrics-profile/metrics-aggregated.yml}
+export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE:-https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/metrics-profiles/metrics-aggregated.yml}
 
 . common.sh
 

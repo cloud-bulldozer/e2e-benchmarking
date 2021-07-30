@@ -17,21 +17,26 @@ All scripts can be tweaked with the following environment variables:
 |------------------|-------------------------------------|---------|
 | **OPERATOR_REPO**              | benchmark-operator repo                     | https://github.com/cloud-bulldozer/benchmark-operator.git      |
 | **OPERATOR_BRANCH**              | benchmark-operator branch                     | master      |
-| **QPS**              | Queries/sec                     | 20      |
-| **BURST**            | Burst queries                   | 20      |
 | **INDEXING**         | enable/disable indexing         | true    |
 | **ES_SERVER**        | Elastic search endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
+| **METADATA_COLLECTION**    | Enable metadata collection | true |
 | **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 17500 |
 | **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 1200 |
+| **QPS**              | Queries/sec                     | 20      |
+| **BURST**            | Burst queries                   | 20      |
+| **POD_NODE_SELECTOR**| nodeSelector for pods created by the kube-burner workloads | {"node-role.kubernetes.io/worker": ""} |
+| **POD_WAIT**         | Wait for pods to be ready in each iteration | false |
+| **WAIT_FOR**         | Wait to be ready fot the resource in this list | [] (empty means all of them) |
+| **VERIFY_OBJECTS**   | Verify objects created by kube-burner | true |
+| **ERROR_ON_VERIFY**  | Make kube-burner pod to hang when verification fails | true |
 | **NODE_SELECTOR**    | Kube-burner node selector          | {"node-role.kubernetes.io/worker": ""} |
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
-| **METRICS_PROFILE**        | Metric profile that indicates what prometheus metrics kube-burner will collect, accepts __metrics.yaml__ or __metrics-aggregated.yaml__ | metrics.yaml for node-density workloads and metrics-aggregated.yaml for cluster-density workloads |
-| **METADATA_COLLECTION**    | Enable metadata collection | true |
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
+| **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.12 |
 | **LOG_LEVEL**        | Kube-burner log level | info |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.

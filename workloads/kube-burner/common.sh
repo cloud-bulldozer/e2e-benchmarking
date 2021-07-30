@@ -3,6 +3,7 @@ source env.sh
 # If INDEXING is disabled we disable metadata collection
 if [[ ${INDEXING} == "false" ]]; then
   export METADATA_COLLECTION=false
+  unset PROM_URL
 else
   export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
 fi
