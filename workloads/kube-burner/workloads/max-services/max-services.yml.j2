@@ -28,7 +28,7 @@ jobs:
         replicas: 1
         inputVars:
           name: max-serv
-          nodeSelector: "{{.NODE_SELECTOR}}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-services/templates/service.yml
         replicas: 1

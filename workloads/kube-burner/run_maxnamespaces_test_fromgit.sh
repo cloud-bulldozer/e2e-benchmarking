@@ -2,9 +2,9 @@
 
 set -e
 
-export WORKLOAD=max-namespaces
-export METRICS_PROFILE=${METRICS_PROFILE:-metrics-aggregated.yaml}
-export TEST_JOB_ITERATIONS=${NAMESPACE_COUNT:-1000}
+JOB_ITERATIONS=${NAMESPACE_COUNT:-1000}
+export REMOTE_CONFIG=https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-namespaces/max-namespaces.yml
+export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE:-https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/metrics-profile/metrics-aggregated.yml}
 
 . common.sh
 

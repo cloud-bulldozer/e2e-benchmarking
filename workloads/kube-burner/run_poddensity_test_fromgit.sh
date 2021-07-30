@@ -2,9 +2,9 @@
 
 set -e
 
-export WORKLOAD=pod-density
-export METRICS_PROFILE=${METRICS_PROFILE:-metrics.yaml}
-export TEST_JOB_ITERATIONS=${PODS:-1000}
+export JOB_ITERATIONS=${PODS:-1000}
+export REMOTE_CONFIG=https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/node-pod-density/node-pod-density.yml
+export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE:-https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/metrics-profile/metrics.yml}
 
 . common.sh
 

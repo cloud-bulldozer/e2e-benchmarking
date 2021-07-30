@@ -2,15 +2,14 @@
 global:
   writeToFile: false
   indexerConfig:
-    enabled: {{ .INDEXING }}
+    enabled: {{.INDEXING}}
     esServers: ["{{.ES_SERVER}}"]
     insecureSkipVerify: true
-    defaultIndex: {{ .ES_INDEX }}
+    defaultIndex: {{.ES_INDEX}}
     type: elastic
   measurements:
     - name: podLatency
-      esIndex: {{.ES_SERVER}}
-
+      esIndex: {{.ES_INDEX}}
 jobs:
   - name: cluster-density
     jobIterations: {{.JOB_ITERATIONS}}
@@ -44,7 +43,7 @@ jobs:
           from: cluster-density-src
           to: cluster-density-dst
           gitUri: https://github.com/cloud-bulldozer/hello-openshift.git  
-          nodeSelector: "{{.NODE_SELECTOR}}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/imagestream.yml
         replicas: 6
@@ -55,7 +54,7 @@ jobs:
         replicas: 6
         inputVars:
           prefix: cluster-density
-          nodeSelector: "{{.NODE_SELECTOR}}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/deployment.yml
         replicas: 1
@@ -63,7 +62,7 @@ jobs:
           podReplicas: 2
           name: deployment-2pod
           envVar: {{rand 700}}
-          nodeSelector: "{{.NODE_SELECTOR}}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/service.yml
         replicas: 1
@@ -76,7 +75,7 @@ jobs:
           podReplicas: 1
           name: deployment-1pod
           envVar: {{rand 700}}
-          nodeSelector: "{{.NODE_SELECTOR}}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
       
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/service.yml
         replicas: 2

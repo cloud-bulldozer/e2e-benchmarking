@@ -13,8 +13,7 @@ spec:
       labels:
         app: {{.name}}-{{.Iteration}}-{{.Replica}}
     spec:
-      nodeSelector:
-        {{.nodeSelector}}
+      nodeSelector: {{.nodeSelector}}
       containers:
       - args:
         - sleep

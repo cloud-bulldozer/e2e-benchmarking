@@ -2,10 +2,10 @@
 
 set -e
 
-export WORKLOAD=node-density
-export METRICS_PROFILE=${METRICS_PROFILE:-metrics.yaml}
-export NODE_COUNT=${NODE_COUNT:-4}
-export PODS_PER_NODE=${PODS_PER_NODE:-250}
+NODE_COUNT=${NODE_COUNT:-4}
+PODS_PER_NODE=${PODS_PER_NODE:-250}
+export REMOTE_CONFIG=https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/node-pod-density/node-pod-density.yml
+export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE:-https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/metrics-profile/metrics.yml}
 
 . common.sh
 

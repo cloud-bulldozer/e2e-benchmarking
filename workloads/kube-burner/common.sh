@@ -1,14 +1,11 @@
 source env.sh
 
-# If ES_SERVER is set and empty we disable ES indexing and metadata collection
-if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
+# If INDEXING is disabled we disable metadata collection
+if [[ ${INDEXING} == "false" ]]; then
   export METADATA_COLLECTION=false
 else
   export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
 fi
-export NODE_SELECTOR_KEY="node-role.kubernetes.io/worker"
-export NODE_SELECTOR_VALUE=""
-export WAIT_WHEN_FINISHED=true
 export WAIT_FOR=[]
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=$(uuidgen)
@@ -57,7 +54,7 @@ wait_for_benchmark() {
   log "Benchmark in progress"
   until oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
     if [[ ${LOG_STREAMING} == "true" ]]; then
-      oc logs -n benchmark-operator -f -l job-name=kube-burner-${suuid} --ignore-errors=true || true
+      oc logs -n benchmark-operator --tail=-1 -f -l job-name=kube-burner-${suuid} --ignore-errors=true || true
       sleep 20
     fi
     sleep 1
@@ -93,7 +90,7 @@ label_nodes() {
     pod_count=$((pods + pod_count))
   done
   log "Total running pods across nodes: ${pod_count}"
-  if [[ ${WORKLOAD_NODE} =~ 'node-role.kubernetes.io/worker' ]]; then
+  if [[ ${NODE_SELECTOR} =~ 'node-role.kubernetes.io/worker' ]]; then
     # Number of pods to deploy per node * number of labeled nodes - pods running - kube-burner pod
     log "kube-burner will run on a worker node, decreasing by one the number of pods to deploy"
     total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count - 1))
@@ -109,7 +106,7 @@ label_nodes() {
   if [[ ${1} == "heavy" ]]; then
     total_pod_count=$((total_pod_count / 2))
   fi
-  export TEST_JOB_ITERATIONS=${total_pod_count}
+  export JOB_ITERATIONS=${total_pod_count}
   log "Labeling ${NODE_COUNT} worker nodes with node-density=enabled"
   for n in ${nodes}; do
     oc label ${n} node-density=enabled --overwrite

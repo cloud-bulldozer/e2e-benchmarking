@@ -30,14 +30,14 @@ jobs:
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/node-density-heavy/templates/postgres-deployment.yml
         replicas: 1
         inputVars:
-          nodeSelector: "{{.NODE_SELECTOR}}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/node-density-heavy/templates/app-deployment.yml
         replicas: 1
         inputVars:
           readinessPeriod: 10
           livenessPeriod: 10
-          nodeSelector: "{{.NODE_SELECTOR}}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/node-density-heavy/templates/postgres-service.yml
         replicas: 1
