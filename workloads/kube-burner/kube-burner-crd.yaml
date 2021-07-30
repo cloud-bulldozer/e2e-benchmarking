@@ -38,6 +38,7 @@ spec:
         WAIT_FOR: ${WAIT_FOR}
         VERIFY_OBJECTS: ${VERIFY_OBJECTS}
         ERROR_ON_VERIFY: ${ERROR_ON_VERIFY}
+        MAX_WAIT_TIMEOUT: ${MAX_WAIT_TIMEOUT}
       # Kube-burner Job timeout
       job_timeout: ${JOB_TIMEOUT}
       # ES index name

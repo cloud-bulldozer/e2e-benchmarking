@@ -23,6 +23,7 @@ jobs:
     waitWhenFinished: {{.WAIT_WHEN_FINISHED}}
     verifyObjects: {{.VERIFY_OBJECTS}}
     errorOnVerify: {{.ERROR_ON_VERIFY}}
+    maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
     objects:
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-services/templates/deployment.yml
         replicas: 1
