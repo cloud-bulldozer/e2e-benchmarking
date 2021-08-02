@@ -9,7 +9,7 @@ global:
     type: elastic
   measurements:
     - name: podLatency
-      esIndex: {{.ES_SERVER}}
+      esIndex: {{.ES_INDEX}}
 jobs:
   - name: node-density
     jobIterations: {{.JOB_ITERATIONS}}

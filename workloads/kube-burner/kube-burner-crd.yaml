@@ -31,7 +31,7 @@ spec:
         QPS: ${QPS} 
         BURST: ${BURST}
         CLEANUP: ${CLEANUP}
-        POD_NODE_SELECTOR: ${POD_NODE_SELECTOR}
+        POD_NODE_SELECTOR: "${POD_NODE_SELECTOR}"
         WAIT_WHEN_FINISHED: ${WAIT_WHEN_FINISHED}
         POD_WAIT: ${POD_WAIT}
         WAIT_FOR: ${WAIT_FOR}

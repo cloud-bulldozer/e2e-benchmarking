@@ -16,7 +16,7 @@ export QPS=${QPS:-20}
 export BURST=${BURST:-20}
 export MAX_WAIT_TIMEOUT=${MAX_WAIT_TIMEOUT:-1h}
 export CLEANUP=${CLEANUP:-true}
-export POD_NODE_SELECTOR=${POD_NODE_SELECTOR:-'{"node-role.kubernetes.io/worker": ""}'}
+export POD_NODE_SELECTOR=${POD_NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export WAIT_WHEN_FINISHED=true
 export POD_WAIT=${POD_WAIT:-false}
 export WAIT_FOR=${WAIT_FOR:-[]}
@@ -31,7 +31,7 @@ export REMOTE_ALERT_PROFILE=${REMOTE_ALERT_PROFILE}
 
 # Kube-burner job
 export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burner:v0.12}
-export NODE_SELECTOR=${NODE_SELECTOR:-'{"node-role.kubernetes.io/worker": ""}'}
+export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
 export LOG_STREAMING=${LOG_STREAMING:-true}
 

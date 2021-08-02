@@ -26,13 +26,13 @@ All scripts can be tweaked with the following environment variables:
 | **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 180 |
 | **QPS**              | Queries/sec                     | 20      |
 | **BURST**            | Burst queries                   | 20      |
-| **POD_NODE_SELECTOR**| nodeSelector for pods created by the kube-burner workloads | {"node-role.kubernetes.io/worker": ""} |
+| **POD_NODE_SELECTOR**| nodeSelector for pods created by the kube-burner workloads | {node-role.kubernetes.io/worker: } |
 | **POD_WAIT**         | Wait for pods to be ready in each iteration | false |
 | **MAX_WAIT_TIMEOUT** | Kube-burner will time out when the pods deployed take more that this value to be ready | 1h |
 | **WAIT_FOR**         | Wait to be ready fot the resource in this list | [] (empty means all of them) |
 | **VERIFY_OBJECTS**   | Verify objects created by kube-burner | true |
 | **ERROR_ON_VERIFY**  | Make kube-burner pod to hang when verification fails | true |
-| **NODE_SELECTOR**    | Kube-burner node selector          | {"node-role.kubernetes.io/worker": ""} |
+| **NODE_SELECTOR**    | Kube-burner node selector          | {node-role.kubernetes.io/worker: ""} |
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
