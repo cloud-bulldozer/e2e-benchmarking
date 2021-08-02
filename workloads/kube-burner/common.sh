@@ -53,7 +53,7 @@ wait_for_benchmark() {
     fi
   done
   log "Benchmark in progress"
-  until oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
+  until [[ $(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.complete}") == "true" ]]; do
     if [[ ${LOG_STREAMING} == "true" ]]; then
       oc logs -n benchmark-operator --tail=-1 -f -l job-name=kube-burner-${suuid} --ignore-errors=true || true
       sleep 20

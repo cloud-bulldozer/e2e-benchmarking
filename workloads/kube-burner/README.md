@@ -23,7 +23,7 @@ All scripts can be tweaked with the following environment variables:
 | **PROM_URL**         | Prometheus endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
 | **METADATA_COLLECTION**    | Enable metadata collection | true |
 | **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 17500 |
-| **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 1200 |
+| **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 180 |
 | **QPS**              | Queries/sec                     | 20      |
 | **BURST**            | Burst queries                   | 20      |
 | **POD_NODE_SELECTOR**| nodeSelector for pods created by the kube-burner workloads | {"node-role.kubernetes.io/worker": ""} |
