@@ -14,7 +14,7 @@ export PROM_URL=${PROM_URL:-https://prometheus-k8s.openshift-monitoring.svc.clus
 # Kube-burner vars
 export QPS=${QPS:-20}
 export BURST=${BURST:-20}
-export MAX_WAIT_TIMEOUT=${MAX_WAIT_TIMEOUT:-20m}
+export MAX_WAIT_TIMEOUT=${MAX_WAIT_TIMEOUT:-1h}
 export CLEANUP=${CLEANUP:-true}
 export POD_NODE_SELECTOR=${POD_NODE_SELECTOR:-'{"node-role.kubernetes.io/worker": ""}'}
 export WAIT_WHEN_FINISHED=true

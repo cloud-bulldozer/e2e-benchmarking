@@ -28,6 +28,7 @@ All scripts can be tweaked with the following environment variables:
 | **BURST**            | Burst queries                   | 20      |
 | **POD_NODE_SELECTOR**| nodeSelector for pods created by the kube-burner workloads | {"node-role.kubernetes.io/worker": ""} |
 | **POD_WAIT**         | Wait for pods to be ready in each iteration | false |
+| **MAX_WAIT_TIMEOUT** | Kube-burner will time out when the pods deployed take more that this value to be ready | 1h |
 | **WAIT_FOR**         | Wait to be ready fot the resource in this list | [] (empty means all of them) |
 | **VERIFY_OBJECTS**   | Verify objects created by kube-burner | true |
 | **ERROR_ON_VERIFY**  | Make kube-burner pod to hang when verification fails | true |
