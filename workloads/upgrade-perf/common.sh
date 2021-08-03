@@ -55,7 +55,7 @@ rm -rf /tmp/snafu upgrade
 
 git clone https://github.com/cloud-bulldozer/benchmark-wrapper.git /tmp/snafu
 
-python3 -m venv upgrade
+python3.8 -m venv upgrade
 source upgrade/bin/activate
 pip3 install -e /tmp/snafu
 
