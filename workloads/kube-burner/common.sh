@@ -23,8 +23,8 @@ deploy_operator() {
   log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
   rm -rf benchmark-operator
   git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
-  kubectl apply -f benchmark-operator/resources/backpack_role.yaml
   (cd benchmark-operator && make deploy)
+  kubectl apply -f benchmark-operator/resources/backpack_role.yaml
   kubectl apply -f benchmark-operator/resources/kube-burner-role.yml
   oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 }
