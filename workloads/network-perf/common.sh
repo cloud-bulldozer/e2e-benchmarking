@@ -91,19 +91,21 @@ export_defaults() {
       export server=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n1)
       export client=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[1]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n1)
     else
-      log "At least 2 worker nodes placed in different topology zones are required"
+      log "At least 2 worker nodes are required"
       exit 1
     fi
   # If MULTI_AZ is disabled we use the two first nodes from the first AZ
-  else
-    nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
-    if [[ ${#nodes[@]} -lt 2 ]]; then
-      log "At least 2 worker nodes placed in the topology zone ${zones[0]} are required"
-      exit 1
+    else
+      nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
+      if [[ ${#nodes[@]} -lt 2 ]]; then
+        log "At least 2 worker nodes placed in the topology zone ${zones[0]} are required"
+        exit 1
+      fi
+      log "Colocating uperf pods in the same AZ"
+      export server=${nodes[0]}
+      export client=${nodes[1]}
     fi
-    log "Colocating uperf pods in the same AZ"
-    export server=${nodes[0]}
-    export client=${nodes[1]}
+    log "Finished assigning server and client nodes"
   fi
 
 }
@@ -111,8 +113,14 @@ export_defaults() {
 deploy_operator() {
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
   rm -rf benchmark-operator
+<<<<<<< HEAD
   git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
   kubectl apply -f benchmark-operator/resources/backpack_role.yaml
+=======
+  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
+  (cd benchmark-operator && make deploy)
+  oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
+>>>>>>> 59af82b (Updated workloads to run on baremetal)
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
   oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
