@@ -43,29 +43,45 @@ export_defaults() {
   export pin=true
   export networkpolicy=${NETWORK_POLICY:=false}
   export multi_az=${MULTI_AZ:=true}
+  export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
 
-  # If multi_az we use one node from the two first AZs
-  if [[ ${multi_az} == "true" ]]; then
-    # Get AZs from worker nodes
-    log "Colocating uperf pods in different AZs"
-    if [[ ${#zones[@]} -gt 1 ]]; then
-      export server=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n1)
-      export client=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[1]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n1)
+  #If using baremetal we use different query to find worker nodes
+  if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
+    log "Colocating uperf pods for baremetal"
+    nodeCount=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | wc -l)
+    if [[ ${nodeCount} -ge 2 ]]; then
+      export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR==1{print $1}')
+      export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR==2{print $1}')
     else
-      log "At least 2 worker nodes placed in different topology zones are required"
+      log "At least 2 worker nodes are required"
       exit 1
-    fi
-  # If multi_az is disabled we use the two first nodes from the first AZ
+    fi  
+  
   else
-    nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
-    if [[ ${#nodes[@]} -lt 2 ]]; then
-      log "At least 2 worker nodes placed in the topology zone ${zones[0]} are required"
-      exit 1
+    # If multi_az we use one node from the two first AZs
+    if [[ ${multi_az} == "true" ]]; then
+      # Get AZs from worker nodes
+      log "Colocating uperf pods in different AZs"
+      if [[ ${#zones[@]} -gt 1 ]]; then
+        export server=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | head -n1)
+        export client=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[1]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}' | tail -n1)
+      else
+        log "At least 2 worker nodes placed in different topology zones are required"
+        exit 1
+      fi
+    # If multi_az is disabled we use the two first nodes from the first AZ
+    else
+      nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
+      if [[ ${#nodes[@]} -lt 2 ]]; then
+        log "At least 2 worker nodes placed in the topology zone ${zones[0]} are required"
+        exit 1
+      fi
+      log "Colocating uperf pods in the same AZ"
+      export server=${nodes[0]}
+      export client=${nodes[1]}
     fi
-    log "Colocating uperf pods in the same AZ"
-    export server=${nodes[0]}
-    export client=${nodes[1]}
+    log "Finished assigning server and client nodes"
   fi
 
   if [ ${WORKLOAD} == "hostnet" ]
@@ -127,9 +143,8 @@ deploy_operator() {
   oc delete namespace benchmark-operator --ignore-not-found
   log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
   rm -rf benchmark-operator
-  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1  
+  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
   (cd benchmark-operator && make deploy)
-  kubectl apply -f benchmark-operator/resources/backpack_role.yaml
   oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
@@ -215,12 +230,16 @@ assign_uuid() {
 }
 
 run_benchmark_comparison() {
+  log "Begining benchamrk comparison"
   ../../utils/touchstone-compare/run_compare.sh uperf ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
   pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}.yaml" )
+  log "Finished benchmark comparison"
 }
 
 generate_csv() {
+  log "Generating CSV"
   python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance  
+  log "Finished generating CSV"
 }
 
 init_cleanup() {
@@ -243,6 +262,7 @@ update() {
 }
 
 print_uuid() {
+  log "Logging uuid.txt"
   cat uuid.txt
 }
 
