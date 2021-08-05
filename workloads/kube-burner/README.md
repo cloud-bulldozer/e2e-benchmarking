@@ -42,6 +42,7 @@ All scripts can be tweaked with the following environment variables:
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
+
 ### Cluster-density variables
 
 The `cluster-density` workload supports the environment variable **JOB_ITERATIONS**. This variable configures the number of cluster-density jobs iterations to perform (1 namespace per iteration). By default 1000.
@@ -99,13 +100,36 @@ It creates n-replicas of an application deployment (hello-openshift) and a servi
 It creates as many "sleep" pods as configured in the environment variable `PODS`.
 
 
-### Remote configuration
+### Launching custom workloads
 
-Apart from the pre-defined workloads and metric profiles available in benchmark-operator, you can create a benchmark that uses a remote configuration, metric or alert profile. These files must be accesible through HTTP protocol by the kube-burner job. The following environment variables can be used to configure the source for the different configuration files:
+Apart from the pre-defined workloads and metric profiles available in this repo, you can use your own benchmark, metric-profile and alert-profile by using the remote configuration feature of kube-burner. This feature allows kube-burner to fetch configuration files from remote locations using the HTTP protocol. These files must be accesible through HTTP protocol by the kube-burner job. The following environment variables can be used to configure the source for the different configuration files:
 
-- **`REMOTE_CONFIG`**: Refers to the remote location of the Kube-burner main configuration file.
+- **`REMOTE_CONFIG`**: Refers to the remote location of the Kube-burner main configuration file. Keep in mind that the objectTemplates defined in this file must be HTTP accessible too.
 - **`REMOTE_METRIC_PROFILE`**: Points to a URL of a valid metric profile.
 - **`REMOTE_ALERT_PROFILE`**: Points to a URL of a valid alert profile.
 
-> Note: These can be used separately and/or combined with the kube-burner workloads available in the benchmark-operator.
+The script `run_custom_workload_fromgit.sh` provides a shortcut to launch the benchmark.
 
+For example, the command:
+```
+INDEXING=false REMOTE_CONFIG=https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml ./run_custom_workload_fromgit.sh
+```
+
+will launch a pod running a kube-burner process that will use the configuration file defined at https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml
+
+
+Keep in mind that the the following variables are injected as environment variables to the kube-burner pod:
+- UUID
+- INDEXING
+- ES_SERVER
+- ES_INDEX
+- JOB_ITERATIONS
+- QPS
+- BURST
+- CLEANUP
+- POD_NODE_SELECTOR
+- WAIT_WHEN_FINISHED
+- POD_WAIT
+- WAIT_FOR
+- VERIFY_OBJECTS
+- ERROR_ON_VERIFY
