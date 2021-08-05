@@ -48,6 +48,7 @@ wait_for_benchmark() {
     sleep 1
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for job to be running"
+      oc logs -n benchmark-operator --tail=-1 -l job-name=kube-burner-${suuid} --ignore-errors=true
       exit 1
     fi
   done
