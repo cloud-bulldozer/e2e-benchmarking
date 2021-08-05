@@ -7,7 +7,6 @@ if [[ ${INDEXING} == "false" ]]; then
 else
   export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
 fi
-export WAIT_FOR=[]
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=$(uuidgen)
 

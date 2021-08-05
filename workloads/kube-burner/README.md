@@ -2,12 +2,12 @@
 
 The purpose of these scripts is to run a kube-burner workload steered by ripsaw. There are 3 types of workloads at the moment:
 
-- **`cluster-density`**
-- **`node-density`**
-- **`node-density-heavy`**
-- **`max-namespaces`**
-- **`max-services`**
-- **`pod-density`**
+- **`cluster-density`**: Triggered by `run_clusterdensity_test_fromgit.sh`
+- **`node-density`**: Triggered by `run_nodedensity_test_fromgit.sh`
+- **`node-density-heavy`**: Triggered by `run_nodedensity-heavy_test_fromgit.sh`
+- **`max-namespaces`**: Triggered by `run_maxnamespaces_test_fromgit.sh`
+- **`max-services`** Triggered by `run_maxservices_test_fromgit.sh`
+- **`pod-density`**: Triggered by `run_poddensity_test_fromgit.sh`
 
 ## Environment variables
 
@@ -21,9 +21,10 @@ All scripts can be tweaked with the following environment variables:
 | **ES_SERVER**        | Elastic search endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
-| **METADATA_COLLECTION**    | Enable metadata collection | true |
-| **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 17500 |
+| **METADATA_COLLECTION**    | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
+| **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 14400 (4 hours) |
 | **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 180 |
+| **NODE_SELECTOR**    | The kube-burner pod deployed by benchmark-operator will use this node selector          | {node-role.kubernetes.io/worker: ""} |
 | **QPS**              | Queries/sec                     | 20      |
 | **BURST**            | Burst queries                   | 20      |
 | **POD_NODE_SELECTOR**| nodeSelector for pods created by the kube-burner workloads | {node-role.kubernetes.io/worker: } |
@@ -32,7 +33,6 @@ All scripts can be tweaked with the following environment variables:
 | **WAIT_FOR**         | Wait to be ready fot the resource in this list | [] (empty means all of them) |
 | **VERIFY_OBJECTS**   | Verify objects created by kube-burner | true |
 | **ERROR_ON_VERIFY**  | Make kube-burner pod to hang when verification fails | true |
-| **NODE_SELECTOR**    | Kube-burner node selector          | {node-role.kubernetes.io/worker: ""} |
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
