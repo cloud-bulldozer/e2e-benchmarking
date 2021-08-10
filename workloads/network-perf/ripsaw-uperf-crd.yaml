@@ -3,7 +3,7 @@
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
-  name: uperf-benchmark-${WORKLOAD}-network-${pairs}
+  name: uperf-${cr_name}-${WORKLOAD}-network-${pairs}
   namespace: benchmark-operator
 spec:
   elasticsearch:

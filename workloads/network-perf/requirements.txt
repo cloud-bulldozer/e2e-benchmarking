@@ -1,4 +1,5 @@
 gspread
 gspread-formatting
 oauth2client
-pyyaml
+PyYAML>=5.4.1
+make

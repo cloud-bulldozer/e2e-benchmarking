@@ -15,6 +15,7 @@ _es_baseline=${ES_SERVER_BASELINE:=https://search-perfscale-dev-chmf5l4sh66lvxbn
 _poll_interval=${POLL_INTERVAL:=5}
 COMPARE=${COMPARE:=false}
 _timeout=${TIMEOUT:=240}
+export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
 
 if [[ -n $UUID ]]; then
   _uuid=${UUID}
@@ -31,6 +32,13 @@ if [ "$cloud_name" == "" ]; then
   cloud_name="test_cloud"
 fi
 
+#Check to see if the infrastructure type is baremetal to adjust script as necessary 
+if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
+  echo "BareMetal infastructure: setting isBareMetal accordingly"
+  export isBareMetal=true
+else
+  export isBareMetal=false
+fi
 
 # check if cluster is up
 date
@@ -55,7 +63,14 @@ rm -rf /tmp/snafu upgrade
 
 git clone https://github.com/cloud-bulldozer/benchmark-wrapper.git /tmp/snafu
 
-python3 -m venv upgrade
+if [[ "${isBareMetal}" == "true" ]]; then
+  sudo yum -y install python3.8
+  python3.8 -m venv upgrade
+
+else
+  python3 -m venv upgrade
+fi
+
 source upgrade/bin/activate
 pip3 install -e /tmp/snafu
 

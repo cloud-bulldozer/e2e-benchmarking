@@ -15,3 +15,4 @@ delete_benchmark
 done
 print_uuid
 generate_csv
+echo -e "${bold}Finished workload run_pod_network_policy_test_fromgit.sh"

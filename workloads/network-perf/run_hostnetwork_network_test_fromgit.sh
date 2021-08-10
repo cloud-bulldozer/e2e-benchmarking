@@ -28,3 +28,4 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  store_on_elastic
  rm -rf files_list
 fi
+echo -e "${bold}Finished workload run_hostnetwork_network_test_gromgit.sh"

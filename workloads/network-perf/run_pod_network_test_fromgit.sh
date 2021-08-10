@@ -32,3 +32,4 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  store_on_elastic
  rm -rf files_list
 fi
+echo -e "${bold}Finished workload run_pod_network_test_fromgit.sh"
