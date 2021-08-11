@@ -186,7 +186,7 @@ deploy_workload() {
 
 check_logs_for_errors() {
 uuid=$(oc describe -n benchmark-operator benchmarks/uperf-${cr_name}-${WORKLOAD}-network-${pairs} | grep  Suuid | awk  '{print $2}')
-client_pod=$(oc get pods -n benchmark-operator --no-headers | awk '{print $1}' | grep $uuid | grep uperf-client)
+client_pod=$(oc get pods -n benchmark-operator --no-headers | awk '{print $1}' | grep $uuid | grep uperf-client | awk 'NR==1{print $1}')
 if [ ! -z "$client_pod" ]; then
   num_critical=$(oc logs ${client_pod} -n benchmark-operator | grep CRITICAL | wc -l)
   if [ $num_critical -gt 3 ] ; then
