@@ -68,20 +68,6 @@ export_defaults() {
         done
       export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR=='${serverNumber}'{print $1}')
       export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR=='${clientNumber}'{print $1}')
-
-  #If using baremetal we use different query to find worker nodes
-  if [[ "${isBareMetal}" == "true" ]]; then
-    log "Colocating uperf pods for baremetal"
-    nodeCount=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | wc -l)
-    if [[ ${nodeCount} -ge 2 ]]; then
-      serverNumber=$(( $RANDOM %${nodeCount} + 1 ))
-      clientNumber=$(( $RANDOM %${nodeCount} + 1 ))
-      while (( $serverNumber == $clientNumber ))
-        do
-          clientNumber=$(( $RANDOM %${nodeCount} + 1 ))
-        done
-      export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR=='${serverNumber}'{print $1}')
-      export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR=='${clientNumber}'{print $1}')
     else
       log "At least 2 worker nodes are required"
       exit 1
