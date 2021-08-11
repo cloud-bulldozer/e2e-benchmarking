@@ -1,5 +1,9 @@
 source env.sh
 
+log() {
+  echo ${bold}$(date -u):  ${@}${normal}
+}
+
 # If ES_SERVER is set and empty we disable ES indexing and metadata collection
 if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
   export METADATA_COLLECTION=false
