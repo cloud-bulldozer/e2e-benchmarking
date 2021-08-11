@@ -208,6 +208,10 @@ wait_for_benchmark() {
       log "Cerberus status is False, Cluster is unhealthy"
       exit 1
     fi
+    if [ "${benchmark_state}" == "Failed" ]; then
+      log "Benchmark state is Failed, exiting"
+      exit 1
+    fi
     oc describe -n benchmark-operator benchmarks/uperf-${cr_name}-${WORKLOAD}-network-${pairs} | grep State | grep Complete
     if [ $? -eq 0 ]; then
       log "uperf workload done!"
