@@ -26,7 +26,8 @@ jobs:
     maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
     objects:
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/node-pod-density/templates/pod.yml
+      #- objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/node-pod-density/templates/pod.yml
+      - objectTemplate: https://raw.githubusercontent.com/rsevilla87/e2e-benchmarking/kube-burner-workloads/workloads/kube-burner/workloads/node-pod-density/templates/pod.yml
         replicas: 1
         inputVars:
           containerImage: gcr.io/google_containers/pause-amd64:3.0

@@ -16,7 +16,7 @@ jobs:
     qps: {{.QPS}}
     burst: {{.BURST}}
     namespacedIterations: false
-    namespace: node-density-heavy-{{ .UUID }}
+    namespace: node-density-heavy-{{.UUID}}
     podWait: {{.POD_WAIT}}
     cleanup: {{.CLEANUP}}
     waitFor: {{.WAIT_FOR}}

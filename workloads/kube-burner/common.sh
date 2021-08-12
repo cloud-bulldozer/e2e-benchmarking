@@ -60,7 +60,7 @@ wait_for_benchmark() {
     fi
     sleep 1
   done
-  log "Benchmark finished, waiting for benchmark/kube-burner-${1}-${UUID} object to be updated"
+  log "Benchmark kube-burner-${1}-${UUID} finished"
   if [[ ${LOG_STREAMING} == "false" ]]; then
     oc logs -n benchmark-operator --tail=-1 -l job-name=kube-burner-${suuid}
   fi
@@ -74,8 +74,7 @@ wait_for_benchmark() {
 }
 
 label_nodes() {
-  export NODE_SELECTOR_KEY="node-density"
-  export NODE_SELECTOR_VALUE="enabled"
+  export POD_NODE_SELCTOR="{node-density: enabled}"
   if [[ ${NODE_COUNT} -le 0 ]]; then
     log "Node count <= 0: ${NODE_COUNT}"
     exit 1
