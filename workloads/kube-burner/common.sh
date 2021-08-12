@@ -23,6 +23,7 @@ deploy_operator() {
   (cd benchmark-operator && make deploy)
   kubectl apply -f benchmark-operator/resources/backpack_role.yaml
   kubectl apply -f benchmark-operator/resources/kube-burner-role.yml
+  log "Waiting for benchmark-operator to be running"
   oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 }
 
@@ -44,7 +45,7 @@ wait_for_benchmark() {
   done
   log "Waiting for kube-burner job to start"
   suuid=$(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.suuid}")
-  until oc get pod -n benchmark-operator -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -q Running; do
+  until oc get pod -n benchmark-operator -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -Eq "Running|Failed"; do
     sleep 1
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for job to be running"
@@ -74,7 +75,7 @@ wait_for_benchmark() {
 }
 
 label_nodes() {
-  export POD_NODE_SELCTOR="{node-density: enabled}"
+  export POD_NODE_SELECTOR="{node-density: enabled}"
   if [[ ${NODE_COUNT} -le 0 ]]; then
     log "Node count <= 0: ${NODE_COUNT}"
     exit 1
