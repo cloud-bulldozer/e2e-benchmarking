@@ -29,7 +29,7 @@ export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE}
 export REMOTE_ALERT_PROFILE=${REMOTE_ALERT_PROFILE}
 
 # Kube-burner job
-export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burner:v0.12}
+export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burner:v0.13}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
 export LOG_STREAMING=${LOG_STREAMING:-true}
