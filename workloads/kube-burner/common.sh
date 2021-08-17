@@ -148,6 +148,64 @@ check_running_benchmarks() {
   fi
 }
 
+machineConfig_pool() {
+  # Retrieve MachineConfig Pools 
+  machineConfigPoolList=$(oc get machineconfigpool --no-headers | grep -v  master | awk '{print $1 }')
+  mcpCount=${#machineConfigPoolList[@]}
+  log "${mcpCount} MachineConfig Pool(s) detected"
+  
+  # Vars and arrays to be used in calculating new MCP CPU allocation
+  mcpCountVar=1
+  numMCP=0
+  numNode=0
+  nodeList=()
+  AllocationCalcAmounts=()
+
+  # Calculate allocatable CPU per MCP
+  while [ $mcpCountVar -le $mcpCount ]; do
+    nodes=$('oc get nodes --no-headers --selector=node-role.kubernetes.io/'${machineConfigPoolList[${numMCP}]} | awk '{print $1 }')
+    tempNodeList+=(${nodes[@]})
+    nodeCount=${#tempNodeList[@]}
+    allocationAmounts=()
+    nodeCountVar=1
+    while [ $nodeCountVar -le $nodeCount ]; do
+      nodeAllocCPU=$(oc get ${tempNodeList[numNode]} -o json | jq .status.allocatable.cpu)
+      nodeAllocCPUint=${nodeAllocCPU//[a-z]/}
+      allocationAmounts+=($nodeAllocCPUint)
+      ((nodeCountVar++))
+      ((numNode++))
+    done
+    nodeCountVar=1
+    sumAllocCPU=$(IFS=+; echo "$((${allocationAmounts[*]}))")
+    fiftyPercentCalc=$(( sumAllocCPU / 2 ))
+    newAllocatable="${fiftyPercentCalc}m"
+    AllocationCalcAmounts+=($newAllocatable)
+    calcReplica=$(( $fiftyPercentCalc / 1000 ))
+
+    # Create new project
+    newProject="${machineConfigPoolList[$numMCP]}-test"
+    log "Creating new project ${newProject}"
+    oc new-project $newProject
+
+    # Export vars and deploy sample app
+    export PROJECT=$newProject
+    export REPLICA=$calcReplica
+    export NODE_SELECTOR_KEY="node-role.kubernetes.io/"${machineConfigPoolList[${numMCP}]}
+    export NODE_SELECTOR_VALUE=""
+    log "Deploying $calcReplica replica(s) of the sample-app in MCP: ${machineConfigPoolList[${numMCP}]}"
+    oc apply -f deployment-sampleapp.yml
+
+    # Unset vars and begin to loop to next MCP
+    nodeList+=(${tempNodeList[@]})
+    unset tempNodeList
+    unset PROJECT
+    unset REPLICA
+    unset NODE_SELECTOR_KEY
+    unset NODE_SELECTOR_VALUE
+    ((mcpCountVar++))
+    ((numMCP++))
+  done
+
 cleanup() {
   oc delete ns -l kube-burner-uuid=${UUID}
 }

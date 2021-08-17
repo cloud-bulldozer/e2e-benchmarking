@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sampleapp
+  namespace: ${PROJECT}
+spec:
+  replicas: ${REPLICAS}
+  selector:
+    matchLabels:
+      app: sample
+  template:
+    metadata:
+      labels:
+        app: sample
+    spec:
+      containers:
+      - name: app
+        image: quay.io/smalleni/sampleapp:latest
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 3
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          requests:
+            cpu: "1"
+          limits:
+            cpu: "1"
+      nodeSelector:
+        node_selector:
+        key: ${NODE_SELECTOR_KEY}
+        value: ${NODE_SELECTOR_VALUE}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: samplesvc
+spec:
+  selector:
+    app: sample
+  ports:
+  - port: 80
+    targetPort: 8080
+
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: except
+spec:
+  podSelector:
+    matchLabels:
+      app: sample
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 10.128.0.0/14
+        except:
+        - "10.130.36.0/23"
+        - "10.130.12.0/23"
+        - "10.128.18.0/23"
+        - "10.131.10.0/23"
+        - "10.131.22.0/23"
+        - "10.128.24.0/23"
+        - "10.128.14.0/23"
