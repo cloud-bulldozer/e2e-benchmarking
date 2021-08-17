@@ -15,29 +15,29 @@ All scripts can be tweaked with the following environment variables:
 
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
-| **OPERATOR_REPO**              | benchmark-operator repo                     | https://github.com/cloud-bulldozer/benchmark-operator.git      |
-| **OPERATOR_BRANCH**              | benchmark-operator branch                     | master      |
-| **INDEXING**         | enable/disable indexing         | true    |
+| **OPERATOR_REPO**              | Benchmark-operator repo                     | https://github.com/cloud-bulldozer/benchmark-operator.git      |
+| **OPERATOR_BRANCH**              | Benchmark-operator branch                     | master      |
+| **INDEXING**         | Enable/disable indexing         | true    |
 | **ES_SERVER**        | Elastic search endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
 | **METADATA_COLLECTION**    | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
-| **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 14400 (4 hours) |
+| **JOB_TIMEOUT**      | Kube-burner's job timeout, in seconds      | 14400 (4 hours) |
 | **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 180 |
 | **NODE_SELECTOR**    | The kube-burner pod deployed by benchmark-operator will use this node selector          | {node-role.kubernetes.io/worker: } |
 | **QPS**              | Queries/sec                     | 20      |
-| **BURST**            | Burst queries                   | 20      |
+| **BURST**            | Maximum number of simultaneous queries | 20      |
 | **POD_NODE_SELECTOR**| nodeSelector for pods created by the kube-burner workloads | {node-role.kubernetes.io/worker: } |
 | **POD_WAIT**         | Wait for pods to be ready in each iteration | false |
 | **MAX_WAIT_TIMEOUT** | Kube-burner will time out when the pods deployed take more that this value to be ready | 1h |
-| **WAIT_FOR**         | Wait to be ready fot the resource in this list | [] (empty means all of them) |
+| **WAIT_FOR**         | Wait for the resources of this list to be ready | [] (empty means all of them) |
 | **VERIFY_OBJECTS**   | Verify objects created by kube-burner | true |
 | **ERROR_ON_VERIFY**  | Make kube-burner pod to hang when verification fails | true |
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
-| **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.12 |
+| **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.13 |
 | **LOG_LEVEL**        | Kube-burner log level | info |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
@@ -102,34 +102,34 @@ It creates as many "sleep" pods as configured in the environment variable `PODS`
 
 ### Launching custom workloads
 
-Apart from the pre-defined workloads and metric profiles available in this repo, you can use your own benchmark, metric-profile and alert-profile by using the remote configuration feature of kube-burner. This feature allows kube-burner to fetch configuration files from remote locations using the HTTP protocol. These files must be accesible through HTTP protocol by the kube-burner job. The following environment variables can be used to configure the source for the different configuration files:
+Apart from the pre-defined workloads and metric profiles available in this repo, you can use your own benchmark, metric-profile and alert-profile by using the remote configuration feature of kube-burner. This feature allows kube-burner to fetch configuration files from remote locations. These files must be accessible through HTTP protocol by the kube-burner job. The following environment variables can be used to configure the source for the different configuration files:
 
-- **`REMOTE_CONFIG`**: Refers to the remote location of the Kube-burner main configuration file. Keep in mind that the objectTemplates defined in this file must be HTTP accessible too.
+- **`REMOTE_CONFIG`**: Refers to the remote location of the Kube-burner main configuration file. The objectTemplates defined in this file must be HTTP accessible too.
 - **`REMOTE_METRIC_PROFILE`**: Points to a URL of a valid metric profile.
 - **`REMOTE_ALERT_PROFILE`**: Points to a URL of a valid alert profile.
 
 The script `run_custom_workload_fromgit.sh` provides a shortcut to launch the benchmark.
 
 For example, the command:
-```
-INDEXING=false REMOTE_CONFIG=https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml ./run_custom_workload_fromgit.sh
+
+```shell
+$ INDEXING=false REMOTE_CONFIG=https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml ./run_custom_workload_fromgit.sh
 ```
 
 will launch a pod running a kube-burner process that will use the configuration file defined at https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml
 
-
-Keep in mind that the the following variables are injected as environment variables to the kube-burner pod:
-- UUID
-- INDEXING
-- ES_SERVER
-- ES_INDEX
-- JOB_ITERATIONS
-- QPS
-- BURST
-- CLEANUP
-- POD_NODE_SELECTOR
-- WAIT_WHEN_FINISHED
-- POD_WAIT
-- WAIT_FOR
-- VERIFY_OBJECTS
-- ERROR_ON_VERIFY
+> Note: The following variables are injected as environment variables to the kube-burner pod:
+> - UUID
+> - INDEXING
+> - ES_SERVER
+> - ES_INDEX
+> - JOB_ITERATIONS
+> - QPS
+> - BURST
+> - CLEANUP
+> - POD_NODE_SELECTOR
+> - WAIT_WHEN_FINISHED
+> - POD_WAIT
+> - WAIT_FOR
+> - VERIFY_OBJECTS
+> - ERROR_ON_VERIFY
