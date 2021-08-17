@@ -37,8 +37,8 @@ export_defaults() {
   export COMPARE=${COMPARE:=false}
   network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
   gold_sdn=${GOLD_SDN:=openshiftsdn}
-  throughput_tolerance=${THROUGHPUT_TOLERANCE:=5}
-  latency_tolerance=${LATENCY_TOLERANCE:=5}
+  throughput_tolerance=${THROUGHPUT_TOLERANCE:=10}
+  latency_tolerance=${LATENCY_TOLERANCE:=10}
   export client_server_pairs=(1 2 4)
   export pin=true
   export networkpolicy=${NETWORK_POLICY:=false}
