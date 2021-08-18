@@ -150,9 +150,9 @@ check_running_benchmarks() {
 
 
 machineConfig_pool() {
-mcp_size=$MCP_SIZE
-
+total_mcps=$MCP_SIZE
 # Calculate how many MCP's to use
+log "Retrieving all nodes in the cluster that do not have the role 'master' or 'worker-lb'"
 node_list=$(oc get nodes --no-headers | grep -v master | grep -v worker-lb | awk '{print $1}')
 node_count=${#node_list[@]}
 if [ $node_count -eq 0 ]; then
@@ -162,20 +162,16 @@ else
   log "$node_count node(s) found"
 fi
 
-if [ $node_count -le 10 ]; then
-  mcp_count=1
-  log "$mcp_count new MCP(s) required"
-else
-  mcp_count=$((($node_count / 10) + ($node_count % 10 > 0)))
-  log "$mcp_count new MCP(s) required"
-fi
-
 if [ $node_count -lt 10 ]; then
-  log "Less than 10 nodes detected, setting MCP_SIZE to number of nodes"
-  mcp_size=$node_count
+  total_mcps=$node_count
+  mcp_node_count=1
+  log "$total_mcps new MCP(s) required with 1 node in each"
+else
+  total_mcps=$((($node_count / 10) + ($node_count % 10 > 0)))
+  log "$total_mcps new MCP(s) required"
 fi
 
-if [ $node_count -lt $mcp_size ]; then
+if [ $node_count -lt $total_mcps ]; then
   log "MCP_SIZE is greater than available nodes, exiting"
   exit 1
 fi
@@ -188,12 +184,14 @@ while [ $mcp_deployment -le $mcp_count ]; do
   export MCP_NAME="upgrade$mcp_deployment"
   export CUSTOM_MC="upgrade$mcp_deployment"
   export CUSTOM_LABEL="upgrade$mcp_deployment"
+  log "Deploying new MCP $MCP_NAME"
   oc apply -f mcp.yaml
   mcp_list+=("upgrade$mcp_deployment")
   ((mcp_deployment++))
 done
 
 # Label nodes in each new MCP
+log "Applying custom labels to nodes in each new MCP"
 nodes_labeled_mcp=1
 element=0
 node_element=0
@@ -203,16 +201,14 @@ while [ $nodes_labeled_mcp -le $total_mcps ]; do
   temp_node_list=()
   if [ $node_count -lt 10 ]; then
     temp_node_list+=(${node_list[$element]})
-    echo ${temp_node_list[@]}
     ((element++))
   else
     temp_node_list+=(${node_list[@]:$element:$mcp_node_count})
-    echo ${temp_node_list[@]}
     element=$(($element + $mcp_node_count))
   fi
 
   while [ $node_element -lt ${#temp_node_list[@]} ]; do
-    echo "oc label nodes ${temp_node_list[$node_element]} node-role.kubernetes.io/custom=${mcp_list[$i]}"
+    oc label nodes ${temp_node_list[$node_element]} node-role.kubernetes.io/custom=${mcp_list[$i]}
     ((node_element++))
   done
   node_element=0
@@ -220,67 +216,61 @@ while [ $nodes_labeled_mcp -le $total_mcps ]; do
   ((nodes_labeled_mcp++))
 done
 
-}
+log "Completed applying custom labels to nodes in new MCP's"
+# Calculate allocatable CPU per MCP
+log "Creating new project per new MCP and deploying sample application with calculated replica count from allocatable cpu"
+mcp_count_var=1
+mcp_counter=0
+temp_node_list=()
+node_element=0
+allocation_calc_amounts=()
 
-
-
-machineConfig_poolOriginal() {
-  # Retrieve MachineConfig Pools 
-  machineConfigPoolList=$(oc get machineconfigpool --no-headers | grep -v  master | awk '{print $1 }')
-  mcpCount=${#machineConfigPoolList[@]}
-  log "${mcpCount} MachineConfig Pool(s) detected"
-  
-  # Vars and arrays to be used in calculating new MCP CPU allocation
-  mcpCountVar=1
-  numMCP=0
-  numNode=0
-  nodeList=()
-  AllocationCalcAmounts=()
-
-  # Calculate allocatable CPU per MCP
-  while [ $mcpCountVar -le $mcpCount ]; do
-    nodes=$('oc get nodes --no-headers --selector=node-role.kubernetes.io/'${machineConfigPoolList[${numMCP}]} | awk '{print $1 }')
-    tempNodeList+=(${nodes[@]})
-    nodeCount=${#tempNodeList[@]}
-    allocationAmounts=()
-    nodeCountVar=1
-    while [ $nodeCountVar -le $nodeCount ]; do
-      nodeAllocCPU=$(oc get ${tempNodeList[numNode]} -o json | jq .status.allocatable.cpu)
-      nodeAllocCPUint=${nodeAllocCPU//[a-z]/}
-      allocationAmounts+=($nodeAllocCPUint)
-      ((nodeCountVar++))
-      ((numNode++))
-    done
-    nodeCountVar=1
-    sumAllocCPU=$(IFS=+; echo "$((${allocationAmounts[*]}))")
-    fiftyPercentCalc=$(( sumAllocCPU / 2 ))
-    newAllocatable="${fiftyPercentCalc}m"
-    AllocationCalcAmounts+=($newAllocatable)
-    calcReplica=$(( $fiftyPercentCalc / 1000 ))
-
-    # Create new project
-    newProject="${machineConfigPoolList[$numMCP]}-test"
-    log "Creating new project ${newProject}"
-    oc new-project $newProject
-
-    # Export vars and deploy sample app
-    export PROJECT=$newProject
-    export REPLICA=$calcReplica
-    export NODE_SELECTOR_KEY="node-role.kubernetes.io/"${machineConfigPoolList[${numMCP}]}
-    export NODE_SELECTOR_VALUE=""
-    log "Deploying $calcReplica replica(s) of the sample-app in MCP: ${machineConfigPoolList[${numMCP}]}"
-    oc apply -f deployment-sampleapp.yml
-
-    # Unset vars and begin to loop to next MCP
-    nodeList+=(${tempNodeList[@]})
-    unset tempNodeList
-    unset PROJECT
-    unset REPLICA
-    unset NODE_SELECTOR_KEY
-    unset NODE_SELECTOR_VALUE
-    ((mcpCountVar++))
-    ((numMCP++))
+while [ $mcp_count_var -le $total_mcps ]; do
+  nodes=$('oc get nodes --no-headers --selector=node-role.kubernetes.io/custom='${mcp_list[$mcp_counter]} | awk '{print $1 }')
+  temp_node_list+=(${nodes[@]})
+  node_count=${#temp_node_list[@]}
+  allocation_amounts=()
+  node_count_var=1
+  while [ $node_count_var -le $node_count ]; do
+    node_alloc_cpu=$(oc get ${temp_node_list[mcp_counter]} -o json | jq .status.allocatable.cpu)
+    node_alloc_cpu_int=${node_alloc_cpu//[a-z]/}
+    allocation_amounts+=($node_alloc_cpu_int)
+    ((node_count_var++))
+    ((node_element++))
   done
+  node_count_var=1
+  sum_alloc_cpu=$(IFS=+; echo "$((${allocation_amounts[*]}))")
+  log "Total allocatable cpu ${mcp_list[$mcp_counter]} is $sum_alloc_cpu"
+  calc=$(( sum_alloc_cpu / 2 ))
+  new_allocatable="${calc}m"
+  log "New calculated allocatable cpu to use in MCP ${mcp_list[$mcp_counter]} is $new_allocatable"
+  allocation_calc_amounts+=($new_allocatable)
+  calc_replica=$(( $calc / 1000 ))
+  log "$calc_replica replica(s) will be deployed in MCP ${mcp_list[$mcp_counter]} nodes"
+
+  # Create new project
+  new_project="${mcp_list[$mcp_counter]}"
+  log "Creating new project ${new_project}"
+  oc new-project $new_project
+
+  # Export vars and deploy sample app
+  export PROJECT=$new_project
+  export REPLICA=$calc_replica
+  export NODE_SELECTOR_KEY="node-role.kubernetes.io/"${mcp_list[${mcp_counter}]}
+  export NODE_SELECTOR_VALUE=""
+  log "Deploying $calc_replica replica(s) of the sample-app in MCP ${mcp_list[${mcp_counter}]}"
+  oc apply -f deployment-sampleapp.yml
+
+  # Unset vars and begin to loop to next MCP
+  unset temp_node_list
+  unset PROJECT
+  unset REPLICA
+  unset NODE_SELECTOR_KEY
+  unset NODE_SELECTOR_VALUE
+  ((mcp_count_var++))
+  ((mcp_counter++))
+done
+}
 
 cleanup() {
   oc delete ns -l kube-burner-uuid=${UUID}
