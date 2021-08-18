@@ -1,0 +1,11 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfigPool
+metadata:
+  name: ${MCP_NAME}
+spec:
+  machineConfigSelector:
+    matchExpressions:
+      machineconfiguration.openshift.io/role: ${CUSTOM_ROLE}
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/custom: ${CUSTOM_ROLE}
