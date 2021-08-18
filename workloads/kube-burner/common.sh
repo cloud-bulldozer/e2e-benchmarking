@@ -148,7 +148,6 @@ check_running_benchmarks() {
   fi
 }
 
-
 machineConfig_pool() {
 total_mcps=$MCP_SIZE
 # Calculate how many MCP's to use
@@ -217,8 +216,8 @@ while [ $nodes_labeled_mcp -le $total_mcps ]; do
 done
 
 log "Completed applying custom labels to nodes in new MCP's"
+
 # Calculate allocatable CPU per MCP
-log "Creating new project per new MCP and deploying sample application with calculated replica count from allocatable cpu"
 mcp_count_var=1
 mcp_counter=0
 temp_node_list=()
@@ -226,6 +225,7 @@ node_element=0
 allocation_calc_amounts=()
 
 while [ $mcp_count_var -le $total_mcps ]; do
+  log "Begining deployment of project and sample-app for MCP ${mcp_list[${mcp_counter}]}"
   nodes=$('oc get nodes --no-headers --selector=node-role.kubernetes.io/custom='${mcp_list[$mcp_counter]} | awk '{print $1 }')
   temp_node_list+=(${nodes[@]})
   node_count=${#temp_node_list[@]}
@@ -248,7 +248,7 @@ while [ $mcp_count_var -le $total_mcps ]; do
   calc_replica=$(( $calc / 1000 ))
   log "$calc_replica replica(s) will be deployed in MCP ${mcp_list[$mcp_counter]} nodes"
 
-  # Create new project
+  # Create new project per MCP
   new_project="${mcp_list[$mcp_counter]}"
   log "Creating new project ${new_project}"
   oc new-project $new_project
@@ -258,10 +258,11 @@ while [ $mcp_count_var -le $total_mcps ]; do
   export REPLICA=$calc_replica
   export NODE_SELECTOR_KEY="node-role.kubernetes.io/"${mcp_list[${mcp_counter}]}
   export NODE_SELECTOR_VALUE=""
-  log "Deploying $calc_replica replica(s) of the sample-app in MCP ${mcp_list[${mcp_counter}]}"
+  log "Deploying $calc_replica replica(s) of the sample-app for MCP ${mcp_list[${mcp_counter}]}"
   oc apply -f deployment-sampleapp.yml
 
   # Unset vars and begin to loop to next MCP
+  log "Completed sample-app deployment in ${mcp_list[${mcp_counter}]}"
   unset temp_node_list
   unset PROJECT
   unset REPLICA
@@ -275,84 +276,4 @@ done
 cleanup() {
   oc delete ns -l kube-burner-uuid=${UUID}
 }
-
----
-
-#!/bin/bash
-# GNU bash, version 4.4.20
-
-machineConfigPoolList=("worker" "custom")
-#echo ${machineConfigPoolList[1]}
-mcpCount=${#machineConfigPoolList[@]}
-
-if [ $mcpCount -eq 0 ]; then
-echo "No MCP's found; attempting to use worker nodes as default"
-mcpCount=1
-machineConfigPoolList=("worker")
-else
-echo "${mcpCount} MachineConfig Pool(s) detected"
-fi
-
-mcpCountVar=1
-numMCP=0
-numNode=0
-nodeList=()
-AllocationCalcAmounts=()
-
-        
- while [ $mcpCountVar -le $mcpCount ]; do
-   #echo "mcpCountVar is $mcpCountVar"
-   #echo "mcpCount is $mcpCount"
-   tempNodeList=()
-   #echo "${tempNodeList[@]} should be empty"
-   nodes=("worker-0" "worker-1")
-   tempNodeList+=(${nodes[@]})
-   nodeCount=${#tempNodeList[@]}
-   nodeCountVar=1
-   allocationAmounts=()
-   while [ $nodeCountVar -le $nodeCount ]; do
-     nodeAllocCPU="39500m"
-     nodeAllocCPUint=${nodeAllocCPU//[a-z]/}
-     #echo $nodeAllocCPUint
-     allocationAmounts+=($nodeAllocCPUint)
-     #echo ${allocationAmounts[@]}
-     ((nodeCountVar++))
-     ((numNode++))
-   done
-   nodeCountVar=1
-   #echo "nodeCountVar here is $nodeCountVar"
-   sumAllocCPU=$(IFS=+; echo "$((${allocationAmounts[*]}))")
-   #echo "Total allocated CPU for nodes in MCP ${machineConfigPoolList[$numMCP]} is ${sumAllocCPU}m"
-   fiftyPercentCalc=$(( sumAllocCPU / 2 ))
-   #echo $fiftyPercentCalc
-   newAllocatable="${fiftyPercentCalc}m"
-   #echo "50% capacity allocated CPU for nodes in MCP ${machineConfigPoolList[$numMCP]} is $newAllocatable"
-   calcReplica=$(( $fiftyPercentCalc / 1000 ))
-   #echo "$calcReplica replica(s) needed"
-   AllocationCalcAmounts+=($newAllocatable)
-   
-   # Create new test MCP
-   
-   
-   newProject="${machineConfigPoolList[$numMCP]}-test"
-   echo "Creating new project ${newProject}"
-   echo "oc new-project $newProject"
-   echo "export PROJECT=$newProject"
-   echo "export REPLICA=$calcReplica"
-   echo  "export NODE_SELECTOR_KEY="node-role.kubernetes.io/"${machineConfigPoolList[${numMCP}]}"
-   echo "oc apply -f deployment-sampleapp.yml"
-   echo "Deploying $calcReplica replica(s) of the sample-app in MCP: ${machineConfigPoolList[${numMCP}]}"
-   nodeList+=(${tempNodeList[@]})
-   #echo "${tempNodeList[@]} should have nodes here"
-   unset tempNodeList
-   
-   ((mcpCountVar++))
-   ((numMCP++))
-  
- done
- 
- echo "---"
- echo ${machineConfigPoolList[@]}
- echo ${AllocationCalcAmounts[@]}
- echo ${nodeList[@]}
  
