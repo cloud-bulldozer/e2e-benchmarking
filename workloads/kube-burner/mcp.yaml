@@ -1,11 +1,13 @@
+---
+
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
-  name: ${MCP_NAME}
+  name: ${CUSTOM_NAME}
 spec:
   machineConfigSelector:
     matchExpressions:
-      machineconfiguration.openshift.io/role: ${CUSTOM_ROLE}
+      - {key: machineconfiguration.openshift.io/role, operator: In, values: ["${CUSTOM_VALUE}"]}
   nodeSelector:
     matchLabels:
-      node-role.kubernetes.io/custom: ${CUSTOM_ROLE}
+      node-role.kubernetes.io/custom: ${CUSTOM_LABEL}

@@ -1,5 +1,9 @@
 source env.sh
 
+log() {
+  echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
+}
+
 # If ES_SERVER is set and empty we disable ES indexing and metadata collection
 if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
   export METADATA_COLLECTION=false
@@ -24,10 +28,6 @@ else
   export isBareMetal=false
 fi
 
-
-log() {
-  echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
-}
 
 deploy_operator() {
   if [[ "${isBareMetal}" == "false" ]]; then
@@ -95,8 +95,8 @@ wait_for_benchmark() {
 label_nodes() {
   export NODE_SELECTOR_KEY="node-density"
   export NODE_SELECTOR_VALUE="enabled"
-  if [[ ${NODE_COUNT} -le 0 ]]; then
-    log "Node count <= 0: ${NODE_COUNT}"
+  if [[ ${#NODE_COUNT} -eq 0 ]]; then
+    log "Node count = 0: exiting"
     exit 1
   fi
   nodes=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT})
@@ -153,7 +153,7 @@ total_mcps=$MCP_SIZE
 mcp_node_count=$MCP_NODE_COUNT
 # Calculate how many MCP's to use
 log "Retrieving all nodes in the cluster that do not have the role 'master' or 'worker-lb'"
-node_list=$(oc get nodes --no-headers | grep -v master | grep -v worker-lb | awk '{print $1}')
+node_list=($(oc get nodes --no-headers | grep -v master | grep -v worker-lb | awk '{print $1}'))
 node_count=${#node_list[@]}
 if [ $node_count -eq 0 ]; then
   log "Did not find any nodes that were not 'master' or 'worker-lb' nodes, exiting"
@@ -181,12 +181,13 @@ mcp_deployment=1
 
 # Deploy MCP's required
 while [ $mcp_deployment -le $total_mcps ]; do
-  export MCP_NAME="upgrade$mcp_deployment"
-  export CUSTOM_MC="upgrade$mcp_deployment"
-  export CUSTOM_LABEL="upgrade$mcp_deployment"
-  log "Deploying new MCP $MCP_NAME"
+  export_label="upgrade$mcp_deployment"
+  export CUSTOM_NAME=${export_label}
+  export CUSTOM_VALUE=${export_label}
+  export CUSTOM_LABEL=${export_label}
+  log "Deploying new MCP ${export_label}"
   oc apply -f mcp.yaml
-  mcp_list+=("upgrade$mcp_deployment")
+  mcp_list+=(${export_label})
   ((mcp_deployment++))
 done
 
