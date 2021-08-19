@@ -200,7 +200,7 @@ i=0
 
 while [ $nodes_labeled_mcp -le $total_mcps ]; do
   temp_node_list=()
-  if [ $node_count -lt 10 ]; then
+  if [ $node_count -le 10 ]; then
     temp_node_list+=(${node_list[$element]})
     ((element++))
   else
@@ -209,7 +209,7 @@ while [ $nodes_labeled_mcp -le $total_mcps ]; do
   fi
 
   while [ $node_element -lt ${#temp_node_list[@]} ]; do
-    oc label nodes ${temp_node_list[$node_element]} node-role.kubernetes.io/custom=${mcp_list[$i]}
+    oc label nodes ${temp_node_list[$node_element]} node-role.kubernetes.io/custom=${mcp_list[$i]}  --overwrite=true
     ((node_element++))
   done
   node_element=0
@@ -228,15 +228,17 @@ node_element=0
 
 while [ $mcp_count_var -le $total_mcps ]; do
   log "Begining deployment of project and sample-app for MCP ${mcp_list[${mcp_counter}]}"
-  nodes=$('oc get nodes --no-headers --selector=node-role.kubernetes.io/custom='${mcp_list[$mcp_counter]} | awk '{print $1 }')
+  nodes=($(oc get nodes --no-headers --selector=node-role.kubernetes.io/custom=${mcp_list[$mcp_counter]} | awk '{print $1 }'))
   temp_node_list+=(${nodes[@]})
   node_count=${#temp_node_list[@]}
   allocation_amounts=()
   node_count_var=1
   while [ $node_count_var -le $node_count ]; do
-    node_alloc_cpu=$(oc get ${temp_node_list[mcp_counter]} -o json | jq .status.allocatable.cpu)
+    node_alloc_cpu=$(oc get node ${temp_node_list[mcp_counter]} -o json | jq .status.allocatable.cpu)
     node_alloc_cpu_int=${node_alloc_cpu//[a-z]/}
-    allocation_amounts+=($node_alloc_cpu_int)
+    node_alloc_cpu_int_p1="${node_alloc_cpu_int%\"}"
+    node_alloc_cpu_int_p2="${node_alloc_cpu_int_p1#\"}"
+    allocation_amounts+=($node_alloc_cpu_int_p2)
     ((node_count_var++))
     ((node_element++))
   done
@@ -261,7 +263,7 @@ while [ $mcp_count_var -le $total_mcps ]; do
   export NODE_SELECTOR_KEY="node-role.kubernetes.io/custom"
   export NODE_SELECTOR_VALUE=${mcp_list[${mcp_counter}]}
   log "Deploying $calc_replica replica(s) of the sample-app for MCP ${mcp_list[${mcp_counter}]}"
-  oc apply -f deployment-sampleapp.yml
+  envsubst < deployment-sampleapp.yml | oc apply -f -
 
   # Unset vars and begin to loop to next MCP
   log "Completed sample-app deployment in ${mcp_list[${mcp_counter}]}"
