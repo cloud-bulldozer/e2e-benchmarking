@@ -186,7 +186,7 @@ while [ $mcp_deployment -le $total_mcps ]; do
   export CUSTOM_VALUE=${export_label}
   export CUSTOM_LABEL=${export_label}
   log "Deploying new MCP ${export_label}"
-  oc apply -f mcp.yaml
+  envsubst < mcp.yaml | oc apply -f -
   mcp_list+=(${export_label})
   ((mcp_deployment++))
 done
