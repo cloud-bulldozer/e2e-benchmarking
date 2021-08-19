@@ -150,6 +150,7 @@ check_running_benchmarks() {
 
 machineConfig_pool() {
 total_mcps=$MCP_SIZE
+mcp_node_count=$MCP_NODE_COUNT
 # Calculate how many MCP's to use
 log "Retrieving all nodes in the cluster that do not have the role 'master' or 'worker-lb'"
 node_list=$(oc get nodes --no-headers | grep -v master | grep -v worker-lb | awk '{print $1}')
@@ -179,7 +180,7 @@ mcp_list=()
 mcp_deployment=1
 
 # Deploy MCP's required
-while [ $mcp_deployment -le $mcp_count ]; do
+while [ $mcp_deployment -le $total_mcps ]; do
   export MCP_NAME="upgrade$mcp_deployment"
   export CUSTOM_MC="upgrade$mcp_deployment"
   export CUSTOM_LABEL="upgrade$mcp_deployment"
@@ -222,7 +223,7 @@ mcp_count_var=1
 mcp_counter=0
 temp_node_list=()
 node_element=0
-allocation_calc_amounts=()
+#allocation_calc_amounts=()
 
 while [ $mcp_count_var -le $total_mcps ]; do
   log "Begining deployment of project and sample-app for MCP ${mcp_list[${mcp_counter}]}"
@@ -244,7 +245,7 @@ while [ $mcp_count_var -le $total_mcps ]; do
   calc=$(( sum_alloc_cpu / 2 ))
   new_allocatable="${calc}m"
   log "New calculated allocatable cpu to use in MCP ${mcp_list[$mcp_counter]} is $new_allocatable"
-  allocation_calc_amounts+=($new_allocatable)
+  #allocation_calc_amounts+=($new_allocatable)
   calc_replica=$(( $calc / 1000 ))
   log "$calc_replica replica(s) will be deployed in MCP ${mcp_list[$mcp_counter]} nodes"
 
@@ -255,9 +256,9 @@ while [ $mcp_count_var -le $total_mcps ]; do
 
   # Export vars and deploy sample app
   export PROJECT=$new_project
-  export REPLICA=$calc_replica
-  export NODE_SELECTOR_KEY="node-role.kubernetes.io/"${mcp_list[${mcp_counter}]}
-  export NODE_SELECTOR_VALUE=""
+  export REPLICAS=$calc_replica
+  export NODE_SELECTOR_KEY="node-role.kubernetes.io/custom"
+  export NODE_SELECTOR_VALUE=${mcp_list[${mcp_counter}]}
   log "Deploying $calc_replica replica(s) of the sample-app for MCP ${mcp_list[${mcp_counter}]}"
   oc apply -f deployment-sampleapp.yml
 
@@ -265,7 +266,7 @@ while [ $mcp_count_var -le $total_mcps ]; do
   log "Completed sample-app deployment in ${mcp_list[${mcp_counter}]}"
   unset temp_node_list
   unset PROJECT
-  unset REPLICA
+  unset REPLICAS
   unset NODE_SELECTOR_KEY
   unset NODE_SELECTOR_VALUE
   ((mcp_count_var++))

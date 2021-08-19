@@ -15,4 +15,7 @@ rm -rf benchmark-operator
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
 fi
-exit ${rc}
+#exit ${rc}
+
+export MCP_SIZE=1
+export MCP_NODE_COUNT=10
