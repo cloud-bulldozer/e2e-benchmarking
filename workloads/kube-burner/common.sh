@@ -264,7 +264,7 @@ while [ $mcp_count_var -le $total_mcps ]; do
   # Export vars and deploy sample app
   export PROJECT=$new_project
   export REPLICAS=$calc_replica
-  export NODE_SELECTOR_KEY="node-role.kubernetes.io/custom"
+  #export NODE_SELECTOR_KEY="node-role.kubernetes.io/custom"
   export NODE_SELECTOR_VALUE=${mcp_list[${mcp_counter}]}
   log "Deploying $calc_replica replica(s) of the sample-app for MCP ${mcp_list[${mcp_counter}]}"
   envsubst < deployment-sampleapp.yml | oc apply -f -

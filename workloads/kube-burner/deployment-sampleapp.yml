@@ -31,9 +31,8 @@ spec:
           limits:
             cpu: "1"
       nodeSelector:
-        node_selector:
-        key: ${NODE_SELECTOR_KEY}
-        value: ${NODE_SELECTOR_VALUE}
+        node-role.kubernetes.io/custom: ${NODE_SELECTOR_VALUE}
+
 
 ---
 apiVersion: v1
