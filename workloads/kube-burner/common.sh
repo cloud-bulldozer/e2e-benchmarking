@@ -213,6 +213,7 @@ while [ $nodes_labeled_mcp -le $total_mcps ]; do
     ((node_element++))
   done
   node_element=0
+  temp_node_list=()
   ((i++))
   ((nodes_labeled_mcp++))
 done
@@ -222,27 +223,30 @@ log "Completed applying custom labels to nodes in new MCP's"
 # Calculate allocatable CPU per MCP
 mcp_count_var=1
 mcp_counter=0
+temp_node_list_counter=0
 temp_node_list=()
 node_element=0
 #allocation_calc_amounts=()
 
 while [ $mcp_count_var -le $total_mcps ]; do
   log "Begining deployment of project and sample-app for MCP ${mcp_list[${mcp_counter}]}"
-  nodes=($(oc get nodes --no-headers --selector=node-role.kubernetes.io/custom=${mcp_list[$mcp_counter]} | awk '{print $1 }'))
+  nodes=($(oc get nodes --no-headers --selector=node-role.kubernetes.io/custom=${mcp_list[${mcp_counter}]} | awk '{print $1 }'))
   temp_node_list+=(${nodes[@]})
   node_count=${#temp_node_list[@]}
   allocation_amounts=()
   node_count_var=1
   while [ $node_count_var -le $node_count ]; do
-    node_alloc_cpu=$(oc get node ${temp_node_list[mcp_counter]} -o json | jq .status.allocatable.cpu)
+    node_alloc_cpu=$(oc get node ${temp_node_list[${temp_node_list_counter}]} -o json | jq .status.allocatable.cpu)
     node_alloc_cpu_int=${node_alloc_cpu//[a-z]/}
     node_alloc_cpu_int_p1="${node_alloc_cpu_int%\"}"
     node_alloc_cpu_int_p2="${node_alloc_cpu_int_p1#\"}"
     allocation_amounts+=($node_alloc_cpu_int_p2)
+    ((temp_node_list_counter++))
     ((node_count_var++))
     ((node_element++))
   done
   node_count_var=1
+  temp_node_list_counter=0
   sum_alloc_cpu=$(IFS=+; echo "$((${allocation_amounts[*]}))")
   log "Total allocatable cpu ${mcp_list[$mcp_counter]} is $sum_alloc_cpu"
   calc=$(( sum_alloc_cpu / 2 ))
