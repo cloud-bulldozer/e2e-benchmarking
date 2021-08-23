@@ -6,7 +6,7 @@ export MCP_NODE_COUNT=10
 
 . common.sh
 
-machineConfig_pool
+baremetal_upgrade_auxiliary
 exit 1
 
 

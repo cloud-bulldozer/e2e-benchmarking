@@ -148,7 +148,7 @@ check_running_benchmarks() {
   fi
 }
 
-machineConfig_pool() {
+baremetal_upgrade_auxiliary() {
 total_mcps=$MCP_SIZE
 mcp_node_count=$MCP_NODE_COUNT
 # Calculate how many MCP's to use
@@ -185,6 +185,8 @@ while [ $mcp_deployment -le $total_mcps ]; do
   export CUSTOM_NAME=${export_label}
   export CUSTOM_VALUE=${export_label}
   export CUSTOM_LABEL=${export_label}
+  log "Removing MCP ${export_label} if it exists"
+  oc delete mcp ${export_label} --ignore-not-found
   log "Deploying new MCP ${export_label}"
   envsubst < mcp.yaml | oc apply -f -
   mcp_list+=(${export_label})
@@ -258,6 +260,10 @@ while [ $mcp_count_var -le $total_mcps ]; do
 
   # Create new project per MCP
   new_project="${mcp_list[$mcp_counter]}"
+  log "Removing project ${new_project} if it exists"
+  oc delete project ${new_project} --force --grace-period=0 --ignore-not-found
+  log "Sleeping for 10s to allow forced project deletion to complete successfully if project was found"
+  sleep 10
   log "Creating new project ${new_project}"
   oc new-project $new_project
 
