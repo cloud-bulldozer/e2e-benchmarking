@@ -151,10 +151,22 @@ check_running_benchmarks() {
 baremetal_upgrade_auxiliary() {
 total_mcps=$MCP_SIZE
 mcp_node_count=$MCP_NODE_COUNT
-# Calculate how many MCP's to use
-log "Retrieving all nodes in the cluster that do not have the role 'master' or 'worker-lb'"
+
+if [ ! -z $total_mcps ] && [ $total_mcps -eq 0 ]; then
+  echo "MCP_SIZE env var was set to 0, exiting"
+  exit 1
+fi
+if [ ! -z $mcp_node_count ] && [ $mcp_node_count -eq 0 ]; then
+  echo "MCP_NODE_COUNT env var was set to 0, exiting"
+  exit 1
+fi
+
+# Retrieve nodes in cluster
+echo "Retrieving all nodes in the cluster that do not have the role 'master' or 'worker-lb'"
 node_list=($(oc get nodes --no-headers | grep -v master | grep -v worker-lb | awk '{print $1}'))
 node_count=${#node_list[@]}
+
+# Check for 1 or more nodes to be used
 if [ $node_count -eq 0 ]; then
   log "Did not find any nodes that were not 'master' or 'worker-lb' nodes, exiting"
   exit 1
@@ -162,18 +174,53 @@ else
   log "$node_count node(s) found"
 fi
 
-if [ $node_count -lt 10 ]; then
-  total_mcps=$node_count
-  mcp_node_count=1
-  log "$total_mcps new MCP(s) required with 1 node in each"
+# Use Defaults if MCP_SIZE and MCP_NODE_COUNT not set
+if [ -z $total_mcps ] && [ -z $mcp_node_count ]; then
+  log "MCP_SIZE and MCP_NODE_COUNT not set, calculating defaults!"
+  if [ $node_count -le 10 ]; then
+    total_mcps=$node_count
+    mcp_node_count=1
+    log "10 or less nodes found, defaulting new MCP(s) to node count: $total_mcps new MCP(s) required with 1 node in each"
+    defaults="true"
+  else
+    log "Calculating number of MCP's required with a default of 10 nodes per MCP"
+    mcp_node_count=10
+    total_mcps=$((($node_count / 10) + ($node_count % 10 > 0)))
+    log "$total_mcps new MCP(s) required"
+  fi
 else
-  total_mcps=$((($node_count / 10) + ($node_count % 10 > 0)))
-  log "$total_mcps new MCP(s) required"
-fi
 
-if [ $node_count -lt $total_mcps ]; then
-  log "MCP_SIZE is greater than available nodes, exiting"
-  exit 1
+  # Calculate total MCP's needed if only MCP_NODE_COUNT are provided
+  if [ -z $total_mcps ] && [ ! -z $mcp_node_count ]; then
+    if [ $mcp_node_count -gt $node_count ]; then
+      log "Supplied MCP_NODE_COUNT is greater than available nodes, exiting"
+      exit 1
+    else
+      log "Found MCP_NODE_COUNT value, but not MCP_SIZE, attempting to calculate MCP_SIZE with supplied MCP_NODE_COUNT"
+      total_mcps=$((($node_count / $mcp_node_count) + ($node_count % $mcp_node_count > 0)))
+      log "$total_mcps new MCP(s) required for supplied MCP_NODE_COUNT of $mcp_node_count with $node_count node(s) available"
+    fi
+  fi
+
+  # Calculate total nodes per MCP if only total MCP's are provided
+  if [ ! -z $total_mcps ] && [ -z $mcp_node_count ]; then
+    if [ $total_mcps -gt $node_count ]; then
+      log "Supplied MCP_SIZE is greater than available nodes, exiting"
+      exit 1
+    else
+      echo "Found MCP_SIZE value, but not MCP_NODE_COUNT, attempting to calculate MCP_NODE_COUNT with supplied MCP_SIZE"
+      mcp_node_count=$((($node_count / $total_mcps) + ($node_count % $total_mcps > 0)))
+      log "$mcp_node_count node(s) required per MCP for supplied MCP_SIZE of $total_mcps with $node_count node(s) available"
+    fi
+  fi
+  
+  # Verify that MCP_SIZE and MCP_NODE_COUNT set equal available nodes
+  if [ ! -z $total_mcps ] && [ ! -z $mcp_node_count ]; then
+    if [ $((($total_mcps * $mcp_node_count))) -ne $node_count ]; then
+      log "The product of MCP_SIZE and MCP_NODE_COUNT supplied values does not equal available nodes, unless node count is already known, please set one or the other"
+      exit 1
+    fi
+  fi
 fi
 
 mcp_list=()
@@ -202,7 +249,7 @@ i=0
 
 while [ $nodes_labeled_mcp -le $total_mcps ]; do
   temp_node_list=()
-  if [ $node_count -le 10 ]; then
+  if [ "$defaults" = "true" ]; then
     temp_node_list+=(${node_list[$element]})
     ((element++))
   else
@@ -346,8 +393,9 @@ log "Sleeping for 1m to allow routes to be established"
 sleep 60
 
 # Use mb to hit sample app with http requests using request.json file
+log "Begining to use mb to hit routes using created requests.json"
 ./mb -i requests.json 
-
+log "Finished running mb"
 }
 
 cleanup() {
