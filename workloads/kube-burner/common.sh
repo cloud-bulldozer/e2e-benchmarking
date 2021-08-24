@@ -230,6 +230,10 @@ temp_node_list=()
 node_element=0
 #allocation_calc_amounts=()
 
+# Store information to be used when creating json file for mb
+project_list=()
+replica_count=()
+
 while [ $mcp_count_var -le $total_mcps ]; do
   log "Begining deployment of project and sample-app for MCP ${mcp_list[${mcp_counter}]}"
   nodes=($(oc get nodes --no-headers --selector=node-role.kubernetes.io/custom=${mcp_list[${mcp_counter}]} | awk '{print $1 }'))
@@ -267,8 +271,13 @@ while [ $mcp_count_var -le $total_mcps ]; do
   log "Creating new project ${new_project}"
   oc new-project $new_project
 
+  # Append information arrays to be used for mb json file
+  project_list+=($new_project)
+  replica_count+=($calc_replica)
+
   # Export vars and deploy sample app
   export PROJECT=$new_project
+  export APP_NAME="sampleapp-${new_project}"
   export REPLICAS=$calc_replica
   #export NODE_SELECTOR_KEY="node-role.kubernetes.io/custom"
   export NODE_SELECTOR_VALUE=${mcp_list[${mcp_counter}]}
@@ -276,7 +285,7 @@ while [ $mcp_count_var -le $total_mcps ]; do
   envsubst < deployment-sampleapp.yml | oc apply -f -
 
   # Unset vars and begin to loop to next MCP
-  log "Completed sample-app deployment in ${mcp_list[${mcp_counter}]}"
+  log "Completed ${APP_NAME} deployment in ${mcp_list[${mcp_counter}]}"
   unset temp_node_list
   unset PROJECT
   unset REPLICAS
@@ -285,6 +294,60 @@ while [ $mcp_count_var -le $total_mcps ]; do
   ((mcp_count_var++))
   ((mcp_counter++))
 done
+
+# Clone mb project
+if [ -d mb ]; then rm -Rf mb; fi
+git clone https://github.com/jmencak/mb.git
+sudo yum -y install autoconf
+sudo yum -y install automake
+sudo yum -y install
+(cd mb && make all)
+
+# Create requests.json file
+requests=${#project_list[@]}
+iterations=1
+element=0
+
+cd mb
+
+cat >> ./requests.json << EOF
+[
+EOF
+
+while [ $iterations -le $requests ]; do
+  oc expose service samplesvc -n ${project_list[$element]} 
+  host=($(oc get route samplesvc -n ${project_list[$element]} -ojson | jq .spec.host))
+  clients=${replica_count[$element]}
+
+  cat >> ./requests.json << EOF
+  {
+    "scheme": "http",
+    "host": ${host},
+    "port": 80,
+    "method": "GET",
+    "path": "/",
+    "delay": {
+      "min": 1000,
+      "max": 2000
+    },
+    "keep-alive-requests": 100,
+    "clients": ${clients}
+  },
+EOF
+((iterations++))
+((element++))
+done
+
+cat >> ./requests.json << EOF
+]
+EOF
+
+log "Sleeping for 1m to allow routes to be established"
+sleep 60
+
+# Use mb to hit sample app with http requests using request.json file
+./mb -i requests.json 
+
 }
 
 cleanup() {

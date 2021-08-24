@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sampleapp
+  name: ${APP_NAME}
   namespace: ${PROJECT}
 spec:
   replicas: ${REPLICAS}
@@ -56,7 +56,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: sample
+      app: ${APP_NAME}
   ingress:
   - from:
     - ipBlock:
