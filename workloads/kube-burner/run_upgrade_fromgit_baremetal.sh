@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-export MCP_SIZE=
+export TOTAL_MCPS=
 export MCP_NODE_COUNT=
 
 . common.sh

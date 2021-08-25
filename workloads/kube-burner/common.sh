@@ -149,11 +149,11 @@ check_running_benchmarks() {
 }
 
 baremetal_upgrade_auxiliary() {
-total_mcps=$MCP_SIZE
+total_mcps=$TOTAL_MCPS
 mcp_node_count=$MCP_NODE_COUNT
 
 if [ ! -z $total_mcps ] && [ $total_mcps -eq 0 ]; then
-  echo "MCP_SIZE env var was set to 0, exiting"
+  echo "TOTAL_MCPS env var was set to 0, exiting"
   exit 1
 fi
 if [ ! -z $mcp_node_count ] && [ $mcp_node_count -eq 0 ]; then
@@ -174,9 +174,9 @@ else
   log "$node_count node(s) found"
 fi
 
-# Use Defaults if MCP_SIZE and MCP_NODE_COUNT not set
+# Use Defaults if TOTAL_MCPS and MCP_NODE_COUNT not set
 if [ -z $total_mcps ] && [ -z $mcp_node_count ]; then
-  log "MCP_SIZE and MCP_NODE_COUNT not set, calculating defaults!"
+  log "TOTAL_MCPS and MCP_NODE_COUNT not set, calculating defaults!"
   if [ $node_count -le 10 ]; then
     total_mcps=$node_count
     mcp_node_count=1
@@ -196,7 +196,7 @@ else
       log "Supplied MCP_NODE_COUNT is greater than available nodes, exiting"
       exit 1
     else
-      log "Found MCP_NODE_COUNT value, but not MCP_SIZE, attempting to calculate MCP_SIZE with supplied MCP_NODE_COUNT"
+      log "Found MCP_NODE_COUNT value, but not TOTAL_MCPS, attempting to calculate TOTAL_MCPS with supplied MCP_NODE_COUNT"
       total_mcps=$((($node_count / $mcp_node_count) + ($node_count % $mcp_node_count > 0)))
       log "$total_mcps new MCP(s) required for supplied MCP_NODE_COUNT of $mcp_node_count with $node_count node(s) available"
     fi
@@ -205,19 +205,19 @@ else
   # Calculate total nodes per MCP if only total MCP's are provided
   if [ ! -z $total_mcps ] && [ -z $mcp_node_count ]; then
     if [ $total_mcps -gt $node_count ]; then
-      log "Supplied MCP_SIZE is greater than available nodes, exiting"
+      log "Supplied TOTAL_MCPS is greater than available nodes, exiting"
       exit 1
     else
-      echo "Found MCP_SIZE value, but not MCP_NODE_COUNT, attempting to calculate MCP_NODE_COUNT with supplied MCP_SIZE"
+      echo "Found TOTAL_MCPS value, but not MCP_NODE_COUNT, attempting to calculate MCP_NODE_COUNT with supplied TOTAL_MCPS"
       mcp_node_count=$((($node_count / $total_mcps) + ($node_count % $total_mcps > 0)))
-      log "$mcp_node_count node(s) required per MCP for supplied MCP_SIZE of $total_mcps with $node_count node(s) available"
+      log "$mcp_node_count node(s) required per MCP for supplied TOTAL_MCPS of $total_mcps with $node_count node(s) available"
     fi
   fi
   
-  # Verify that MCP_SIZE and MCP_NODE_COUNT set equal available nodes
+  # Verify that TOTAL_MCPS and MCP_NODE_COUNT set equal available nodes
   if [ ! -z $total_mcps ] && [ ! -z $mcp_node_count ]; then
     if [ $((($total_mcps * $mcp_node_count))) -ne $node_count ]; then
-      log "The product of MCP_SIZE and MCP_NODE_COUNT supplied values does not equal available nodes, unless node count is already known, please set one or the other"
+      log "The product of TOTAL_MCPS and MCP_NODE_COUNT supplied values does not equal available nodes, unless node count is already known, please set one or the other"
       exit 1
     fi
   fi
