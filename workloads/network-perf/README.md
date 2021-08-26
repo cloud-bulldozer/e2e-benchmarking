@@ -121,6 +121,12 @@ You need at least 2 worker nodes placed in different in different topology zones
 If false, uperf client and server pods will be colocated in the same topology zone. You need at least 2 worker nodes in that topology zone.
 
 
+### NO_AZ
+Default: `false`
+
+If `true`, zones will be ignored completely. This can be useful when running this benchmark against VMware Cloud or other providers where zones
+may not be set. Querying zones in that case will return `<no value>`
+
 ## Suggested configurations
 
 ```sh
