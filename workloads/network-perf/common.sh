@@ -43,10 +43,19 @@ export_defaults() {
   export pin=true
   export networkpolicy=${NETWORK_POLICY:=false}
   export multi_az=${MULTI_AZ:=true}
+  export no_az=${NO_AZ:-false}  # for tests on providers like VMware where zones are absent, set this to true
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
 
   # If multi_az we use one node from the two first AZs
-  if [[ ${multi_az} == "true" ]]; then
+  if [[ ${no_az} == "true" ]]; then
+    nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="" -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
+    if [[ ${#nodes[@]} -lt 2 ]]; then
+      log "At least 2 worker nodes placed are required"
+      exit 1
+    fi
+    export server=${nodes[0]}
+    export client=${nodes[1]}
+  elif [[ ${multi_az} == "true" ]]; then
     # Get AZs from worker nodes
     log "Colocating uperf pods in different AZs"
     if [[ ${#zones[@]} -gt 1 ]]; then
