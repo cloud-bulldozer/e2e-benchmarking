@@ -399,7 +399,7 @@ EOF
   log "---------------------Deploy mb-pod---------------------"
   oc apply -f mb_pod.yml
   sleep 30
-  oc logs mb-pod -f 2>&1 | tee response.csv
+  oc logs mb-pod -f 
   }
 
 cleanup() {
