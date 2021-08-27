@@ -152,7 +152,7 @@ baremetal_upgrade_auxiliary() {
   log "---------------------Checking Env Vars---------------------"
   total_mcps=$TOTAL_MCPS
   mcp_node_count=$MCP_NODE_COUNT
-  create_mcps=${CREATE_MCPS}
+  create_mcps_bool=${CREATE_MCPS_BOOL:=false}
   if [ ! -z $total_mcps ] && [ $total_mcps -eq 0 ]; then
     echo "TOTAL_MCPS env var was set to 0, exiting"
     exit 1
@@ -161,12 +161,12 @@ baremetal_upgrade_auxiliary() {
     echo "MCP_NODE_COUNT env var was set to 0, exiting"
     exit 1
   fi
-  if [[ $create_mcps -eq 1 ]]; then
-       mcp_bool="true"
-       echo "CREATE_MCPS was set. Creating new MCPs"
+  if [ "${create_mcps_bool}" == "true" ]; then
+    mcp_bool="true"
+    echo "CREATE_MCPS_BOOL was set. Creating new MCPs"
   else
     mcp_bool="false"
-    echo "CREATE_MCPS not set. Skipping MCP Creation"
+    echo "CREATE_MCPS_BOOL set to skip. Skipping MCP Creation"
   fi
   
   log "---------------------Retrieving Available Nodes---------------------"

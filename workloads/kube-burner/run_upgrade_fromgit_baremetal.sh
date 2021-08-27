@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 #set -e
 
-export TOTAL_MCPS=${TOTAL_MCPS:- }
-export MCP_NODE_COUNT=${MCP_NODE_COUNT:- }
-export CREATE_MCPS=${CREATE_MCPS:-0}   # 1 to set, 0 to skip
-
 . common.sh
+
+export TOTAL_MCPS=${TOTAL_MCPS:-2}   # will skip if CREATE_MCPS_BOOL is set to false!
+export MCP_NODE_COUNT=${MCP_NODE_COUNT:- }   # will skip if CREATE_MCPS_BOOL is set to false!
+export CREATE_MCPS_BOOL=true   # true or false
 
 baremetal_upgrade_auxiliary
 exit 1
+
 
 
