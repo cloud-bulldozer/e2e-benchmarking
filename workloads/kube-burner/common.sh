@@ -163,7 +163,7 @@ baremetal_upgrade_auxiliary() {
   fi
 
   # Retrieve nodes in cluster
-  log "Retrieving all nodes in the cluster that do not have the role 'master' or 'worker-lb'"
+  echo "Retrieving all nodes in the cluster that do not have the role 'master' or 'worker-lb'"
   node_list=($(oc get nodes --no-headers | grep -v master | grep -v worker-lb | awk '{print $1}'))
   node_count=${#node_list[@]}
 
@@ -177,48 +177,48 @@ baremetal_upgrade_auxiliary() {
 
   # Use Defaults if TOTAL_MCPS and MCP_NODE_COUNT not set
   if [ -z $total_mcps ] && [ -z $mcp_node_count ]; then
-    log "TOTAL_MCPS and MCP_NODE_COUNT not set, calculating defaults!"
+    echo "TOTAL_MCPS and MCP_NODE_COUNT not set, calculating defaults!"
     if [ $node_count -le 10 ]; then
       total_mcps=$node_count
       mcp_node_count=1
-      log "10 or less nodes found, defaulting new MCP(s) to node count: $total_mcps new MCP(s) required with 1 node in each"
+      echo "10 or less nodes found, defaulting new MCP(s) to node count: $total_mcps new MCP(s) required with 1 node in each"
       defaults="true"
     else
-      log "Calculating number of MCP's required with a default of 10 nodes per MCP"
+      echo "Calculating number of MCP's required with a default of 10 nodes per MCP"
       mcp_node_count=10
       total_mcps=$((($node_count / 10) + ($node_count % 10 > 0)))
-      log "$total_mcps new MCP(s) required"
+      echo "$total_mcps new MCP(s) required"
     fi
   else
 
     # Calculate total MCP's needed if only MCP_NODE_COUNT are provided
     if [ -z $total_mcps ] && [ ! -z $mcp_node_count ]; then
       if [ $mcp_node_count -gt $node_count ]; then
-        log "Supplied MCP_NODE_COUNT is greater than available nodes, exiting"
+        echo "Supplied MCP_NODE_COUNT is greater than available nodes, exiting"
         exit 1
       else
-        log "Found MCP_NODE_COUNT value, but not TOTAL_MCPS, attempting to calculate TOTAL_MCPS with supplied MCP_NODE_COUNT"
+        echo "Found MCP_NODE_COUNT value, but not TOTAL_MCPS, attempting to calculate TOTAL_MCPS with supplied MCP_NODE_COUNT"
         total_mcps=$((($node_count / $mcp_node_count) + ($node_count % $mcp_node_count > 0)))
-        log "$total_mcps new MCP(s) required for supplied MCP_NODE_COUNT of $mcp_node_count with $node_count node(s) available"
+        echo "$total_mcps new MCP(s) required for supplied MCP_NODE_COUNT of $mcp_node_count with $node_count node(s) available"
       fi
     fi
 
     # Calculate total nodes per MCP if only total MCP's are provided
     if [ ! -z $total_mcps ] && [ -z $mcp_node_count ]; then
       if [ $total_mcps -gt $node_count ]; then
-        log "Supplied TOTAL_MCPS is greater than available nodes, exiting"
+        echo "Supplied TOTAL_MCPS is greater than available nodes, exiting"
         exit 1
       else
         echo "Found TOTAL_MCPS value, but not MCP_NODE_COUNT, attempting to calculate MCP_NODE_COUNT with supplied TOTAL_MCPS"
         mcp_node_count=$((($node_count / $total_mcps) + ($node_count % $total_mcps > 0)))
-        log "$mcp_node_count node(s) required per MCP for supplied TOTAL_MCPS of $total_mcps with $node_count node(s) available"
+        echo "$mcp_node_count node(s) required per MCP for supplied TOTAL_MCPS of $total_mcps with $node_count node(s) available"
       fi
     fi
     
     # Verify that TOTAL_MCPS and MCP_NODE_COUNT set equal available nodes
     if [ ! -z $total_mcps ] && [ ! -z $mcp_node_count ]; then
       if [ $((($total_mcps * $mcp_node_count))) -ne $node_count ]; then
-        log "The product of TOTAL_MCPS and MCP_NODE_COUNT supplied values does not equal available nodes, unless node count is already known, please set one or the other"
+        echo "The product of TOTAL_MCPS and MCP_NODE_COUNT supplied values does not equal available nodes, unless node count is already known, please set one or the other"
         exit 1
       fi
     fi
@@ -234,9 +234,9 @@ baremetal_upgrade_auxiliary() {
     export CUSTOM_NAME=${export_label}
     export CUSTOM_VALUE=${export_label}
     export CUSTOM_LABEL=${export_label}
-    log "Removing MCP ${export_label} if it exists"
+    echo "Removing MCP ${export_label} if it exists"
     oc delete mcp ${export_label} --ignore-not-found
-    log "Deploying new MCP ${export_label}"
+    echo "Deploying new MCP ${export_label}"
     envsubst < mcp.yaml | oc apply -f -
     mcp_list+=(${export_label})
     ((mcp_deployment++))
@@ -269,10 +269,10 @@ baremetal_upgrade_auxiliary() {
     ((nodes_labeled_mcp++))
   done
 
-  log "Completed applying custom labels to nodes in new MCP's"
+  echo "Completed applying custom labels to nodes in new MCP's"
 
   # Calculate allocatable CPU per MCP
-  log "---------------------Calculating replica count of sample-app based on allocatable CPU in each MCP---------------------"
+  log "---------------------Calculating Replica Count and Deploy---------------------"
   mcp_count_var=1
   mcp_counter=0
   temp_node_list_counter=0
@@ -285,7 +285,7 @@ baremetal_upgrade_auxiliary() {
   replica_count=()
 
   while [ $mcp_count_var -le $total_mcps ]; do
-    log "Begining deployment of project and sample-app for MCP ${mcp_list[${mcp_counter}]}"
+    echo "Begining deployment of project and sample-app for MCP ${mcp_list[${mcp_counter}]}"
     nodes=($(oc get nodes --no-headers --selector=node-role.kubernetes.io/custom=${mcp_list[${mcp_counter}]} | awk '{print $1 }'))
     temp_node_list+=(${nodes[@]})
     node_count=${#temp_node_list[@]}
@@ -304,22 +304,22 @@ baremetal_upgrade_auxiliary() {
     node_count_var=1
     temp_node_list_counter=0
     sum_alloc_cpu=$(IFS=+; echo "$((${allocation_amounts[*]}))")
-    log "Total allocatable cpu ${mcp_list[$mcp_counter]} is $sum_alloc_cpu"
+    echo "Total allocatable cpu ${mcp_list[$mcp_counter]} is $sum_alloc_cpu"
     calc=$(( sum_alloc_cpu / 2 ))
     new_allocatable="${calc}m"
-    log "New calculated allocatable cpu to use in MCP ${mcp_list[$mcp_counter]} is $new_allocatable"
+    echo "New calculated allocatable cpu to use in MCP ${mcp_list[$mcp_counter]} is $new_allocatable"
     #allocation_calc_amounts+=($new_allocatable)
     calc_replica=$(( $calc / 1000 ))
-    log "$calc_replica replica(s) will be deployed in MCP ${mcp_list[$mcp_counter]} nodes"
+    echo "$calc_replica replica(s) will be deployed in MCP ${mcp_list[$mcp_counter]} nodes"
 
     # Create new project per MCP
     new_project="${mcp_list[$mcp_counter]}"
-    log "Removing project ${new_project} if it exists"
+    echo "Removing project ${new_project} if it exists"
     oc delete project ${new_project} --force --grace-period=0 --ignore-not-found
-    log "Sleeping for 30 seconds to allow forced project deletion to complete successfully if project was found"
+    echo "Sleeping for 30 seconds to allow forced project deletion to complete successfully if project was found"
     oc delete pods --all -n ${new_project} --force > /dev/null 2>&1
     sleep 30
-    log "Creating new project ${new_project}"
+    echo "Creating new project ${new_project}"
     oc new-project $new_project
 
     # Append information arrays to be used for mb json file
@@ -332,12 +332,12 @@ baremetal_upgrade_auxiliary() {
     export REPLICAS=$calc_replica
     #export NODE_SELECTOR_KEY="node-role.kubernetes.io/custom"
     export NODE_SELECTOR_VALUE=${mcp_list[${mcp_counter}]}
-    log "Deploying $calc_replica replica(s) of the sample-app for MCP ${mcp_list[${mcp_counter}]}"
+    echo "Deploying $calc_replica replica(s) of the sample-app for MCP ${mcp_list[${mcp_counter}]}"
     envsubst < deployment-sampleapp.yml | oc apply -f -
     oc expose service samplesvc -n $new_project
 
     # Unset vars and begin to loop to next MCP
-    log "Completed ${APP_NAME} deployment in ${mcp_list[${mcp_counter}]}"
+    echo "Completed ${APP_NAME} deployment in ${mcp_list[${mcp_counter}]}"
     unset temp_node_list
     unset PROJECT
     unset REPLICAS
@@ -348,66 +348,60 @@ baremetal_upgrade_auxiliary() {
   done
 
   log "---------------------Creating request.json---------------------"
-
-  # Clone mb project
-  if [ -d mb ]; then rm -Rf mb; fi
-  git clone https://github.com/jmencak/mb.git
-  sudo yum -y install autoconf
-  sudo yum -y install automake
-  sudo yum -y install
-  (cd mb && make all)
-
-  # Create requests.json file
+  rm configmap.yml --force
   requests=${#project_list[@]}
   iterations=1
   element=0
 
-  cd mb
-
-  cat >> ./requests.json << EOF
-  [
+  cat >> configmap.yml << EOF
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: request-configmap
+    labels:
+      app: mb-pod
+  data:
+    requests.json: |
+       [
 EOF
 
   while [ $iterations -le $requests ]; do
     host=($(oc get route samplesvc -n ${project_list[$element]} -ojson | jq .spec.host))
     clients=${replica_count[$element]}
 
-    cat >> ./requests.json << EOF
-    {
-      "scheme": "http",
-      "host": ${host},
-      "port": 80,
-      "method": "GET",
-      "path": "/",
-      "delay": {
-        "min": 1000,
-        "max": 2000
-      },
-      "keep-alive-requests": 100,
-      "clients": ${clients}
-    },
+    cat >> configmap.yml << EOF
+          {
+            "scheme": "http",
+            "host": ${host},
+            "port": 80,
+            "method": "GET",
+            "path": "/",
+            "delay": {
+              "min": 1000,
+              "max": 2000
+            },
+            "keep-alive-requests": 100,
+            "clients": ${clients}
+          },
 EOF
   ((iterations++))
   ((element++))
   done
 
-  cat >> ./requests.json << EOF
-  ]
+  cat >> configmap.yml << EOF
+        ]
 EOF
-
-  log "Sleeping for 1 minute to allow routes to be established"
+  
+  cat configmap.yml
+  oc apply -f configmap.yml
+  echo "sleeping for 1 minute to allow all sample-app pods to spin up"
   sleep 60
-
-  # Use mb to hit sample app with http requests using request.json file
-
-  log "Begining to use mb to hit routes"
-  log "request.json file to be used..."
-  cat requests.json
-  ./mb -i requests.json 
-  log "Finished running mb"
+  log "---------------------Deploy mb-pod---------------------"
+  oc apply -f mb_pod.yml
+  sleep 30
+  oc logs mb-pod -f 2>&1 | tee response.csv
   }
 
 cleanup() {
   oc delete ns -l kube-burner-uuid=${UUID}
 }
- 
