@@ -6,7 +6,7 @@ spec:
   containers:
     - name: mb-container
       image: "quay.io/mukrishn/snomb:2"
-      command: [ "/bin/sh", "-c", "mb -i /etc/config/requests.json -d 48000" ]
+      command: [ "/bin/sh", "-c", "mb -i /etc/config/requests.json -d 86400" ]
       volumeMounts:
       - name: config-volume
         mountPath: /etc/config

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-set -e
+#set -e
 
-export TOTAL_MCPS=
-export MCP_NODE_COUNT=
+export TOTAL_MCPS=${TOTAL_MCPS:- }
+export MCP_NODE_COUNT=${MCP_NODE_COUNT:- }
+export CREATE_MCPS=${CREATE_MCPS:-0}   # 1 to set, 0 to skip
 
 . common.sh
 
