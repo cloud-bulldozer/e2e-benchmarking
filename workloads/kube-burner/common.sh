@@ -161,6 +161,14 @@ baremetal_upgrade_auxiliary() {
     echo "MCP_NODE_COUNT env var was set to 0, exiting"
     exit 1
   fi
+  if [[ ! -z "$total_mcps" ]] && [[ ! $total_mcps =~ ^[0-9]+$ ]]; then
+    echo "total_mcps input is not empty or not an integer, exiting"
+    exit 1
+  fi
+  if [[ ! -z "$mcp_node_count" ]] && [[ ! $mcp_node_count =~ ^[0-9]+$ ]]; then
+    echo "mcp_node_count input is not empty or not an integer, exiting"
+    exit 1
+  fi
   if [ "${create_mcps_bool}" == "true" ]; then
     mcp_bool="true"
     echo "CREATE_MCPS_BOOL was set. Creating new MCPs"
