@@ -211,10 +211,10 @@ baremetal_upgrade_auxiliary() {
           total_mcps=$((($node_count / $mcp_node_count) + ($node_count % $mcp_node_count > 0)))
           echo "$total_mcps new MCP(s) required for supplied MCP_NODE_COUNT of $mcp_node_count with $node_count node(s) available"
         fi
-      fi
+      
 
       # Calculate total nodes per MCP if only total MCP's are provided
-      if [ ! -z $total_mcps ] && [ -z $mcp_node_count ]; then
+      elif [ ! -z $total_mcps ] && [ -z $mcp_node_count ]; then
         if [ $total_mcps -gt $node_count ]; then
           echo "Supplied TOTAL_MCPS is greater than available nodes, exiting"
           exit 1
@@ -223,10 +223,10 @@ baremetal_upgrade_auxiliary() {
           mcp_node_count=$((($node_count / $total_mcps) + ($node_count % $total_mcps > 0)))
           echo "$mcp_node_count node(s) required per MCP for supplied TOTAL_MCPS of $total_mcps with $node_count node(s) available"
         fi
-      fi
+      
       
       # Verify that TOTAL_MCPS and MCP_NODE_COUNT set equal available nodes
-      if [ ! -z $total_mcps ] && [ ! -z $mcp_node_count ]; then
+      elif [ ! -z $total_mcps ] && [ ! -z $mcp_node_count ]; then
         if [ $((($total_mcps * $mcp_node_count))) -ne $node_count ]; then
           echo "The product of TOTAL_MCPS and MCP_NODE_COUNT supplied values does not equal available nodes, unless node count is already known, please set one or the other"
           exit 1
