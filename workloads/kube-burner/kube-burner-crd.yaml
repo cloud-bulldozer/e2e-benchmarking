@@ -27,7 +27,7 @@ spec:
         INDEXING: ${INDEXING}
         ES_SERVER: ${ES_SERVER}
         ES_INDEX: ${ES_INDEX}
-        JOB_ITERATIONS: ${JOB_ITERATIONS}
+        JOB_ITERATIONS: ${TEST_JOB_ITERATIONS}
         QPS: ${QPS} 
         BURST: ${BURST}
         CLEANUP: ${CLEANUP}

@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 source env.sh
 
 # If INDEXING is disabled we disable metadata collection
@@ -91,7 +93,7 @@ label_nodes() {
     pod_count=$((pods + pod_count))
   done
   log "Total running pods across nodes: ${pod_count}"
-  if [[ ${NODE_SELECTOR} =~ 'node-role.kubernetes.io/worker' ]]; then
+  if [[ ${NODE_SELECTOR} =~ node-role.kubernetes.io/worker ]]; then
     # Number of pods to deploy per node * number of labeled nodes - pods running - kube-burner pod
     log "kube-burner will run on a worker node, decreasing by one the number of pods to deploy"
     total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count - 1))
@@ -107,7 +109,7 @@ label_nodes() {
   if [[ ${1} == "heavy" ]]; then
     total_pod_count=$((total_pod_count / 2))
   fi
-  export JOB_ITERATIONS=${total_pod_count}
+  export TEST_JOB_ITERATIONS=${total_pod_count}
   log "Labeling ${NODE_COUNT} worker nodes with node-density=enabled"
   for n in ${nodes}; do
     oc label ${n} node-density=enabled --overwrite
@@ -124,8 +126,9 @@ unlabel_nodes() {
 check_running_benchmarks() {
   benchmarks=$(oc get benchmark -n benchmark-operator | awk '{ if ($2 == "kube-burner")print}'| grep -vE "Failed|Complete" | wc -l)
   if [[ ${benchmarks} -gt 1 ]]; then
-    log "Another kube-burner benchmark is running at the moment" && exit 1
+    log "Another kube-burner benchmark is running at the moment"
     oc get benchmark -n benchmark-operator
+    exit 1
   fi
 }
 

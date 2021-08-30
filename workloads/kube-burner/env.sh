@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Benchark-operator
 export OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
 export OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
@@ -22,7 +24,6 @@ export POD_WAIT=${POD_WAIT:-false}
 export WAIT_FOR=${WAIT_FOR:-[]}
 export VERIFY_OBJECTS=${VERIFY_OBJECTS:-true}
 export ERROR_ON_VERIFY=${ERROR_ON_VERIFY:-true}
-export JOB_ITERATIONS=${JOB_ITERATIONS:-1000}
 
 # Remote configuration
 export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE}
