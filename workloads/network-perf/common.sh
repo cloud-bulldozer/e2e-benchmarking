@@ -43,11 +43,11 @@ export_defaults() {
   export pin=true
   export networkpolicy=${NETWORK_POLICY:=false}
   export multi_az=${MULTI_AZ:=true}
-  export no_az=${NO_AZ:-false}  # for tests on providers like VMware where zones are absent, set this to true
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
-
+  platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
+  log "Platform is found to be : ${platform} "
   # If multi_az we use one node from the two first AZs
-  if [[ ${no_az} == "true" ]]; then
+  if [[ ${platform} == "vsphere" ]]; then
     nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="" -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
     if [[ ${#nodes[@]} -lt 2 ]]; then
       log "At least 2 worker nodes placed are required"
@@ -96,7 +96,6 @@ export_defaults() {
   fi
 
   if [[ ${COMPARE} = "true" ]] && [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
-    platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
     gold_index=$(curl -X GET   "${ES_GOLD}/openshift-gold-${platform}-results/_search" -H 'Content-Type: application/json' -d ' {"query": {"term": {"version": '\"${GOLD_OCP_VERSION}\"'}}}')
     BASELINE_HOSTNET_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."hostnetwork"."num_pairs"."1"."uuid"')
     BASELINE_POD_1P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."podnetwork"."num_pairs"."1"."uuid"')
