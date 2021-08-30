@@ -479,8 +479,13 @@ EOF
   
   cat configmap.yml
   oc apply -f configmap.yml
-  echo "sleeping for 1 minute to allow all sample-app pods to spin up"
-  sleep 60
+  if [[ $node_count -gt 10 ]]; then
+    echo "sleeping for 2 minutes to allow all sample-app pods to spin up"
+    sleep 120
+  else
+    echo "sleeping for 1 minute to allow all sample-app pods to spin up"
+    sleep 60
+  fi
   log "---------------------Deploy mb-pod---------------------"
   oc apply -f mb_pod.yml
   sleep 30
