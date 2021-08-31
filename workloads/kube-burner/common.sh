@@ -345,10 +345,26 @@ baremetal_upgrade_auxiliary() {
       # Create new project per MCP
       new_project="${mcp_list[$mcp_counter]}"
       echo "Removing project ${new_project} if it exists"
-      oc delete project ${new_project} --force --grace-period=0 --ignore-not-found
-      echo "Sleeping for 30 seconds to allow forced project deletion to complete successfully if project was found"
-      oc delete pods --all -n ${new_project} --force > /dev/null 2>&1
-      sleep 30
+      exist=($(oc get project ${new_project} --ignore-not-found))
+      if [ ! -z $exist ]; then
+        echo "Project ${new_project} was found, attempting to delete"
+        oc delete project ${new_project} --force --grace-period=0 --ignore-not-found
+        phase=$(oc get project ${new_project} -o json --ignore-not-found | jq .status.phase)
+        while [[ ${phase} == '"Terminating"' ]]; do
+          check=($(oc get project ${new_project} --ignore-not-found))
+          if [ ! -z $check ]; then
+            phase=$(oc get project ${new_project} -o json --ignore-not-found | jq .status.phase)
+            echo "Waiting for project ${new_project} to terminate"
+            oc delete pods --all -n ${new_project} --force > /dev/null 2>&1
+            sleep 5
+          else
+            echo "Project ${new_project} deleted"
+            phase="complete"
+          fi
+        done
+      else
+        echo "Project ${new_project} not found"
+      fi
       echo "Creating new project ${new_project}"
       oc new-project $new_project
 
@@ -365,6 +381,19 @@ baremetal_upgrade_auxiliary() {
       echo "Deploying $calc_replica replica(s) of the sample-app for MCP ${mcp_list[${mcp_counter}]}"
       envsubst < deployment-sampleapp.yml | oc apply -f -
       oc expose service samplesvc -n $new_project
+
+      # Verify all pods are running
+      echo "Waiting for all pods to spin up successfully in project ${mcp_list[${mcp_counter}]}"
+      sleep 10
+      running_pods=$(oc get pods -n ${mcp_list[${mcp_counter}]} --field-selector=status.phase==Running | wc -l)
+      while [ $running_pods -le 1 ]; do
+        running_pods=$(oc get pods -n ${mcp_list[${mcp_counter}]} --field-selector=status.phase==Running | wc -l)
+      done
+      while [ $running_pods -lt $calc_replica ]; do
+        echo "Waiting for all pods to spin up successfully in project ${mcp_list[${mcp_counter}]}"
+        sleep 5
+        running_pods=$(oc get pods -n ${mcp_list[${mcp_counter}]} --field-selector=status.phase==Running | wc -l)
+      done
 
       # Unset vars and begin to loop to next MCP
       echo "Completed ${APP_NAME} deployment in ${mcp_list[${mcp_counter}]}"
@@ -405,12 +434,28 @@ baremetal_upgrade_auxiliary() {
 
     new_project="upgrade"
     echo "Removing project upgrade if it exists"
-    oc delete project upgrade --force --grace-period=0 --ignore-not-found
-    echo "Sleeping for 30 seconds to allow forced project deletion to complete successfully if project was found"
-    oc delete pods --all -n upgrade --force > /dev/null 2>&1
-    sleep 30
-    echo "Creating new project upgrade"
-    oc new-project upgrade
+      exist=($(oc get project upgrade --ignore-not-found))
+      if [ ! -z $exist ]; then
+        echo "Project upgrade was found, attempting to delete"
+        oc delete project upgrade --force --grace-period=0 --ignore-not-found
+        phase=$(oc get project upgrade -o json --ignore-not-found | jq .status.phase)
+        while [[ ${phase} == '"Terminating"' ]]; do
+          check=($(oc get project upgrade --ignore-not-found))
+          if [ ! -z $check ]; then
+            phase=$(oc get project upgrade -o json --ignore-not-found | jq .status.phase)
+            echo "Waiting for project upgrade to terminate"
+            oc delete pods --all -n upgrade --force > /dev/null 2>&1
+            sleep 5
+          else
+            echo "Project upgrade deleted"
+            phase="complete"
+          fi
+        done
+      else
+        echo "Project upgrade not found"
+      fi
+      echo "Creating new project upgrade"
+      oc new-project upgrade
 
     # Append information arrays to be used for mb json file
     project_list=("upgrade")
@@ -425,6 +470,19 @@ baremetal_upgrade_auxiliary() {
     echo "Deploying $calc_replica replica(s) of the sample-app in project upgrade"
     envsubst < deployment-sampleapp.yml | oc apply -f -
     oc expose service samplesvc -n upgrade
+
+    # Verify all pods are running
+    echo "Waiting for all pods to spin up successfully in project upgrade"
+    sleep 10
+    running_pods=$(oc get pods -n upgrade --field-selector=status.phase==Running | wc -l)
+    while [ $running_pods -le 1 ]; do
+      running_pods=$(oc get pods -n upgrade --field-selector=status.phase==Running | wc -l)
+    done
+    while [ $running_pods -lt $calc_replica ]; do
+      echo "Waiting for all pods to spin up successfully in project upgrade"
+      sleep 5
+      running_pods=$(oc get pods -n upgrade --field-selector=status.phase==Running | wc -l)
+    done
 
     # Unset vars and begin to loop to next MCP
     echo "Completed ${APP_NAME} deployment in upgrade"
@@ -479,13 +537,6 @@ EOF
   
   cat configmap.yml
   oc apply -f configmap.yml
-  if [[ ${#node_list[@]} -gt 10 ]]; then
-    echo "sleeping for 2 minutes to allow all sample-app pods to spin up"
-    sleep 120
-  else
-    echo "sleeping for 1 minute to allow all sample-app pods to spin up"
-    sleep 60
-  fi
   log "---------------------Deploy mb-pod---------------------"
   oc apply -f mb_pod.yml
   sleep 30
