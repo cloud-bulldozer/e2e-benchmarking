@@ -377,7 +377,7 @@ baremetal_upgrade_auxiliary() {
       ((mcp_counter++))
     done
   else
-    log "---------------------Calculating Replica Count and Deploy---------------------"
+    log "---------------------Calculating Replica Count and Deploying---------------------"
     # Retrieve allocatable CPU across all available nodes
     nodes=($(oc get nodes --no-headers --selector=node-role.kubernetes.io/custom=upgrade| awk '{print $1 }'))
     node_count_var=1
@@ -479,7 +479,7 @@ EOF
   
   cat configmap.yml
   oc apply -f configmap.yml
-  if [[ $node_count -gt 10 ]]; then
+  if [[ ${#node_list[@]} -gt 10 ]]; then
     echo "sleeping for 2 minutes to allow all sample-app pods to spin up"
     sleep 120
   else
