@@ -2,12 +2,12 @@
 
 The purpose of these scripts is to run a kube-burner workload steered by ripsaw. There are 3 types of workloads at the moment:
 
-- **`cluster-density`**
-- **`node-density`**
-- **`node-density-heavy`**
-- **`max-namespaces`**
-- **`max-services`**
-- **`pod-density`**
+- **`cluster-density`**: Triggered by `run_clusterdensity_test_fromgit.sh`
+- **`node-density`**: Triggered by `run_nodedensity_test_fromgit.sh`
+- **`node-density-heavy`**: Triggered by `run_nodedensity-heavy_test_fromgit.sh`
+- **`max-namespaces`**: Triggered by `run_maxnamespaces_test_fromgit.sh`
+- **`max-services`** Triggered by `run_maxservices_test_fromgit.sh`
+- **`pod-density`**: Triggered by `run_poddensity_test_fromgit.sh`
 
 ## Environment variables
 
@@ -15,26 +15,33 @@ All scripts can be tweaked with the following environment variables:
 
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
-| **OPERATOR_REPO**              | benchmark-operator repo                     | https://github.com/cloud-bulldozer/benchmark-operator.git      |
-| **OPERATOR_BRANCH**              | benchmark-operator branch                     | master      |
-| **QPS**              | Queries/sec                     | 20      |
-| **BURST**            | Burst queries                   | 20      |
-| **ES_SERVER**        | Elastic search endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 (You can disable indexing with `export ES_SERVER=""`)|
+| **OPERATOR_REPO**              | Benchmark-operator repo                     | https://github.com/cloud-bulldozer/benchmark-operator.git      |
+| **OPERATOR_BRANCH**              | Benchmark-operator branch                     | master      |
+| **INDEXING**         | Enable/disable indexing         | true    |
+| **ES_SERVER**        | Elastic search endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
-| **JOB_TIMEOUT**      | kube-burner's job timeout, in seconds      | 17500 |
-| **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 1200 |
-| **WORKLOAD_NODE**    | Workload node selector          | {"node-role.kubernetes.io/worker": ""} |
-| **CERBERUS_URL**     | URL to check the health of the cluster using [Cerberus](https://github.com/cloud-bulldozer/cerberus) | "" (don't check)|
+| **METADATA_COLLECTION**    | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
+| **JOB_TIMEOUT**      | Kube-burner's job timeout, in seconds      | 14400 (4 hours) |
+| **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 180 |
+| **NODE_SELECTOR**    | The kube-burner pod deployed by benchmark-operator will use this node selector          | {node-role.kubernetes.io/worker: } |
+| **QPS**              | Queries/sec                     | 20      |
+| **BURST**            | Maximum number of simultaneous queries | 20      |
+| **POD_NODE_SELECTOR**| nodeSelector for pods created by the kube-burner workloads | {node-role.kubernetes.io/worker: } |
+| **POD_WAIT**         | Wait for pods to be ready in each iteration | false |
+| **MAX_WAIT_TIMEOUT** | Kube-burner will time out when the pods deployed take more that this value to be ready | 1h |
+| **WAIT_FOR**         | Wait for the resources of this list to be ready | [] (empty means all of them) |
+| **VERIFY_OBJECTS**   | Verify objects created by kube-burner | true |
+| **ERROR_ON_VERIFY**  | Make kube-burner pod to hang when verification fails | true |
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
-| **METRICS_PROFILE**        | Metric profile that indicates what prometheus metrics kube-burner will collect, accepts __metrics.yaml__ or __metrics-aggregated.yaml__ | metrics.yaml for node-density workloads and metrics-aggregated.yaml for cluster-density workloads |
-| **METADATA_COLLECTION**    | Enable metadata collection | true |
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
+| **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.13 |
 | **LOG_LEVEL**        | Kube-burner log level | info |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
+
 
 ### Cluster-density variables
 
@@ -93,13 +100,36 @@ It creates n-replicas of an application deployment (hello-openshift) and a servi
 It creates as many "sleep" pods as configured in the environment variable `PODS`.
 
 
-### Remote configuration
+### Launching custom workloads
 
-Apart from the pre-defined workloads and metric profiles available in benchmark-operator, you can create a benchmark that uses a remote configuration, metric or alert profile. These files must be accesible through HTTP protocol by the kube-burner job. The following environment variables can be used to configure the source for the different configuration files:
+Apart from the pre-defined workloads and metric profiles available in this repo, you can use your own benchmark, metric-profile and alert-profile by using the remote configuration feature of kube-burner. This feature allows kube-burner to fetch configuration files from remote locations. These files must be accessible through HTTP protocol by the kube-burner job. The following environment variables can be used to configure the source for the different configuration files:
 
-- **`REMOTE_CONFIG`**: Refers to the remote location of the Kube-burner main configuration file.
+- **`REMOTE_CONFIG`**: Refers to the remote location of the Kube-burner main configuration file. The objectTemplates defined in this file must be HTTP accessible too.
 - **`REMOTE_METRIC_PROFILE`**: Points to a URL of a valid metric profile.
 - **`REMOTE_ALERT_PROFILE`**: Points to a URL of a valid alert profile.
 
-> Note: These can be used separately and/or combined with the kube-burner workloads available in the benchmark-operator.
+The script `run_custom_workload_fromgit.sh` provides a shortcut to launch the benchmark.
 
+For example, the command:
+
+```shell
+$ INDEXING=false REMOTE_CONFIG=https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml ./run_custom_workload_fromgit.sh
+```
+
+will launch a pod running a kube-burner process that will use the configuration file defined at https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml
+
+> Note: The following variables are injected as environment variables to the kube-burner pod:
+> - UUID
+> - INDEXING
+> - ES_SERVER
+> - ES_INDEX
+> - JOB_ITERATIONS
+> - QPS
+> - BURST
+> - CLEANUP
+> - POD_NODE_SELECTOR
+> - WAIT_WHEN_FINISHED
+> - POD_WAIT
+> - WAIT_FOR
+> - VERIFY_OBJECTS
+> - ERROR_ON_VERIFY
