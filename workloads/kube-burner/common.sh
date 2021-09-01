@@ -1,15 +1,14 @@
+#!/usr/bin/env bash
+
 source env.sh
 
-# If ES_SERVER is set and empty we disable ES indexing and metadata collection
-if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
+# If INDEXING is disabled we disable metadata collection
+if [[ ${INDEXING} == "false" ]]; then
   export METADATA_COLLECTION=false
+  unset PROM_URL
 else
   export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
 fi
-export NODE_SELECTOR_KEY="node-role.kubernetes.io/worker"
-export NODE_SELECTOR_VALUE=""
-export WAIT_WHEN_FINISHED=true
-export WAIT_FOR=[]
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=$(uuidgen)
 
@@ -26,6 +25,7 @@ deploy_operator() {
   (cd benchmark-operator && make deploy)
   kubectl apply -f benchmark-operator/resources/backpack_role.yaml
   kubectl apply -f benchmark-operator/resources/kube-burner-role.yml
+  log "Waiting for benchmark-operator to be running"
   oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 }
 
@@ -47,22 +47,23 @@ wait_for_benchmark() {
   done
   log "Waiting for kube-burner job to start"
   suuid=$(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.suuid}")
-  until oc get pod -n benchmark-operator -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -q Running; do
+  until oc get pod -n benchmark-operator -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -Eq "Running|Failed"; do
     sleep 1
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for job to be running"
+      oc logs -n benchmark-operator --tail=-1 -l job-name=kube-burner-${suuid} --ignore-errors=true
       exit 1
     fi
   done
   log "Benchmark in progress"
-  until oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -Eq "Complete|Failed"; do
+  until [[ $(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.complete}") == "true" ]]; do
     if [[ ${LOG_STREAMING} == "true" ]]; then
-      oc logs -n benchmark-operator -f -l job-name=kube-burner-${suuid} --ignore-errors=true || true
+      oc logs -n benchmark-operator --tail=-1 -f -l job-name=kube-burner-${suuid} --ignore-errors=true || true
       sleep 20
     fi
     sleep 1
   done
-  log "Benchmark finished, waiting for benchmark/kube-burner-${1}-${UUID} object to be updated"
+  log "Benchmark kube-burner-${1}-${UUID} finished"
   if [[ ${LOG_STREAMING} == "false" ]]; then
     oc logs -n benchmark-operator --tail=-1 -l job-name=kube-burner-${suuid}
   fi
@@ -76,8 +77,7 @@ wait_for_benchmark() {
 }
 
 label_nodes() {
-  export NODE_SELECTOR_KEY="node-density"
-  export NODE_SELECTOR_VALUE="enabled"
+  export POD_NODE_SELECTOR="{node-density: enabled}"
   if [[ ${NODE_COUNT} -le 0 ]]; then
     log "Node count <= 0: ${NODE_COUNT}"
     exit 1
@@ -93,7 +93,7 @@ label_nodes() {
     pod_count=$((pods + pod_count))
   done
   log "Total running pods across nodes: ${pod_count}"
-  if [[ ${WORKLOAD_NODE} =~ 'node-role.kubernetes.io/worker' ]]; then
+  if [[ ${NODE_SELECTOR} =~ node-role.kubernetes.io/worker ]]; then
     # Number of pods to deploy per node * number of labeled nodes - pods running - kube-burner pod
     log "kube-burner will run on a worker node, decreasing by one the number of pods to deploy"
     total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count - 1))
@@ -126,8 +126,9 @@ unlabel_nodes() {
 check_running_benchmarks() {
   benchmarks=$(oc get benchmark -n benchmark-operator | awk '{ if ($2 == "kube-burner")print}'| grep -vE "Failed|Complete" | wc -l)
   if [[ ${benchmarks} -gt 1 ]]; then
-    log "Another kube-burner benchmark is running at the moment" && exit 1
+    log "Another kube-burner benchmark is running at the moment"
     oc get benchmark -n benchmark-operator
+    exit 1
   fi
 }
 

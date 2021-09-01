@@ -1,0 +1,33 @@
+---
+global:
+  writeToFile: false
+  indexerConfig:
+    enabled: {{.INDEXING}}
+    esServers: ["{{.ES_SERVER}}"]
+    insecureSkipVerify: true
+    defaultIndex: {{.ES_INDEX}}
+    type: elastic
+  measurements:
+    - name: podLatency
+      esIndex: {{.ES_INDEX}}
+jobs:
+  - name: node-density
+    jobIterations: {{.JOB_ITERATIONS}}
+    qps: {{.QPS}}
+    burst: {{.BURST}}
+    namespacedIterations: false
+    namespace: node-density-{{.UUID}}
+    podWait: {{.POD_WAIT}}
+    cleanup: {{.CLEANUP}}
+    waitFor: {{.WAIT_FOR}}
+    waitWhenFinished: {{.WAIT_WHEN_FINISHED}}
+    verifyObjects: {{.VERIFY_OBJECTS}}
+    errorOnVerify: {{.ERROR_ON_VERIFY}}
+    maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
+    objects:
+
+      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/node-pod-density/templates/pod.yml
+        replicas: 1
+        inputVars:
+          containerImage: gcr.io/google_containers/pause-amd64:3.0
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
