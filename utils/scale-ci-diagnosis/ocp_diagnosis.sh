@@ -145,7 +145,7 @@ fi
 
 
 if [[ $OPENSHIFT_MUST_GATHER == "true" ]]; then
-	export workload=must_gather
+        export workload=${WORKLOAD:=must_gather}
 	store must_gather "must-gather-$ts.tar.xz"
 fi
 
