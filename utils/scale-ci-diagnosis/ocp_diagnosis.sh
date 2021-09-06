@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+#set -eo pipefail
 
 prometheus_namespace=openshift-monitoring
 
@@ -92,12 +92,15 @@ function capture_full_db() {
 
 
 function must_gather() {
-	oc adm must-gather -- bash -c 'gather && gather_network_logs && gather_network_ovn_trace'
-	mv must-gather* $OUTPUT_DIR/must-gather-$ts 
-	XZ_OPT=--threads=0 tar cJf $OUTPUT_DIR/must-gather-$ts.tar.xz $OUTPUT_DIR/must-gather-$ts
-	if [[ $? -eq 0 ]]; then
-		rm -rf $OUTPUT_DIR/must-gather-$ts
-	fi
+        oc adm must-gather -- bash -c 'gather && gather_network_logs && gather_network_ovn_trace'
+        if [[ $? -eq 0 ]]; then
+                mv must-gather* $OUTPUT_DIR/must-gather-$ts 
+                XZ_OPT=--threads=0 tar cJf $OUTPUT_DIR/must-gather-$ts.tar.xz $OUTPUT_DIR/must-gather-$ts
+                rm -rf $OUTPUT_DIR/must-gather-$ts
+        else
+                exit 0
+        fi
+
 }
 
 
