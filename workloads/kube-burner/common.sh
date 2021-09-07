@@ -16,6 +16,16 @@ log() {
   echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
 }
 
+collect_pprof() {
+  sleep 50
+  while [ $(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.complete}") == "false" ]; do
+    log "-----------------------checking for new pprof files--------------------------"
+    oc rsync -n benchmark-operator $(oc get pod -n benchmark-operator | grep "kube-burner" | grep Running | awk '{print $1}'):/tmp/pprof-data $PWD/
+    sleep 60
+  done
+}
+
+
 deploy_operator() {
   log "Removing benchmark-operator namespace, if it already exists"
   oc delete namespace benchmark-operator --ignore-not-found
@@ -52,10 +62,17 @@ wait_for_benchmark() {
     if [[ $(date +%s) -gt ${timeout} ]]; then
       log "Timeout waiting for job to be running"
       oc logs -n benchmark-operator --tail=-1 -l job-name=kube-burner-${suuid} --ignore-errors=true
+      cleanup
       exit 1
     fi
   done
   log "Benchmark in progress"
+  if [[ ${PPROF_COLLECTION} == "true" ]] ; then
+    collect_pprof ${1} &
+    pid=$!
+    log "PID ${pid} for pprof collection is running in the background"
+  fi
+
   until [[ $(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.complete}") == "true" ]]; do
     if [[ ${LOG_STREAMING} == "true" ]]; then
       oc logs -n benchmark-operator --tail=-1 -f -l job-name=kube-burner-${suuid} --ignore-errors=true || true
@@ -134,5 +151,21 @@ check_running_benchmarks() {
 
 cleanup() {
   oc delete ns -l kube-burner-uuid=${UUID}
+}
+
+get_pprof_secrets() {
+export certkey=`oc get secret -n openshift-etcd | grep "etcd-serving-ip" | head -1 | awk '{print $1}'`
+echo `oc extract -n openshift-etcd secret/$certkey`
+export CERTIFICATE=`base64 -w0 tls.crt`
+export KEY=`base64 -w0 tls.key`
+export BEARER_TOKEN=$(oc sa get-token kube-burner -n benchmark-operator)
+}
+
+delete_pprof_secrets() {
+rm -f tls.key tls.crt
+}
+
+delete_oldpprof_folder() {
+rm -rf pprof-data
 }
 

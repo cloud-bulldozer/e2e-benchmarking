@@ -38,6 +38,12 @@ spec:
         VERIFY_OBJECTS: ${VERIFY_OBJECTS}
         ERROR_ON_VERIFY: ${ERROR_ON_VERIFY}
         MAX_WAIT_TIMEOUT: ${MAX_WAIT_TIMEOUT}
+        PPROF_COLLECTION: ${PPROF_COLLECTION}
+        PPROF_COLLECTION_INTERVAL: ${PPROF_COLLECTION_INTERVAL}
+        BEARER_TOKEN: ${BEARER_TOKEN}
+        KEY: ${KEY}
+        CERTIFICATE: ${CERTIFICATE}
+
       # Kube-burner Job timeout
       job_timeout: ${JOB_TIMEOUT}
       # ES index name
