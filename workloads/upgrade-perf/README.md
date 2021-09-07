@@ -11,7 +11,7 @@ $ ./run_<test-name>_fromgit.sh
 
 ## Environment variables
 
-### VERSION
+### TOVERSION
 Default: ''
 The version to upgrade to. The version must be on the list of previous or available updates.
 
@@ -78,7 +78,6 @@ export BASELINE_CLOUD_NAME=
 export ES_SERVER_BASELINE=
 export ES_PORT_BASELINE=
 export BASELINE_UUID=
-export VERSION=
 export TOVERSION=
 export POLL_INTERVAL=
 export TIMEOUT=
