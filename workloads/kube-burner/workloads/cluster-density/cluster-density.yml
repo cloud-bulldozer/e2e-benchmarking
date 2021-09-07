@@ -30,14 +30,12 @@ global:
         namespace: "openshift-kube-controller-manager"
         labelSelector: {app: kube-controller-manager}
         bearerToken: {{ .BEARER_TOKEN }}
-        url: https://localhost:6443/debug/pprof/heap
         url: https://localhost:10257/debug/pprof/heap
 
       - name: kube-controller-manager-cpu
         namespace: "openshift-kube-controller-manager"
         labelSelector: {app: kube-controller-manager}
         bearerToken: {{ .BEARER_TOKEN }}
-        url: https://localhost:6443/debug/pprof/profile?timeout=30
         url: https://localhost:10257/debug/pprof/profile?timeout=30
 
       - name: etcd-heap
@@ -45,7 +43,6 @@ global:
         labelSelector: {app: etcd}
         cert: {{ .CERTIFICATE }}
         key: {{ .KEY }}
-        url: https://localhost:6443/debug/pprof/heap
         url: https://localhost:2379/debug/pprof/heap
 
       - name: etcd-cpu
@@ -53,7 +50,6 @@ global:
         labelSelector: {app: etcd}
         cert: {{ .CERTIFICATE }}
         key: {{ .KEY }}
-        url: https://localhost:6443/debug/pprof/profile?timeout=30
         url: https://localhost:2379/debug/pprof/profile?timeout=30
 
 
