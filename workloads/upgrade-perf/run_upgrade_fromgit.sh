@@ -36,8 +36,8 @@ if [[ -n $TOIMAGE ]]; then
   run_snafu --tool upgrade -u ${_uuid} --toimage ${TOIMAGE} --timeout ${_timeout} --poll_interval ${_poll_interval}
 elif [[ -n $LATEST ]]; then
   run_snafu --tool upgrade -u ${_uuid} --latest ${LATEST} --timeout ${_timeout} --poll_interval ${_poll_interval}
-elif [[ -n $VERSION ]]; then
-  run_snafu --tool upgrade -u ${_uuid} --version ${VERSION} --timeout ${_timeout} --poll_interval ${_poll_interval}
+elif [[ -n $TOVERSION ]]; then
+  run_snafu --tool upgrade -u ${_uuid} --version ${TOVERSION} --timeout ${_timeout} --poll_interval ${_poll_interval}
 fi
 
 _snafu_rc=$?

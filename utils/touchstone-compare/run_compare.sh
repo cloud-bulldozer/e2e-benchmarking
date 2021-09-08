@@ -21,6 +21,7 @@ fi
 set -x
 if [[ ${COMPARE_WITH_GOLD} == "true" ]] || [[ ${COMPARE} == "true" ]]; then
   echo "Comparing"
+  echo "baseline gold uuid: ${2} current run uuid: ${3}"
   touchstone_compare --database elasticsearch -url $_es_baseline $_es -u ${2} ${3} -o yaml --config config/${tool}.json --tolerancy-rules tolerancy-configs/${tool}.yaml | grep -v "ERROR"| tee compare_output_${!#}.yaml
 else
   touchstone_compare --database elasticsearch -url $_es -u ${2} -o yaml --config config/${tool}.json --tolerancy-rules tolerancy-configs/${tool}.yaml | grep -v "ERROR"| tee compare_output_${!#}.yaml

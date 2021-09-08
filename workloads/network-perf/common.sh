@@ -45,7 +45,7 @@ export_defaults() {
   export networkpolicy=${NETWORK_POLICY:=false}
   export multi_az=${MULTI_AZ:=true}
   export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
-  zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
+  zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
   platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
   log "Platform is found to be : ${platform} "
 
@@ -130,7 +130,8 @@ export_defaults() {
      export GSHEET_KEY_LOCATION=$HOME/.secrets/gsheet_key.json
   fi
 
-  if [[ ${COMPARE} = "true" ]] && [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
+  if [[ ${COMPARE} == "true" ]] && [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
+    get_gold_ocp_version
     gold_index=$(curl -X GET   "${ES_GOLD}/openshift-gold-${platform}-results/_search" -H 'Content-Type: application/json' -d ' {"query": {"term": {"version": '\"${GOLD_OCP_VERSION}\"'}}}')
     BASELINE_HOSTNET_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."hostnetwork"."num_pairs"."1"."uuid"')
     BASELINE_POD_1P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."podnetwork"."num_pairs"."1"."uuid"')
@@ -300,6 +301,11 @@ update() {
   benchmark_state=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-${cr_name}-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.state}')
   benchmark_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-${cr_name}-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.uuid}')
   benchmark_current_pair=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-${cr_name}-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.spec.workload.args.pair}')
+}
+
+get_gold_ocp_version(){
+  current_version=`oc get clusterversion | grep -o [0-9.]* | head -1 | cut -c 1-3`
+  export GOLD_OCP_VERSION=$( bc <<< "$current_version - 0.1" )
 }
 
 print_uuid() {

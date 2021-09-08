@@ -58,6 +58,7 @@ tune_liveness_probe(){
   oc scale --replicas=0 -n openshift-cluster-version deploy/cluster-version-operator
   oc scale --replicas=0 -n openshift-ingress-operator deploy/ingress-operator
   log "Increasing ingress controller liveness probe period to $((RUNTIME * 2))s"
+  oc scale --replicas=0 -n openshift-ingress deploy/router-default
   oc set probe -n openshift-ingress --liveness --period-seconds=$((RUNTIME * 2)) deploy/router-default
   log "Scaling number of routers to ${NUMBER_OF_ROUTERS}"
   oc scale --replicas=${NUMBER_OF_ROUTERS} -n openshift-ingress deploy/router-default

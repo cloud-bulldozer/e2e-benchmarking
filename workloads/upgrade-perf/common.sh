@@ -85,8 +85,8 @@ echo "Current version $_init_version"
 echo "UUID: $_uuid"
 
 # fail if the version to upgrade to is not set
-if [[ -z $TOIMAGE ]] && [[ -z $LATEST ]] && [[ -z $VERSION ]]; then
-  echo "Looks like the version to upgrade to is not set, please set either TOIMAGE, LATEST or VERSION environment vars"
+if [[ -z $TOIMAGE ]] && [[ -z $LATEST ]] && [[ -z $TOVERSION ]]; then
+  echo "Looks like the version to upgrade to is not set, please set either TOIMAGE, LATEST or TOVERSION environment vars"
   exit 1
 fi
 
