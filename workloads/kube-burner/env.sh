@@ -24,9 +24,6 @@ export POD_WAIT=${POD_WAIT:-false}
 export WAIT_FOR=${WAIT_FOR:-[]}
 export VERIFY_OBJECTS=${VERIFY_OBJECTS:-true}
 export ERROR_ON_VERIFY=${ERROR_ON_VERIFY:-true}
-export CUSTOM_NAME=
-export CUSTOM_VALUE=
-export CUSTOM_LABEL=
 
 # Remote configuration
 export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE}

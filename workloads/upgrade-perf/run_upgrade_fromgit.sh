@@ -3,6 +3,23 @@ set -x
 
 source ./common.sh
 
+# Check if we're on bareMetal
+export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
+
+#Check to see if the infrastructure type is baremetal to adjust script as necessary 
+if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
+  log "BareMetal infastructure Upgrade"
+  source ./baremetal_func.sh
+
+  export TOTAL_MCPS=${TOTAL_MCPS:-}   # will skip if CREATE_MCPS_BOOL is set to false!
+  export MCP_NODE_COUNT=${MCP_NODE_COUNT:-}   # will skip if CREATE_MCPS_BOOL is set to false!
+  export CREATE_MCPS_BOOL=true   # true or false
+
+  baremetal_upgrade_auxiliary
+
+fi
+
+
 # set the channel to find the builds to upgrade to
 if [[ -n $CHANNEL ]]; then
   echo "Setting the upgrade channel to $CHANNEL"
