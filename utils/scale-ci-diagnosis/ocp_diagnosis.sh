@@ -98,6 +98,7 @@ function must_gather() {
                 XZ_OPT=--threads=0 tar cJf $OUTPUT_DIR/must-gather-$ts.tar.xz $OUTPUT_DIR/must-gather-$ts
                 rm -rf $OUTPUT_DIR/must-gather-$ts
         else
+		echo "===================================Must-gather collection failed================================="
                 exit 0
         fi
 
