@@ -17,7 +17,7 @@ export NODE_COUNT=1
 export PODS_PER_NODE=100
 
 #for upgrade perf
-export VERSION=`oc get clusterversion | grep -o [0-9.]* | head -1`
+export TOVERSION=`oc get clusterversion | grep -o [0-9.]* | head -1`
 
 # For router perf v2
 export RUNTIME=5

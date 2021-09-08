@@ -107,7 +107,6 @@ jobs:
         inputVars:
           podReplicas: 2
           name: deployment-2pod
-          envVar: {{rand 700}}
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/service.yml
@@ -120,7 +119,6 @@ jobs:
         inputVars:
           podReplicas: 1
           name: deployment-1pod
-          envVar: {{rand 700}}
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
       
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/service.yml

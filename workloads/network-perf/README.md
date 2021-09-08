@@ -45,10 +45,6 @@ Note: Make sure that elasticsearch baseline uuid (example: BASELINE_POD_1P_UUID,
 Default: `openshiftsdn`   
 Compares the current run with gold-index with the sdn type of GOLD_SDN. Options: `openshiftsdn` and `ovnkubernetes`
 
-### GOLD_OCP_VERSION
-Default: ``     
-The openshift version you want to compare the current run to
-
 ### ES_GOLD
 Default: ``     
 The ES server that houses gold-index. Format `http(s)://[username]:[password]@[address]:[port]`
