@@ -30,7 +30,7 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  
  tar -zcvf pprof.tar.gz ./pprof-data
  
- export workload=kube-burner_clusterdensity
+ export workload=kube-burner-clusterdensity
 
  export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
  generate_metadata > metadata.json  
