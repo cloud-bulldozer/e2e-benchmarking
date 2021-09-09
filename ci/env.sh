@@ -8,7 +8,7 @@ export SCALE=$NEW_WORKER_COUNT
 export RUNS=2
 
 #for kube burner 
-export JOB_ITERATIONS=3
+export TEST_JOB_ITERATIONS=3
 export NAMESPACE_COUNT=3
 export SERVICE_COUNT=3
 export CLEANUP=true
