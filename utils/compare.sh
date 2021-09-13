@@ -20,16 +20,24 @@ remove_touchstone() {
 # Arguments:
 #   Dataset URL, in case of passing more than one, they must be quoted.
 #   Dataset UUIDs, in case of passing more than one, they must be quoted.
-#   Benchmark-comparison configuration file path
-#   Tolerancy-rules configuration file path. Optional. 
+#   Benchmark-comparison configuration file path.
+#   Output format
+# Globals
+#   TOLERANCY_RULES Tolerancy config file path. Optional
+#   COMPARISON_ALIASES Benchmark-comparison aliases. Optional
+#   COMPARISON_OUTPUT Benchmark-comparison output file. Optional
 ##############################################################################
 compare(){ 
-  install_touchstone
-  cmd="touchstone_compare --database elasticsearch -url ${1} -u ${2} -o yaml --config ${3}"
-  if [[ -n ${4} ]]; then
-    cmd+=" --tolerancy-rules ${4}" 
+  cmd="touchstone_compare --database elasticsearch -url ${1} -u ${2} -o yaml --config ${3} -o ${4}"
+  if [[ -n ${TOLERANCY_RULES} ]]; then
+    cmd+=" --tolerancy-rules ${TOLERANCY_RULES}"
+  fi
+  if [[ -n ${COMPARISON_ALIASES} ]]; then
+    cmd+=" --alias ${COMPARISON_ALIASES}"
+  fi
+  if [[ -n ${COMPARISON_OUTPUT} ]]; then
+    cmd+=" --output-file ${COMPARISON_OUTPUT}"
   fi
   echo ${cmd}
   ${cmd}
-  remove_touchstone
 }
