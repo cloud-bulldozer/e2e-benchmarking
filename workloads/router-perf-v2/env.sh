@@ -35,6 +35,7 @@ QUIET_PERIOD=${QUIET_PERIOD:-60s}
 KEEPALIVE_REQUESTS=${KEEPALIVE_REQUESTS:-"0 1 50"}
 
 # Comparison and csv generation
+export COMPARE="false"
 THROUGHPUT_TOLERANCE=${THROUGHPUT_TOLERANCE:-5}
 LATENCY_TOLERANCE=${LATENCY_TOLERANCE:-5}
 PREFIX=${PREFIX:-$(oc get clusterversion version -o jsonpath="{.status.desired.version}")}
