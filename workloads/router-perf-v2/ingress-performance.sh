@@ -32,7 +32,7 @@ oc rsync -n http-scale-client $(oc get pod -l app=http-scale-client -n http-scal
 tune_workload_node delete
 cleanup_infra
 if [[ -n ${ES_SERVER} ]]; then
-  if [[ ${COMPARE_WITH_GOLD} == "true" ]]; then 
+  if [[ ${BASELINE_UUID} != "" ]]; then 
     log "Generating results in compare.yaml"
     ../../utils/touchstone-compare/run_compare.sh mb ${BASELINE_UUID} ${UUID} ${NUM_NODES}
     python3 -m venv ./venv
