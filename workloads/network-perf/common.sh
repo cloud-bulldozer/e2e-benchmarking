@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 
-source env.sh
-source ../../utils/benchmark-operator.sh
-
-log() {
-  echo -e "\033[1m$(date -u) ${@}\033[0m"
-}
-
+source ../../utils/common.sh
 
 check_cluster_health() {
   if [[ ${CERBERUS_URL} ]]; then
@@ -158,11 +152,12 @@ assign_uuid() {
 }
 
 run_benchmark_comparison() {
-  install_touchstone
-  TOLERANCY_RULES=$(pwd)/uperf-tolerancy-rules.yaml
-  COMPARISON_OUTPUT="network-performance.csv"
-  COMPARISON_ALIASES="foo bar"
-  compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" $(pwd)/uperf.json csv
+  ../../utils/touchstone-compare/run_compare.sh uperf ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
+  pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}.yaml" )
+}
+
+generate_csv() {
+  python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance  
 }
 
 
