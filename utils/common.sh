@@ -53,3 +53,7 @@ function check_pod_ready_state () {
   oc wait --for=condition=ready pods --namespace ${3:-benchmark-operator} $pod_name --timeout=$timeout
   return $?
 }
+
+log() {
+  echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
+}

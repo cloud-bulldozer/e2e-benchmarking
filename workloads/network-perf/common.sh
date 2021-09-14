@@ -158,12 +158,11 @@ assign_uuid() {
 }
 
 run_benchmark_comparison() {
-  ../../utils/touchstone-compare/run_compare.sh uperf ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
-  pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}.yaml" )
-}
-
-generate_csv() {
-  python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance  
+  install_touchstone
+  TOLERANCY_RULES=$(pwd)/uperf-tolerancy-rules.yaml
+  COMPARISON_OUTPUT="network-performance.csv"
+  COMPARISON_ALIASES="foo bar"
+  compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" $(pwd)/uperf.json csv
 }
 
 
