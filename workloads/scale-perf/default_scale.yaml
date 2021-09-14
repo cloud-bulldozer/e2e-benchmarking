@@ -1,0 +1,30 @@
+apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
+kind: Benchmark
+metadata:
+  name: scale
+  namespace: benchmark-operator
+spec:
+  uuid: ${_uuid}
+  elasticsearch:
+    url: ${_es}
+  clustername: ${cloud_name}
+  metadata:
+    collection: ${_metadata_collection}
+    privileged: true
+    targeted: false
+    serviceaccount: backpack-view
+  test_user: ${cloud_name}-scale
+  workload:
+    name: scale_openshift
+    args:
+      label:
+        key: node-role.kubernetes.io/${_workload_node_role}
+        value: ""
+      tolerations:
+        key: role
+        value: workload
+        effect: NoSchedule
+      scale: ${size}
+      serviceaccount: scaler
+      poll_interval: ${_poll_interval}
+      post_sleep: ${_post_sleep}
