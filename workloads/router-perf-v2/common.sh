@@ -1,4 +1,8 @@
+#!/usr/bin/env bash
+
 source env.sh
+source ../../utils/compare.sh
+source ../../utils/common.sh
 
 if [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
   PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
@@ -6,10 +10,6 @@ if [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
   LARGE_SCALE_BASELINE_UUID=$(echo $GOLD_INDEX | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"${NUMBER_OF_ROUTERS}\"'."num_nodes".'\"25\"'."uuid"')
   SMALL_SCALE_BASELINE_UUID=$(echo $GOLD_INDEX | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"${NUMBER_OF_ROUTERS}\"'."num_nodes".'\"3\"'."uuid"')
 fi
-
-log(){
-  echo -e "\033[1m$(date -u) ${@}\033[0m"
-}
 
 get_scenario(){
   # We consider a large scale scenario any cluster with more than the given threshold

@@ -5,13 +5,6 @@ export UUID=${UUID:-$(uuidgen)}
 # ES configuration
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=${ES_INDEX:-router-test-results}
-export ES_SERVER_BASELINE=""
-
-# Gold comparison
-COMPARE_WITH_GOLD=${COMPARE_WITH_GOLD:-false}
-ES_GOLD=${ES_GOLD:-${ES_SERVER}}
-GOLD_SDN=${GOLD_SDN:-openshiftsdn}
-GOLD_OCP_VERSION=${GOLD_OCP_VERSION}
 
 # Environment setup
 NUM_NODES=$(oc get node -l node-role.kubernetes.io/worker --no-headers | grep -cw Ready)
@@ -35,10 +28,12 @@ QUIET_PERIOD=${QUIET_PERIOD:-60s}
 KEEPALIVE_REQUESTS=${KEEPALIVE_REQUESTS:-"0 1 50"}
 
 # Comparison and csv generation
-export COMPARE="false"
-THROUGHPUT_TOLERANCE=${THROUGHPUT_TOLERANCE:-5}
-LATENCY_TOLERANCE=${LATENCY_TOLERANCE:-5}
-PREFIX=${PREFIX:-$(oc get clusterversion version -o jsonpath="{.status.desired.version}")}
+ES_SERVER_BASELINE=${ES_SERVER_BASELINE}
+TOLERANCY_RULES=${TOLERANCY_RULES:-$(pwd)/mb-tolerancy-rules.yaml}
+COMPARISON_OUTPUT=${COMPARISON_OUTPUT:-"ingress-performance.csv"}
+COMPARISON_ALIASES=${COMPARISON_ALIASES}
+
+# General
 LARGE_SCALE_THRESHOLD=${LARGE_SCALE_THRESHOLD:-24}
 METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 SMALL_SCALE_BASELINE_UUID=${SMALL_SCALE_BASELINE_UUID}

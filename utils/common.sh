@@ -55,5 +55,5 @@ function check_pod_ready_state () {
 }
 
 log() {
-  echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
+  echo -e "\033[1m$(date -u) ${@}\033[0m"
 }

@@ -28,7 +28,7 @@ remove_touchstone() {
 #   COMPARISON_OUTPUT Benchmark-comparison output file. Optional
 ##############################################################################
 compare(){ 
-  cmd="touchstone_compare --database elasticsearch -url ${1} -u ${2} -o yaml --config ${3} -o ${4}"
+  cmd="touchstone_compare --database elasticsearch -url ${1} -u ${2} --config ${3} -o ${4}"
   if [[ -n ${TOLERANCY_RULES} ]]; then
     cmd+=" --tolerancy-rules ${TOLERANCY_RULES}"
   fi

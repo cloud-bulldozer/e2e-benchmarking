@@ -69,14 +69,8 @@ It's possible to tune the default configuration through environment variables. T
 | LARGE_SCALE_BASELINE_PREFIX | Large scale baseline test name prefix (optional) | `baseline` |
 | GSHEET_KEY_LOCATION   | Path to service account key to generate google sheets (optional) | "" |
 | EMAIL_ID_FOR_RESULTS_SHEET | It will push your local results CSV to Google Spreadsheets and send an email with the attachment (optional) | "" |
-| THROUGHPUT_TOLERANCE  | Accepted deviation in percentage for throughput when compared to a baseline run | `5` |
-| LATENCY_TOLERANCE     | Accepted deviation in percentage for latency when compared to a baseline run | `5` |
 | SERVICE_TYPE          | K8S service type to use | `NodePort` |
 | METADATA_COLLECTION   | Collect metadata prior to trigger the workload | `true` |
-| COMPARE_WITH_GOLD | Set it to true if the baseline uuids need to be from gold-index| "" |
-| ES_GOLD | Elasticsearch server where the gold index is stored | `ES_SERVER` |
-| GOLD_SDN | SDN that you want to compare your current run to | `openshiftsdn` |
-| GOLD_OCP_VERSION | OCP version for the gold baseline run | "" |
 
 ## Metrics
 
