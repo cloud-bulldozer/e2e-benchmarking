@@ -13,15 +13,15 @@ fi
 
 operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
 operator_branch=${OPERATOR_BRANCH:=master}
-_es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-_metadata_collection=${METADATA_COLLECTION:=false}
-_poll_interval=${POLL_INTERVAL:=5}
-_post_sleep=${POST_SLEEP:=0}
+export _metadata_collection=${METADATA_COLLECTION:=false}
+export _poll_interval=${POLL_INTERVAL:=5}
+export _post_sleep=${POST_SLEEP:=0}
 COMPARE=${COMPARE:=false}
 _timeout=${TIMEOUT:=240}
 _runs=${RUNS:=1}
-_workload_node_role=${WORKLOAD_NODE_ROLE:=worker}
+export _workload_node_role=${WORKLOAD_NODE_ROLE:=worker}
 
 if [[ -n $SCALE ]]; then
   _scale=${SCALE}
@@ -31,18 +31,18 @@ else
 fi
 
 if [[ -n $UUID ]]; then
-  _uuid=${UUID}
+  export _uuid=${UUID}
 else
-  _uuid=$(uuidgen)
+  export _uuid=$(uuidgen)
 fi
 
 if [ ! -z ${2} ]; then
   export KUBECONFIG=${2}
 fi
 
-cloud_name=$1
+export cloud_name=$1
 if [ "$cloud_name" == "" ]; then
-  cloud_name="test_cloud"
+  export cloud_name="test_cloud"
 fi
 
 
@@ -55,7 +55,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Get initial worker count
-_init_worker_count=`oc get nodes -l node-role.kubernetes.io/worker | grep -v NAME | wc -l`
+_init_worker_count=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= | wc -l`
 
 
 if [[ ${COMPARE} == "true" ]]; then
