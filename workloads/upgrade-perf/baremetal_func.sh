@@ -36,7 +36,7 @@ baremetal_upgrade_auxiliary() {
   log "---------------------Retrieving Available Nodes---------------------"
   # Retrieve nodes in cluster
   echo "Retrieving all nodes in the cluster that do not have the role 'master' or 'worker-lb'"
-  node_list=($(oc get nodes --no-headers | grep -v master | grep -v worker-lb | awk '{print $1}'))
+  node_list=($(oc get nodes --no-headers | grep -v master | grep -v worker-lb | grep -v worker-rt | awk '{print $1}'))
   node_count=${#node_list[@]}
 
   # Check for 1 or more nodes to be used
