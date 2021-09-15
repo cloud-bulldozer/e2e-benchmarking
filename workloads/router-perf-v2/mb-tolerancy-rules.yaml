@@ -1,2 +1,4 @@
-- json_path: "test_type/*/routes/*/conn_per_targetroute/*/keepalive/*/avg(requests_per_second)"
-  tolerancy: -15
+- json_path: ["test_type", "*", "routes", "*", "conn_per_targetroute", "*", "keepalive", "*", "avg(requests_per_second)"]
+  tolerancy: -30
+- json_path: ["test_type", "*", "routes", "*", "conn_per_targetroute", "*", "keepalive", "*", "avg(latency_95pctl)"]
+  tolerancy: -30
