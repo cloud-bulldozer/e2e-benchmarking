@@ -243,6 +243,7 @@ baremetal_upgrade_auxiliary() {
       sleep 10
       running_pods=$(oc get pods -n ${mcp_list[${mcp_counter}]} --field-selector=status.phase==Running | wc -l)
       while [ $running_pods -le 1 ]; do
+        sleep 5
         running_pods=$(oc get pods -n ${mcp_list[${mcp_counter}]} --field-selector=status.phase==Running | wc -l)
       done
       while [ $running_pods -lt $calc_replica ]; do
@@ -332,6 +333,7 @@ baremetal_upgrade_auxiliary() {
     sleep 10
     running_pods=$(oc get pods -n upgrade --field-selector=status.phase==Running | wc -l)
     while [ $running_pods -le 1 ]; do
+      sleep 5
       running_pods=$(oc get pods -n upgrade --field-selector=status.phase==Running | wc -l)
     done
     while [ $running_pods -lt $calc_replica ]; do
@@ -376,12 +378,8 @@ EOF
             "port": 80,
             "method": "GET",
             "path": "/",
-            "delay": {
-              "min": 1000,
-              "max": 2000
-            },
-            "keep-alive-requests": 100,
-            "clients": ${clients}
+            "keep-alive-requests": 1000,
+            "clients": 1000 # ${clients} 
           },
 EOF
   ((iterations++))
