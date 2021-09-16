@@ -15,34 +15,16 @@ export UUID=$(uuidgen)
 log() {
   echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
 }
-# Check if we're on bareMetal
-export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
-
-#Check to see if the infrastructure type is baremetal to adjust script as necessary 
-if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
-  log "BareMetal infastructure: setting isBareMetal accordingly"
-  export isBareMetal=true
-else
-  export isBareMetal=false
-fi
-
 
 deploy_operator() {
-  if [[ "${isBareMetal}" == "false" ]]; then
-    log "Removing benchmark-operator namespace, if it already exists"
-    oc delete namespace benchmark-operator --ignore-not-found
-    log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
-  else 
-    log "Baremetal infrastructure: Keeping benchmark-operator namespace"
-    log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} ${OPERATOR_REPO}"
-  fi
-    rm -rf benchmark-operator
-    git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
-    (cd benchmark-operator && make deploy)
-    kubectl apply -f benchmark-operator/resources/backpack_role.yaml
-    kubectl apply -f benchmark-operator/resources/kube-burner-role.yml
-    log "Waiting for benchmark-operator to be running"
-    oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
+  log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
+  rm -rf benchmark-operator
+  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
+  (cd benchmark-operator && make deploy)
+  kubectl apply -f benchmark-operator/resources/backpack_role.yaml
+  kubectl apply -f benchmark-operator/resources/kube-burner-role.yml
+  log "Waiting for benchmark-operator to be running"
+  oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 }
 
 deploy_workload() {

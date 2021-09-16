@@ -66,8 +66,6 @@ export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
 export TEST_CLEANUP=${TEST_CLEANUP:-"false"}
 
 deploy_operator() {
-  log "Removing benchmark-operator namespace, if it already exists"
-  oc delete namespace benchmark-operator --ignore-not-found
   log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
   rm -rf benchmark-operator
   git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1

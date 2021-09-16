@@ -167,21 +167,15 @@ export_defaults() {
 }
 
 deploy_operator() {
-  if [[ "${isBareMetal}" == "false" ]]; then
-    log "Removing benchmark-operator namespace, if it already exists"
-    oc delete namespace benchmark-operator --ignore-not-found
-    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
-  else
-    log "Baremetal infrastructure: Keeping benchmark-operator namespace"
-    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
-  fi
-    rm -rf benchmark-operator  
-    git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
-    (cd benchmark-operator && make deploy)
-    oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
-    oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
-    oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
-    oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
+  log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  rm -rf benchmark-operator
+  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1  
+  (cd benchmark-operator && make deploy)
+  kubectl apply -f benchmark-operator/resources/backpack_role.yaml
+  oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
+  oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
+  oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
+  oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
 }
 
 deploy_workload() {
