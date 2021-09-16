@@ -2,11 +2,6 @@
 
 source env.sh
 
-
-log() {
-  echo ${bold}$(date -u):  ${@}${normal}
-}
-
 # If INDEXING is disabled we disable metadata collection
 if [[ ${INDEXING} == "false" ]]; then
   export METADATA_COLLECTION=false
@@ -17,6 +12,9 @@ fi
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=$(uuidgen)
 
+log() {
+  echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
+}
 # Check if we're on bareMetal
 export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
 
