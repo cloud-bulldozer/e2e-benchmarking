@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -x
 
+export TERM=screen-256color
+bold=$(tput bold)
+uline=$(tput smul)
+normal=$(tput sgr0)
+
 # Check cluster's health
 if [[ ${CERBERUS_URL} ]]; then
   response=$(curl ${CERBERUS_URL})
