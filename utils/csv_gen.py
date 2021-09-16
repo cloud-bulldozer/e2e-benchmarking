@@ -3,21 +3,15 @@
 import argparse
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
-from gspread_formatting import *
+
 
 def push_to_gsheet(sheetname, csv_file_name, google_svc_acc_key, email_id):
-    fmt = cellFormat(
-        # backgroundColor=color(1, 0.9, 0.9),
-        # textFormat=textFormat(bold=True, foregroundColor=color(1, 0, 1)),
-        horizontalAlignment="RIGHT"
-    )
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive",
     ]
     credentials = ServiceAccountCredentials.from_json_keyfile_name(google_svc_acc_key, scope)
     gc = gspread.authorize(credentials)
-
     sh = gc.create(sheetname)  # Specify name of the Spreadsheet
     sh.share(email_id, perm_type="user", role="writer")
     spreadsheet_id = sh.id
@@ -25,8 +19,28 @@ def push_to_gsheet(sheetname, csv_file_name, google_svc_acc_key, email_id):
     with open(csv_file_name, "r") as f:
         gc.import_csv(spreadsheet_id, f.read())
     worksheet = sh.get_worksheet(0)
-    format_cell_range(worksheet, "1:1000", fmt)
-    set_column_width(worksheet, "A", 290)
+    fit_to_data_body = {
+      "requests": [
+        {
+          "setBasicFilter": {
+            "filter": {
+              "range": {
+                "sheetId": worksheet.id,
+              }
+            }
+          }
+        },
+        {
+          "autoResizeDimensions": {
+            "dimensions": {
+              "sheetId": worksheet.id,
+              "dimension": "COLUMNS"
+            }
+          }
+        }
+      ]
+    }
+    sh.batch_update(fit_to_data_body)
     print(f"Google Spreadsheet link -> {spreadsheet_url}")
 
 
