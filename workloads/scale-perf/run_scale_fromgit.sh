@@ -113,8 +113,8 @@ EOF
       fi
       
     fi
-    oc delete pod $scale_pod -n benchmark-operator --ignore-not-found --wait
     oc -n benchmark-operator delete benchmark/scale --ignore-not-found --wait
+    sleep 10
   done
 done
 
