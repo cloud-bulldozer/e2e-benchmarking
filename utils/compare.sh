@@ -7,7 +7,8 @@ install_touchstone() {
   touchstone_tmp=$(mktemp -d)
   python -m venv ${touchstone_tmp}
   source ${touchstone_tmp}/bin/activate
-  pip3 install git+https://github.com/cloud-bulldozer/benchmark-comparison.git
+  # CHANGE ME
+  pip3 install git+https://github.com/rsevilla87/benchmark-comparison.git
 }
 
 remove_touchstone() {
