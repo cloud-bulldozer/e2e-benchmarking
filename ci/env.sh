@@ -30,3 +30,4 @@ export SMALL_SCALE_CLIENTS_MIX="1 20"
 export KEEPALIVE_REQUESTS="0 1"
 export QUIET_PERIOD=1s
 export NODE_SELECTOR='{node-role.kubernetes.io/worker: }'
+export TOLERANCY_RULES_CFG=""
