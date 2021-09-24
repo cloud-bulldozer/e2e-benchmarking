@@ -29,5 +29,5 @@ jobs:
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/node-pod-density/templates/pod.yml
         replicas: 1
         inputVars:
-          containerImage: gcr.io/google_containers/pause-amd64:3.0
+          containerImage: quay.io/cloud-bulldozer/hello-openshift:latest
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
