@@ -274,19 +274,6 @@ generate_csv() {
   log "Finished generating CSV"
 }
 
-init_cleanup() {
-  if [[ "${isBareMetal}" == "false" ]]; then
-    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
-    rm -rf /tmp/benchmark-operator
-    git clone --single-branch --branch ${operator_branch} ${operator_repo} /tmp/benchmark-operator --depth 1
-    oc delete -f /tmp/benchmark-operator/deploy
-    oc delete -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-    oc delete -f /tmp/benchmark-operator/resources/operator.yaml  
-  else
-    log "BareMetal Infrastructure: Skipping cleanup"
-  fi
-}
-
 delete_benchmark() {
     oc delete benchmarks.ripsaw.cloudbulldozer.io/uperf-${cr_name}-${WORKLOAD}-network-${pairs} -n benchmark-operator
 }
@@ -314,7 +301,6 @@ normal=$(tput sgr0)
 python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
 check_cluster_present
 export_defaults
-init_cleanup
 check_cluster_health
 deploy_operator
 
