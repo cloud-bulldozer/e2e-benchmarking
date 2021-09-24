@@ -56,7 +56,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: ${APP_NAME}
+      app: sample
   ingress:
   - from:
     - ipBlock:
