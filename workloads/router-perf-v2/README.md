@@ -75,6 +75,7 @@ The ingress-performance script is able to invoke benchmark-comparison to perform
 | COMPARISON_CONFIG     | Benchmark-coparison configuration file | `${PWD}/mb-touchstone.json` | no |
 | COMPARISON_ALIASES    | Benchmark-comparison aliases       | "" | no |
 | COMPARISON_OUTPUT_CFG | Benchmark-comparison output file   | `${PWD}/ingress-performance.csv`| no |
+| COMPARISON_RC         | Benchmark-comparison return code if tolerancy check fails | 0 | no |
 | TOLERANCY_RULES_CFG   | Tolerancy rules configuration file | `{PWD}/mb-tolerancy-rules.yaml` | no |
 | GSHEET_KEY_LOCATION   | Path to service account key to generate google sheets (optional) | "" | no |
 
