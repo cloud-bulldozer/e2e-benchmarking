@@ -11,12 +11,12 @@ global:
     - name: podLatency
       esIndex: {{.ES_INDEX}}
 jobs:
-  - name: node-density
+  - name: pod-density-heavy
     jobIterations: {{.JOB_ITERATIONS}}
     qps: {{.QPS}}
     burst: {{.BURST}}
     namespacedIterations: false
-    namespace: node-density-{{.UUID}}
+    namespace: pod-density-heavy-{{.UUID}}
     podWait: {{.POD_WAIT}}
     cleanup: {{.CLEANUP}}
     waitFor: {{.WAIT_FOR}}
@@ -31,3 +31,5 @@ jobs:
         inputVars:
           containerImage: quay.io/cloud-bulldozer/hello-openshift:latest
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
+          readinessPeriod: 10
+          livenessPeriod: 10

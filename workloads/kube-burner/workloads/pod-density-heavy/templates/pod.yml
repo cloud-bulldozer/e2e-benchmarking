@@ -7,11 +7,27 @@ metadata:
 spec:
   nodeSelector: {{.nodeSelector}}
   containers:
-  - name: node-density
+  - name: pod-density-heavy
     image: {{.containerImage}}
     ports:
     - containerPort: 8080
       protocol: TCP
     imagePullPolicy: IfNotPresent
+    readinessProbe:
+      httpGet:
+        path: /
+        port: 8080
+      periodSeconds: {{ .readinessPeriod }}
+      failureThreshold: 1
+      timeoutSeconds: 60
+      initialDelaySeconds: 30
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 8080
+      periodSeconds: {{ .livenessPeriod }}
+      failureThreshold: 1
+      timeoutSeconds: 15
+      initialDelaySeconds: 30
     securityContext:
       privileged: false
