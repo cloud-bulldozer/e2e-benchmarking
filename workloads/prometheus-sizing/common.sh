@@ -1,6 +1,6 @@
 source env.sh
 
-export UUID=$(uuidgen)
+export UUID=${UUID:-$(uuidgen)}
 export PROM_URL=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
 export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
 
