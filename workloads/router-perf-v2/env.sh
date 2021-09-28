@@ -1,6 +1,6 @@
 # General
 export KUBECONFIG=${KUBECONFIG:-~/.kube/config}
-export UUID=$(uuidgen)
+export UUID=${UUID:-$(uuidgen)}
 
 # ES configuration
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}

@@ -33,7 +33,7 @@ if [[ -z $JENKINS_USER ]] || [[ -z $JENKINS_API_TOKEN ]]; then
 fi
 
 # Generate a uuid
-export UUID=$(uuidgen)
+export UUID=${UUID:-$(uuidgen)}
 
 # Timestamp
 timestamp=`date +"%Y-%m-%dT%T.%3N"`
