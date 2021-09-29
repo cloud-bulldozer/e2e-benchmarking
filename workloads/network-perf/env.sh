@@ -1,3 +1,4 @@
+export UUID=${UUID:-$(uuidgen)}
 export ES_SERVER=
 export METADATA_COLLECTION=true
 export COMPARE=false

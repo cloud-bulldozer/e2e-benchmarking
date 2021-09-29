@@ -6,6 +6,7 @@ metadata:
   name: uperf-benchmark-${WORKLOAD}-network-${pairs}
   namespace: benchmark-operator
 spec:
+  uuid: ${UUID}
   elasticsearch:
     url: $_es
   clustername: $cloud_name
