@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source ../../utils/benchmark-operator.sh
+
 set -x
 
 # Logging format
@@ -66,14 +68,10 @@ export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
 export TEST_CLEANUP=${TEST_CLEANUP:-"false"}
 
 deploy_operator() {
-  log "Removing benchmark-operator namespace, if it already exists"
-  oc delete namespace benchmark-operator --ignore-not-found
-  log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  deploy_benchmark_operator ${operator_repo} ${operator_branch}
   rm -rf benchmark-operator
   git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
-  (cd benchmark-operator && make deploy)
   kubectl apply -f benchmark-operator/resources/backpack_role.yaml
-  oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 }
 
 deploy_logging_stack() {
@@ -126,47 +124,7 @@ run_workload() {
     echo "      value: " >> log_generator_$timestamp.yaml
   fi
 
-  lg_rc=`oc apply -f log_generator_$timestamp.yaml`
-  if [[ $lg_rc -ne 0 ]]; then
-    log "Failed to apply log_generator_$timestamp.yaml"
-    exit 1
-  fi
-  log "Successfully applied log_generator_$timestamp.yaml"
-}
-
-wait_for_benchmark() {
-  rc=0
-  log "Waiting for benchmark to be created"
-  local timeout=$(date -d "+${TEST_TIMEOUT} seconds" +%s)
-  until oc get benchmark -n benchmark-operator log-generator -o jsonpath="{.status.state}" | grep -q Running; do
-    sleep 1
-    if [[ $(date +%s) -gt ${timeout} ]]; then
-      log "Timeout waiting for job to be created"
-      exit 1
-    fi
-  done
-  log "Waiting for log-generator pods to start"
-  suuid=$(oc get benchmark -n benchmark-operator log-generator -o jsonpath="{.status.suuid}")
-  until [[ $(oc get pod -n benchmark-operator -l job-name=log-generator-${suuid} --ignore-not-found -o go-template='{{ range .items}}{{.status.phase}}{{"\n"}}{{end}}' | grep Running | wc -l) -eq $POD_COUNT ]]; do
-    sleep 1
-    if [[ $(date +%s) -gt ${timeout} ]]; then
-      log "Timeout waiting for all pods to be running"
-      exit 1
-    fi
-  done
-  log "Benchmark in progress"
-  until [[ $(oc get benchmark -n benchmark-operator log-generator -o jsonpath="{.status.state}" | grep -E "Complete|Failed" | wc -l) -eq "1" ]]; do
-    if [[ $(date +%s) -gt ${timeout} ]]; then
-      log "Timeout waiting for Benchmark to complete"
-      exit 1
-    fi
-    sleep 1
-  done
-  status=$(oc get benchmark -n benchmark-operator log-generator -o jsonpath="{.status.state}")
-  log "Benchmark log-generator-${UUID} finished with status: ${status}"
-  if [[ ${status} == "Failed" ]]; then
-    rc=1
-  fi
+  run_benchmark log_generator_$timestamp.yaml 7200
 }
 
 cleanup() {

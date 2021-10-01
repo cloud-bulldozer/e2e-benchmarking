@@ -124,14 +124,10 @@ export_defaults() {
 }
 
 deploy_operator() {
-  log "Removing benchmark-operator namespace, if it already exists"
-  oc delete namespace benchmark-operator --ignore-not-found
-  log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  deploy_benchmark_operator ${operator_repo} ${operator_branch}
   rm -rf benchmark-operator
   git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1  
-  (cd benchmark-operator && make deploy)
   kubectl apply -f benchmark-operator/resources/backpack_role.yaml
-  oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
   oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
@@ -142,46 +138,6 @@ deploy_workload() {
   log "Deploying uperf benchmark"
   envsubst < $CRD > ${CR}
   run_benchmark ${CR} 7200
-}
-
-check_logs_for_errors() {
-client_pod=$(oc get pods -n benchmark-operator --no-headers | awk '{print $1}' | grep uperf-client | awk 'NR==1{print $1}')
-if [ ! -z "$client_pod" ]; then
-  num_critical=$(oc logs ${client_pod} -n benchmark-operator | grep CRITICAL | wc -l)
-  if [ $num_critical -gt 3 ] ; then
-    log "Encountered CRITICAL condition more than 3 times in uperf-client logs"
-    log "Log dump of uperf-client pod"
-    oc logs $client_pod -n benchmark-operator
-    delete_benchmark
-    exit 1
-  fi
-fi
-}
-
-wait_for_benchmark() {
-  uperf_state=1
-  for i in {1..480}; do # 2hours
-    update
-    if [ "${benchmark_state}" == "Error" ]; then
-      log "Cerberus status is False, Cluster is unhealthy"
-      exit 1
-    fi
-    oc describe -n benchmark-operator benchmarks/uperf-benchmark-${WORKLOAD}-network-${pairs} | grep State | grep Complete
-    if [ $? -eq 0 ]; then
-      log "uperf workload done!"
-      uperf_state=$?
-      break
-    fi
-    update
-    log "Current status of the uperf ${WORKLOAD} benchmark with ${uline}${benchmark_current_pair} pair/s is ${uline}${benchmark_state}${normal}"
-    check_logs_for_errors
-    sleep 30
-  done
-
-  if [ "$uperf_state" == "1" ] ; then
-    log "Workload failed"
-    exit 1
-  fi
 }
 
 assign_uuid() {
@@ -247,4 +203,4 @@ normal=$(tput sgr0)
 python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
 export_defaults
 check_cluster_health
-deploy_benchmark_operator ${operator_repo} ${operator_branch}
+deploy_operator
