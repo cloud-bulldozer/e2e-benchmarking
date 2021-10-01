@@ -1,19 +1,11 @@
 #!/usr/bin/env bash
 
+source ../../utils/benchmark-operator.sh
+
 log() {
   echo ${bold}$(date -u):  ${@}${normal}
 }
 
-check_cluster_present() {
-  echo ""
-  oc get clusterversion
-  if [ $? -ne 0 ]; then
-    log "Workload Failed for cloud $cloud_name, Unable to connect to the cluster"
-    exit 1
-  fi
-  cluster_version=$(oc get clusterversion --no-headers | awk '{ print $2 }')
-  echo ""
-}
 
 check_cluster_health() {
   if [[ ${CERBERUS_URL} ]]; then
@@ -45,7 +37,7 @@ export_defaults() {
   export multi_az=${MULTI_AZ:=true}
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
   platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
-  log "Platform is found to be : ${platform} "
+  log "Platform is found to be: ${platform} "
   # If multi_az we use one node from the two first AZs
   if [[ ${platform} == "vsphere" ]]; then
     nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="" -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
@@ -146,10 +138,10 @@ deploy_operator() {
 }
 
 deploy_workload() {
+  local CR=$(mktemp)
   log "Deploying uperf benchmark"
-  envsubst < $CRD | oc apply -f -
-  log "Sleeping for 60 seconds"
-  sleep 60
+  envsubst < $CRD > ${CR}
+  run_benchmark ${CR} 7200
 }
 
 check_logs_for_errors() {
@@ -232,18 +224,10 @@ generate_csv() {
   python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance  
 }
 
-init_cleanup() {
-  log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
-  rm -rf /tmp/benchmark-operator
-  git clone --single-branch --branch ${operator_branch} ${operator_repo} /tmp/benchmark-operator --depth 1
-  oc delete -f /tmp/benchmark-operator/deploy
-  oc delete -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-  oc delete -f /tmp/benchmark-operator/resources/operator.yaml  
-}
-
 delete_benchmark() {
   oc delete benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator
 }
+
 
 update() {
   benchmark_state=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.state}')
@@ -256,17 +240,11 @@ get_gold_ocp_version(){
   export GOLD_OCP_VERSION=$( bc <<< "$current_version - 0.1" )
 }
 
-print_uuid() {
-  cat uuid.txt
-}
-
 export TERM=screen-256color
 bold=$(tput bold)
 uline=$(tput smul)
 normal=$(tput sgr0)
 python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
-check_cluster_present
 export_defaults
-init_cleanup
 check_cluster_health
-deploy_operator
+deploy_benchmark_operator ${operator_repo} ${operator_branch}
