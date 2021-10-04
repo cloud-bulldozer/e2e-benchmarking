@@ -21,7 +21,6 @@ check_cluster_health() {
 export_defaults() {
   operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
   operator_branch=${OPERATOR_BRANCH:=master}
-  CRD=${CRD:-ripsaw-uperf-crd.yaml}
   export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
   _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
   export _metadata_collection=${METADATA_COLLECTION:=true}
@@ -133,11 +132,11 @@ deploy_operator() {
   oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
 }
 
-deploy_workload() {
-  local CR=$(mktemp)
+run_workload() {
+  local TMPCR=$(mktemp)
   log "Deploying uperf benchmark"
-  envsubst < $CRD > ${CR}
-  run_benchmark ${CR} 7200
+  envsubst < $1 > ${TMPCR}
+  run_benchmark ${TMPCR} 7200
 }
 
 assign_uuid() {
