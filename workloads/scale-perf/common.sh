@@ -21,7 +21,6 @@ _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbn
 export _metadata_collection=${METADATA_COLLECTION:=false}
 export _poll_interval=${POLL_INTERVAL:=5}
 export _post_sleep=${POST_SLEEP:=0}
-COMPARE=${COMPARE:=false}
 _timeout=${TIMEOUT:=240}
 _runs=${RUNS:=1}
 export _workload_node_role=${WORKLOAD_NODE_ROLE:=worker}
@@ -39,33 +38,13 @@ else
   export _uuid=$(uuidgen)
 fi
 
-if [ ! -z ${2} ]; then
-  export KUBECONFIG=${2}
-fi
+export cloud_name="test_cloud"
 
-export cloud_name=$1
-if [ "$cloud_name" == "" ]; then
-  export cloud_name="test_cloud"
-fi
-
-
-# check if cluster is up
-date
-oc get clusterversion
-if [ $? -ne 0 ]; then
-  echo "Workload Failed for cloud $cloud_name, Unable to connect to the cluster"
-  exit 1
-fi
 
 # Get initial worker count
 _init_worker_count=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= | wc -l`
 
 
-if [[ ${COMPARE} == "true" ]]; then
-  echo $BASELINE_CLOUD_NAME,$cloud_name > uuid.txt
-else
-  echo $cloud_name > uuid.txt
-fi
 deploy_operator() {
   deploy_benchmark_operator ${operator_repo} ${operator_branch}
   rm -rf benchmark-operator
