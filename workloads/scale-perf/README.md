@@ -98,6 +98,14 @@ Default: ''
 
 AWS Region
 
+### TEST_CLEANUP
+Default: true
+Remove benchmark CR at the end
+
+### TEST_TIMEOUT
+Default: 7200
+Benchmark timeout in seconds
+
 ## Suggested configurations
 
 ```sh

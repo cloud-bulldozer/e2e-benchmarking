@@ -42,6 +42,7 @@ All scripts can be tweaked with the following environment variables:
 | **LOG_LEVEL**        | Kube-burner log level | info |
 | **PPROF_COLLECTION** | Collect and store pprof data locally | false |
 | **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5m | 
+| **TEST_CLEANUP**     | Remove benchmark CR at the end | true |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
@@ -121,6 +122,7 @@ will launch a pod running a kube-burner process that will use the configuration 
 
 
 ### Snappy integration configurations
+
 To backup data to a given snappy data-server
 
 #### Environment Variables
@@ -144,5 +146,3 @@ Password for the Snappy data-server.
 **`SNAPPY_USER_FOLDER`**
 Default: 'perf-ci'
 To store the data for a specific user
-
-

@@ -116,6 +116,15 @@ If true, uperf client and server pods will be colocated in different topology zo
 You need at least 2 worker nodes placed in different in different topology zones to enable this flag.
 If false, uperf client and server pods will be colocated in the same topology zone. You need at least 2 worker nodes in that topology zone.
 
+### TEST_CLEANUP
+Default: true
+Remove benchmark CR at the end
+
+### TEST_TIMEOUT
+Default: 7200
+Benchmark timeout in seconds
+
+
 ## Suggested configurations
 
 ```sh
