@@ -4,7 +4,7 @@ export WORKLOAD=hostnet
 source ./common.sh
 export pairs=1
 
-deploy_workload
+run_workload ripsaw-uperf-crd.yaml
 assign_uuid
 run_benchmark_comparison
 generate_csv
