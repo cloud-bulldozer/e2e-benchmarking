@@ -16,8 +16,7 @@ if [[ ${PPROF_COLLECTION} == "true" ]] ; then
   delete_oldpprof_folder
   get_pprof_secrets
 fi 
-run_workload
-wait_for_benchmark ${WORKLOAD}
+run_workload kube-burner-crd.yaml
 rm -rf benchmark-operator
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
@@ -25,7 +24,7 @@ fi
 delete_pprof_secrets
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
- snappy_backup kube-burner-maxservices
+  snappy_backup kube-burner-maxservices
 fi
 
 exit ${rc}
