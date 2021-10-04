@@ -2,7 +2,9 @@
 
 source ../../utils/benchmark-operator.sh
 
-set -x
+log() {
+  echo -e "\033[1m$(date -u) ${@}\033[0m"
+}
 
 # Check cluster's health
 if [[ ${CERBERUS_URL} ]]; then
@@ -57,7 +59,7 @@ deploy_operator() {
 
 run_workload() {
   local TMPCR=$(mktemp)
-  log "Deploying uperf benchmark"
+  log "Deploying benchmark"
   envsubst < $1 > ${TMPCR}
   run_benchmark ${TMPCR} 7200
 }

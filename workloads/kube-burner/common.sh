@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+source ../../utils/benchmark-operator.sh
 source env.sh
 
 # If INDEXING is disabled we disable metadata collection
@@ -13,7 +14,7 @@ export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=${UUID:-$(uuidgen)}
 
 log() {
-  echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
+  echo -e "\033[1m$(date -u) ${@}\033[0m"
 }
 
 collect_pprof() {
@@ -27,17 +28,14 @@ collect_pprof() {
 
 
 deploy_operator() {
-  log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
+  deploy_benchmark_operator ${operator_repo} ${operator_branch}
   rm -rf benchmark-operator
-  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
-  (cd benchmark-operator && make deploy)
+  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
   kubectl apply -f benchmark-operator/resources/backpack_role.yaml
   kubectl apply -f benchmark-operator/resources/kube-burner-role.yml
-  log "Waiting for benchmark-operator to be running"
-  oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 }
 
-deploy_workload() {
+run_workload() {
   set -e
   local tmpdir=$(mktemp -d)
   if [[ -z ${WORKLOAD_TEMPLATE} ]]; then
@@ -56,57 +54,10 @@ deploy_workload() {
   kubectl create configmap -n benchmark-operator --from-file=${tmpdir} kube-burner-cfg-${UUID}
   rm -rf ${tmpdir}
   log "Deploying benchmark"
-  envsubst < kube-burner-crd.yaml | oc apply -f -
   set +e
-}
-
-wait_for_benchmark() {
-  rc=0
-  log "Waiting for kube-burner job to be created"
-  local timeout=$(date -d "+${POD_READY_TIMEOUT} seconds" +%s)
-  until oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.state}" | grep -q Running; do
-    sleep 1
-    if [[ $(date +%s) -gt ${timeout} ]]; then
-      log "Timeout waiting for job to be created"
-      exit 1
-    fi
-  done
-  log "Waiting for kube-burner job to start"
-  suuid=$(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.suuid}")
-  until oc get pod -n benchmark-operator -l job-name=kube-burner-${suuid} --ignore-not-found -o jsonpath="{.items[*].status.phase}" | grep -Eq "Running|Failed"; do
-    sleep 1
-    if [[ $(date +%s) -gt ${timeout} ]]; then
-      log "Timeout waiting for job to be running"
-      oc logs -n benchmark-operator --tail=-1 -l job-name=kube-burner-${suuid} --ignore-errors=true
-      cleanup
-      exit 1
-    fi
-  done
-  log "Benchmark in progress"
-  if [[ ${PPROF_COLLECTION} == "true" ]] ; then
-    collect_pprof ${1} &
-    pid=$!
-    log "PID ${pid} for pprof collection is running in the background"
-  fi
-
-  until [[ $(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.complete}") == "true" ]]; do
-    if [[ ${LOG_STREAMING} == "true" ]]; then
-      oc logs -n benchmark-operator --tail=-1 -f -l job-name=kube-burner-${suuid} --ignore-errors=true || true
-      sleep 20
-    fi
-    sleep 1
-  done
-  log "Benchmark kube-burner-${1}-${UUID} finished"
-  if [[ ${LOG_STREAMING} == "false" ]]; then
-    oc logs -n benchmark-operator --tail=-1 -l job-name=kube-burner-${suuid}
-  fi
-  oc get pod -l job-name=kube-burner-${suuid} -n benchmark-operator
-  status=$(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.state}")
-  log "Benchmark kube-burner-${1}-${UUID} finished with status: ${status}"
-  if [[ ${status} == "Failed" ]]; then
-    rc=1
-  fi
-  oc get benchmark -n benchmark-operator
+  local TMPCR=$(mktemp)
+  envsubst < $1 > ${TMPCR}
+  run_benchmark ${TMPCR} $((JOB_TIMEOUT + 600))
 }
 
 label_nodes() {

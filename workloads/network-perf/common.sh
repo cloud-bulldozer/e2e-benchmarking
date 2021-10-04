@@ -3,7 +3,7 @@
 source ../../utils/benchmark-operator.sh
 
 log() {
-  echo ${bold}$(date -u):  ${@}${normal}
+  echo -e "\033[1m$(date -u) ${@}\033[0m"
 }
 
 
