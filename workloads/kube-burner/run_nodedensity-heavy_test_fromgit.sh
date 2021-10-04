@@ -18,7 +18,7 @@ if [[ ${PPROF_COLLECTION} == "true" ]] ; then
   delete_oldpprof_folder
   get_pprof_secrets
 fi 
-deploy_workload
+run_workload
 wait_for_benchmark ${WORKLOAD}
 unlabel_nodes
 rm -rf benchmark-operator
