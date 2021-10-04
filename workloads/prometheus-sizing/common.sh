@@ -5,7 +5,7 @@ export PROM_URL=https://$(oc get route -n openshift-monitoring prometheus-k8s -o
 export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
 
 log(){
-  echo -e "\033[1m$(date "+%d-%m-%YT%H:%M:%S") ${@}\033[0m"
+  echo -e "\033[1m$(date -u) ${@}\033[0m"
 }
 
 get_number_of_pods(){
