@@ -106,14 +106,8 @@ export_defaults() {
   _baseline_svc_2p_uuid=${BASELINE_SVC_2P_UUID}
   _baseline_svc_4p_uuid=${BASELINE_SVC_4P_UUID}
 
-  if [ ! -z ${2} ]; then
-    export KUBECONFIG=${2}
-  fi
 
-  cloud_name=$1
-  if [ "$cloud_name" == "" ]; then
-    export cloud_name="${network_type}_${platform}_${cluster_version}"
-  fi
+  export cloud_name="${network_type}_${platform}_${cluster_version}"
 
   if [[ ${COMPARE} == "true" ]]; then
     echo $BASELINE_CLOUD_NAME,$cloud_name > uuid.txt
@@ -125,7 +119,7 @@ export_defaults() {
 deploy_operator() {
   deploy_benchmark_operator ${operator_repo} ${operator_branch}
   rm -rf benchmark-operator
-  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1  
+  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
   kubectl apply -f benchmark-operator/resources/backpack_role.yaml
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
