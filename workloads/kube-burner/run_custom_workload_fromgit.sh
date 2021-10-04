@@ -8,8 +8,7 @@ export WORKLOAD=custom
 
 deploy_operator
 check_running_benchmarks
-run_workload
-wait_for_benchmark ${WORKLOAD}
+run_workload kube-burner-crd.yaml
 rm -rf benchmark-operator
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup

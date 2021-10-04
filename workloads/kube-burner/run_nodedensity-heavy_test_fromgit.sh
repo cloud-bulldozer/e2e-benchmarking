@@ -18,8 +18,7 @@ if [[ ${PPROF_COLLECTION} == "true" ]] ; then
   delete_oldpprof_folder
   get_pprof_secrets
 fi 
-run_workload
-wait_for_benchmark ${WORKLOAD}
+run_workload kube-burner-crd.yaml
 unlabel_nodes
 rm -rf benchmark-operator
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
@@ -28,7 +27,7 @@ fi
 delete_pprof_secrets
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
- snappy_backup kube-burner-nodedensityheavy
+  snappy_backup kube-burner-nodedensityheavy
 fi
 
 exit ${rc}
