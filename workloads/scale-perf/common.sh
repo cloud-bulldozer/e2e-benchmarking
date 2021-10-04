@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+source ../../utils/benchmark-operator.sh
+
 set -x
 
 # Check cluster's health
@@ -63,17 +66,22 @@ if [[ ${COMPARE} == "true" ]]; then
 else
   echo $cloud_name > uuid.txt
 fi
+deploy_operator() {
+  deploy_benchmark_operator ${operator_repo} ${operator_branch}
+  rm -rf benchmark-operator
+  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
+  kubectl apply -f benchmark-operator/resources/backpack_role.yaml
+  kubectl apply -f benchmark-operator/resources/scale_role.yaml
+  oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
+  oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
+}
+
+run_workload() {
+  local TMPCR=$(mktemp)
+  log "Deploying uperf benchmark"
+  envsubst < $1 > ${TMPCR}
+  run_benchmark ${TMPCR} 7200
+}
 
 echo "Starting test for cloud: $cloud_name"
-
-echo "Removing benchmark-operator namespace, if it already exists"
-oc delete namespace benchmark-operator --ignore-not-found
-echo "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
-rm -rf benchmark-operator
-git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
-(cd benchmark-operator && make deploy)
-kubectl apply -f benchmark-operator/resources/scale_role.yaml
-kubectl apply -f benchmark-operator/resources/backpack_role.yaml
-oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
-oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
-oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
+deploy_operator
