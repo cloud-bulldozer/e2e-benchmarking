@@ -12,22 +12,29 @@ spec:
     ports:
     - containerPort: 8080
       protocol: TCP
-    imagePullPolicy: IfNotPresent
-    readinessProbe:
+    imagePullPolicy: Always
+    startupProbe:
       httpGet:
         path: /
         port: 8080
+      periodSeconds: 30
+      failureThreshold: 1
+    readinessProbe:
+      exec:
+        command: 
+        - ls 
       periodSeconds: {{ .readinessPeriod }}
       failureThreshold: 1
-      timeoutSeconds: 60
-      initialDelaySeconds: 30
+      timeoutSeconds: 30
+      initialDelaySeconds: 10
     livenessProbe:
-      httpGet:
-        path: /
-        port: 8080
+      exec:
+        command: 
+        - echo 
+        - "checking container state"
       periodSeconds: {{ .livenessPeriod }}
       failureThreshold: 1
       timeoutSeconds: 15
-      initialDelaySeconds: 30
+      initialDelaySeconds: 10
     securityContext:
       privileged: false
