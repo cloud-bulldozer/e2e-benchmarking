@@ -1,6 +1,41 @@
 #!/bin/bash
 
-# Vars and respective defaults
+# UUID
+export UUID=${UUID:-`uuidgen`}
+
+# Benchmark-operator
+OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
+OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
+export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+export METADATA_COLLECTION=${METADATA_COLLECTION:-false}
+
+# Logging workload args
+export MESSAGE_SIZE=${MESSAGE_SIZE:-512}
+export DURATION=${DURATION:-1}
+export MESSAGES_PER_SECOND=${MESSAGES_PER_SECOND:-0}
+export POD_COUNT=${POD_COUNT:-1}
+export TIMEOUT=${TIMEOUT:-600}
+
+# ES backend information
+export ES_BACKEND_URL=${ES_BACKEND_URL:-""}
+export ES_BACKEND_INDEX=${ES_BACKEND_INDEX:-""}
+export ES_BACKEND_TOKEN=${ES_BACKEND_TOKEN:-""}
+
+# AWS CloudWatch backend information
+export CLOUDWATCH_LOG_GROUP=${CLOUDWATCH_LOG_GROUP:-""}
+export AWS_REGION=${AWS_REGION:-""}
+export AWS_ACCESS_KEY=${AWS_ACCESS_KEY:-""}
+export AWS_SECRET_KEY=${AWS_SECRET_KEY:-""}
+
+# Node Selector
+export NODE_SELECTOR_KEY=${NODE_SELECTOR_KEY:-""}
+export NODE_SELECTOR_VALUE=${NODE_SELECTOR_VALUE:-""}
+
+# Deploy Logging
+export DEPLOY_LOGGING=${DEPLOY_LOGGING:-true}
+
+# Cleanup benchmark when done
+export TEST_CLEANUP=${TEST_CLEANUP:-"false"}
 
 # Deploy Variables
 export CHANNEL=${CHANNEL:=4.6}
@@ -17,3 +52,5 @@ export FLUENTD_CPU_REQUESTS=${FLUENTD_CPU_REQUESTS:=500m}
 export FLUENTD_MEMORY_REQUESTS=${FLUENTD_MEMORY_REQUESTS:=1Gi}
 export FORWARD_LOGS=${FORWARD_LOGS:=[application]}
 export TIMEOUT=${TIMEOUT:=180}
+TEST_CLEANUP=${TEST_CLEANUP:-true}
+export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}

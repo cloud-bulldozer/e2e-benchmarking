@@ -71,6 +71,14 @@ Logs to forward to the Elasticsearch backend. Only application logs are forwarde
 Default: 180
 Time to wait for resources created to be up before exiting
 
+### TEST_CLEANUP
+Default: true
+Remove benchmark CR at the end
+
+### TEST_TIMEOUT
+Default: 7200
+Benchmark timeout in seconds
+
 **NOTE**: [Instance](files/logging-stack.yml) can be modified in case you want to add/tweak the configuration.
 
 

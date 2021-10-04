@@ -2,6 +2,7 @@
 export WORKLOAD=hostnet
 
 source ./common.sh
+export HOSTNETWORK=true
 export pairs=1
 
 run_workload ripsaw-uperf-crd.yaml

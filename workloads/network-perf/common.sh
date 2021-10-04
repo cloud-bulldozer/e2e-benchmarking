@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+source env.sh
 source ../../utils/benchmark-operator.sh
 
 log() {
@@ -19,25 +20,12 @@ check_cluster_health() {
 
 
 export_defaults() {
-  operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-  operator_branch=${OPERATOR_BRANCH:=master}
-  export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-  _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-  export _metadata_collection=${METADATA_COLLECTION:=true}
-  export _metadata_targeted=true
-  export COMPARE=${COMPARE:=false}
   network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
-  gold_sdn=${GOLD_SDN:=openshiftsdn}
-  throughput_tolerance=${THROUGHPUT_TOLERANCE:=10}
-  latency_tolerance=${LATENCY_TOLERANCE:=10}
   export client_server_pairs=(1 2 4)
-  export pin=true
-  export networkpolicy=${NETWORK_POLICY:=false}
-  export multi_az=${MULTI_AZ:=true}
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
   platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
   log "Platform is found to be: ${platform} "
-  # If multi_az we use one node from the two first AZs
+  # If MULTI_AZ we use one node from the two first AZs
   if [[ ${platform} == "vsphere" ]]; then
     nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="" -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
     if [[ ${#nodes[@]} -lt 2 ]]; then
@@ -46,7 +34,7 @@ export_defaults() {
     fi
     export server=${nodes[0]}
     export client=${nodes[1]}
-  elif [[ ${multi_az} == "true" ]]; then
+  elif [[ ${MULTI_AZ} == "true" ]]; then
     # Get AZs from worker nodes
     log "Colocating uperf pods in different AZs"
     if [[ ${#zones[@]} -gt 1 ]]; then
@@ -56,7 +44,7 @@ export_defaults() {
       log "At least 2 worker nodes placed in different topology zones are required"
       exit 1
     fi
-  # If multi_az is disabled we use the two first nodes from the first AZ
+  # If MULTI_AZ is disabled we use the two first nodes from the first AZ
   else
     nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
     if [[ ${#nodes[@]} -lt 2 ]]; then
@@ -117,9 +105,9 @@ export_defaults() {
 }
 
 deploy_operator() {
-  deploy_benchmark_operator ${operator_repo} ${operator_branch}
+  deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
   rm -rf benchmark-operator
-  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
+  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
   kubectl apply -f benchmark-operator/resources/backpack_role.yaml
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
@@ -127,10 +115,14 @@ deploy_operator() {
 }
 
 run_workload() {
+  log "Deploying benchmark"
   local TMPCR=$(mktemp)
-  log "Deploying uperf benchmark"
   envsubst < $1 > ${TMPCR}
-  run_benchmark ${TMPCR} 7200
+  run_benchmark ${TMPCR} ${TEST_TIMEOUT}
+  if [[ ${TEST_CLEANUP} == "true" ]]; then
+    log "Cleaning up benchmark"
+    kubectl delete -f ${TMPCR}
+  fi
 }
 
 assign_uuid() {
@@ -173,11 +165,6 @@ generate_csv() {
   python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance  
 }
 
-delete_benchmark() {
-  oc delete benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator
-}
-
-
 update() {
   benchmark_state=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.state}')
   benchmark_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.uuid}')
@@ -190,9 +177,6 @@ get_gold_ocp_version(){
 }
 
 export TERM=screen-256color
-bold=$(tput bold)
-uline=$(tput smul)
-normal=$(tput sgr0)
 python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
 export_defaults
 check_cluster_health

@@ -25,6 +25,7 @@ export _poll_interval=${POLL_INTERVAL:=5}
 export _post_sleep=${POST_SLEEP:=0}
 _timeout=${TIMEOUT:=240}
 _runs=${RUNS:=1}
+TEST_CLEANUP=${TEST_CLEANUP:-true}
 export _workload_node_role=${WORKLOAD_NODE_ROLE:=worker}
 
 if [[ -n $SCALE ]]; then
@@ -58,10 +59,15 @@ deploy_operator() {
 }
 
 run_workload() {
-  local TMPCR=$(mktemp)
   log "Deploying benchmark"
+  local TMPCR=$(mktemp)
   envsubst < $1 > ${TMPCR}
-  run_benchmark ${TMPCR} 7200
+  run_benchmark ${TMPCR} ${TEST_TIMEOUT}
+  kubectl delete -f ${TMPCR}
+  if [[ ${TEST_CLEANUP} == "true" ]]; then
+    log "Cleaning up benchmark"
+    kubectl delete -f ${TMPCR}
+  fi
 }
 
 echo "Starting test for cloud: $cloud_name"
