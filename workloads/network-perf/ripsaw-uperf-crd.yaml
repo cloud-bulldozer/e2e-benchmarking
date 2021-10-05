@@ -8,8 +8,8 @@ metadata:
 spec:
   uuid: ${UUID}
   elasticsearch:
-    url: $ES_SERVER
-  clustername: $cloud_name
+    url: ${ES_SERVER}
+  clustername: ${cloud_name}
   test_user: ${cloud_name}-${WORKLOAD}-ci-${pairs}p
   metadata:
     collection: ${METADATA_COLLECTION}

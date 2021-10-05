@@ -35,9 +35,10 @@ run_workload() {
   local TMPCR=$(mktemp)
   envsubst < $1 > ${TMPCR}
   run_benchmark ${TMPCR} ${TEST_TIMEOUT}
-  kubectl delete -f ${TMPCR}
+  local rc=$?
   if [[ ${TEST_CLEANUP} == "true" ]]; then
     log "Cleaning up benchmark"
     kubectl delete -f ${TMPCR}
   fi
+  return ${rc}
 }

@@ -79,8 +79,10 @@ run_workload() {
   fi
 
   run_benchmark log_generator_$timestamp.yaml ${TEST_TIMEOUT}
+  local rc=$?
   if [[ ${TEST_CLEANUP} == "true" ]]; then
     log "Cleaning up benchmark"
-    kubectl delete -f log_generator_$timestamp.yaml
+    kubectl delete -f ${TMPCR}
   fi
+  return ${rc}
 }

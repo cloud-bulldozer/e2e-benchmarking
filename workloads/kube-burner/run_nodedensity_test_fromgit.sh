@@ -1,4 +1,4 @@
-#!/usr/bin/bash -e
+#!/usr/bin/bash
 
 set -e
 
@@ -19,6 +19,7 @@ if [[ ${PPROF_COLLECTION} == "true" ]] ; then
   get_pprof_secrets
 fi 
 run_workload kube-burner-crd.yaml
+rc=$?
 unlabel_nodes
 rm -rf benchmark-operator
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then

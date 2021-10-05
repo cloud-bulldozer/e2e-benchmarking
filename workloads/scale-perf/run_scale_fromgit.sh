@@ -23,16 +23,15 @@ for x in $(seq 1 ${RUNS}); do
       else
         run_workload default_scale.yaml
       fi
+      if [[ $? != 0 ]]; then
+        log "Scaling failed"
+        exit 1
+      fi
       current_workers=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/master!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/workload!="" --ignore-not-found | grep -v NAME | wc -l`
       log "Current worker count: "${current_workers}
       log "Desired worker count: "${size}
       if [ $current_workers -ne $size ]; then
-          log "Scaling completed but desired worker count is not equal to current worker count!"
-      fi
-
-      if [ "$scale_state" == "1" ] ; then
-        log "Scaling failed"
-        exit 1
+        log "Scaling completed but desired worker count is not equal to current worker count!"
       fi
     fi
   done
