@@ -119,14 +119,15 @@ run_workload() {
   local TMPCR=$(mktemp)
   envsubst < $1 > ${TMPCR}
   run_benchmark ${TMPCR} ${TEST_TIMEOUT}
+  local rc=$?
   if [[ ${TEST_CLEANUP} == "true" ]]; then
     log "Cleaning up benchmark"
     kubectl delete -f ${TMPCR}
   fi
+  return ${rc}
 }
 
 assign_uuid() {
-  update
   compare_uperf_uuid=${benchmark_uuid}
   if [ ${WORKLOAD} == "hostnet" ] ; then
     baseline_uperf_uuid=${_baseline_hostnet_uuid}
@@ -165,11 +166,6 @@ generate_csv() {
   python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance  
 }
 
-update() {
-  benchmark_state=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.state}')
-  benchmark_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.uuid}')
-  benchmark_current_pair=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.spec.workload.args.pair}')
-}
 
 get_gold_ocp_version(){
   current_version=`oc get clusterversion | grep -o [0-9.]* | head -1 | cut -c 1-3`

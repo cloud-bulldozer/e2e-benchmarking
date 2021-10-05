@@ -8,4 +8,4 @@ if [[ ${DEPLOY_LOGGING} == "true" ]]; then
   deploy_logging_stack
 fi
 run_workload
-exit ${rc}
+exit $?
