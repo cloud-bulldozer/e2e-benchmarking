@@ -40,7 +40,7 @@ All scripts can be tweaked with the following environment variables:
 | **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.13 |
 | **LOG_LEVEL**        | Kube-burner log level | info |
 | **PPROF_COLLECTION** | Collect and store pprof data locally | false |
-| **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5min | 
+| **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5m | 
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
