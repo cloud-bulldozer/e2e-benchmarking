@@ -4,21 +4,21 @@ metadata:
   name: scale
   namespace: benchmark-operator
 spec:
-  uuid: ${_uuid}
+  uuid: ${UUID}
   elasticsearch:
-    url: ${_es}
-  clustername: ${cloud_name}
+    url: ${ES_SERVER}
+  clustername: ${CLOUD_NAME}
   metadata:
-    collection: ${_metadata_collection}
+    collection: ${METADATA_COLLECTION}
     privileged: true
     targeted: false
     serviceaccount: backpack-view
-  test_user: ${cloud_name}-scale
+  test_user: ${CLOUD_NAME}-scale
   workload:
     name: scale_openshift
     args:
       label:
-        key: node-role.kubernetes.io/${_workload_node_role}
+        key: node-role.kubernetes.io/${WORKLOAD_NODE_ROLE}
         value: ""
       tolerations:
         key: role
@@ -26,8 +26,8 @@ spec:
         effect: NoSchedule
       scale: ${size}
       serviceaccount: scaler
-      poll_interval: ${_poll_interval}
-      post_sleep: ${_post_sleep}
+      poll_interval: ${POLL_INTERVAL}
+      post_sleep: ${POST_SLEEP}
       rosa:
         cluster_name: ${ROSA_CLUSTER_NAME}
         env: ${ROSA_ENVIRONMENT}

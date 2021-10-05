@@ -103,7 +103,7 @@ Default: true
 Remove benchmark CR at the end
 
 ### TEST_TIMEOUT
-Default: 7200
+Default: 3600
 Benchmark timeout in seconds
 
 ## Suggested configurations

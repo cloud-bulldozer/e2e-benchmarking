@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 install_cli() {
-  ripsaw_tmp=$(mktemp -d)
+  ripsaw_tmp=/tmp/ripsaw-cli
+  rm -rf ${ripsaw_tmp}
+  mkdir ${ripsaw_tmp}
   python -m venv ${ripsaw_tmp}
   source ${ripsaw_tmp}/bin/activate
   pip3 install "git+https://github.com/cloud-bulldozer/benchmark-operator.git/#egg=ripsaw-cli&subdirectory=cli"
