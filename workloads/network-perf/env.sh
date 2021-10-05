@@ -6,8 +6,8 @@ export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 export METADATA_TARGETED=${METADATA_TARGETED:-true}
 
 # Benchark-operator
-export OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
-export OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
+OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
+OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
 
 # Benchmark-comparison
 export COMPARE=${COMPARE:-false}
