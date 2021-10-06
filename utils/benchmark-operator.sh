@@ -2,11 +2,12 @@
 
 install_cli() {
   ripsaw_tmp=/tmp/ripsaw-cli
-  rm -rf ${ripsaw_tmp}
-  mkdir ${ripsaw_tmp}
-  python -m venv ${ripsaw_tmp}
+  mkdir -p ${ripsaw_tmp}
+  if [[ ! -f ${ripsaw_tmp}/bin/activate ]]; then
+    python -m venv ${ripsaw_tmp}
+  fi
   source ${ripsaw_tmp}/bin/activate
-  pip3 install "git+https://github.com/cloud-bulldozer/benchmark-operator.git/#egg=ripsaw-cli&subdirectory=cli"
+  pip3 install -U "git+https://github.com/cloud-bulldozer/benchmark-operator.git/#egg=ripsaw-cli&subdirectory=cli"
 }
 
 remove_cli() {
