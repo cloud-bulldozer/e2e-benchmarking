@@ -9,7 +9,7 @@ export POD_READY_TIMEOUT=${POD_READY_TIMEOUT:-180}
 export INDEXING=${INDEXING:-true}
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
-export STEP_SIZE=${STEP_SIZE:-30s}
+export STEP_SIZE=${STEP_SIZE:-2m}
 export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 export PROM_URL=${PROM_URL:-https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091}
 
