@@ -169,3 +169,18 @@ delete_oldpprof_folder() {
  rm -rf pprof-data
 }
 
+snappy_backup() {
+ echo -e "snappy server as backup enabled"
+ source ../../utils/snappy-move-results/common.sh
+ 
+ tar -zcvf pprof.tar.gz ./pprof-data
+
+ export workload=${1}
+
+ export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
+ generate_metadata > metadata.json  
+ ../../utils/snappy-move-results/run_snappy.sh pprof.tar.gz $snappy_path
+ ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
+ store_on_elastic
+}
+
