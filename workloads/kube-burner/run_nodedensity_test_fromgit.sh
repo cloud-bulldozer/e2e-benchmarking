@@ -1,7 +1,5 @@
 #!/usr/bin/bash
 
-set -e
-
 WORKLOAD_TEMPLATE=workloads/node-pod-density/node-pod-density.yml
 METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
 NODE_COUNT=${NODE_COUNT:-4}

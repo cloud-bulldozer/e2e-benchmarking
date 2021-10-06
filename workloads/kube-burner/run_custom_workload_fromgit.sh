@@ -1,6 +1,5 @@
 #!/usr/bin/bash
 
-set -e
 
 export WORKLOAD=custom
 
