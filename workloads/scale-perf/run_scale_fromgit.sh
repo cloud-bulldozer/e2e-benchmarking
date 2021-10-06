@@ -32,7 +32,9 @@ for x in $(seq 1 ${RUNS}); do
       log "Desired worker count: "${size}
       if [ $current_workers -ne $size ]; then
         log "Scaling completed but desired worker count is not equal to current worker count!"
+        exit 1
       fi
+      sleep 10
     fi
   done
 done
