@@ -1,6 +1,4 @@
-#!/usr/bin/bash -e
-
-set -e
+#!/usr/bin/bash
 
 WORKLOAD_TEMPLATE=workloads/node-density-heavy/node-density-heavy.yml
 METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
