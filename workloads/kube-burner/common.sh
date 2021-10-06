@@ -157,7 +157,7 @@ get_pprof_secrets() {
  local certkey=`oc get secret -n openshift-etcd | grep "etcd-serving-ip" | head -1 | awk '{print $1}'`
  echo `oc extract -n openshift-etcd secret/$certkey`
  export CERTIFICATE=`base64 -w0 tls.crt`
- export KEY=`base64 -w0 tls.key`
+ export PRIVATE_KEY=`base64 -w0 tls.key`
  export BEARER_TOKEN=$(oc sa get-token kube-burner -n benchmark-operator)
 }
 

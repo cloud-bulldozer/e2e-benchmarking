@@ -42,14 +42,14 @@ global:
         namespace: "openshift-etcd"
         labelSelector: {app: etcd}
         cert: {{ .CERTIFICATE }}
-        key: {{ .KEY }}
+        key: {{ .PRIVATE_KEY }}
         url: https://localhost:2379/debug/pprof/heap
 
       - name: etcd-cpu
         namespace: "openshift-etcd"
         labelSelector: {app: etcd}
         cert: {{ .CERTIFICATE }}
-        key: {{ .KEY }}
+        key: {{ .PRIVATE_KEY }}
         url: https://localhost:2379/debug/pprof/profile?timeout=30
 
 
