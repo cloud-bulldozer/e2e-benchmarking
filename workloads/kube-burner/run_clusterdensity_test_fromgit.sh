@@ -16,7 +16,6 @@ if [[ ${PPROF_COLLECTION} == "true" ]] ; then
 fi 
 run_workload kube-burner-crd.yaml
 rc=$?
-rm -rf benchmark-operator
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
 fi
