@@ -201,6 +201,10 @@ parser.add_argument(
 params = parser.parse_args()
 generate_csv(params.yaml_files, f"{params.sheetname}.csv")
 if "EMAIL_ID_FOR_RESULTS_SHEET" in os.environ and "GSHEET_KEY_LOCATION" in os.environ:
-    push_to_gsheet(
-        f"{params.sheetname}.csv", os.environ["GSHEET_KEY_LOCATION"], os.environ["EMAIL_ID_FOR_RESULTS_SHEET"],
-    )
+    try:
+        push_to_gsheet(
+            f"{params.sheetname}.csv", os.environ["GSHEET_KEY_LOCATION"], os.environ["EMAIL_ID_FOR_RESULTS_SHEET"],
+        )
+    except Exception as e:
+        print("Error while generating gsheet: ")
+        print(e)

@@ -256,8 +256,12 @@ if len(params.uuids) > 2:
     exit(1)
 generate_csv(params, f"{params.sheetname}.csv")
 if "EMAIL_ID_FOR_RESULTS_SHEET" and "GSHEET_KEY_LOCATION" in os.environ:
-    push_to_gsheet(
-        f"{params.sheetname}.csv",
-        os.environ["GSHEET_KEY_LOCATION"],
-        os.environ["EMAIL_ID_FOR_RESULTS_SHEET"],
-    )
+    try:
+        push_to_gsheet(
+            f"{params.sheetname}.csv",
+            os.environ["GSHEET_KEY_LOCATION"],
+            os.environ["EMAIL_ID_FOR_RESULTS_SHEET"],
+        )
+    except Exception as e:
+        print("Error while generating gsheet: ")
+        print(e)
