@@ -2,7 +2,7 @@
 
 WORKLOAD_TEMPLATE=workloads/node-pod-density/node-pod-density.yml
 METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
-export WORKLOAD=pod-density
+METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yml}
 export TEST_JOB_ITERATIONS=${PODS:-1000}
 export WORKLOAD=pod-density
 
@@ -17,7 +17,6 @@ if [[ ${PPROF_COLLECTION} == "true" ]] ; then
 fi 
 run_workload kube-burner-crd.yaml
 rc=$?
-rm -rf benchmark-operator
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
 fi

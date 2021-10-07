@@ -13,10 +13,9 @@ if [[ ${PPROF_COLLECTION} == "true" ]] ; then
   delete_pprof_secrets
   delete_oldpprof_folder
   get_pprof_secrets
-fi 
-deploy_workload
-wait_for_benchmark ${WORKLOAD}
-rm -rf benchmark-operator
+fi
+run_workload kube-burner-crd.yaml
+rc=$?
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
 fi
