@@ -1,23 +1,23 @@
-#smoke test environment specifications:
+# Smoke test environment specifications:
 export EACH_TEST_TIMEOUT=2400s
 
-#for scale perf
-export ORIGINAL_WORKER_COUNT=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/master!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/workload!="" --ignore-not-found | grep -v NAME | wc -l`
+# For scale perf
+ORIGINAL_WORKER_COUNT=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/master!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/workload!="" --ignore-not-found | grep -v NAME | wc -l`
 export NEW_WORKER_COUNT=$((ORIGINAL_WORKER_COUNT + 1))
 export SCALE=$NEW_WORKER_COUNT
 export RUNS=2
 
-#for kube burner 
-export JOB_ITERATIONS=3
-export NAMESPACE_COUNT=3
-export SERVICE_COUNT=3
+# For kube burner 
+export JOB_ITERATIONS=1
+export NAMESPACE_COUNT=1
+export SERVICE_COUNT=1
 export CLEANUP=true
 export CLEANUP_WHEN_FINISH=true
 export NODE_COUNT=1
-export PODS_PER_NODE=100
-export PODS=100
+export PODS_PER_NODE=50
+export PODS=50
 
-#for upgrade perf
+# For upgrade perf
 export TOVERSION=`oc get clusterversion | grep -o [0-9.]* | head -1`
 
 # For router perf v2
