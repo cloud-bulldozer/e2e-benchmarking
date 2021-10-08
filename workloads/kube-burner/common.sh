@@ -53,6 +53,7 @@ deploy_workload() {
   fi
   log "Creating kube-burner configmap"
   kubectl create configmap -n benchmark-operator --from-file=${tmpdir} kube-burner-cfg-${UUID}
+  rm -rf ${tmpdir}
   log "Deploying benchmark"
   envsubst < kube-burner-crd.yaml | oc apply -f -
 }
