@@ -2,6 +2,8 @@
 
 set -e
 
+export WORKLOAD=custom
+
 . common.sh
 
 deploy_operator
