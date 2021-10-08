@@ -10,22 +10,24 @@ global:
   measurements:
     - name: podLatency
       esIndex: ${ES_INDEX}
-
 {{ if eq .PPROF_COLLECTION "True" }}
     - name: pprof
       pprofInterval: {{ .PPROF_COLLECTION_INTERVAL }}
       pprofDirectory: /tmp/pprof-data
       pprofTargets:
+
       - name: kube-apiserver-cpu
         namespace: "openshift-kube-apiserver"
         labelSelector: {app: openshift-kube-apiserver}
         bearerToken: {{ .BEARER_TOKEN }}
         url: https://localhost:6443/debug/pprof/profile?timeout=30
+
       - name: kube-apiserver-heap
         namespace: "openshift-kube-apiserver"
         labelSelector: {app: openshift-kube-apiserver}
         bearerToken: {{ .BEARER_TOKEN }}
         url: https://localhost:6443/debug/pprof/heap
+
       - name: kube-controller-manager-heap
         namespace: "openshift-kube-controller-manager"
         labelSelector: {app: kube-controller-manager}
@@ -51,10 +53,7 @@ global:
         cert: {{ .CERTIFICATE }}
         key: {{ .PRIVATE_KEY }}
         url: https://localhost:2379/debug/pprof/profile?timeout=30
-
-
 {{ end }}
-
 jobs:
   - name: node-density-heavy
     jobIterations: ${TEST_JOB_ITERATIONS}
