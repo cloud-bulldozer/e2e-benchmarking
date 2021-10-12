@@ -61,6 +61,7 @@ It's possible to tune the default configuration through environment variables. T
 | ES_SERVER             | Elasticsearch endpoint to send metrics | `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443` |
 | ES_SERVER_BASELINE    | Elasticsearch endpoint used to fetch baseline results | "" |
 | ES_INDEX              | Elasticsearch index | `router-test-results` |
+| COMPARE               | Should we compare the gathered data to the baseline small/large scale UUIDs if provided | "false" |
 | SMALL_SCALE_BASELINE_UUID | Baseline UUID to compare small scale results with (optional) | "" |
 | LARGE_SCALE_BASELINE_UUID | Baseline UUID to compare large scale results with (optional) | "" |
 | PREFIX                | Test name prefix (optional) | Result of `oc get clusterversion version -o jsonpath="{.status.desired.version}"` |

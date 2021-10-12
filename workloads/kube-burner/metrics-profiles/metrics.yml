@@ -52,18 +52,35 @@
   metricName: containerNetworkSetupOverallLatency
 
 # Node metrics
-- query: sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) > 0
-  metricName: nodeCPU
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: nodeCPU-workers
 
-- query: avg(node_memory_MemAvailable_bytes) by (instance)
-  metricName: nodeMemoryAvailable
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: nodeCPU-masters
 
-- query: avg(node_memory_MemTotal_bytes) by (instance)
-  metricName: nodeMemoryTotal
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: nodeCPU-infra
+
+- query: node_memory_MemAvailable_bytes and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryAvailable-Masters
+
+- query: node_memory_MemAvailable_bytes and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryAvailable-Workers
+
+- query: node_memory_MemAvailable_bytes and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryAvailable-AggregatedInfra
+
+- query: node_memory_MemTotal_bytes and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryTotal-Masters
   instant: true
 
-- query: avg(node_memory_Cached_bytes) by (instance) + avg(node_memory_Buffers_bytes) by (instance)
-  metricName: nodeMemoryCached+nodeMemoryBuffers
+- query: node_memory_MemTotal_bytes and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryTotal-Workers
+  instant: true
+
+- query: node_memory_MemTotal_bytes and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryTotal-Infra
+  instant: true
 
 - query: irate(node_network_receive_bytes_total{device=~"^(ens|eth|bond|team).*"}[2m])
   metricName: rxNetworkBytes
@@ -112,6 +129,9 @@
 
 - query: sum(kube_pod_status_phase{}) by (phase)
   metricName: podStatusCount
+
+- query: kube_pod_status_phase{phase="Failed"} > 0
+  metricName: failedPods
 
 - query: count(kube_secret_info{})
   metricName: secretCount

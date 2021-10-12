@@ -15,6 +15,7 @@ export CLEANUP=true
 export CLEANUP_WHEN_FINISH=true
 export NODE_COUNT=1
 export PODS_PER_NODE=100
+export PODS=100
 
 #for upgrade perf
 export TOVERSION=`oc get clusterversion | grep -o [0-9.]* | head -1`

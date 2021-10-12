@@ -39,6 +39,8 @@ All scripts can be tweaked with the following environment variables:
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
 | **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.13 |
 | **LOG_LEVEL**        | Kube-burner log level | info |
+| **PPROF_COLLECTION** | Collect and store pprof data locally | false |
+| **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5m | 
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
@@ -100,6 +102,11 @@ It creates n-replicas of an application deployment (hello-openshift) and a servi
 It creates as many "sleep" pods as configured in the environment variable `PODS`.
 
 
+### Pod-density-heavy
+
+A heavier variant of the pod density workload, where rather than creating sleep pods , a hello-openshift application is deployed (quay.io/cloud-bulldozer/hello-openshift:latest). The application continuously services an HTTP response of "Hello OpenShift!" on port 8080 on the "/" path. Various Probes are used on the application. startupprobe checks if the http response is set at the specified port and path. If successfuly started the readiness and liveness probes run. readinessprobe executes an "ls" shell command to check if the container is ready. livenessprobe executes an "echo" command to check if container is running and if not restarts it. liveness and readiness probes run regularly at 5s intervals to check the status of the application.  
+
+
 ### Launching custom workloads
 
 Apart from the pre-defined workloads and metric profiles available in this repo, you can use your own benchmark, metric-profile and alert-profile by using the remote configuration feature of kube-burner. This feature allows kube-burner to fetch configuration files from remote locations. These files must be accessible through HTTP protocol by the kube-burner job. The following environment variables can be used to configure the source for the different configuration files:
@@ -133,3 +140,30 @@ will launch a pod running a kube-burner process that will use the configuration 
 > - WAIT_FOR
 > - VERIFY_OBJECTS
 > - ERROR_ON_VERIFY
+
+### Snappy integration configurations
+To backup data to a given snappy data-server
+
+#### Environment Variables
+
+**`ENABLE_SNAPPY_BACKUP`**
+Default: ''
+Set to true to backup the logs/files generated during a workload run
+
+**`SNAPPY_DATA_SERVER_URL`**
+Default: ''
+The Snappy data server url, where you want to move files.
+
+**`SNAPPY_DATA_SERVER_USERNAME`**
+Default: ''
+Username for the Snappy data-server.
+
+**`SNAPPY_DATA_SERVER_PASSWORD`**
+Default: ''
+Password for the Snappy data-server.
+
+**`SNAPPY_USER_FOLDER`**
+Default: 'perf-ci'
+To store the data for a specific user
+
+

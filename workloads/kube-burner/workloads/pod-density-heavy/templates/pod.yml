@@ -1,0 +1,40 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: {{.JobName}}-{{.Iteration}}
+  labels:
+    name: {{.JobName}}
+spec:
+  nodeSelector: {{.nodeSelector}}
+  containers:
+  - name: pod-density-heavy
+    image: {{.containerImage}}
+    ports:
+    - containerPort: 8080
+      protocol: TCP
+    imagePullPolicy: Always
+    startupProbe:
+      httpGet:
+        path: /
+        port: 8080
+      periodSeconds: 30
+      failureThreshold: 1
+    readinessProbe:
+      exec:
+        command: 
+        - ls 
+      periodSeconds: {{ .readinessPeriod }}
+      failureThreshold: 1
+      timeoutSeconds: 30
+      initialDelaySeconds: 10
+    livenessProbe:
+      exec:
+        command: 
+        - echo 
+        - "checking container state"
+      periodSeconds: {{ .livenessPeriod }}
+      failureThreshold: 1
+      timeoutSeconds: 15
+      initialDelaySeconds: 10
+    securityContext:
+      privileged: false
