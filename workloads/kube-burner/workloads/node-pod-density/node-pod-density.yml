@@ -53,7 +53,7 @@ global:
 {{ end }}
 jobs:
   - name: node-density
-    jobIterations: ${JOB_ITERATIONS}
+    jobIterations: ${TEST_JOB_ITERATIONS}
     qps: ${QPS}
     burst: ${BURST}
     namespacedIterations: false

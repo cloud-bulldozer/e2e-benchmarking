@@ -4,8 +4,8 @@ set -e
 
 WORKLOAD_TEMPLATE=workloads/node-density-heavy/node-density-heavy.yml
 METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yml}
-export WORKLOAD=pod-density-heavy
 export TEST_JOB_ITERATIONS=${PODS:-1000}
+export WORKLOAD=pod-density-heavy
 
 . common.sh
 
