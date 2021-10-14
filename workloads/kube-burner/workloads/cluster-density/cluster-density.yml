@@ -70,19 +70,19 @@ jobs:
     maxWaitTimeout: ${MAX_WAIT_TIMEOUT}
     objects:
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/imagestream.yml
+      - objectTemplate: imagestream.yml
         replicas: 3
         inputVars:
           prefix: cluster-density-src
           image: quay.io/cloud-bulldozer/ubi8-go-toolset
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/imagestream.yml
+      - objectTemplate: imagestream.yml
         replicas: 3
         inputVars:
           prefix: cluster-density-dst
           image: quay.io/cloud-bulldozer/ubi8-go-toolset
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/buildconfig.yml
+      - objectTemplate: buildconfig.yml
         replicas: 3
         inputVars:
           from: cluster-density-src
@@ -90,53 +90,53 @@ jobs:
           gitUri: https://github.com/cloud-bulldozer/hello-openshift.git  
           nodeSelector: "${POD_NODE_SELECTOR}"
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/imagestream.yml
+      - objectTemplate: imagestream.yml
         replicas: 6
         inputVars:
           prefix: cluster-density
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/build.yml
+      - objectTemplate: build.yml
         replicas: 6
         inputVars:
           prefix: cluster-density
           nodeSelector: "${POD_NODE_SELECTOR}"
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/deployment.yml
+      - objectTemplate: deployment.yml
         replicas: 1
         inputVars:
           podReplicas: 2
           name: deployment-2pod
           nodeSelector: "${POD_NODE_SELECTOR}"
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/service.yml
+      - objectTemplate: service.yml
         replicas: 1
         inputVars:
           name: deployment-2pod
         
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/deployment.yml
+      - objectTemplate: deployment.yml
         replicas: 2
         inputVars:
           podReplicas: 1
           name: deployment-1pod
           nodeSelector: "${POD_NODE_SELECTOR}"
       
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/service.yml
+      - objectTemplate: service.yml
         replicas: 2
         inputVars:
           name: deployment-1pod
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/route.yml
+      - objectTemplate: route.yml
         replicas: 1
         inputVars:
           name: deployment-2pod
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/route.yml
+      - objectTemplate: route.yml
         replicas: 2
         inputVars:
           name: deployment-1pod
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/secret.yml
+      - objectTemplate: secret.yml
         replicas: 10
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/configmap.yml
+      - objectTemplate: configmap.yml
         replicas: 10

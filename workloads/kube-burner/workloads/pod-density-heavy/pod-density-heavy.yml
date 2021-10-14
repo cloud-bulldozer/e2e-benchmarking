@@ -70,7 +70,7 @@ jobs:
     maxWaitTimeout: ${MAX_WAIT_TIMEOUT}
     objects:
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/pod-density-heavy/templates/pod.yml
+      - objectTemplate: pod.yml
         replicas: 1
         inputVars:
           containerImage: quay.io/cloud-bulldozer/hello-openshift:latest
