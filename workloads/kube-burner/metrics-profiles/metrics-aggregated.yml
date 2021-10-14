@@ -164,19 +164,22 @@
 
 - query: count(kube_secret_info{})
   metricName: secretCount
+  instant: true
 
 - query: count(kube_deployment_labels{})
   metricName: deploymentCount
+  instant: true
 
 - query: count(kube_configmap_info{})
   metricName: configmapCount
+  instant: true
 
 - query: count(kube_service_info{})
   metricName: serviceCount
+  instant: true
 
 - query: kube_node_role
   metricName: nodeRoles
-  instant: true
 
 - query: sum(kube_node_status_condition{status="true"}) by (condition)
   metricName: nodeStatus

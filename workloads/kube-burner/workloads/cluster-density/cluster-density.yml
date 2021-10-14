@@ -2,30 +2,32 @@
 global:
   writeToFile: false
   indexerConfig:
-    enabled: {{.INDEXING}}
-    esServers: ["{{.ES_SERVER}}"]
+    enabled: ${INDEXING}
+    esServers: ["${ES_SERVER}"]
     insecureSkipVerify: true
-    defaultIndex: {{.ES_INDEX}}
+    defaultIndex: ${ES_INDEX}
     type: elastic
   measurements:
     - name: podLatency
-      esIndex: {{.ES_INDEX}}
-
+      esIndex: ${ES_INDEX}
 {{ if eq .PPROF_COLLECTION "True" }}
     - name: pprof
       pprofInterval: {{ .PPROF_COLLECTION_INTERVAL }}
       pprofDirectory: /tmp/pprof-data
       pprofTargets:
+
       - name: kube-apiserver-cpu
         namespace: "openshift-kube-apiserver"
         labelSelector: {app: openshift-kube-apiserver}
         bearerToken: {{ .BEARER_TOKEN }}
         url: https://localhost:6443/debug/pprof/profile?timeout=30
+
       - name: kube-apiserver-heap
         namespace: "openshift-kube-apiserver"
         labelSelector: {app: openshift-kube-apiserver}
         bearerToken: {{ .BEARER_TOKEN }}
         url: https://localhost:6443/debug/pprof/heap
+
       - name: kube-controller-manager-heap
         namespace: "openshift-kube-controller-manager"
         labelSelector: {app: kube-controller-manager}
@@ -51,24 +53,21 @@ global:
         cert: {{ .CERTIFICATE }}
         key: {{ .PRIVATE_KEY }}
         url: https://localhost:2379/debug/pprof/profile?timeout=30
-
-
 {{ end }}
-
 jobs:
   - name: cluster-density
-    jobIterations: {{.JOB_ITERATIONS}}
-    qps: {{.QPS}}
-    burst: {{.BURST}}
+    jobIterations: ${TEST_JOB_ITERATIONS}
+    qps: ${QPS}
+    burst: ${BURST}
     namespacedIterations: true
-    namespace: cluster-density-{{.UUID}}
-    podWait: {{.POD_WAIT}}
-    cleanup: {{.CLEANUP}}
-    waitFor: {{.WAIT_FOR}}
-    waitWhenFinished: {{.WAIT_WHEN_FINISHED}}
-    verifyObjects: {{.VERIFY_OBJECTS}}
-    errorOnVerify: {{.ERROR_ON_VERIFY}}
-    maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
+    namespace: cluster-density-${UUID}
+    podWait: ${POD_WAIT}
+    cleanup: ${CLEANUP}
+    waitFor: ${WAIT_FOR}
+    waitWhenFinished: ${WAIT_WHEN_FINISHED}
+    verifyObjects: ${VERIFY_OBJECTS}
+    errorOnVerify: ${ERROR_ON_VERIFY}
+    maxWaitTimeout: ${MAX_WAIT_TIMEOUT}
     objects:
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/imagestream.yml
@@ -89,7 +88,7 @@ jobs:
           from: cluster-density-src
           to: cluster-density-dst
           gitUri: https://github.com/cloud-bulldozer/hello-openshift.git  
-          nodeSelector: "{{.POD_NODE_SELECTOR}}"
+          nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/imagestream.yml
         replicas: 6
@@ -100,14 +99,14 @@ jobs:
         replicas: 6
         inputVars:
           prefix: cluster-density
-          nodeSelector: "{{.POD_NODE_SELECTOR}}"
+          nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/deployment.yml
         replicas: 1
         inputVars:
           podReplicas: 2
           name: deployment-2pod
-          nodeSelector: "{{.POD_NODE_SELECTOR}}"
+          nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/service.yml
         replicas: 1
@@ -119,7 +118,7 @@ jobs:
         inputVars:
           podReplicas: 1
           name: deployment-1pod
-          nodeSelector: "{{.POD_NODE_SELECTOR}}"
+          nodeSelector: "${POD_NODE_SELECTOR}"
       
       - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/cluster-density/templates/service.yml
         replicas: 2

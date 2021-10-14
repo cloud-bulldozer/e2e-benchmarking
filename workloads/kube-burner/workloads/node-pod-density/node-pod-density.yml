@@ -2,15 +2,14 @@
 global:
   writeToFile: false
   indexerConfig:
-    enabled: {{.INDEXING}}
-    esServers: ["{{.ES_SERVER}}"]
+    enabled: ${INDEXING}
+    esServers: ["${ES_SERVER}"]
     insecureSkipVerify: true
-    defaultIndex: {{.ES_INDEX}}
+    defaultIndex: ${ES_INDEX}
     type: elastic
   measurements:
     - name: podLatency
-      esIndex: {{.ES_INDEX}}
-
+      esIndex: ${ES_INDEX}
 {{ if eq .PPROF_COLLECTION "True" }}
     - name: pprof
       pprofInterval: {{ .PPROF_COLLECTION_INTERVAL }}
@@ -51,28 +50,25 @@ global:
         cert: {{ .CERTIFICATE }}
         key: {{ .PRIVATE_KEY }}
         url: https://localhost:2379/debug/pprof/profile?timeout=30
-
-
 {{ end }}
-
 jobs:
   - name: node-density
-    jobIterations: {{.JOB_ITERATIONS}}
-    qps: {{.QPS}}
-    burst: {{.BURST}}
+    jobIterations: ${TEST_JOB_ITERATIONS}
+    qps: ${QPS}
+    burst: ${BURST}
     namespacedIterations: false
-    namespace: node-density-{{.UUID}}
-    podWait: {{.POD_WAIT}}
-    cleanup: {{.CLEANUP}}
-    waitFor: {{.WAIT_FOR}}
-    waitWhenFinished: {{.WAIT_WHEN_FINISHED}}
-    verifyObjects: {{.VERIFY_OBJECTS}}
-    errorOnVerify: {{.ERROR_ON_VERIFY}}
-    maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
+    namespace: node-density-${UUID}
+    podWait: ${POD_WAIT}
+    cleanup: ${CLEANUP}
+    waitFor: ${WAIT_FOR}
+    waitWhenFinished: ${WAIT_WHEN_FINISHED}
+    verifyObjects: ${VERIFY_OBJECTS}
+    errorOnVerify: ${ERROR_ON_VERIFY}
+    maxWaitTimeout: ${MAX_WAIT_TIMEOUT}
     objects:
 
-      - objectTemplate: https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/node-pod-density/templates/pod.yml
+      - objectTemplate: pod.yml
         replicas: 1
         inputVars:
           containerImage: gcr.io/google_containers/pause-amd64:3.0
-          nodeSelector: "{{.POD_NODE_SELECTOR}}"
+          nodeSelector: "${POD_NODE_SELECTOR}"

@@ -27,8 +27,6 @@ collect_pprof() {
 
 
 deploy_operator() {
-  log "Removing benchmark-operator namespace, if it already exists"
-  oc delete namespace benchmark-operator --ignore-not-found
   log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
   rm -rf benchmark-operator
   git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
@@ -40,6 +38,22 @@ deploy_operator() {
 }
 
 deploy_workload() {
+  local tmpdir=$(mktemp -d)
+  if [[ -z ${WORKLOAD_TEMPLATE} ]]; then
+    log "WORKLOAD_TEMPLATE not defined or null!"
+    exit 1
+  fi
+  cp -pR $(dirname ${WORKLOAD_TEMPLATE})/* ${tmpdir}
+  envsubst < ${WORKLOAD_TEMPLATE} > ${tmpdir}/config.yml
+  if [[ -n ${METRICS_PROFILE} ]]; then
+    cp ${METRICS_PROFILE} ${tmpdir}/metrics.yml
+  fi
+  if [[ -n ${ALERTS_PROFILE} ]]; then
+   cp ${ALERTS_PROFILE} ${tmpdir}/alerts.yml
+  fi
+  log "Creating kube-burner configmap"
+  kubectl create configmap -n benchmark-operator --from-file=${tmpdir} kube-burner-cfg-${UUID}
+  rm -rf ${tmpdir}
   log "Deploying benchmark"
   envsubst < kube-burner-crd.yaml | oc apply -f -
 }
@@ -170,14 +184,11 @@ delete_oldpprof_folder() {
 }
 
 snappy_backup() {
- echo -e "snappy server as backup enabled"
+ log "snappy server as backup enabled"
  source ../../utils/snappy-move-results/common.sh
- 
  tar -zcvf pprof.tar.gz ./pprof-data
-
- export workload=${1}
-
- export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
+ workload=${1}
+ snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
  generate_metadata > metadata.json  
  ../../utils/snappy-move-results/run_snappy.sh pprof.tar.gz $snappy_path
  ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path

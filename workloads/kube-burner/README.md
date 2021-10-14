@@ -8,6 +8,7 @@ The purpose of these scripts is to run a kube-burner workload steered by ripsaw.
 - **`max-namespaces`**: Triggered by `run_maxnamespaces_test_fromgit.sh`
 - **`max-services`** Triggered by `run_maxservices_test_fromgit.sh`
 - **`pod-density`**: Triggered by `run_poddensity_test_fromgit.sh`
+- **`pod-density-heavy`**: Triggered by `run_poddensity-heavy_test_fromgit.sh`
 
 ## Environment variables
 
@@ -44,7 +45,6 @@ All scripts can be tweaked with the following environment variables:
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
-
 ### Cluster-density variables
 
 The `cluster-density` workload supports the environment variable **JOB_ITERATIONS**. This variable configures the number of cluster-density jobs iterations to perform (1 namespace per iteration). By default 1000.
@@ -61,7 +61,6 @@ Each iteration creates the following objects:
 - 10 secrets. 2 of them mounted by the previous deployments.
 - 10 configMaps. 2 of them mounted by the previous deployments.
 
-
 ### Node-density and Node-density-heavy variables
 
 The `node-density` and `node-density-heavy` workloads support the following environment variables:
@@ -74,7 +73,6 @@ These workloads create different objects each:
 - **node-density**: Creates a single namespace with a number of Deployments proportional to the calculated number of pod.
 Each iteration of this workload creates the following object:
   - 1 pod. (sleep)
-
 
 - **node-density-heavy**. Creates a **single namespace with a number of applications proportional to the calculated number of pods / 2**. This application consists on two deployments (a postgresql database and a simple client that generates some CPU load) and a service that is used by the client to reach the database.
 Each iteration of this workload can be broken down in:
@@ -91,55 +89,36 @@ The number of namespaces created by Kube-burner is defined by the variable `NAME
 - 1 service pointing to the postgresl database
 - 10 secrets
 
-
 ### Max-services
 
 It creates n-replicas of an application deployment (hello-openshift) and a service in a single namespace as defined by the environment variable `SERVICE_COUNT`.
-
 
 ### Pod-density
 
 It creates as many "sleep" pods as configured in the environment variable `PODS`.
 
-
 ### Pod-density-heavy
 
 A heavier variant of the pod density workload, where rather than creating sleep pods , a hello-openshift application is deployed (quay.io/cloud-bulldozer/hello-openshift:latest). The application continuously services an HTTP response of "Hello OpenShift!" on port 8080 on the "/" path. Various Probes are used on the application. startupprobe checks if the http response is set at the specified port and path. If successfuly started the readiness and liveness probes run. readinessprobe executes an "ls" shell command to check if the container is ready. livenessprobe executes an "echo" command to check if container is running and if not restarts it. liveness and readiness probes run regularly at 5s intervals to check the status of the application.  
 
-
 ### Launching custom workloads
 
-Apart from the pre-defined workloads and metric profiles available in this repo, you can use your own benchmark, metric-profile and alert-profile by using the remote configuration feature of kube-burner. This feature allows kube-burner to fetch configuration files from remote locations. These files must be accessible through HTTP protocol by the kube-burner job. The following environment variables can be used to configure the source for the different configuration files:
+Apart from the pre-defined workloads and metric profiles available in this repo, you can use your own benchmark, metric-profile and alert-profile. The following environment variables can be used to configure the source for the different configuration files:
 
-- **`REMOTE_CONFIG`**: Refers to the remote location of the Kube-burner main configuration file. The objectTemplates defined in this file must be HTTP accessible too.
-- **`REMOTE_METRIC_PROFILE`**: Points to a URL of a valid metric profile.
-- **`REMOTE_ALERT_PROFILE`**: Points to a URL of a valid alert profile.
+- **`WORKLOAD_TEMPLATE`**: Path to the kube-burner's workload configuration file, the templates must be defined in the same directory where this file is
+- **`METRICS_PROFILE`**: Path to the kube-burner metrics-profile. (Optional)
+- **`ALERTS_PROFILE`**: Path to the kube-burner alert-profile. (Optional)
 
 The script `run_custom_workload_fromgit.sh` provides a shortcut to launch the benchmark.
 
 For example, the command:
 
 ```shell
-$ INDEXING=false REMOTE_CONFIG=https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml ./run_custom_workload_fromgit.sh
+$ INDEXING=false WORKLOAD_TEMPLATE=my-config/kube-burner.cfg METRICS_PROFILE=my-metrics/metrics.yml ALERTS_PROFILE=my-alerts/alerts-profile.yml ./run_custom_workload_fromgit.sh
 ```
 
 will launch a pod running a kube-burner process that will use the configuration file defined at https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml
 
-> Note: The following variables are injected as environment variables to the kube-burner pod:
-> - UUID
-> - INDEXING
-> - ES_SERVER
-> - ES_INDEX
-> - JOB_ITERATIONS
-> - QPS
-> - BURST
-> - CLEANUP
-> - POD_NODE_SELECTOR
-> - WAIT_WHEN_FINISHED
-> - POD_WAIT
-> - WAIT_FOR
-> - VERIFY_OBJECTS
-> - ERROR_ON_VERIFY
 
 ### Snappy integration configurations
 To backup data to a given snappy data-server

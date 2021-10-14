@@ -2,9 +2,7 @@
 
 set -e
 
-export TEST_JOB_ITERATIONS=${PODS:-1000}
-export REMOTE_CONFIG=${REMOTE_CONFIG}
-export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE}
+export WORKLOAD=custom
 
 . common.sh
 
