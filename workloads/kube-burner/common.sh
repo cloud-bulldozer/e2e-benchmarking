@@ -45,7 +45,10 @@ deploy_workload() {
   fi
   cp -pR $(dirname ${WORKLOAD_TEMPLATE})/* ${tmpdir}
   envsubst < ${WORKLOAD_TEMPLATE} > ${tmpdir}/config.yml
-  if [[ -n ${METRICS_PROFILE} ]]; then
+  if [[ -f metrics-profiles/${METRICS_PROFILE} ]]; then
+    cp metrics-profiles/${METRICS_PROFILE} ${tmpdir}/metrics.yml
+  fi
+  if [[ -f ${METRICS_PROFILE} ]]; then
     cp ${METRICS_PROFILE} ${tmpdir}/metrics.yml
   fi
   if [[ -n ${ALERTS_PROFILE} ]]; then
