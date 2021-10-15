@@ -40,7 +40,7 @@ compare() {
     cmd+=" --output-file ${COMPARISON_OUTPUT}"
   fi
   if [[ -n ${COMPARISON_RC} ]]; then
-    cmd+="--rc ${COMPARISON_RC}"
+    cmd+=" --rc ${COMPARISON_RC}"
   fi
   echo ${cmd}
   ${cmd}
