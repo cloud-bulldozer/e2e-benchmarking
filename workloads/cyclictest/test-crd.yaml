@@ -1,0 +1,21 @@
+apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
+kind: Benchmark
+metadata:
+  name: cyclictest
+  namespace: benchmark-operator
+spec:
+  elasticsearch:
+    server: https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443
+  workload:
+    name: "cyclictest"
+    args:
+      duration: "1m"
+      disable_cpu_balance: true
+      stressng: false
+      pod:
+        requests:
+          memory: "200Mi"
+          cpu: "4"
+        limits:
+          memory: "200Mi"
+          cpu: "4"

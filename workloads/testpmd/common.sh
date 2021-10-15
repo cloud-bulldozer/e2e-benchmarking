@@ -1,0 +1,440 @@
+source env.sh
+
+# global variables
+length=0
+numa_node=1
+numa_nodes_0=()
+numa_nodes_1=()
+cpus_0=()
+cpus_1=()
+isolated=()
+reserved=()
+nic=""
+testpmd_workers=()
+
+# If ES_SERVER is set and empty we disable ES indexing and metadata collection
+if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
+  export METADATA_COLLECTION=false
+else
+  export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
+fi
+export NODE_SELECTOR_KEY="node-role.kubernetes.io/worker"
+export NODE_SELECTOR_VALUE=""
+export WAIT_WHEN_FINISHED=true
+export WAIT_FOR=[]
+export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
+export UUID=$(uuidgen)
+
+log() {
+  echo ${bold}$(date -u):  ${@}${normal}
+}
+
+check_cluster_present() {
+  echo ""
+  oc get clusterversion
+  if [ $? -ne 0 ]; then
+    log "Workload Failed for cloud $cloud_name, Unable to connect to the cluster"
+    exit 1
+  fi
+  cluster_version=$(oc get clusterversion --no-headers | awk '{ print $2 }')
+  echo ""
+}
+
+check_cluster_health() {
+  if [[ ${CERBERUS_URL} ]]; then
+    response=$(curl ${CERBERUS_URL})
+    if [ "$response" != "True" ]; then
+      log "Cerberus status is False, Cluster is unhealthy"
+      exit 1
+    fi
+  fi
+}
+
+export_defaults() {
+  operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
+  operator_branch=${OPERATOR_BRANCH:=master}
+  CRD=${CRD:-ripsaw-testpmd-crd.yaml}
+  MCP=${MCP:-machineconfigpool.yaml}
+  PFP=${PFP:-perf_profile.yaml}
+  NNP=${NNP:-sriov_network_node_policy.yaml}
+  export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+  _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+  export _metadata_collection=${METADATA_COLLECTION:=true}
+  export _metadata_targeted=true
+  export COMPARE=${COMPARE:=false}
+  network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
+  gold_sdn=${GOLD_SDN:=openshiftsdn}
+  throughput_tolerance=${THROUGHPUT_TOLERANCE:=5}
+  latency_tolerance=${LATENCY_TOLERANCE:=5}
+  export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
+
+  if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
+     export GSHEET_KEY_LOCATION=$HOME/.secrets/gsheet_key.json
+  fi
+
+  if [ ! -z ${2} ]; then
+    export KUBECONFIG=${2}
+  fi
+
+  cloud_name=$1
+  if [ "$cloud_name" == "" ]; then
+    export cloud_name="${network_type}_${platform}_${cluster_version}"
+  fi
+
+  if [[ ${COMPARE} == "true" ]]; then
+    echo $BASELINE_CLOUD_NAME,$cloud_name > uuid.txt
+  else
+    echo $cloud_name > uuid.txt
+  fi
+} 
+
+
+deploy_perf_profile() {
+  # find suitable nodes
+  if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
+    log "Trying to find 2 suitable nodes only for testpmd"
+    # iterate over worker nodes bareMetalHandles until we have at least 2 
+    worker_count=0
+    workers=$(oc get nodes | grep -v master | grep -v worker-lb | grep -v custom | grep -v NotReady | grep ^worker | awk '{print $1}')
+    # turn it into an array
+    workers=($workers) 
+    if [[ ${#workers[@]} -lt 1 ]] ; then
+      log "Not enough worker nodes for the testpmd workload available, bailing!"
+      exit 1
+    fi
+    while [[ $worker_count -lt 2 ]]; do 
+	worker=${workers[$worker_count]}
+	worker_ip=$(oc get node ${workers[$worker_count]} -o json | jq -r ".status.addresses[0].address" | grep 192 )
+        if [[ ! -z "$worker_ip" ]]; then 
+	  testpmd_workers+=($worker)
+	  ((worker_count++))
+        fi
+    done
+  fi
+  
+  # get the interface's NUMA zone
+  for w in ${testpmd_workers[@]}; do
+        nic=$(ssh -i /home/kni/.ssh/id_rsa -o StrictHostKeyChecking=no core@$w "sudo ovs-vsctl list-ports br-ex | head -1")
+	export sriov_nic=$nic
+	log "Getting the NUMA zones for the NICs"
+	nic_numa+=($(ssh -i /home/kni/.ssh/id_rsa -o StrictHostKeyChecking=no core@$w "cat /sys/class/net/"$nic"/device/numa_node"))
+        # also get the CPU alignment
+        numa_nodes_0=$(ssh -i /home/kni/.ssh/id_rsa -o StrictHostKeyChecking=no core@$w "lscpu | grep '^NUMA node0' | cut -d ':' -f 2")
+        numa_nodes_1=$(ssh -i /home/kni/.ssh/id_rsa -o StrictHostKeyChecking=no core@$w "lscpu | grep '^NUMA node1' | cut -d ':' -f 2" )
+  done
+
+  # check if the entries in nic_numa are all identical
+  if [ "${#nic_numa[@]}" -gt 0 ] && [ $(printf "%s\000" "${nic_numa[@]}" | LC_ALL=C sort -z -u | grep -z -c .) -eq 1 ] ; then
+          log "The numa_node for all selected NICs is identical, continuing."
+	  numa_node=${nic_numa[0]}
+	  export numa_node=$numa_node
+  else
+          log "The numa_nodes for the selected NICs are different, bailing out!"
+          exit 1
+  fi
+   
+  # convert strings into arrays so we can split easier
+  for entry in $(IFS=','; echo $numa_nodes_0); do
+    cpus_0+=($entry)
+  done
+  for entry in $(IFS=','; echo $numa_nodes_1); do
+    cpus_1+=($entry)
+  done
+
+  # numa node is 0
+  if [[ $numa_node == 0 ]]; then
+    # all cpus in cpus_0 - 2 for housekeeping go to isolated
+    num_cpus=${#cpus_0[@]}
+    count=0
+    max=$((($num_cpus -8) / 2))
+    max_isol=$((max -2))
+    for cpu in ${cpus_0[@]}; do
+      if [ $count -le $max_isol ]; then
+        # add the cpu to the isolated nodes
+        isolated+=($cpu)
+      elif [ $count -gt $max_isol ] && [ $count -le $max ]; then
+        # add the cpu to the reserved nodes
+        reserved+=($cpu)
+      fi
+      count=$((count+1))
+    done
+
+    # add the remaining CPUs to reserved
+    num_cpus=${#cpus_1[@]}
+    count=0
+    max=$((($num_cpus -8) / 2))
+    for cpu in ${cpus_1[@]}; do
+      if [ $count -le $max ] ; then
+        # add the cpu to the isolated nodes
+        isolated+=($cpu)
+      else
+        # add the cpu to the reserved nodes
+        reserved+=($cpu)
+      fi
+      count=$((count+1))
+    done
+
+  # numa node is 1
+  elif [[ $numa_node == 1 ]]; then
+    # all cpus in cpus_1 - 2 for housekeeping go to isolated
+    num_cpus=${#cpus_1[@]}
+    count=0
+    max=$((($num_cpus -8) / 2))
+    #echo max is $max
+    max_isol=$((max - 2))
+    for cpu in ${cpus_1[@]}; do
+      if [ $count -le $max_isol ]; then
+        # add the cpu to the isolated nodes
+        isolated+=($cpu)
+      elif [ $count -gt $max_isol ] && [ $count -le $max ]; then
+        # add the cpu to the reserved nodes for housekeeping
+        reserved+=($cpu)
+      fi
+        count=$((count+1))
+    done
+
+    # add the remaining CPUs to reserved
+    num_cpus=${#cpus_0[@]}
+    count=0
+    max=$((($num_cpus -8) / 2))
+    #echo max: $max
+    for cpu in ${cpus_0[@]}; do
+      if [ $count -le $max ] ; then
+      # add the cpu to the reserved nodes
+      reserved+=($cpu)
+      fi
+      count=$((count+1))
+    done
+  fi
+
+  # templatize the perf profile and the sriov network node policy
+  reserved_string=$(echo ${reserved[@]} | sed -s 's/ /,/g')
+  isolated_string=$(echo ${isolated[@]} | sed -s 's/ /,/g')
+  export isolated_cpus=$isolated_string
+  export reserved_cpus=$reserved_string
+ 
+  # label the two nodes for the performance profile
+  log "Labeling -rt nodes"
+  for w in ${testpmd_workers[@]}; do
+    oc label node $w node-role.kubernetes.io/worker-rt="" --overwrite=true
+  done
+
+  # create the machineconfigpool
+  log "Create the MCP"
+  envsubst < $MCP | oc apply -f -
+  sleep 30
+  if [ $? -ne 0 ] ; then
+    log "Couldn't create the MCP, exiting!"
+    exit 1
+  fi
+
+  # add the label to the MCP pool 
+  log "Labeling the MCP"
+  oc label mcp worker-rt machineconfiguration.openshift.io/role=worker-rt --overwrite=true
+  if [ $? -ne 0 ] ; then
+    log "Couldn't label the MCP, exiting!"
+    exit 1
+  fi
+
+  # apply the performanceProfile
+  log "Applying the performanceProfile"
+  envsubst < $PFP | oc apply -f -
+  if [ $? -ne 0 ] ; then
+    log "Couldn't apply the performance profile, exiting!"
+    exit 1
+  fi
+  
+  # We need to wait for the nodes with the perfProfile applied to to reboot
+  # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes
+  # if they're ready, we'll continue. Should the performance profile require reboots, that will have
+  # started within the 60 seconds
+  log "Sleeping for 60 seconds"
+  sleep 60
+  readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
+  while [[ $readycount -ne 2 ]]; do
+    log "Waiting for -rt nodes to become ready again after the performance-profile has been deployed, sleeping 1 minute"
+    sleep 60
+    readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
+  done
+
+  # apply the node policy
+  envsubst < $NNP | oc apply -f -
+  if [ $? -ne 0 ] ; then
+    log "Could't create the network node policy, exiting!"
+    exit 1
+  fi
+  # we need to wait for the second reboot
+  log "Sleeping for 60 seconds"
+  sleep 60
+  readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
+  while [[ $readycount -ne 2 ]]; do
+    log "Waiting for -rt nodes to become ready again after the sriov-network-policy has been deployed, sleeping 1 minute"
+    sleep 60
+    readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
+  done
+
+  # create the network
+  oc apply -f sriov_network.yaml
+  if [ $? -ne 0 ] ; then
+    log "Could not create the sriov network, exiting!"
+    exit 1
+  fi
+}
+
+cleanup_network() {
+  # cleaning up for later tasks, removing the perf-profile, the network-node-policy, the mcp and the network
+  # also removing the labels on the nodes
+  log "Removing the labels from the nodes"
+  for w in ${testpmd_workers[@]}; do
+    oc label node $w node-role.kubernetes.io/worker-rt-
+  done
+  log "Removing the MCP"
+  oc delete -f machineconfigpool.yaml
+  log "Removing the performance profile"
+  oc delete -f perf_profile.yaml
+  log "Removing the sriov network node policy"
+  oc delete -f sriov_network_node_policy.yaml
+  log "Removing the sriov network"
+  oc delete -f sriov_network.yaml
+  readycount=$(oc get mcp worker --no-headers | awk '{print $7}')
+  while [[ $readycount -ne 2 ]]; do
+    log "Waiting for worker nodes to become ready again after the sriov-network-policy has been deployed, sleeping 1 minute"
+    sleep 60
+    readycount=$(oc get mcp worker --no-headers | awk '{print $7}')
+  done
+
+}
+
+deploy_operator() {
+  if [[ "${isBareMetal}" == "false" ]]; then
+    log "Removing benchmark-operator namespace, if it already exists"
+    oc delete namespace benchmark-operator --ignore-not-found
+    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  else
+    log "Baremetal infrastructure: Keeping benchmark-operator namespace"
+    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  fi
+    rm -rf benchmark-operator
+    git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
+    (cd benchmark-operator && make deploy)
+    oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
+    oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
+    oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
+    oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
+}
+
+deploy_workload() {
+  log "Exporting the nodes for testpmd and trex pods"
+  export PIN_TESTPMD=${testpmd_workers[0]}
+  export PIN_TREX=${testpmd_workers[1]}
+  log "Deploying testpmd benchmark"
+  envsubst < $CRD | oc apply -f -
+  log "Sleeping for 60 seconds"
+  sleep 60
+}
+
+check_logs_for_errors() {
+client_pod=$(oc get pods -n benchmark-operator --no-headers | awk '{print $1}' | grep trex-traffic-gen | awk 'NR==1{print $1}')
+if [ ! -z "$client_pod" ]; then
+  num_critical=$(oc logs ${client_pod} -n benchmark-operator | grep CRITICAL | wc -l)
+  if [ $num_critical -gt 3 ] ; then
+    log "Encountered CRITICAL condition more than 3 times in trex-traffic-gen pod  logs"
+    log "Log dump of trex-traffic-gen pod"
+    oc logs $client_pod -n benchmark-operator
+    delete_benchmark
+    exit 1
+  fi
+fi
+}
+
+wait_for_benchmark() {
+  testpmd_state=1
+  for i in {1..480}; do # 2hours
+    update
+    if [ "${benchmark_state}" == "Error" ]; then
+      log "Cerberus status is False, Cluster is unhealthy"
+      exit 1
+    fi
+    oc describe -n benchmark-operator benchmarks/testpmd-benchmark| grep State | grep Complete
+    if [ $? -eq 0 ]; then
+      log "testpmd workload done!"
+      testpmd_state=$?
+      break
+    fi
+    update
+    log "Current status of the ${WORKLOAD} benchmark is ${uline}${benchmark_state}${normal}"
+    check_logs_for_errors
+    sleep 30
+  done
+
+  if [ "$testpmd_state" == "1" ] ; then
+    log "Workload failed"
+    exit 1
+  fi
+}
+
+assign_uuid() {
+  update
+  compare_testpmd_uuid=${benchmark_uuid}
+  if [[ ${COMPARE} == "true" ]] ; then
+    echo ${baseline_testpmd_uuid},${compare_testpmd_uuid} >> uuid.txt
+  else
+    echo ${compare_testpmd_uuid} >> uuid.txt
+  fi
+}
+
+run_benchmark_comparison() {
+  log "Beginning benchmark comparison"
+  ../../utils/touchstone-compare/run_compare.sh testpmd ${baseline_testpmd_uuid} ${compare_testpmd_uuid} 
+  log "Finished benchmark comparison"
+}
+
+generate_csv() {
+  log "Generating CSV"
+  # tbd
+}
+
+init_cleanup() {
+  if [[ "${isBareMetal}" == "false" ]]; then
+    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+    rm -rf /tmp/benchmark-operator
+    git clone --single-branch --branch ${operator_branch} ${operator_repo} /tmp/benchmark-operator --depth 1
+    oc delete -f /tmp/benchmark-operator/deploy
+    oc delete -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
+    oc delete -f /tmp/benchmark-operator/resources/operator.yaml
+  else
+    log "BareMetal Infrastructure: Skipping cleanup"
+  fi
+}
+
+delete_benchmark() {
+  oc delete benchmarks.ripsaw.cloudbulldozer.io/testpmd-benchmark -n benchmark-operator
+}
+
+update() {
+  benchmark_state=$(oc get benchmarks.ripsaw.cloudbulldozer.io/testpmd-benchmark -n benchmark-operator -o jsonpath='{.status.state}')
+  benchmark_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/testpmd-benchmark -n benchmark-operator -o jsonpath='{.status.uuid}')
+  benchmark_current_pair=$(oc get benchmarks.ripsaw.cloudbulldozer.io/testpmd-benchmark -n benchmark-operator -o jsonpath='{.spec.workload.args.pair}')
+}
+
+print_uuid() {
+  log "Logging uuid.txt"
+  cat uuid.txt
+}
+
+
+export TERM=screen-256color
+bold=$(tput bold)
+uline=$(tput smul)
+normal=$(tput sgr0)
+python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
+check_cluster_present
+export_defaults
+init_cleanup
+check_cluster_health
+deploy_perf_profile
+deploy_operator
+#deploy_workload
+wait_for_benchmark
+#delete_benchmark
+#cleanup_network

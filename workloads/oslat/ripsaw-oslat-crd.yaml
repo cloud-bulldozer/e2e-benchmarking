@@ -1,0 +1,24 @@
+---
+
+apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
+kind: Benchmark
+metadata:
+  name: oslat
+  namespace: benchmark-operator
+spec:
+  elasticsearch:
+    server: $_es
+  workload:
+    name: "oslat"
+    args:
+      node_selector: node-role.kubernetes.io/worker-rt: ''
+      runtime: ${RUNTIME}
+      disable_cpu_balance: ${DISABLE_CPU_BALANCE}
+      use_taskset: ${USE_TASKSET}
+      pod:
+        requests:
+          memory: ${MEMORY_REQUESTS}
+          cpu: ${CPU_REQUESTS}
+        limits:
+          memory: ${MEMORY_LIMITS}
+          cpu: ${CPU_LIMITS}

@@ -1,0 +1,14 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetworkNodePolicy
+metadata:
+  name: testpmd-policy
+  namespace: openshift-sriov-network-operator
+spec:
+  deviceType: vfio-pci
+  nicSelector:
+    pfNames:
+     - ens2f1
+  nodeSelector:
+    node-role.kubernetes.io/worker: ""
+  numVfs: 20
+  resourceName: intelnics

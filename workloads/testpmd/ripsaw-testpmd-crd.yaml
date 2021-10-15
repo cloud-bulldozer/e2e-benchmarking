@@ -1,0 +1,36 @@
+apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
+kind: Benchmark
+metadata:
+  name: testpmd-benchmark
+  namespace: benchmark-operator
+spec:
+  clustername: myk8scluster
+  workload:
+    name: testpmd
+    args:
+      privileged: ${PRIVILEGED}
+      pin: ${PIN}
+      pin_testpmd: ${PIN_TESTPMD}
+      pin_trex: ${PIN_TREX}
+      socket_memory: ${SOCKET_MEMORY}
+      memory_channels: ${MEMORY_CHANNELS}
+      forwarding_cores: ${FORWARDING_CORES}
+      rx_queues: ${RX_QUEUES}
+      tx_queues: ${TX_QUEUES}
+      rx_descriptors: ${RX_DESCRIPTORS}
+      tx_descriptors: ${TX_DESCRIPTORS}
+      forward_mode: ${FORWARD_MODE}
+      stats_period: ${STATS_PERIOD}
+      disable_rss: ${DISABLE_RSS}
+      duration: ${DURATION}
+      packet_size: ${PACKET_SIZE}
+      packet_rate: ${PACKET_RATE}
+      num_stream: ${NUM_STREAM}
+      networks:
+        testpmd:
+          - name: ${NETWORK_NAME}
+            count: ${TESTPMD_NETWORK_COUNT}
+        trex:
+          - name: ${NETWORK_NAME}
+            count: ${TREX_NETWORK_COUNT}
+
