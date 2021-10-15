@@ -3,7 +3,7 @@
 set -e
 
 WORKLOAD_TEMPLATE=workloads/node-density-heavy/node-density-heavy.yml
-METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yml}
+METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
 NODE_COUNT=${NODE_COUNT:-4}
 PODS_PER_NODE=${PODS_PER_NODE:-250}
 export WORKLOAD=node-density-heavy
