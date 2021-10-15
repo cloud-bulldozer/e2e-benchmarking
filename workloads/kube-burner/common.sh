@@ -38,6 +38,7 @@ deploy_operator() {
 }
 
 deploy_workload() {
+  set -e
   local tmpdir=$(mktemp -d)
   if [[ -z ${WORKLOAD_TEMPLATE} ]]; then
     log "WORKLOAD_TEMPLATE not defined or null!"
@@ -45,11 +46,8 @@ deploy_workload() {
   fi
   cp -pR $(dirname ${WORKLOAD_TEMPLATE})/* ${tmpdir}
   envsubst < ${WORKLOAD_TEMPLATE} > ${tmpdir}/config.yml
-  if [[ -f metrics-profiles/${METRICS_PROFILE} ]]; then
-    cp metrics-profiles/${METRICS_PROFILE} ${tmpdir}/metrics.yml
-  fi
-  if [[ -f ${METRICS_PROFILE} ]]; then
-    cp ${METRICS_PROFILE} ${tmpdir}/metrics.yml
+  if [[ -n ${METRICS_PROFILE} ]]; then
+    cp metrics-profiles/${METRICS_PROFILE} ${tmpdir}/metrics.yml || cp ${METRICS_PROFILE} ${tmpdir}/metrics.yml
   fi
   if [[ -n ${ALERTS_PROFILE} ]]; then
    cp ${ALERTS_PROFILE} ${tmpdir}/alerts.yml
@@ -59,6 +57,7 @@ deploy_workload() {
   rm -rf ${tmpdir}
   log "Deploying benchmark"
   envsubst < kube-burner-crd.yaml | oc apply -f -
+  set +e
 }
 
 wait_for_benchmark() {

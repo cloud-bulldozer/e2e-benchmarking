@@ -3,7 +3,7 @@
 set -e
 
 WORKLOAD_TEMPLATE=workloads/max-namespaces/max-namespaces.yml
-METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yml}
+METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
 export TEST_JOB_ITERATIONS=${NAMESPACE_COUNT:-1000}
 export WORKLOAD=max-namespaces
 
