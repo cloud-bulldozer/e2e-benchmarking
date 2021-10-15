@@ -1,5 +1,4 @@
 source env.sh
-source ../../utils/benchmark-operator.sh
 
 # global variables
 length=0
@@ -69,14 +68,6 @@ export_defaults() {
   latency_tolerance=${LATENCY_TOLERANCE:=5}
   export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
 
-  #Check to see if the infrastructure type is baremetal to adjust script as necessary 
-  if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
-    log "BareMetal infastructure: setting isBareMetal accordingly"
-    export isBareMetal=true
-  else
-    export isBareMetal=false
-  fi
-
   if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
      export GSHEET_KEY_LOCATION=$HOME/.secrets/gsheet_key.json
   fi
@@ -95,14 +86,6 @@ export_defaults() {
   else
     echo $cloud_name > uuid.txt
   fi
-
-  #If using baremetal we use different query to find worker nodes
-  if [[ "${isBareMetal}" == "true" ]]; then
-     #Installing python3.8
-     sudo yum -y install python3.8
-     sudo alternatives --set python3 /usr/bin/python3.8
-  fi
-
 } 
 
 
@@ -139,10 +122,6 @@ deploy_perf_profile() {
         numa_nodes_0=$(ssh -i /home/kni/.ssh/id_rsa -o StrictHostKeyChecking=no core@$w "lscpu | grep '^NUMA node0' | cut -d ':' -f 2")
         numa_nodes_1=$(ssh -i /home/kni/.ssh/id_rsa -o StrictHostKeyChecking=no core@$w "lscpu | grep '^NUMA node1' | cut -d ':' -f 2" )
   done
-  
-  # pin testpmd and trex to nodes
-  export PIN_TESTPMD=${testpmd_workers[0]}
-  export PIN_TREX=${testpmd_workers[1]}
 
   # check if the entries in nic_numa are all identical
   if [ "${#nic_numa[@]}" -gt 0 ] && [ $(printf "%s\000" "${nic_numa[@]}" | LC_ALL=C sort -z -u | grep -z -c .) -eq 1 ] ; then
@@ -165,8 +144,6 @@ deploy_perf_profile() {
   # numa node is 0
   if [[ $numa_node == 0 ]]; then
     # all cpus in cpus_0 - 2 for housekeeping go to isolated
-    log "Numa node is 0"
-    export SOCKET_MEMORY="1024,0"
     num_cpus=${#cpus_0[@]}
     count=0
     max=$((($num_cpus -8) / 2))
@@ -179,7 +156,7 @@ deploy_perf_profile() {
         # add the cpu to the reserved nodes
         reserved+=($cpu)
       fi
-        count=$((count+1))
+      count=$((count+1))
     done
 
     # add the remaining CPUs to reserved
@@ -188,18 +165,18 @@ deploy_perf_profile() {
     max=$((($num_cpus -8) / 2))
     for cpu in ${cpus_1[@]}; do
       if [ $count -le $max ] ; then
+        # add the cpu to the isolated nodes
+        isolated+=($cpu)
+      else
         # add the cpu to the reserved nodes
         reserved+=($cpu)
       fi
       count=$((count+1))
     done
-  fi
 
   # numa node is 1
-  if [[ $numa_node == 1 ]]; then
+  elif [[ $numa_node == 1 ]]; then
     # all cpus in cpus_1 - 2 for housekeeping go to isolated
-    log "Numa node is 1"
-    export SOCKET_MEMORY="0,1024"
     num_cpus=${#cpus_1[@]}
     count=0
     max=$((($num_cpus -8) / 2))
@@ -274,7 +251,7 @@ deploy_perf_profile() {
   log "Sleeping for 60 seconds"
   sleep 60
   readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-  while [[ $readycount -lt 2 ]]; do
+  while [[ $readycount -ne 2 ]]; do
     log "Waiting for -rt nodes to become ready again after the performance-profile has been deployed, sleeping 1 minute"
     sleep 60
     readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
@@ -290,7 +267,7 @@ deploy_perf_profile() {
   log "Sleeping for 60 seconds"
   sleep 60
   readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-  while [[ $readycount -lt 2 ]]; do
+  while [[ $readycount -ne 2 ]]; do
     log "Waiting for -rt nodes to become ready again after the sriov-network-policy has been deployed, sleeping 1 minute"
     sleep 60
     readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
@@ -329,24 +306,31 @@ cleanup_network() {
 }
 
 deploy_operator() {
-  deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
-  if [[ $? != 0 ]]; then
-     exit 1
+  if [[ "${isBareMetal}" == "false" ]]; then
+    log "Removing benchmark-operator namespace, if it already exists"
+    oc delete namespace benchmark-operator --ignore-not-found
+    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  else
+    log "Baremetal infrastructure: Keeping benchmark-operator namespace"
+    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
   fi
-  rm -rf benchmark-operator
+    rm -rf benchmark-operator
+    git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
+    (cd benchmark-operator && make deploy)
+    oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
+    oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
+    oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
+    oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
 }
 
-run_workload() {
+deploy_workload() {
+  log "Exporting the nodes for testpmd and trex pods"
+  export PIN_TESTPMD=${testpmd_workers[0]}
+  export PIN_TREX=${testpmd_workers[1]}
   log "Deploying testpmd benchmark"
-  local TMPCR=$(mktemp)
-  envsubst < $1 > ${TMPCR}
-  run_benchmark ${TMPCR} ${TEST_TIMEOUT}
-  local rc=$?
-  if [[ ${TEST_CLEANUP} == "true" ]]; then
-    log "Cleaning up benchmark"
-    kubectl delete -f ${TMPCR}
-  fi
-  return ${rc}
+  envsubst < $CRD | oc apply -f -
+  log "Sleeping for 60 seconds"
+  sleep 60
 }
 
 check_logs_for_errors() {
@@ -410,6 +394,19 @@ generate_csv() {
   # tbd
 }
 
+init_cleanup() {
+  if [[ "${isBareMetal}" == "false" ]]; then
+    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+    rm -rf /tmp/benchmark-operator
+    git clone --single-branch --branch ${operator_branch} ${operator_repo} /tmp/benchmark-operator --depth 1
+    oc delete -f /tmp/benchmark-operator/deploy
+    oc delete -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
+    oc delete -f /tmp/benchmark-operator/resources/operator.yaml
+  else
+    log "BareMetal Infrastructure: Skipping cleanup"
+  fi
+}
+
 delete_benchmark() {
   oc delete benchmarks.ripsaw.cloudbulldozer.io/testpmd-benchmark -n benchmark-operator
 }
@@ -433,11 +430,11 @@ normal=$(tput sgr0)
 python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
 check_cluster_present
 export_defaults
-#init_cleanup
+init_cleanup
 check_cluster_health
 deploy_perf_profile
 deploy_operator
-run_workload ripsaw-testpmd-crd.yaml
-#wait_for_benchmark
+#deploy_workload
+wait_for_benchmark
 #delete_benchmark
 #cleanup_network

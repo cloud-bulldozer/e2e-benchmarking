@@ -34,6 +34,7 @@ export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burne
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
 export LOG_STREAMING=${LOG_STREAMING:-true}
+export JOB_ITERATIONS=${JOB_ITERATIONS:-10}
 
 # Misc
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}

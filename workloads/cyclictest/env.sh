@@ -1,4 +1,20 @@
-export ES_SERVER=
+# Benchmark-operator
+export OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
+export OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
+export POD_READY_TIMEOUT=${POD_READY_TIMEOUT:-180}
+
+# Benchmark comparison
+export COMPARE=${COMPARE:-false}
+export COMPARE_WITH_GOLD=${COMPARE_WITH_GOLD:-false}
+
+# indexing variables
+export INDEXING=${INDEXING:-true}
+export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
+export STEP_SIZE=${STEP_SIZE:-30s}
+export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
+export PROM_URL=${PROM_URL:-https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091}
+
 export METADATA_COLLECTION=true
 export COMPARE=false
 export COMPARE_WITH_GOLD=
@@ -19,3 +35,5 @@ export MEMORY_REQUESTS=${MEMORY_REQUESTS:-200Mi}
 export CPU_REQUESTS=${CPU_REQUESTS:-4}
 export MEMORY_LIMITS=${MEMORY_LIMITS:-200Mi}
 export CPU_LIMITS=${CPU_LIMITS:-4}
+export TEST_TIMEOUT=${TEST_TIMEOUT:-600}
+export TEST_CLEANUP=${TEST_CLEANUP:-"true"}

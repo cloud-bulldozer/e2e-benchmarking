@@ -1,4 +1,6 @@
 source env.sh
+source ../../utils/benchmark-operator.sh
+
 
 # If ES_SERVER is set and empty we disable ES indexing and metadata collection
 if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
@@ -69,6 +71,21 @@ export_defaults() {
   else
     echo $cloud_name > uuid.txt
   fi
+
+  #Check to see if the infrastructure type is baremetal to adjust script as necessary 
+  if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
+    log "BareMetal infastructure: setting isBareMetal accordingly"
+    export isBareMetal=true
+  else
+    export isBareMetal=false
+  fi
+
+  if [[ "${isBareMetal}" == "true" ]]; then
+     #Installing python3.8
+     sudo yum -y install python3.8
+     sudo alternatives --set python3 /usr/bin/python3.8
+  fi
+
 }
 
 deploy_perf_profile() {
@@ -82,90 +99,87 @@ deploy_perf_profile() {
   else
     if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
       log "Trying to find a suitable node for oslat"
+      # TODO: check if there are two -rt nodes already and use one of them
       # iterate over worker nodes bareMetalHandles until we have 2
       worker_count=0
       oslat_workers=()
       workers=$(oc get nodes | grep ^worker | awk '{print $1}')
-      until [ $worker_count -eq 1 ]; do
+      while [ $worker_count -lt 1 ]; do
         for worker in $workers; do
        	  worker_ip=$(oc get node $worker -o json | jq -r ".status.addresses[0].address" | grep 192 )
           if [[ ! -z "$worker_ip" ]]; then
             oslat_workers+=( $worker )
             ((worker_count=worker_count+1))
+	    break
           fi
         done
       done
     fi
-    # label the two nodes for the performance profile
-    log "Labeling -lat nodes"
-    for w in ${oslat_workers[@]}; do
-      oc label node $w node-role.kubernetes.io/worker-rt="" --overwrite=true
-    done
-    # create the machineconfigpool
-    log "Creating the MCP"
-    oc create -f machineconfigpool.yaml
-    sleep 30
+  fi
+  # label the two nodes for the performance profile
+  log "Labeling -lat nodes"
+  for w in ${oslat_workers[@]}; do
+    oc label node $w node-role.kubernetes.io/worker-rt="" --overwrite=true
+  done
+  # create the machineconfigpool
+  log "Creating the MCP"
+  oc apply -f machineconfigpool.yaml
+  sleep 30
+  if [ $? -ne 0 ] ; then
+    log "Couldn't create the MCP, exiting!"
+    exit 1
+  fi
+  # add the label to the MCP pool 
+  log "Labeling the MCP"
+  oc label mcp worker-rt machineconfiguration.openshift.io/role=worker-rt --overwrite=true
+  if [ $? -ne 0 ] ; then
+    log "Couldn't label the MCP, exiting!"
+    exit 1
+  fi
+  # apply the performanceProfile
+  log "Applying the performanceProfile since it doesn't exist yet"
+  profile=$(oc get performanceprofile benchmark-performance-profile-0 --no-headers)
+  if [ $? -ne 0 ] ; then
+    log "PerformanceProfile not found, creating it"
+    oc apply -f perf_profile.yaml
     if [ $? -ne 0 ] ; then
-      log "Couldn't create the MCP, exiting!"
+      log "Couldn't apply the performance profile, exiting!"
       exit 1
     fi
-    # add the label to the MCP pool 
-    log "Labeling the MCP"
-    oc label mcp worker-lat machineconfiguration.openshift.io/role=worker-rt
-    if [ $? -ne 0 ] ; then
-      log "Couldn't label the MCP, exiting!"
-      exit 1
-    fi
-    # apply the performanceProfile
-    log "Applying the performanceProfile since it doesn't exist yet"
-    profile=$(oc get performanceprofile benchmark-performance-profile-0 --no-headers)
-    if [ $? -ne 0 ] ; then
-      log "PerformanceProfile not found, creating it"
-      oc apply -f perf_profile.yaml
-      if [ $? -ne 0 ] ; then
-        log "Couldn't apply the performance profile, exiting!"
-        exit 1
-      fi
-    fi
-    # We need to wait for the nodes with the perfProfile applied to to reboot
-    # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes
-    # if they're ready we'll continue. Should the performance profile require reboots, that will have
-    # started within the 60 seconds
-    log "Sleeping for 60 seconds"
+  fi
+  # We need to wait for the nodes with the perfProfile applied to to reboot
+  # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes
+  # if they're ready we'll continue. Should the performance profile require reboots, that will have
+  # started within the 60 seconds
+  log "Sleeping for 60 seconds"
+  sleep 60
+  readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
+  while [[ $readycount -lt 1 ]]; do
+    log "Waiting for -rt nodes to become ready again, sleeping 1 minute"
     sleep 60
     readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-    while [[ $readycount -ne 2 ]]; do
-      log "Waiting for -rt nodes to become ready again, sleeping 1 minute"
-      sleep 60
-      readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-    done
-  fi
+  done
 }
 
 deploy_operator() {
-  if [[ "${isBareMetal}" == "false" ]]; then
-    log "Removing benchmark-operator namespace, if it already exists"
-    oc delete namespace benchmark-operator --ignore-not-found
-    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
-  else
-    log "Baremetal infrastructure: Keeping benchmark-operator namespace"
-    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+  if [[ $? != 0 ]]; then
+     exit 1
   fi
-    rm -rf benchmark-operator  
-    git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
-    (cd benchmark-operator && make deploy)
-    oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
-    oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
-    oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
-    oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
+  rm -rf benchmark-operator
 }
 
-
-deploy_workload() {
+run_workload() {
   log "Deploying oslat benchmark"
-  envsubst < $CRD | oc apply -f -
-  log "Sleeping for 60 seconds"
-  sleep 60
+  local TMPCR=$(mktemp)
+  envsubst < $1 > ${TMPCR}
+  run_benchmark ${TMPCR} ${TEST_TIMEOUT}
+  local rc=$?
+  if [[ ${TEST_CLEANUP} == "true" ]]; then 
+    log "Cleaning up benchmark"
+    kubectl delete -f ${TMPCR}
+  fi
+  return ${rc}
 }
 
 check_logs_for_errors() {
@@ -229,19 +243,6 @@ generate_csv() {
   # tbd
 }
 
-init_cleanup() {
-  if [[ "${isBareMetal}" == "false" ]]; then
-    log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
-    rm -rf /tmp/benchmark-operator
-    git clone --single-branch --branch ${operator_branch} ${operator_repo} /tmp/benchmark-operator --depth 1
-    oc delete -f /tmp/benchmark-operator/deploy
-    oc delete -f /tmp/benchmark-operator/resources/crds/ripsaw_v1alpha1_ripsaw_crd.yaml
-    oc delete -f /tmp/benchmark-operator/resources/operator.yaml
-  else
-    log "BareMetal Instrastructure: Skipping cleanup"
-  fi
-}
-
 delete_benchmark() {
   oc delete benchmarks.ripsaw.cloudbulldozer.io/oslat -n benchmark-operator
 }
@@ -265,8 +266,7 @@ normal=$(tput sgr0)
 python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
 check_cluster_present
 export_defaults
-init_cleanup
 check_cluster_health
 deploy_perf_profile
 deploy_operator
-
+run_workload ripsaw-oslat-crd.yaml

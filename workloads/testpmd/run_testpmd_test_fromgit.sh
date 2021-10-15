@@ -3,13 +3,13 @@ export WORKLOAD=testpmd
 
 source ./common.sh
 
-deploy_workload
-wait_for_benchmark
-assign_uuid
+#deploy_workload
+#wait_for_benchmark
+#assign_uuid
 #run_benchmark_comparison
 print_uuid
 #generate_csv
-delete_benchmark
+#delete_benchmark
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  echo -e "snappy server as backup enabled"

@@ -3,11 +3,14 @@ export WORKLOAD=cyclictest
 
 source ./common.sh
 
-#deploy_workload
+#run_workload ripsaw-cyclictest-crd.yaml
+#if [[ $? != 0 ]]; then 
+#  exit 
+#fi
 #wait_for_benchmark
-assign_uuid
+#assign_uuid
 #run_benchmark_comparison
-print_uuid
+#print_uuid
 #generate_csv
 #delete_benchmark
 

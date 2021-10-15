@@ -9,7 +9,7 @@ spec:
   workload:
     name: "cyclictest"
     args:
-      node_selector: node-role.kubernetes.io/worker-rt: ''
+      node_selector: node-role.kubernetes.io/worker-rt=
       duration: ${DURATION}
       disable_cpu_balance: ${DISABLE_CPU_BALANCE}
       stressng: ${STRESSNG}
