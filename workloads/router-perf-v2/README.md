@@ -63,9 +63,9 @@ It's possible to tune the default configuration through environment variables. T
 | SERVICE_TYPE          | K8S service type to use | `NodePort` |
 | METADATA_COLLECTION   | Collect metadata prior to trigger the workload | `true` |
 
-### Benchmark comparison variables:
+### Benchmark-comparison variables:
 
-The ingress-performance script is able to invoke benchmark-comparison to perform results comparisons and then generate a google spreadsheet document. If `ES_SERVER_BASELINE` is not set, benchmark-comparion is used to generate a CSV results file.
+The ingress-performance script is able to invoke benchmark-comparison to perform results comparisons and then generate a google spreadsheet document. If `ES_SERVER_BASELINE` is not set, benchmark-comparison is used to generate a CSV results file.
 
 
 | Variable              | Description     | Default	          | Required |
