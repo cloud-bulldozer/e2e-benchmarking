@@ -172,6 +172,21 @@ get_gold_ocp_version(){
   export GOLD_OCP_VERSION=$( bc <<< "$current_version - 0.1" )
 }
 
+snappy_backup(){
+  log "Snappy server as backup enabled"
+  source ../../utils/snappy-move-results/common.sh
+  csv_list=`find . -name "*.csv"` 
+  mkdir -p files_list
+  cp $csv_list ./files_list
+  tar -zcf snappy_files.tar.gz ./files_list
+  local snappy_path="${SNAPPY_USER_FOLDER}/${runid}${platform}-${cluster_version}-${network_type}/${1}/${folder_date_time}/"
+  generate_metadata > metadata.json  
+  ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz $snappy_path
+  ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
+  store_on_elastic
+  rm -rf files_list
+}
+
 export TERM=screen-256color
 python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
 export_defaults
