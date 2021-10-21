@@ -58,26 +58,6 @@ Elasticsearch server to index the results of the current run. Use the notation `
 Default: `false`   
 Enable/Disable collection of metadata
 
-### COMPARE (not implemented yet)
-Default: `false`   
-
-Enable/Disable the ability to compare two runs. If set to `true`, the next set of environment variables pertaining to the type of test are required
-
-### BASELINE_CLOUD_NAME
-Default: ''
-
-Name you would like to give your baseline cloud. It will appear as a header in the CSV file
-
-### ES_SERVER_BASELINE
-Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
-
-Elasticsearch server used used by the baseline run
-
-### BASELINE_UUID
-Default: ''
-
-Baseline UUID
-
 ### CERBERUS_URL
 Default: ''
 
@@ -118,15 +98,19 @@ Default: ''
 
 AWS Region
 
+### TEST_CLEANUP
+Default: true
+Remove benchmark CR at the end
+
+### TEST_TIMEOUT
+Default: 3600
+Benchmark timeout in seconds
+
 ## Suggested configurations
 
 ```sh
 export ES_SERVER=
 export METADATA_COLLECTION=
-export COMPARE=false
-export BASELINE_CLOUD_NAME=
-export ES_SERVER_BASELINE=
-export BASELINE_UUID=
 export CERBERUS_URL=http://1.2.3.4:8080
 export SCALE=
 export POLL_INTERVAL=

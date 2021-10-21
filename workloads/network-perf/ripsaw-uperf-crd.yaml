@@ -8,23 +8,23 @@ metadata:
 spec:
   uuid: ${UUID}
   elasticsearch:
-    url: $_es
-  clustername: $cloud_name
+    url: ${ES_SERVER}
+  clustername: ${cloud_name}
   test_user: ${cloud_name}-${WORKLOAD}-ci-${pairs}p
   metadata:
-    collection: ${_metadata_collection}
+    collection: ${METADATA_COLLECTION}
     serviceaccount: backpack-view
     privileged: true
-    targeted: ${_metadata_targeted}
+    targeted: ${METADATA_TARGETED}
   cerberus_url: "$CERBERUS_URL"
   workload:
     name: uperf
     args:
       run_id: "$RUN_ID"
-      hostnetwork: ${hostnetwork}
-      serviceip: ${serviceip}
-      networkpolicy: ${networkpolicy}
-      pin: $pin
+      hostnetwork: ${HOSTNETWORK}
+      serviceip: ${SERVICEIP}
+      networkpolicy: ${NETWORK_POLICY}
+      pin: true
       pin_server: "$server"
       pin_client: "$client"
       multus:

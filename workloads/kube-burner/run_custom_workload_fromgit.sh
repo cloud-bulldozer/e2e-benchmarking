@@ -1,18 +1,14 @@
-#!/usr/bin/bash -e
+#!/usr/bin/bash
 
-set -e
 
-export TEST_JOB_ITERATIONS=${PODS:-1000}
-export REMOTE_CONFIG=${REMOTE_CONFIG}
-export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE}
+export WORKLOAD=custom
 
 . common.sh
 
 deploy_operator
 check_running_benchmarks
-deploy_workload
-wait_for_benchmark ${WORKLOAD}
-rm -rf benchmark-operator
+run_workload kube-burner-crd.yaml
+rc=$?
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
 fi

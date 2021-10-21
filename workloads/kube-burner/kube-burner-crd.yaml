@@ -21,29 +21,14 @@ spec:
   workload:
     name: kube-burner
     args:
-      workload: ""
       extra_env_vars:
-        UUID: ${UUID}
-        INDEXING: ${INDEXING}
-        ES_SERVER: ${ES_SERVER}
-        ES_INDEX: ${ES_INDEX}
-        JOB_ITERATIONS: ${TEST_JOB_ITERATIONS}
-        QPS: ${QPS} 
-        BURST: ${BURST}
-        CLEANUP: ${CLEANUP}
-        POD_NODE_SELECTOR: "${POD_NODE_SELECTOR}"
-        WAIT_WHEN_FINISHED: ${WAIT_WHEN_FINISHED}
-        POD_WAIT: ${POD_WAIT}
-        WAIT_FOR: ${WAIT_FOR}
-        VERIFY_OBJECTS: ${VERIFY_OBJECTS}
-        ERROR_ON_VERIFY: ${ERROR_ON_VERIFY}
-        MAX_WAIT_TIMEOUT: ${MAX_WAIT_TIMEOUT}
         PPROF_COLLECTION: ${PPROF_COLLECTION}
         PPROF_COLLECTION_INTERVAL: ${PPROF_COLLECTION_INTERVAL}
         BEARER_TOKEN: ${BEARER_TOKEN}
         PRIVATE_KEY: ${PRIVATE_KEY}
         CERTIFICATE: ${CERTIFICATE}
-
+      # Kube-burner configmap name
+      configmap: kube-burner-cfg-${UUID}
       # Kube-burner Job timeout
       job_timeout: ${JOB_TIMEOUT}
       # ES index name
@@ -58,9 +43,3 @@ spec:
       tolerations: ${TOLERATIONS}
       # Prometheus step size
       step: ${STEP_SIZE}
-      # Remote configuration file
-      remote_config: ${REMOTE_CONFIG}
-      # Remote metric profile
-      remote_metrics_profile: ${REMOTE_METRIC_PROFILE}
-      # Remote alert profile
-      remote_alert_profile: ${REMOTE_ALERT_PROFILE}

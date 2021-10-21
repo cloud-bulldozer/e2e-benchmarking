@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-set -x
+
+source env.sh
+source ../../utils/benchmark-operator.sh
+
+log() {
+  echo -e "\033[1m$(date -u) ${@}\033[0m"
+}
 
 # Check cluster's health
 if [[ ${CERBERUS_URL} ]]; then
@@ -10,70 +16,29 @@ if [[ ${CERBERUS_URL} ]]; then
   fi
 fi
 
-
-operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-operator_branch=${OPERATOR_BRANCH:=master}
-export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-_es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-export _metadata_collection=${METADATA_COLLECTION:=false}
-export _poll_interval=${POLL_INTERVAL:=5}
-export _post_sleep=${POST_SLEEP:=0}
-COMPARE=${COMPARE:=false}
-_timeout=${TIMEOUT:=240}
-_runs=${RUNS:=1}
-export _workload_node_role=${WORKLOAD_NODE_ROLE:=worker}
-
-if [[ -n $SCALE ]]; then
-  _scale=${SCALE}
-else
-  echo "Scale target not set. Exiting"
-  exit 1
+if [[ -z ${SCALE} ]]; then
+  log "Scale target not set. Exiting"
 fi
 
-if [[ -n $UUID ]]; then
-  export _uuid=${UUID}
-else
-  export _uuid=$(uuidgen)
-fi
+deploy_operator() {
+  deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+  rm -rf benchmark-operator
+  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
+  kubectl apply -f benchmark-operator/resources/backpack_role.yaml
+  kubectl apply -f benchmark-operator/resources/scale_role.yaml
+  oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
+  oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
+}
 
-if [ ! -z ${2} ]; then
-  export KUBECONFIG=${2}
-fi
-
-export cloud_name=$1
-if [ "$cloud_name" == "" ]; then
-  export cloud_name="test_cloud"
-fi
-
-
-# check if cluster is up
-date
-oc get clusterversion
-if [ $? -ne 0 ]; then
-  echo "Workload Failed for cloud $cloud_name, Unable to connect to the cluster"
-  exit 1
-fi
-
-# Get initial worker count
-_init_worker_count=`oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= | wc -l`
-
-
-if [[ ${COMPARE} == "true" ]]; then
-  echo $BASELINE_CLOUD_NAME,$cloud_name > uuid.txt
-else
-  echo $cloud_name > uuid.txt
-fi
-
-echo "Starting test for cloud: $cloud_name"
-
-echo "Removing benchmark-operator namespace, if it already exists"
-oc delete namespace benchmark-operator --ignore-not-found
-echo "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
-rm -rf benchmark-operator
-git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1
-(cd benchmark-operator && make deploy)
-kubectl apply -f benchmark-operator/resources/scale_role.yaml
-kubectl apply -f benchmark-operator/resources/backpack_role.yaml
-oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
-oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
-oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
+run_workload() {
+  log "Deploying benchmark"
+  local TMPCR=$(mktemp)
+  envsubst < $1 > ${TMPCR}
+  run_benchmark ${TMPCR} ${TEST_TIMEOUT}
+  local rc=$?
+  if [[ ${TEST_CLEANUP} == "true" ]]; then
+    log "Cleaning up benchmark"
+    kubectl delete -f ${TMPCR}
+  fi
+  return ${rc}
+}

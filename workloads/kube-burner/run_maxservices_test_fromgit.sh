@@ -1,11 +1,9 @@
-#!/usr/bin/bash -e
+#!/usr/bin/bash
 
-set -e
-
+WORKLOAD_TEMPLATE=workloads/max-services/max-services.yml
+METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
 export TEST_JOB_ITERATIONS=${SERVICE_COUNT:-1000}
 export WORKLOAD=max-services
-export REMOTE_CONFIG=https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/workloads/max-services/max-services.yml
-export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE:-https://raw.githubusercontent.com/cloud-bulldozer/e2e-benchmarking/master/workloads/kube-burner/metrics-profiles/metrics-aggregated.yml}
 
 . common.sh
 
@@ -16,16 +14,15 @@ if [[ ${PPROF_COLLECTION} == "true" ]] ; then
   delete_oldpprof_folder
   get_pprof_secrets
 fi 
-deploy_workload
-wait_for_benchmark ${WORKLOAD}
-rm -rf benchmark-operator
+run_workload kube-burner-crd.yaml
+rc=$?
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
 fi
 delete_pprof_secrets
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
- snappy_backup kube-burner-maxservices
+  snappy_backup kube-burner-maxservices
 fi
 
 exit ${rc}

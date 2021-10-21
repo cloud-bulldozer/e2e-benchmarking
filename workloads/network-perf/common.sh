@@ -1,19 +1,12 @@
 #!/usr/bin/env bash
 
+source env.sh
+source ../../utils/benchmark-operator.sh
+
 log() {
-  echo ${bold}$(date -u):  ${@}${normal}
+  echo -e "\033[1m$(date -u) ${@}\033[0m"
 }
 
-check_cluster_present() {
-  echo ""
-  oc get clusterversion
-  if [ $? -ne 0 ]; then
-    log "Workload Failed for cloud $cloud_name, Unable to connect to the cluster"
-    exit 1
-  fi
-  cluster_version=$(oc get clusterversion --no-headers | awk '{ print $2 }')
-  echo ""
-}
 
 check_cluster_health() {
   if [[ ${CERBERUS_URL} ]]; then
@@ -27,27 +20,13 @@ check_cluster_health() {
 
 
 export_defaults() {
-  operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-  operator_branch=${OPERATOR_BRANCH:=master}
-  CRD=${CRD:-ripsaw-uperf-crd.yaml}
-  export cr_name=${BENCHMARK:=benchmark}
-  export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-  _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-  export _metadata_collection=${METADATA_COLLECTION:=true}
-  export _metadata_targeted=true
-  export COMPARE=${COMPARE:=false}
   network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
-  gold_sdn=${GOLD_SDN:=openshiftsdn}
-  throughput_tolerance=${THROUGHPUT_TOLERANCE:=10}
-  latency_tolerance=${LATENCY_TOLERANCE:=10}
   export client_server_pairs=(1 2 4)
-  export pin=true
-  export networkpolicy=${NETWORK_POLICY:=false}
-  export multi_az=${MULTI_AZ:=true}
+  export cr_name=${BENCHMARK:=benchmark}  
   export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
   platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
-  log "Platform is found to be : ${platform} "
+  log "Platform is found to be: ${platform} "
 
   #Check to see if the infrastructure type is baremetal to adjust script as necessary 
   if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
@@ -86,7 +65,7 @@ export_defaults() {
     fi
     export server=${nodes[0]}
     export client=${nodes[1]}
-  elif [[ ${multi_az} == "true" ]]; then
+  elif [[ ${MULTI_AZ} == "true" ]]; then
     # Get AZs from worker nodes
     log "Colocating uperf pods in different AZs"
     if [[ ${#zones[@]} -gt 1 ]]; then
@@ -96,7 +75,7 @@ export_defaults() {
       log "At least 2 worker nodes placed in different topology zones are required"
       exit 1
     fi
-  # If multi_az is disabled we use the two first nodes from the first AZ
+  # If MULTI_AZ is disabled we use the two first nodes from the first AZ
   else
     nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
     if [[ ${#nodes[@]} -lt 2 ]]; then
@@ -150,14 +129,8 @@ export_defaults() {
   _baseline_svc_2p_uuid=${BASELINE_SVC_2P_UUID}
   _baseline_svc_4p_uuid=${BASELINE_SVC_4P_UUID}
 
-  if [ ! -z ${2} ]; then
-    export KUBECONFIG=${2}
-  fi
 
-  cloud_name=$1
-  if [ "$cloud_name" == "" ]; then
-    export cloud_name="${network_type}_${platform}_${cluster_version}"
-  fi
+  export cloud_name="${network_type}_${platform}_${cluster_version}"
 
   if [[ ${COMPARE} == "true" ]]; then
     echo $BASELINE_CLOUD_NAME,$cloud_name > uuid.txt
@@ -167,71 +140,30 @@ export_defaults() {
 }
 
 deploy_operator() {
-  log "Cloning benchmark-operator from branch ${operator_branch} of ${operator_repo}"
+  log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
+  deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
   rm -rf benchmark-operator
-  git clone --single-branch --branch ${operator_branch} ${operator_repo} --depth 1  
-  (cd benchmark-operator && make deploy)
+  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
   kubectl apply -f benchmark-operator/resources/backpack_role.yaml
-  oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
   oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
 }
 
-deploy_workload() {
-  log "Deploying uperf benchmark"
-  envsubst < $CRD | oc apply -f -
-  log "Sleeping for 60 seconds"
-  sleep 60
-}
-
-check_logs_for_errors() {
-uuid=$(oc describe -n benchmark-operator benchmarks/uperf-${cr_name}-${WORKLOAD}-network-${pairs} | grep  Suuid | awk  '{print $2}')
-client_pod=$(oc get pods -n benchmark-operator --no-headers | awk '{print $1}' | grep $uuid | grep uperf-client | awk 'NR==1{print $1}')
-if [ ! -z "$client_pod" ]; then
-  num_critical=$(oc logs ${client_pod} -n benchmark-operator | grep CRITICAL | wc -l)
-  if [ $num_critical -gt 3 ] ; then
-    log "Encountered CRITICAL condition more than 3 times in uperf-client logs"
-    log "Log dump of uperf-client pod"
-    oc logs $client_pod -n benchmark-operator
-    delete_benchmark
-    exit 1
+run_workload() {
+  log "Deploying benchmark"
+  local TMPCR=$(mktemp)
+  envsubst < $1 > ${TMPCR}
+  run_benchmark ${TMPCR} ${TEST_TIMEOUT}
+  local rc=$?
+  if [[ ${TEST_CLEANUP} == "true" ]]; then
+    log "Cleaning up benchmark"
+    kubectl delete -f ${TMPCR}
   fi
-fi
-}
-
-wait_for_benchmark() {
-  uperf_state=1
-  for i in {1..480}; do # 2hours
-    update
-    if [ "${benchmark_state}" == "Error" ]; then
-      log "Cerberus status is False, Cluster is unhealthy"
-      exit 1
-    fi
-    if [ "${benchmark_state}" == "Failed" ]; then
-      log "Benchmark state is Failed, exiting"
-      exit 1
-    fi
-    oc describe -n benchmark-operator benchmarks/uperf-${cr_name}-${WORKLOAD}-network-${pairs} | grep State | grep Complete
-    if [ $? -eq 0 ]; then
-      log "uperf workload done!"
-      uperf_state=$?
-      break
-    fi
-    update
-    log "Current status of the uperf ${WORKLOAD} benchmark with ${uline}${benchmark_current_pair} pair/s is ${uline}${benchmark_state}${normal}"
-    check_logs_for_errors
-    sleep 30
-  done
-
-  if [ "$uperf_state" == "1" ] ; then
-    log "Workload failed"
-    exit 1
-  fi
+  return ${rc}
 }
 
 assign_uuid() {
-  update
   compare_uperf_uuid=${benchmark_uuid}
   if [ ${WORKLOAD} == "hostnet" ] ; then
     baseline_uperf_uuid=${_baseline_hostnet_uuid}
@@ -274,32 +206,28 @@ generate_csv() {
   log "Finished generating CSV"
 }
 
-delete_benchmark() {
-    oc delete benchmarks.ripsaw.cloudbulldozer.io/uperf-${cr_name}-${WORKLOAD}-network-${pairs} -n benchmark-operator
-}
-
-update() {
-  benchmark_state=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-${cr_name}-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.state}')
-  benchmark_uuid=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-${cr_name}-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.status.uuid}')
-  benchmark_current_pair=$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-${cr_name}-${WORKLOAD}-network-${pairs} -n benchmark-operator -o jsonpath='{.spec.workload.args.pair}')
-}
-
 get_gold_ocp_version(){
   current_version=`oc get clusterversion | grep -o [0-9.]* | head -1 | cut -c 1-3`
   export GOLD_OCP_VERSION=$( bc <<< "$current_version - 0.1" )
 }
 
-print_uuid() {
-  log "Logging uuid.txt"
-  cat uuid.txt
+snappy_backup(){
+  log "Snappy server as backup enabled"
+  source ../../utils/snappy-move-results/common.sh
+  csv_list=`find . -name "*.csv"` 
+  mkdir -p files_list
+  cp $csv_list ./files_list
+  tar -zcf snappy_files.tar.gz ./files_list
+  local snappy_path="${SNAPPY_USER_FOLDER}/${runid}${platform}-${cluster_version}-${network_type}/${1}/${folder_date_time}/"
+  generate_metadata > metadata.json  
+  ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz $snappy_path
+  ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
+  store_on_elastic
+  rm -rf files_list
 }
 
 export TERM=screen-256color
-bold=$(tput bold)
-uline=$(tput smul)
-normal=$(tput sgr0)
 python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
-check_cluster_present
 export_defaults
 check_cluster_health
 deploy_operator

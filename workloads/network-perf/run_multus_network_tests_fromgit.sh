@@ -34,11 +34,11 @@ metadata:
   namespace: benchmark-operator
 spec:
   elasticsearch:
-    url: $_es
-  clustername: $cloud_name
-  test_user: ${cloud_name}-multus-ci-${_pair}p
+    url: ${ES_SERVER}
+  clustername: ${CLOUD_NAME}
+  test_user: ${CLOUD_NAME}-multus-ci-${pairs}p
   metadata:
-    collection: ${_metadata_collection}
+    collection: ${METADATA_COLLECTION}
     serviceaccount: backpack-view
     privileged: true
   cerberus_url: "$CERBERUS_URL" 
