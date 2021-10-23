@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+source env.sh
 source ../../utils/common.sh
 source ../../utils/benchmark-operator.sh
 
