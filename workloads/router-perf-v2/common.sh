@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
-source env.sh
 source ../../utils/compare.sh
 source ../../utils/common.sh
-
+source env.sh
 
 get_scenario(){
   # We consider a large scale scenario any cluster with more than the given threshold

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 source ../../utils/common.sh
+source ../../utils/benchmark-operator.sh
 
 check_cluster_health() {
   if [[ ${CERBERUS_URL} ]]; then
