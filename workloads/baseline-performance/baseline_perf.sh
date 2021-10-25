@@ -13,4 +13,4 @@ curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz
 
 ./kube-burner index -c baseline_perf.yml --uuid=${UUID} -u=${PROM_URL} --job-name baseline-performance-workload --token=${PROM_TOKEN} -m=metrics.yaml --start ${start_time} --end ${end_time}
 
-log "Metrics stored at elasticsearch server $ES_SERVER on index $ES_INDEX with UUID $UUID and jobName `baseline-performance-workload`"
+log "Metrics stored at elasticsearch server $ES_SERVER on index $ES_INDEX with UUID $UUID and jobName: baseline-performance-workload"
