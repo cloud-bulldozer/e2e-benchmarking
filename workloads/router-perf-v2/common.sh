@@ -201,7 +201,7 @@ snappy_backup() {
  compare_file=`find . -name "compare*"`
  mkdir files_list
  cp $csv_list $compare_file $json_list http-perf.yml ./files_list
- tar -zcvf snappy_files.tar.gz ./files_list
+ tar -zcf snappy_files.tar.gz ./files_list
  workload=router-perf-v2 
  local snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$UUID-$workload/$folder_date_time/"
  generate_metadata > metadata.json  

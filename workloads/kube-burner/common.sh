@@ -148,7 +148,7 @@ delete_oldpprof_folder() {
 snappy_backup() {
  log "snappy server as backup enabled"
  source ../../utils/snappy-move-results/common.sh
- tar -zcvf pprof.tar.gz ./pprof-data
+ tar -zcf pprof.tar.gz ./pprof-data
  workload=${1}
  snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
  generate_metadata > metadata.json  
