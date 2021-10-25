@@ -11,6 +11,6 @@ log "Running kube-burner index to measure  the performance of the cluster over t
   
 curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz
 
-./kube-burner index -c baseline_perf.yml --uuid=${UUID} -u=${PROM_URL} --token=${PROM_TOKEN} -m=metrics.yaml --start ${start_time} --end ${end_time}
+./kube-burner index -c baseline_perf.yml --uuid=${UUID} -u=${PROM_URL} --job-name baseline-performance-workload --token=${PROM_TOKEN} -m=metrics.yaml --start ${start_time} --end ${end_time}
 
-log "Metrics stored at elasticsearch server $ES_SERVER on index $ES_INDEX with UUID $UUID"
+log "Metrics stored at elasticsearch server $ES_SERVER on index $ES_INDEX with UUID $UUID and job name `baseline-performance-workload`"
