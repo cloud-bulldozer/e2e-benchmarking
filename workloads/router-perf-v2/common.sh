@@ -194,7 +194,7 @@ test_routes(){
 }
 
 snappy_backup() {
- echo -e "snappy server as backup enabled"
+ log "snappy server as backup enabled"
  source ../../utils/snappy-move-results/common.sh
  csv_list=`find . -name "*.csv"` 
  json_list=`find . -name "*.json"`
