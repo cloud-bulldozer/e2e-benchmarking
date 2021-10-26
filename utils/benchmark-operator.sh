@@ -4,7 +4,11 @@ install_cli() {
   ripsaw_tmp=/tmp/ripsaw-cli
   mkdir -p ${ripsaw_tmp}
   if [[ ! -f ${ripsaw_tmp}/bin/activate ]]; then
-    python -m venv ${ripsaw_tmp}
+      if [[ "${isBareMetal}" == "true" ]]; then
+        python3.8 -m venv ${ripsaw_tmp}
+      else
+        python -m venv ${ripsaw_tmp}
+      fi
   fi
   source ${ripsaw_tmp}/bin/activate
   pip3 install -U "git+https://github.com/cloud-bulldozer/benchmark-operator.git/#egg=ripsaw-cli&subdirectory=cli"

@@ -38,6 +38,9 @@ export_defaults() {
 
   #If using baremetal we use different query to find worker nodes
   if [[ "${isBareMetal}" == "true" ]]; then
+    #Installing python3.8
+    sudo yum -y install python3.8
+
     nodeCount=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | wc -l)
     if [[ ${nodeCount} -ge 2 ]]; then
       serverNumber=$(( $RANDOM %${nodeCount} + 1 ))
@@ -89,20 +92,20 @@ export_defaults() {
 
   if [ ${WORKLOAD} == "hostnet" ]
   then
-    export hostnetwork=true
-    export serviceip=false
+    export HOSTNETWORK=true
+    export SERVICEIP=false
   elif [ ${WORKLOAD} == "service" ]
   then
-    export hostnetwork=false
-    export serviceip=true
+    export HOSTNETWORK=false
+    export SERVICEIP=true
     if [[ "${isBareMetal}" == "true" ]]; then
-      export _metadata_targeted=true
+      export METADATA_TARGETED=true
     else  
-      export _metadata_targeted=false
+      export METADATA_TARGETED=false
     fi
   else
-    export hostnetwork=false
-    export serviceip=false
+    export HOSTNETWORK=false
+    export SERVICEIP=false
   fi
 
   if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
