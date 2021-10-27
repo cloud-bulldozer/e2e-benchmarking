@@ -48,6 +48,8 @@ remove_benchmark_operator() {
 ############################################################################
 run_benchmark() {
   source ${ripsaw_tmp}/bin/activate
+  set -e
   ripsaw benchmark run -f ${1} -t ${2}
+  set +e
   deactivate
 }
