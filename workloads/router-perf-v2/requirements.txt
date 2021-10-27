@@ -1,6 +1,0 @@
-PyYAML
-oauth2client>=4.1.3
-gspread
-gspread-formatting
-numpy
-elasticsearch

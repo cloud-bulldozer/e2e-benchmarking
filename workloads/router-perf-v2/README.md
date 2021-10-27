@@ -30,7 +30,7 @@ This test uses a [python wrapper](workload.py) on top of mb. This wrapper takes 
 Apart from the k8s/oc clients, running this script has several requirements:
 
 - podman
-- pip install -r requirements.txt
+- python3.6 (Required for benchmark-comparison)
 
 ## Configuration
 It's possible to tune the default configuration through environment variables. They are described in the table below:
@@ -59,28 +59,30 @@ It's possible to tune the default configuration through environment variables. T
 | NODE_SELECTOR         | Node selector of the mb client | `{node-role.kubernetes.io/workload: }` |
 | QUIET_PERIOD          | Quiet period after each test iteration | `60s` |
 | ES_SERVER             | Elasticsearch endpoint to send metrics | `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443` |
-| ES_SERVER_BASELINE    | Elasticsearch endpoint used to fetch baseline results | "" |
 | ES_INDEX              | Elasticsearch index | `router-test-results` |
-| COMPARE               | Should we compare the gathered data to the baseline small/large scale UUIDs if provided | "false" |
-| SMALL_SCALE_BASELINE_UUID | Baseline UUID to compare small scale results with (optional) | "" |
-| LARGE_SCALE_BASELINE_UUID | Baseline UUID to compare large scale results with (optional) | "" |
-| PREFIX                | Test name prefix (optional) | Result of `oc get clusterversion version -o jsonpath="{.status.desired.version}"` |
-| SMALL_SCALE_BASELINE_PREFIX | Small scale baseline test name prefix (optional) | `baseline` |
-| LARGE_SCALE_BASELINE_PREFIX | Large scale baseline test name prefix (optional) | `baseline` |
-| GSHEET_KEY_LOCATION   | Path to service account key to generate google sheets (optional) | "" |
-| EMAIL_ID_FOR_RESULTS_SHEET | It will push your local results CSV to Google Spreadsheets and send an email with the attachment (optional) | "" |
-| THROUGHPUT_TOLERANCE  | Accepted deviation in percentage for throughput when compared to a baseline run | `5` |
-| LATENCY_TOLERANCE     | Accepted deviation in percentage for latency when compared to a baseline run | `5` |
 | SERVICE_TYPE          | K8S service type to use | `NodePort` |
 | METADATA_COLLECTION   | Collect metadata prior to trigger the workload | `true` |
-| COMPARE_WITH_GOLD | Set it to true if the baseline uuids need to be from gold-index| "" |
-| ES_GOLD | Elasticsearch server where the gold index is stored | `ES_SERVER` |
-| GOLD_SDN | SDN that you want to compare your current run to | `openshiftsdn` |
-| GOLD_OCP_VERSION | OCP version for the gold baseline run | "" |
+
+### Benchmark-comparison variables:
+
+The ingress-performance script is able to invoke benchmark-comparison to perform results comparisons and then generate a google spreadsheet document. If `ES_SERVER_BASELINE` is not set, benchmark-comparison is used to generate a CSV results file.
+
+
+| Variable              | Description     | Default	          | Required |
+|-----------------------|-----------------|-------------------|---------------------------------|
+| ES_SERVER_BASELINE    | Elasticsearch endpoint used to fetch baseline results | "" | no |
+| BASELINE_UUID         | UUID of the benchmark to use as baseline in comparison | "" | no | 
+| COMPARISON_CONFIG     | Benchmark-coparison configuration file | `${PWD}/mb-touchstone.json` | no |
+| COMPARISON_ALIASES    | Benchmark-comparison aliases       | "" | no |
+| COMPARISON_OUTPUT_CFG | Benchmark-comparison output file   | `${PWD}/ingress-performance.csv`| no |
+| COMPARISON_RC         | Benchmark-comparison return code if tolerancy check fails | 0 | no |
+| TOLERANCY_RULES_CFG   | Tolerancy rules configuration file | `{PWD}/mb-tolerancy-rules.yaml` | no |
+| GSHEET_KEY_LOCATION   | Path to service account key to generate google sheets (optional) | "" | no |
+
 
 ## Metrics
 
-Each indexed document looks like:
+Indexed documents look like:
 
 ```json
 {
@@ -105,7 +107,7 @@ Each indexed document looks like:
 ```
 
 ## Configuration file
-The `env.sh` file is provided with all available configuration parameters. You can modify and source this file to tweak the workload.
+The `env.sh` file is provided with all available configuration parameters. You can modify this file or export environment variables to tweak the workload.
 
 ## Snappy integration configurations
 To backup data to a given snappy data-server

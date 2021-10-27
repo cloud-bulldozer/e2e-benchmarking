@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
 
 source env.sh
+source ../../utils/common.sh
 source ../../utils/benchmark-operator.sh
-
-log() {
-  echo -e "\033[1m$(date -u) ${@}\033[0m"
-}
-
 
 check_cluster_health() {
   if [[ ${CERBERUS_URL} ]]; then

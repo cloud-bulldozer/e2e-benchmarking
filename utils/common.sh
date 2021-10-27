@@ -53,3 +53,33 @@ function check_pod_ready_state () {
   oc wait --for=condition=ready pods --namespace ${3:-benchmark-operator} $pod_name --timeout=$timeout
   return $?
 }
+
+
+##############################################################################
+# Prints log messages
+# Arguments:
+#   Log string
+##############################################################################
+log() {
+  echo -e "\033[1m$(date -u) ${@}\033[0m"
+}
+
+##############################################################################
+# Imports a CSV file into a google spreadsheet
+# Arguments:
+#   Spreadsheet name
+#   CSV file to import
+#   Gmail email address
+#   Service account file
+##############################################################################
+gen_spreadsheet() {
+  log "Installing requirements to generate spreadsheet"
+  csv_tmp=$(mktemp -d)
+  python -m venv ${csv_tmp}
+  source ${csv_tmp}/bin/activate
+  pip install oauth2client>=4.1.3 gspread
+  $(dirname ${BASH_SOURCE[@]})/csv_gen.py --sheetname ${1}-$(date "+%Y-%m-%dT%H:%M:%S") -c ${2} --email ${3} --service-account ${4}
+  deactivate
+  rm -rf ${csv_tmp}
+}
+

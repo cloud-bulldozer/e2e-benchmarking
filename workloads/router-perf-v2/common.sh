@@ -1,15 +1,8 @@
+#!/usr/bin/env bash
+
+source ../../utils/compare.sh
+source ../../utils/common.sh
 source env.sh
-
-if [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
-  PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
-  GOLD_INDEX=$(curl -X GET "${ES_GOLD}/openshift-gold-${PLATFORM}-results/_search" -H 'Content-Type: application/json' -d ' {"query": {"term": {"version": '\"${GOLD_OCP_VERSION}\"'}}}')
-  LARGE_SCALE_BASELINE_UUID=$(echo $GOLD_INDEX | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"${NUMBER_OF_ROUTERS}\"'."num_nodes".'\"25\"'."uuid"')
-  SMALL_SCALE_BASELINE_UUID=$(echo $GOLD_INDEX | jq -r '."hits".hits[0]."_source"."http-benchmark".'\"$GOLD_SDN\"'."num_router".'\"${NUMBER_OF_ROUTERS}\"'."num_nodes".'\"3\"'."uuid"')
-fi
-
-log(){
-  echo -e "\033[1m$(date -u) ${@}\033[0m"
-}
 
 get_scenario(){
   # We consider a large scale scenario any cluster with more than the given threshold
@@ -18,15 +11,11 @@ get_scenario(){
     export NUMBER_OF_ROUTES=${LARGE_SCALE_ROUTES:-500}
     CLIENTS=${LARGE_SCALE_CLIENTS:-"1 20 80"}
     CLIENTS_MIX=${LARGE_SCALE_CLIENTS_MIX:-"1 10 20"}
-    BASELINE_UUID=${LARGE_SCALE_BASELINE_UUID}
-    BASELINE_PREFIX=${LARGE_SCALE_BASELINE_PREFIX:-baseline}
   else
     log "Small scale scenario detected: #workers < ${LARGE_SCALE_THRESHOLD}"
     export NUMBER_OF_ROUTES=${SMALL_SCALE_ROUTES:-100}
     CLIENTS=${SMALL_SCALE_CLIENTS:-"1 40 200"}
     CLIENTS_MIX=${SMALL_SCALE_CLIENTS_MIX:-"1 20 80"}
-    BASELINE_UUID=${SMALL_SCALE_BASELINE_UUID}
-    BASELINE_PREFIX=${SMALL_SCALE_BASELINE_PREFIX:-baseline}
   fi
 }
 

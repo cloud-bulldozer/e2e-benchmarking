@@ -32,24 +32,20 @@ oc rsync -n http-scale-client $(oc get pod -l app=http-scale-client -n http-scal
 tune_workload_node delete
 cleanup_infra
 if [[ -n ${ES_SERVER} ]]; then
-  if [[ ${BASELINE_UUID} != "" ]]; then 
-    log "Generating results in compare.yaml"
-    ../../utils/touchstone-compare/run_compare.sh mb ${BASELINE_UUID} ${UUID} ${NUM_NODES}
-    python3 -m venv ./venv
-    source ./venv/bin/activate
-    python3 -m pip install -r requirements.txt
-    log "Generating CSV results"
-    ./csv_gen.py -f compare_output_${NUM_NODES}.yaml -u ${BASELINE_UUID} ${UUID} -p ${BASELINE_PREFIX} ${PREFIX} -l ${LATENCY_TOLERANCE} -t ${THROUGHPUT_TOLERANCE}
+  log "Installing touchstone"
+  install_touchstone
+  if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
+    log "Comparing with baseline"
+    compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" ${COMPARISON_CONFIG} csv
   else
-    log "Generating results in compare.yaml"
-    ../../utils/touchstone-compare/run_compare.sh mb ${UUID} ${NUM_NODES}
-    python3 -m venv ./venv
-    source ./venv/bin/activate
-    python3 -m pip install -r requirements.txt
-    log "Generating CSV results"
-    ./csv_gen.py -f compare_output_${NUM_NODES}.yaml -u ${UUID} -p ${PREFIX} -l ${LATENCY_TOLERANCE} -t ${THROUGHPUT_TOLERANCE}
+    log "Querying results"
+    compare ${ES_SERVER} ${UUID} ${COMPARISON_CONFIG} csv
   fi
-  deactivate && rm -rf venv
+  if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
+    gen_spreadsheet ingress-performance ${COMPARISON_OUTPUT} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
+  fi
+  log "Removing touchstone"
+  remove_touchstone
 fi
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then

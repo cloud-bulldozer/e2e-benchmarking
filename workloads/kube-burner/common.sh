@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+source ../../utils/common.sh
 source ../../utils/benchmark-operator.sh
 source env.sh
 
@@ -13,9 +14,6 @@ fi
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=${UUID:-$(uuidgen)}
 
-log() {
-  echo -e "\033[1m$(date -u) ${@}\033[0m"
-}
 
 collect_pprof() {
   sleep 50

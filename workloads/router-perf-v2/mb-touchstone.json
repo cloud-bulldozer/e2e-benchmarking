@@ -1,0 +1,121 @@
+{
+  "elasticsearch": {
+    "metadata": {
+      "cpuinfo-metadata": {
+        "additional_fields": [
+          "pod_name"
+        ],
+        "fields": [
+          "value.Model name",
+          "value.Architecture",
+          "value.CPU(s)"
+        ]
+      },
+      "meminfo-metadata": {
+        "additional_fields": [
+          "pod_name"
+        ],
+        "fields": [
+          "value.MemTotal"
+        ]
+      },
+      "k8s_cluster_info-metadata": {
+        "fields": [
+          "value.cluster_version"
+        ]
+      }
+    },
+    "router-test-results": [
+      {
+        "filter": {
+          "test_type": "http"
+        },
+        "buckets": [
+          "routes",
+          "conn_per_targetroute",
+          "keepalive"
+        ],
+        "aggregations": {
+          "requests_per_second": [
+            "avg"
+          ],
+          "latency_95pctl": [
+            "avg"
+          ]
+        }
+      },
+      {
+        "filter": {
+          "test_type": "edge"
+        },
+        "buckets": [
+          "routes",
+          "conn_per_targetroute",
+          "keepalive"
+        ],
+        "aggregations": {
+          "requests_per_second": [
+            "avg"
+          ],
+          "latency_95pctl": [
+            "avg"
+          ]
+        }
+      },
+      {
+        "filter": {
+          "test_type": "passthrough"
+        },
+        "buckets": [
+          "routes",
+          "conn_per_targetroute",
+          "keepalive"
+        ],
+        "aggregations": {
+          "requests_per_second": [
+            "avg"
+          ],
+          "latency_95pctl": [
+            "avg"
+          ]
+        }
+      },
+      {
+        "filter": {
+          "test_type": "reencrypt"
+        },
+        "buckets": [
+          "routes",
+          "conn_per_targetroute",
+          "keepalive"
+        ],
+        "aggregations": {
+          "requests_per_second": [
+            "avg"
+          ],
+          "latency_95pctl": [
+            "avg"
+          ]
+        }
+      },
+      {
+        "filter": {
+          "test_type": "mix"
+        },
+        "buckets": [
+          "routes",
+          "conn_per_targetroute",
+          "keepalive"
+        ],
+        "aggregations": {
+          "requests_per_second": [
+            "avg"
+          ],
+          "latency_95pctl": [
+            "avg"
+          ]
+        }
+      }
+    ]
+  }
+}
