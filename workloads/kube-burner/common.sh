@@ -28,7 +28,6 @@ collect_pprof() {
 
 
 deploy_operator() {
-  log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
   if [[ $? != 0 ]]; then
     exit 1

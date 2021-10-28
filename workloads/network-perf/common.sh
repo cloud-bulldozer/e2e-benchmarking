@@ -20,9 +20,9 @@ check_cluster_health() {
 
 
 export_defaults() {
-  network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
+  network_type=$(oc get network cluster -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
   export client_server_pairs=(1 2 4)
-  export cr_name=${BENCHMARK:=benchmark}  
+  export CR_NAME=${BENCHMARK:=benchmark}
   export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
   platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
@@ -90,24 +90,6 @@ export_defaults() {
     export client=${nodes[1]}
   fi
 
-  if [ ${WORKLOAD} == "hostnet" ]
-  then
-    export HOSTNETWORK=true
-    export SERVICEIP=false
-  elif [ ${WORKLOAD} == "service" ]
-  then
-    export HOSTNETWORK=false
-    export SERVICEIP=true
-    if [[ "${isBareMetal}" == "true" ]]; then
-      export METADATA_TARGETED=true
-    else  
-      export METADATA_TARGETED=false
-    fi
-  else
-    export HOSTNETWORK=false
-    export SERVICEIP=false
-  fi
-
   if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
      export GSHEET_KEY_LOCATION=$HOME/.secrets/gsheet_key.json
   fi
@@ -143,7 +125,6 @@ export_defaults() {
 }
 
 deploy_operator() {
-  log "Cloning benchmark-operator from branch ${OPERATOR_BRANCH} of ${OPERATOR_REPO}"
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
   rm -rf benchmark-operator
   git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1

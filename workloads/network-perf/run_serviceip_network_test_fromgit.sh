@@ -18,4 +18,4 @@ generate_csv
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup network_perf_serviceip_network_test
 fi
-echo -e "${bold}Finished workload run_serviceip_network_test_fromgit.sh"
+log "Finished workload run_serviceip_network_test_fromgit.sh"
