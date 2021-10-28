@@ -154,4 +154,3 @@ snappy_backup() {
  ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
  store_on_elastic
 }
-

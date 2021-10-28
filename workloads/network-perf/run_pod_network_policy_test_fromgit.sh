@@ -14,3 +14,4 @@ for pairs in 1 2 4; do
   run_benchmark_comparison
 done
 generate_csv
+log "Finished workload ${0}"

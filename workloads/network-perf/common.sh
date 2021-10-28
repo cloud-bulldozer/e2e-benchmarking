@@ -16,13 +16,47 @@ check_cluster_health() {
 
 
 export_defaults() {
-  network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
+  network_type=$(oc get network cluster -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
   export client_server_pairs=(1 2 4)
+  export CR_NAME=${BENCHMARK:=benchmark}
+  export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
   platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
   log "Platform is found to be: ${platform} "
-  # If MULTI_AZ we use one node from the two first AZs
-  if [[ ${platform} == "vsphere" ]]; then
+
+  #Check to see if the infrastructure type is baremetal to adjust script as necessary 
+  if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
+    log "BareMetal infastructure: setting isBareMetal accordingly"
+    export isBareMetal=true
+  else
+    export isBareMetal=false
+  fi
+
+  #If using baremetal we use different query to find worker nodes
+  if [[ "${isBareMetal}" == "true" ]]; then
+    #Installing python3.8
+    sudo yum -y install python3.8
+
+    nodeCount=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | wc -l)
+    if [[ ${nodeCount} -ge 2 ]]; then
+      serverNumber=$(( $RANDOM %${nodeCount} + 1 ))
+      clientNumber=$(( $RANDOM %${nodeCount} + 1 ))
+      while (( $serverNumber == $clientNumber ))
+        do
+          clientNumber=$(( $RANDOM %${nodeCount} + 1 ))
+        done
+      export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR=='${serverNumber}'{print $1}')
+      export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR=='${clientNumber}'{print $1}')
+    else
+      log "Colocating uperf pods for baremetal, since only one worker node available"
+      export server=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR=='1'{print $1}')
+      export client=$(oc get nodes --no-headers -l node-role.kubernetes.io/worker | awk 'NR=='1'{print $1}')
+    fi  
+    log "Finished assigning server and client nodes"
+    log "Server to be scheduled on node: $server"
+    log "Client to be scheduled on node: $client"
+    # If multi_az we use one node from the two first AZs
+  elif [[ ${platform} == "vsphere" ]]; then
     nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="" -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
     if [[ ${#nodes[@]} -lt 2 ]]; then
       log "At least 2 worker nodes placed are required"
@@ -50,20 +84,6 @@ export_defaults() {
     log "Colocating uperf pods in the same AZ"
     export server=${nodes[0]}
     export client=${nodes[1]}
-  fi
-
-  if [ ${WORKLOAD} == "hostnet" ]
-  then
-    export hostnetwork=true
-    export serviceip=false
-  elif [ ${WORKLOAD} == "service" ]
-  then
-    export _metadata_targeted=false
-    export hostnetwork=false
-    export serviceip=true
-  else
-    export hostnetwork=false
-    export serviceip=false
   fi
 
   if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
@@ -154,14 +174,17 @@ assign_uuid() {
 }
 
 run_benchmark_comparison() {
+  log "Begining benchamrk comparison"
   ../../utils/touchstone-compare/run_compare.sh uperf ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
   pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}.yaml" )
+  log "Finished benchmark comparison"
 }
 
 generate_csv() {
+  log "Generating CSV"
   python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance  
+  log "Finished generating CSV"
 }
-
 
 get_gold_ocp_version(){
   current_version=`oc get clusterversion | grep -o [0-9.]* | head -1 | cut -c 1-3`
@@ -188,3 +211,4 @@ python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
 export_defaults
 check_cluster_health
 deploy_operator
+

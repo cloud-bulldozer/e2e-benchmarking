@@ -114,4 +114,4 @@ fi
 # Cleanup
 rm -rf /tmp/benchmark-operator
 rm -f compare_output_*.yaml
-exit 0
+log "Finished workload ${0}"

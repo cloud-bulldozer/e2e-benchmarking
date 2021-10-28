@@ -22,7 +22,6 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   tar -zcvf snappy_files.tar.gz ./files_list
   
   export workload=network_perf_smoke_test
- 
   export snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
   generate_metadata > metadata.json  
   ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz $snappy_path
@@ -30,3 +29,4 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   store_on_elastic
   rm -rf files_list
 fi
+log "Finished workload ${0}"

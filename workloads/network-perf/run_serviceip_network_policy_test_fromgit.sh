@@ -4,6 +4,9 @@ export NETWORK_POLICY=true
 
 source ./common.sh
 export SERVICEIP=true
+if [[ "${isBareMetal}" == "true" ]]; then
+  export METADATA_TARGETED=true
+fi
 
 for pairs in 1 2 4; do
   export pairs=${pairs}
@@ -15,3 +18,4 @@ for pairs in 1 2 4; do
   run_benchmark_comparison
 done
 generate_csv
+log "Finished workload ${0}"

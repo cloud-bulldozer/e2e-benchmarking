@@ -18,3 +18,4 @@ generate_csv
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup network_perf_serviceip_network_test
 fi
+log "Finished workload ${0}"
