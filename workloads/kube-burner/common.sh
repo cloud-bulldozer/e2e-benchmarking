@@ -133,6 +133,13 @@ check_running_benchmarks() {
 }
 
 cleanup() {
-  oc delete ns -l kube-burner-uuid=${UUID}
+  oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600
+
+  # Force delete the remaining namespaces
+  WORKLOAD=$1
+  for ns in $(oc get ns | grep $WORKLOAD | awk '{print $1}'); do 
+    oc delete pods -n $ns --all  --force --grace-period=0;
+    oc delete $ns 
+  done
 }
 
