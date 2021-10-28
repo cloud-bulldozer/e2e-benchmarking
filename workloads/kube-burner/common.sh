@@ -138,7 +138,7 @@ cleanup() {
   # Force delete the remaining namespaces
   WORKLOAD=$1
   for ns in $(oc get ns | grep $WORKLOAD | awk '{print $1}'); do 
-    oc delete pods -n $ns --all  --force --grace-period=0;
+    oc delete pods -n $ns --all --force --grace-period=0;
     oc delete $ns 
   done
 }
