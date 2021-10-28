@@ -29,4 +29,4 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   store_on_elastic
   rm -rf files_list
 fi
-echo -e "${bold}Finished workload smoke_test.sh"
+log "Finished workload ${0}"

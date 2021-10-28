@@ -17,4 +17,4 @@ generate_csv
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup network_perf_pod_network_test
 fi
-log "Finished workload run_pod_network_test_fromgit.sh"
+log "Finished workload ${0}"

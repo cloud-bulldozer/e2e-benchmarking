@@ -114,4 +114,4 @@ fi
 # Cleanup
 rm -rf /tmp/benchmark-operator
 rm -f compare_output_*.yaml
-log "Finished workload run_multus_network_tests_fromgit.sh"
+log "Finished workload ${0}"

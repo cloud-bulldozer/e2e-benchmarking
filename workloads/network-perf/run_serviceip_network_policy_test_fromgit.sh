@@ -18,4 +18,4 @@ for pairs in 1 2 4; do
   run_benchmark_comparison
 done
 generate_csv
-log "Finished workload run_serviceip_network_policy_test_fromgit.sh"
+log "Finished workload ${0}"
