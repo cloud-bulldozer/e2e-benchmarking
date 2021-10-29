@@ -10,6 +10,6 @@ check_running_benchmarks
 run_workload kube-burner-crd.yaml
 rc=$?
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
-  cleanup
+  cleanup ${WORKLOAD}
 fi
 exit ${rc}

@@ -20,7 +20,7 @@ run_workload kube-burner-crd.yaml
 rc=$?
 unlabel_nodes
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
-  cleanup
+  cleanup ${WORKLOAD}
 fi
 delete_pprof_secrets
 
