@@ -32,7 +32,7 @@ Elasticsearch server to index the results of the current run. Use the notation `
 Default: `true`   
 Enable/Disable collection of metadata
 
-### Comparison
+## Comparison
 
 ### COMPARE_WITH_GOLD
 Default: ``     
@@ -91,7 +91,7 @@ Baseline UUID for multus test
 
 ### COMPARISON_CONFIG
 Default:`${PWD}/uperf-touchstone.json`
-Benchmark-coparison configuration file
+Benchmark-comparison configuration file
 
 ### COMPARISON_RC
 Default: `0`

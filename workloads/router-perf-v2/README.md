@@ -72,7 +72,7 @@ The ingress-performance script is able to invoke benchmark-comparison to perform
 |-----------------------|-----------------|-------------------|---------------------------------|
 | ES_SERVER_BASELINE    | Elasticsearch endpoint used to fetch baseline results | "" | no |
 | BASELINE_UUID         | UUID of the benchmark to use as baseline in comparison | "" | no | 
-| COMPARISON_CONFIG     | Benchmark-coparison configuration file | `${PWD}/mb-touchstone.json` | no |
+| COMPARISON_CONFIG     | Benchmark-comparison configuration file | `${PWD}/mb-touchstone.json` | no |
 | COMPARISON_ALIASES    | Benchmark-comparison aliases       | "" | no |
 | COMPARISON_OUTPUT_CFG | Benchmark-comparison output file   | `${PWD}/ingress-performance.csv`| no |
 | COMPARISON_RC         | Benchmark-comparison return code if tolerancy check fails | 0 | no |
