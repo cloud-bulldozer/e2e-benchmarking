@@ -24,6 +24,7 @@ get_gold_ocp_version(){
 
 export_defaults() {
   network_type=$(oc get network cluster -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
+  export UUID=$(uuidgen)
   export client_server_pairs=(1 2 4)
   export CR_NAME=${BENCHMARK:=benchmark}
   export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
