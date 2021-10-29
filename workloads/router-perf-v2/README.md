@@ -78,6 +78,7 @@ The ingress-performance script is able to invoke benchmark-comparison to perform
 | COMPARISON_RC         | Benchmark-comparison return code if tolerancy check fails | 0 | no |
 | TOLERANCY_RULES_CFG   | Tolerancy rules configuration file | `{PWD}/mb-tolerancy-rules.yaml` | no |
 | GSHEET_KEY_LOCATION   | Path to service account key to generate google sheets (optional) | "" | no |
+| EMAIL_ID_FOR_RESULTS_SHEET | It will push your local results CSV to Google Spreadsheets and send an email with the attachment | "" | no |
 
 
 ## Metrics

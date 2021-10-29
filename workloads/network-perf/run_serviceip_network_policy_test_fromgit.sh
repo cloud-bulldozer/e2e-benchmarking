@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-export WORKLOAD=service
-export NETWORK_POLICY=true
 
 source ./common.sh
+export WORKLOAD=service
+export NETWORK_POLICY=true
 export SERVICEIP=true
+
 if [[ "${isBareMetal}" == "true" ]]; then
   export METADATA_TARGETED=true
 fi
@@ -14,7 +15,7 @@ for pairs in 1 2 4; do
   if [[ $? != 0 ]]; then
     exit 1
   fi
-  assign_uuid
+  BASELINE_UUID=${BASELINE_SVC_UUID[${i}]}
   run_benchmark_comparison
 done
 generate_csv

@@ -8,6 +8,8 @@ export ES_INDEX=${ES_INDEX:-router-test-results}
 
 # Environment setup
 NUM_NODES=$(oc get node -l node-role.kubernetes.io/worker --no-headers | grep -cw Ready)
+LARGE_SCALE_THRESHOLD=${LARGE_SCALE_THRESHOLD:-24}
+METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 ENGINE=${ENGINE:-podman}
 KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.11/kube-burner-0.11-Linux-x86_64.tar.gz}
 KUBE_BURNER_IMAGE=quay.io/cloud-bulldozer/kube-burner:latest
@@ -43,8 +45,5 @@ else
   COMPARISON_OUTPUT=${PWD}/ingress-performance.csv
 fi
 
-# General
-LARGE_SCALE_THRESHOLD=${LARGE_SCALE_THRESHOLD:-24}
-METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 GSHEET_KEY_LOCATION=${GSHEET_KEY_LOCATION}
 EMAIL_ID_FOR_RESULTS_SHEET=${EMAIL_ID_FOR_RESULTS_SHEET}
