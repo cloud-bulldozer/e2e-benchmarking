@@ -11,6 +11,7 @@ for pairs in 1 2 4; do
     exit 1
   fi
   BASELINE_UUID=${BASELINE_SVC_UUID[${i}]}
+  COMPARISON_OUTPUT="${PWD}/service-${pairs}-pairs.csv"
   run_benchmark_comparison
 done
 generate_csv

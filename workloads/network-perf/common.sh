@@ -143,7 +143,7 @@ run_benchmark_comparison() {
       compare ${ES_SERVER} ${UUID} ${COMPARISON_CONFIG} csv
     fi
     if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
-      gen_spreadsheet ingress-performance ${COMPARISON_OUTPUT} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
+      gen_spreadsheet network-performance ${COMPARISON_OUTPUT} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
     fi
     log "Removing touchstone"
     remove_touchstone

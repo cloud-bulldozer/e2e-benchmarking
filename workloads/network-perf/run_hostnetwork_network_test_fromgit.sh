@@ -10,6 +10,7 @@ if [[ $? != 0 ]]; then
   exit 1
 fi
 BASELINE_UUID=${BASELINE_HOSTNET_UUID}
+COMPARISON_OUTPUT="${PWD}/hostnet.csv"
 run_benchmark_comparison
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then

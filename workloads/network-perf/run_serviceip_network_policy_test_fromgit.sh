@@ -11,6 +11,7 @@ fi
 
 for pairs in 1 2 4; do
   export pairs=${pairs}
+  COMPARISON_OUTPUT="${PWD}/service-networkpolicy-${pairs}-pairs.csv"
   run_workload ripsaw-uperf-crd.yaml
   if [[ $? != 0 ]]; then
     exit 1
