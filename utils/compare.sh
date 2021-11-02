@@ -29,7 +29,7 @@ remove_touchstone() {
 ##############################################################################
 compare() { 
   cmd="touchstone_compare --database elasticsearch -url ${1} -u ${2} --config ${3} -o ${4}"
-  if [[ -n ${TOLERANCY_RULES} ]]; then
+  if [[ ( -n ${TOLERANCY_RULES} ) && ( ${#2} > 40 ) ]]; then
     cmd+=" --tolerancy-rules ${TOLERANCY_RULES}"
   fi
   if [[ -n ${COMPARISON_ALIASES} ]]; then
