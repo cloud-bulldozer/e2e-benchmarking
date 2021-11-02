@@ -126,9 +126,17 @@ check_running_benchmarks() {
 cleanup() {
   oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600
 
+  # Ignore cluster density workloads
+  if [[ ! "$WORKLOAD" =~ cluster ]]; then
+    # Force delete individual pods
+    for cleanup in $(oc get pods -n $(oc get ns -l kube-burner-uuid=${UUID} -o custom-columns=name:{.metadata.name} --no-headers) --no-headers -o custom-columns=name:{.metadata.name}); do
+      oc delete -n $(oc get ns -l kube-burner-uuid=${UUID} -o custom-columns=name:{.metadata.name} --no-headers) pod/$cleanup --force;
+    done
+  fi
+
   # Force delete the remaining namespaces
   WORKLOAD=$1
-  for ns in $(oc get ns | grep $WORKLOAD | awk '{print $1}'); do 
+  for ns in $(oc get ns | grep $WORKLOAD | awk '{print $1}'); do
     oc delete --all pods -n $ns --force --grace-period=0 --ignore-not-found --wait;
     oc delete namespace $ns --ignore-not-found
   done
@@ -156,7 +164,7 @@ snappy_backup() {
  tar -zcf pprof.tar.gz ./pprof-data
  workload=${1}
  snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$workload/$folder_date_time/"
- generate_metadata > metadata.json  
+ generate_metadata > metadata.json
  ../../utils/snappy-move-results/run_snappy.sh pprof.tar.gz $snappy_path
  ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
  store_on_elastic
