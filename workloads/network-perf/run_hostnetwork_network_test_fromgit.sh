@@ -4,6 +4,7 @@ export WORKLOAD=hostnet
 source ./common.sh
 export HOSTNETWORK=true
 export pairs=1
+export UUID=$(uuidgen)
 
 run_workload ripsaw-uperf-crd.yaml
 if [[ $? != 0 ]]; then
