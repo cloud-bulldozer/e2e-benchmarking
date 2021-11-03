@@ -9,6 +9,7 @@ if [[ "${isBareMetal}" == "true" ]]; then
 fi
 
 for pairs in 1 2 4; do
+  export UUID=$(uuidgen)
   export pairs=${pairs}
   run_workload ripsaw-uperf-crd.yaml
   if [[ $? != 0 ]]; then
