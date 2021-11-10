@@ -182,7 +182,7 @@ run_benchmark_comparison() {
 
 generate_csv() {
   log "Generating CSV"
-  python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance  
+  python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$LATENCY_TOLERANCE --throughput_tolerance=$THROUGHPUT_TOLERANCE  
   log "Finished generating CSV"
 }
 
