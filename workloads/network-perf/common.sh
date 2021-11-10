@@ -144,7 +144,7 @@ run_workload() {
 }
 
 assign_uuid() {
-  compare_uperf_uuid=${benchmark_uuid}
+  compare_uperf_uuid=${UUID}
   if [ ${WORKLOAD} == "hostnet" ] ; then
     baseline_uperf_uuid=${_baseline_hostnet_uuid}
   elif [ ${WORKLOAD} == "service" ] ; then
