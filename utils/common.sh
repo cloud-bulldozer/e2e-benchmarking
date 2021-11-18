@@ -78,7 +78,7 @@ gen_spreadsheet() {
   python -m venv ${csv_tmp}
   source ${csv_tmp}/bin/activate
   pip install oauth2client>=4.1.3 gspread
-  python3 ../../utils/csv_gen.py --sheetname ${1}-$(date "+%Y-%m-%dT%H:%M:%S") -c ${2} --email ${3} --service-account ${4}
+  python3 $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_gen.py --sheetname ${1}-$(date "+%Y-%m-%dT%H:%M:%S") -c ${2} --email ${3} --service-account ${4}
   deactivate
   rm -rf ${csv_tmp}
 }
