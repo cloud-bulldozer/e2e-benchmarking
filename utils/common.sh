@@ -72,9 +72,22 @@ log() {
 #   Gmail email address
 #   Service account file
 ##############################################################################
-gen_spreadsheet() {
-  log "Installing requirements to generate spreadsheet"
+
+gen_spreadsheet_helper() {
   pip install oauth2client>=4.1.3 gspread
-  python3 ../../utils/csv_gen.py --sheetname ${1}-$(date "+%Y-%m-%dT%H:%M:%S") -c ${2} --email ${3} --service-account ${4}
+  python3 $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_gen.py --sheetname ${1}-$(date "+%Y-%m-%dT%H:%M:%S") -c ${2} --email ${3} --service-account ${4}
 }
 
+gen_spreadsheet() {
+  log "Installing requirements to generate spreadsheet"
+  if [[ "$VIRTUAL_ENV" != "" ]]; then
+    gen_spreadsheet_helper
+  else
+    csv_tmp=$(mktemp -d)
+    python -m venv ${csv_tmp}
+    source ${csv_tmp}/bin/activate
+    gen_spreadsheet_helper
+    deactivate
+    rm -rf ${csv_tmp}
+  fi
+}
