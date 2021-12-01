@@ -81,12 +81,12 @@ gen_spreadsheet_helper() {
 gen_spreadsheet() {
   log "Installing requirements to generate spreadsheet"
   if [[ "$VIRTUAL_ENV" != "" ]]; then
-    gen_spreadsheet_helper
+    gen_spreadsheet_helper ${1} ${2} ${3} ${4}
   else
     csv_tmp=$(mktemp -d)
     python -m venv ${csv_tmp}
     source ${csv_tmp}/bin/activate
-    gen_spreadsheet_helper
+    gen_spreadsheet_helper ${1} ${2} ${3} ${4}
     deactivate
     rm -rf ${csv_tmp}
   fi
