@@ -11,9 +11,7 @@ install_touchstone() {
 }
 
 remove_touchstone() {
-  if [[ -z ${GSHEET_KEY_LOCATION} ]]; then
-    deactivate
-  fi
+  deactivate
   rm -rf "${touchstone_tmp}"
 }
 
