@@ -80,7 +80,7 @@ gen_spreadsheet_helper() {
 
 gen_spreadsheet() {
   log "Installing requirements to generate spreadsheet"
-  if [[ "$VIRTUAL_ENV" != "" ]]; then
+  if [[ "${VIRTUAL_ENV}" != "" ]]; then
     gen_spreadsheet_helper ${1} ${2} ${3} ${4}
   else
     csv_tmp=$(mktemp -d)
