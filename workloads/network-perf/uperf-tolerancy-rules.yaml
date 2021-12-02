@@ -1,4 +1,0 @@
-- json_path: ["test_type", "stream", "protocol", "*", "message_size", "*", "num_threads", "*", "avg(norm_byte)"]
-  tolerancy: -30
-- json_path: ["test_type", "rr", "protocol", "*", "message_size", "*", "num_threads", "*", "99.0percentiles(norm_ltcy)"]
-  tolerancy: 30

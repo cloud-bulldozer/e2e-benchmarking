@@ -3,7 +3,6 @@
 source env.sh
 source ../../utils/common.sh
 source ../../utils/benchmark-operator.sh
-source ../../utils/compare.sh
 
 check_cluster_health() {
   if [[ ${CERBERUS_URL} ]]; then
@@ -16,34 +15,15 @@ check_cluster_health() {
 }
 
 
-get_gold_ocp_version(){
-  current_version=$(oc get clusterversion | grep -o [0-9.]* | head -1 | cut -c 1-3)
-  GOLD_OCP_VERSION=$( bc <<< "$current_version - 0.1" )
-}
-
-
 export_defaults() {
   network_type=$(oc get network cluster -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
-  export UUID=$(uuidgen)
   export client_server_pairs=(1 2 4)
   export CR_NAME=${BENCHMARK:=benchmark}
   export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
   platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
   log "Platform is found to be: ${platform} "
-  if [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
-    ES_SERVER_BASELINE=${ES_GOLD}
-    log "Comparison with gold enabled, getting golden results from ES: ${ES_SERVER_BASELINE}"
-    get_gold_ocp_version
-    local gold_index=$(curl "${ES_GOLD}/openshift-gold-${platform}-results/_search" -H 'Content-Type: application/json' -d ' {"query": {"term": {"version": '\"${GOLD_OCP_VERSION}\"'}}}')
-    BASELINE_HOSTNET_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."hostnetwork"."num_pairs"."1"."uuid"')
-    BASELINE_POD_UUID[1]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."podnetwork"."num_pairs"."1"."uuid"')
-    BASELINE_POD_UUID[2]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."podnetwork"."num_pairs"."2"."uuid"')
-    BASELINE_POD_UUID[4]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."podnetwork"."num_pairs"."4"."uuid"')
-    BASELINE_SVC_UUID[1]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."serviceip"."num_pairs"."1"."uuid"')
-    BASELINE_SVC_UUID[2]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."serviceip"."num_pairs"."2"."uuid"')
-    BASELINE_SVC_UUID[4]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."serviceip"."num_pairs"."4"."uuid"')
-  fi
+
   #Check to see if the infrastructure type is baremetal to adjust script as necessary 
   if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
     log "BareMetal infastructure: setting isBareMetal accordingly"
@@ -106,6 +86,38 @@ export_defaults() {
     export client=${nodes[1]}
   fi
 
+  if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
+     export GSHEET_KEY_LOCATION=$HOME/.secrets/gsheet_key.json
+  fi
+
+  if [[ ${COMPARE} == "true" ]] && [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
+    get_gold_ocp_version
+    gold_index=$(curl -X GET   "${ES_GOLD}/openshift-gold-${platform}-results/_search" -H 'Content-Type: application/json' -d ' {"query": {"term": {"version": '\"${GOLD_OCP_VERSION}\"'}}}')
+    BASELINE_HOSTNET_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."hostnetwork"."num_pairs"."1"."uuid"')
+    BASELINE_POD_1P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."podnetwork"."num_pairs"."1"."uuid"')
+    BASELINE_POD_2P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."podnetwork"."num_pairs"."2"."uuid"')
+    BASELINE_POD_4P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."podnetwork"."num_pairs"."4"."uuid"')
+    BASELINE_SVC_1P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."serviceip"."num_pairs"."1"."uuid"')
+    BASELINE_SVC_2P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."serviceip"."num_pairs"."2"."uuid"')
+    BASELINE_SVC_4P_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"$gold_sdn\"'."network_type"."serviceip"."num_pairs"."4"."uuid"')
+  fi
+
+  _baseline_hostnet_uuid=${BASELINE_HOSTNET_UUID}
+  _baseline_pod_1p_uuid=${BASELINE_POD_1P_UUID}
+  _baseline_pod_2p_uuid=${BASELINE_POD_2P_UUID}
+  _baseline_pod_4p_uuid=${BASELINE_POD_4P_UUID}
+  _baseline_svc_1p_uuid=${BASELINE_SVC_1P_UUID}
+  _baseline_svc_2p_uuid=${BASELINE_SVC_2P_UUID}
+  _baseline_svc_4p_uuid=${BASELINE_SVC_4P_UUID}
+
+
+  export cloud_name="${network_type}_${platform}_${cluster_version}"
+
+  if [[ ${COMPARE} == "true" ]]; then
+    echo $BASELINE_CLOUD_NAME,$cloud_name > uuid.txt
+  else
+    echo $cloud_name > uuid.txt
+  fi
 }
 
 deploy_operator() {
@@ -131,26 +143,53 @@ run_workload() {
   return ${rc}
 }
 
-
-run_benchmark_comparison() {
-  if [[ -n ${ES_SERVER} ]]; then
-    log "Installing touchstone"
-    install_touchstone
-    if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
-      log "Comparing with baseline"
-      compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" ${COMPARISON_CONFIG} csv
-    else
-      log "Querying results"
-      compare ${ES_SERVER} ${UUID} ${COMPARISON_CONFIG} csv
+assign_uuid() {
+  compare_uperf_uuid=${benchmark_uuid}
+  if [ ${WORKLOAD} == "hostnet" ] ; then
+    baseline_uperf_uuid=${_baseline_hostnet_uuid}
+  elif [ ${WORKLOAD} == "service" ] ; then
+    if [ "${pairs}" == "1" ] ; then
+      baseline_uperf_uuid=${_baseline_svc_1p_uuid}
+    elif [ "${pairs}" == "2" ] ; then
+      baseline_uperf_uuid=${_baseline_svc_2p_uuid}
+    elif [ "${pairs}" == "4" ] ; then
+      baseline_uperf_uuid=${_baseline_svc_4p_uuid}
     fi
-    if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
-      gen_spreadsheet network-performance ${COMPARISON_OUTPUT} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
+  else
+    if [ "${pairs}" == "1" ] ; then
+      baseline_uperf_uuid=${_baseline_pod_1p_uuid}
+    elif [ "${pairs}" == "2" ] ; then
+      baseline_uperf_uuid=${_baseline_pod_2p_uuid}
+    elif [ "${pairs}" == "4" ] ; then
+      baseline_uperf_uuid=${_baseline_pod_4p_uuid}
     fi
-    log "Removing touchstone"
-    remove_touchstone
   fi
+
+  if [[ ${COMPARE} == "true" ]]; then
+    echo ${baseline_uperf_uuid},${compare_uperf_uuid} >> uuid.txt
+  else
+    echo ${compare_uperf_uuid} >> uuid.txt
+  fi
+  
 }
 
+run_benchmark_comparison() {
+  log "Begining benchamrk comparison"
+  ../../utils/touchstone-compare/run_compare.sh uperf ${baseline_uperf_uuid} ${compare_uperf_uuid} ${pairs}
+  pairs_array=( "${pairs_array[@]}" "compare_output_${pairs}.yaml" )
+  log "Finished benchmark comparison"
+}
+
+generate_csv() {
+  log "Generating CSV"
+  python3 csv_gen.py --files $(echo "${pairs_array[@]}") --latency_tolerance=$latency_tolerance --throughput_tolerance=$throughput_tolerance  
+  log "Finished generating CSV"
+}
+
+get_gold_ocp_version(){
+  current_version=`oc get clusterversion | grep -o [0-9.]* | head -1 | cut -c 1-3`
+  export GOLD_OCP_VERSION=$( bc <<< "$current_version - 0.1" )
+}
 
 snappy_backup(){
   log "Snappy server as backup enabled"
@@ -167,6 +206,9 @@ snappy_backup(){
   rm -rf files_list
 }
 
+export TERM=screen-256color
+python3 -m pip install -r requirements.txt | grep -v 'already satisfied'
 export_defaults
 check_cluster_health
 deploy_operator
+
