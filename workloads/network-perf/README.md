@@ -32,9 +32,7 @@ Elasticsearch server to index the results of the current run. Use the notation `
 Default: `true`   
 Enable/Disable collection of metadata
 
-### COMPARE
-Default: `false`        
-Enable/Disable the ability to compare two uperf runs. If set to `true`, the next set of environment variables pertaining to the type of test are required
+## Comparison
 
 ### COMPARE_WITH_GOLD
 Default: ``     
@@ -49,13 +47,15 @@ Compares the current run with gold-index with the sdn type of GOLD_SDN. Options:
 Default: ``     
 The ES server that houses gold-index. Format `http(s)://[username]:[password]@[address]:[port]`
 
-### BASELINE_CLOUD_NAME
-Default: ``    
-Name you would like to give your baseline cloud. It will appear as a header in the CSV file
+### COMPARISON_ALIASES
+Default:""
+Benchmark-comparison aliases
 
 ### ES_SERVER_BASELINE 
 Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
 Elasticsearch server used used by the baseline run. Format `http(s)://[username]:[password]@[address]:[port]`
+
+> Setting either ES_GOLD or ES_SERVER_BASELINE, enables benchmark-comparison.
 
 ### BASELINE_HOSTNET_UUID
 Default: ``   
@@ -86,19 +86,23 @@ Default: ``
 Baseline UUID for pod to pod using service test with 4 uperf client-server pair
 
 ### BASELINE_MULTUS_UUID
-Default: ``   
+Default: ``
 Baseline UUID for multus test
 
-### THROUGHPUT_TOLERANCE
-Default: `10`   
-Accepeted deviation in percentage for throughput when compared to a baseline run
+### COMPARISON_CONFIG
+Default:`${PWD}/uperf-touchstone.json`
+Benchmark-comparison configuration file
 
-### LATENCY_TOLERANCE
-Default: `10`   
-Accepeted deviation in percentage for latency when compared to a baseline run
+### COMPARISON_RC
+Default: `0`
+Benchmark-comparison return code if tolerancy check fails.
+
+### TOLERANCY_RULES_CFG
+Default: `uperf-tolerancy-rules.yaml`
+Tolerancy rules configuration file
 
 ### CERBERUS_URL
-Default: ``     
+Default: ``
 URL to check the health of the cluster using Cerberus (https://github.com/cloud-bulldozer/cerberus).
 
 ### GSHEET_KEY_LOCATION
@@ -130,7 +134,6 @@ Benchmark timeout in seconds
 ```sh
 export ES_SERVER=
 export METADATA_COLLECTION=
-export COMPARE=false
 export COMPARE_WITH_GOLD=
 export GOLD_SDN=
 export GOLD_OCP_VERSION=
@@ -145,8 +148,6 @@ export BASELINE_SVC_1P_UUID=
 export BASELINE_SVC_2P_UUID=
 export BASELINE_SVC_4P_UUID=
 export BASELINE_MULTUS_UUID=
-export THROUGHPUT_TOLERANCE=10
-export LATENCY_TOLERANCE=10
 export CERBERUS_URL=http://1.2.3.4:8080
 #export GSHEET_KEY_LOCATION=
 #export EMAIL_ID_FOR_RESULTS_SHEET=<your_email_id>  # Will only work if you have google service account key

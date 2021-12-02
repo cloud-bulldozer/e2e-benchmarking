@@ -72,12 +72,13 @@ The ingress-performance script is able to invoke benchmark-comparison to perform
 |-----------------------|-----------------|-------------------|---------------------------------|
 | ES_SERVER_BASELINE    | Elasticsearch endpoint used to fetch baseline results | "" | no |
 | BASELINE_UUID         | UUID of the benchmark to use as baseline in comparison | "" | no | 
-| COMPARISON_CONFIG     | Benchmark-coparison configuration file | `${PWD}/mb-touchstone.json` | no |
+| COMPARISON_CONFIG     | Benchmark-comparison configuration file | `${PWD}/mb-touchstone.json` | no |
 | COMPARISON_ALIASES    | Benchmark-comparison aliases       | "" | no |
 | COMPARISON_OUTPUT_CFG | Benchmark-comparison output file   | `${PWD}/ingress-performance.csv`| no |
 | COMPARISON_RC         | Benchmark-comparison return code if tolerancy check fails | 0 | no |
 | TOLERANCY_RULES_CFG   | Tolerancy rules configuration file | `{PWD}/mb-tolerancy-rules.yaml` | no |
 | GSHEET_KEY_LOCATION   | Path to service account key to generate google sheets (optional) | "" | no |
+| EMAIL_ID_FOR_RESULTS_SHEET | It will push your local results CSV to Google Spreadsheets and send an email with the attachment | "" | no |
 
 
 ## Metrics
