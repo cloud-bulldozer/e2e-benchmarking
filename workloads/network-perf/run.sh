@@ -3,11 +3,11 @@
 source ./common.sh
 export WORKLOAD=${WORKLOAD}
 
-  if [[ $WORKLOAD == "hostnet" ]]; then
+if [[ $WORKLOAD == "hostnet" ]]; then
     export HOSTNETWORK=true
-  elif [[ $WORKLOAD == "" ]]; then
+elif [[ $WORKLOAD == "service" ]]; then
     export SERVICEIP=true 
-  fi
+fi
 
 export pairs=${PAIRS:-1}
 export UUID=${UUID:-$(uuidgen)}
