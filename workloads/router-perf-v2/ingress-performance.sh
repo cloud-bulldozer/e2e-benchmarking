@@ -1,16 +1,17 @@
 #!/usr/bin/bash -e
-set -e
+set -ex
 
 source ./common.sh
 
 get_scenario
 deploy_infra
 tune_workload_node apply
-client_pod=$(oc get pod -l app=http-scale-client -n http-scale-client | grep Running | awk '{print $1}')
+client_pod=$(oc get pod -l app=http-scale-client -n http-scale-client | awk '/Running/{print $1}')
 tune_liveness_probe
 if [[ ${METADATA_COLLECTION} == "true" ]]; then
   collect_metadata
 fi
+
 test_routes
 for termination in ${TERMINATIONS}; do
   if [[ ${termination} ==  "mix" ]]; then
@@ -27,10 +28,13 @@ for termination in ${TERMINATIONS}; do
     done
   fi
 done
+
 enable_ingress_operator
-oc rsync -n http-scale-client $(oc get pod -l app=http-scale-client -n http-scale-client | grep Running | awk '{print $1}'):/tmp/results.csv ./
+log "Copying mb test results locally (large file)"
+oc rsync -n http-scale-client ${client_pod}:/tmp/results.csv ./
 tune_workload_node delete
 cleanup_infra
+
 if [[ -n ${ES_SERVER} ]]; then
   log "Installing touchstone"
   install_touchstone
