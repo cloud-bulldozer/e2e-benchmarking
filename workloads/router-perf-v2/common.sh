@@ -53,8 +53,8 @@ tune_liveness_probe(){
   if [[ ! -z "${HAPROXY_IMAGE}" ]]; then
     log "Replacing router with ${HAPROXY_IMAGE}"
     oc -n openshift-ingress-operator patch deploy/ingress-operator --type=strategic --patch='{"spec":{"template":{"spec":{"containers":[{"name":"ingress-operator","env":[{"name":"IMAGE","value":"'${HAPROXY_IMAGE}'"}]}]}}}}'
-    log "Waiting 60s for ingress-operator IMAGE to change"
-    sleep 60
+    log "Waiting for ingress-operator IMAGE to change"
+    oc rollout status -n openshift-ingress deploy/router-default
   fi
   oc scale --replicas=0 -n openshift-ingress-operator deploy/ingress-operator
   log "Increasing ingress controller liveness probe period to $((RUNTIME * 2))s"
@@ -108,8 +108,7 @@ enable_ingress_operator(){
 cleanup_infra(){
   log "Deleting infrastructure"
   oc delete ns -l kube-burner-uuid=${UUID} --ignore-not-found
-  rm -f /tmp/temp-route*.txt
-  rm http-perf.yml http-*.json
+  rm -f /tmp/temp-route*.txt http-perf.yml http-*.json
 }
 
 gen_mb_config(){
