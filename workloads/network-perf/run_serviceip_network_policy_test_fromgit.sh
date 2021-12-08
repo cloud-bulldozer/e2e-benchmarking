@@ -20,5 +20,4 @@ for pairs in 1 2 4; do
   BASELINE_UUID=${BASELINE_SVC_UUID[${i}]}
   run_benchmark_comparison
 done
-generate_csv
 log "Finished workload ${0}"
