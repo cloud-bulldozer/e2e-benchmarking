@@ -8,7 +8,10 @@
                     "cache_max_flows",
                     "flp_kind",
                     "release",
-                    "sampling"
+                    "sampling",
+                    "aws_s3_bucket_name",
+                    "aws_s3_bucket_objects",
+                    "aws_s3_bucket_size"
                 ],
                 "additional_fields": [
                     "metric_name"
@@ -96,7 +99,7 @@
                 ],
                 "aggregations": {
                     "value": [
-                        "max"
+                        "avg"
                     ]
                 }
             },
@@ -155,6 +158,58 @@
             {
                 "filter": {
                     "metric_name.keyword": "ebpfMemoryUsageWorkingSet"
+                },
+                "buckets": [
+                    "metadata.pod.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "ebpfCpuUsage"
+                },
+                "buckets": [
+                    "metadata.pod.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "kafkaStorageUsage"
+                },
+                "buckets": [
+                    "metadata.persistentvolumeclaim.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        "max"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "cpuUsageLoki"
+                },
+                "buckets": [
+                    "metadata.pod.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "memoryUsageLoki"
                 },
                 "buckets": [
                     "metadata.pod.keyword"
