@@ -1,0 +1,79 @@
+{
+  "elasticsearch": {
+    "metadata": {
+      "cpuinfo-metadata": {
+        "additional_fields": [
+          "pod_name"
+        ],
+        "fields": [
+          "value.Model name",
+          "value.Architecture",
+          "value.CPU(s)"
+        ]
+      },
+      "meminfo-metadata": {
+        "additional_fields": [
+          "pod_name"
+        ],
+        "fields": [
+          "value.MemTotal"
+        ]
+      },
+      "k8s_cluster_info-metadata": {
+        "fields": [
+          "value.cluster_version"
+        ]
+      }
+    },
+    "ripsaw-uperf-results": [
+      {
+        "filter": {
+          "test_type.keyword": "stream"
+        },
+        "exclude": {
+          "norm_ops": 0
+        },
+        "buckets": [
+          "protocol.keyword",
+          "message_size",
+          "num_threads"
+        ],
+        "aggregations": {
+          "norm_byte": [
+            "max",
+            "avg"
+          ]
+        }
+      },
+      {
+        "filter": {
+          "test_type.keyword": "rr"
+        },
+        "exclude": {
+          "norm_ops": 0
+        },
+        "buckets": [
+          "protocol.keyword",
+          "message_size",
+          "num_threads"
+        ],
+        "aggregations": {
+          "norm_ops": [
+            "max",
+            "avg"
+          ],
+          "norm_ltcy": [
+            {
+              "percentiles": {
+                "percents": [
+                  99
+                ]
+              }
+            },
+            "avg"
+          ]
+        }
+      }
+    ]
+  }
+}
