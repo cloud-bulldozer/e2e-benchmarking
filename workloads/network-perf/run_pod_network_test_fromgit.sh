@@ -14,7 +14,6 @@ for pairs in 1 2 4; do
   COMPARISON_OUTPUT="${PWD}/pod-${pairs}-pairs.csv"
   run_benchmark_comparison
 done
-generate_csv
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup network_perf_pod_network_test
