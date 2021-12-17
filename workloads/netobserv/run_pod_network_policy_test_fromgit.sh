@@ -15,8 +15,8 @@ for pairs in 1 2 4; do
     exit 1
   fi
   BASELINE_UUID=${BASELINE_POD_UUID[${i}]}
-  COMPARISON_OUTPUT="${PWD}/pod-networkpolicy-${pairs}-pairs.csv"
-  run_benchmark_comparison
+  # COMPARISON_OUTPUT="${PWD}/pod-networkpolicy-${pairs}-pairs.csv"
+  # run_benchmark_comparison
 done
 generate_csv
 log "Finished workload ${0}"
