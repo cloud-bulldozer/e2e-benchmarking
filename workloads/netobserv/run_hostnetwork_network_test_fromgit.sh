@@ -12,7 +12,7 @@ if [[ $? != 0 ]]; then
   exit 1
 fi
 
-undeploy_netobserv_operator
+delete_flowcollector
 run_workload ripsaw-uperf-crd.yaml
 
 BASELINE_UUID=${BASELINE_HOSTNET_UUID}

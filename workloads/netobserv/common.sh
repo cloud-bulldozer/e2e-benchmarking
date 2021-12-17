@@ -180,7 +180,7 @@ patch_cno {
 }
 
 deploy_netobserv_operator {
-  log "deploying network-observability operator"
+  log "deploying network-observability operator and flowcollector CR"
   git clone https://github.com/netobserv/network-observability-operator.git
   export NETOBSERV_DIR=$PWD/network-observability-operator
   cd $NETOBSERV_DIR && make deploy
