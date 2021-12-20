@@ -199,6 +199,6 @@ delete_flowcollector() {
 }
 
 
-#export_defaults
+export_defaults
 check_cluster_health
-#deploy_operator
+deploy_operator
