@@ -167,7 +167,7 @@ snappy_backup(){
   rm -rf files_list
 }
 
-patch_cno {
+patch_cno() {
   if [[ ! -z $1 ]]; then
     log "patching CNO with goflow-kube IP as collector"
     oc patch networks.operator.openshift.io cluster --type='json' -p "$(sed -e "s/GF_IP/$1/" ${NETOBSERV_DIR}/config/samples/net-cluster-patch.json)"
@@ -179,7 +179,7 @@ patch_cno {
   fi
 }
 
-deploy_netobserv_operator {
+deploy_netobserv_operator() {
   log "deploying network-observability operator and flowcollector CR"
   git clone https://github.com/netobserv/network-observability-operator.git
   export NETOBSERV_DIR=$PWD/network-observability-operator
@@ -190,7 +190,7 @@ deploy_netobserv_operator {
   oc apply -f $NETOBSERV_DIR/config/samples/flows_v1alpha1_flowcollector.yaml
 }
 
-delete_flowcollector {
+delete_flowcollector() {
   log "deleteing flowcollector"
   cd $NETOBSERV_DIR && oc delete -f $NETOBSERV_DIR/config/sameples/flows_v1alpha1_flowcollector.yaml
   patch_cno ''
