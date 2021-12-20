@@ -183,11 +183,12 @@ deploy_netobserv_operator() {
   log "deploying network-observability operator and flowcollector CR"
   git clone https://github.com/netobserv/network-observability-operator.git
   export NETOBSERV_DIR=$PWD/network-observability-operator
-  cd $NETOBSERV_DIR && make deploy
-  export GF_IP=$(kubectl get svc goflow-kube -n network-observability -ojsonpath='{.spec.clusterIP}')
-  patch_cno $GF_IP
+  cd $NETOBSERV_DIR && make deploy && cd -
   log "deploying flowcollector as service"
   oc apply -f $NETOBSERV_DIR/config/samples/flows_v1alpha1_flowcollector.yaml
+  export GF_IP=$(kubectl get svc goflow-kube -n network-observability -ojsonpath='{.spec.clusterIP}')
+  log "goflow collector IP: ${GF_IP}"
+  patch_cno ${GF_IP}
 }
 
 delete_flowcollector() {
@@ -198,6 +199,6 @@ delete_flowcollector() {
 }
 
 
-export_defaults
+#export_defaults
 check_cluster_health
-deploy_operator
+#deploy_operator
