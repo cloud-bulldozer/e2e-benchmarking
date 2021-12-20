@@ -38,7 +38,7 @@ All scripts can be tweaked with the following environment variables:
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
-| **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.13 |
+| **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.14.3 |
 | **LOG_LEVEL**        | Kube-burner log level | info |
 | **PPROF_COLLECTION** | Collect and store pprof data locally | false |
 | **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5m | 
@@ -145,4 +145,5 @@ Password for the Snappy data-server.
 
 **`SNAPPY_USER_FOLDER`**
 Default: 'perf-ci'
-To store the data for a specific user
+To store the data for a specific user.
+
