@@ -202,6 +202,7 @@ delete_flowcollector() {
 }
 
 add_go_path() {
+  log `ls -lrt /usr/local/go/bin`
   log "adding go bin to PATH"
   # curl -s -k https://dl.google.com/go/go1.16.6.linux-amd64.tar.gz -o go1.16.6.linux-amd64.tar.gz && tar -C /usr/local -xzf go1.16.6.linux-amd64.tar.gz && rm -fr go1.16.6.linux-amd64.tar.gz && \
   #   mkdir -p /goproject && export GOPATH=/goproject && mkdir -p /gocache && export GOCACHE=/gocache && export GOROOT=/usr/local/go && \
