@@ -189,24 +189,22 @@ deploy_netobserv_operator() {
   cd ${NETOBSERV_DIR} && make deploy && cd -
   log "deploying flowcollector as service"
   oc apply -f ${NETOBSERV_DIR}/config/samples/flows_v1alpha1_flowcollector.yaml
-  export GF_IP=$(kubectl get svc goflow-kube -n network-observability -ojsonpath='{.spec.clusterIP}')
+  sleep 15
+  export GF_IP=$(oc get svc goflow-kube -n network-observability -ojsonpath='{.spec.clusterIP}')
   log "goflow collector IP: ${GF_IP}"
   patch_cno ${GF_IP}
 }
 
 delete_flowcollector() {
   log "deleteing flowcollector"
-  cd $NETOBSERV_DIR && oc delete -f $NETOBSERV_DIR/config/sameples/flows_v1alpha1_flowcollector.yaml
+  cd $NETOBSERV_DIR && oc delete -f $NETOBSERV_DIR/config/samples/flows_v1alpha1_flowcollector.yaml
   patch_cno ''
   rm -rf $NETOBSERV_DIR
 }
 
 add_go_path() {
-  log `ls -lrt /usr/local/go/bin`
   log "adding go bin to PATH"
-  # curl -s -k https://dl.google.com/go/go1.16.6.linux-amd64.tar.gz -o go1.16.6.linux-amd64.tar.gz && tar -C /usr/local -xzf go1.16.6.linux-amd64.tar.gz && rm -fr go1.16.6.linux-amd64.tar.gz && \
-  #   mkdir -p /goproject && export GOPATH=/goproject && mkdir -p /gocache && export GOCACHE=/gocache && export GOROOT=/usr/local/go && \
-    export PATH=$PATH:/usr/local/go/bin
+  export PATH=$PATH:/usr/local/go/bin
 }
 
 
