@@ -197,7 +197,7 @@ deploy_netobserv_operator() {
 
 delete_flowcollector() {
   log "deleteing flowcollector"
-  cd $NETOBSERV_DIR && oc delete -f $NETOBSERV_DIR/config/samples/flows_v1alpha1_flowcollector.yaml
+  oc delete -f $NETOBSERV_DIR/config/samples/flows_v1alpha1_flowcollector.yaml
   patch_cno ''
   rm -rf $NETOBSERV_DIR
 }
