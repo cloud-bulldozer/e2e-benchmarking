@@ -183,6 +183,7 @@ deploy_netobserv_operator() {
   log "deploying network-observability operator and flowcollector CR"
   git clone https://github.com/netobserv/network-observability-operator.git
   export NETOBSERV_DIR=${PWD}/network-observability-operator
+  add_go_path
   log `go version`
   log $PATH
   cd ${NETOBSERV_DIR} && make deploy && cd -
@@ -198,6 +199,13 @@ delete_flowcollector() {
   cd $NETOBSERV_DIR && oc delete -f $NETOBSERV_DIR/config/sameples/flows_v1alpha1_flowcollector.yaml
   patch_cno ''
   rm -rf $NETOBSERV_DIR
+}
+
+add_go_path() {
+  log "adding go bin to PATH"
+  # curl -s -k https://dl.google.com/go/go1.16.6.linux-amd64.tar.gz -o go1.16.6.linux-amd64.tar.gz && tar -C /usr/local -xzf go1.16.6.linux-amd64.tar.gz && rm -fr go1.16.6.linux-amd64.tar.gz && \
+  #   mkdir -p /goproject && export GOPATH=/goproject && mkdir -p /gocache && export GOCACHE=/gocache && export GOROOT=/usr/local/go && \
+    export PATH=$PATH:/usr/local/go/bin
 }
 
 
