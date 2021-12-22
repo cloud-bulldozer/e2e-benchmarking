@@ -13,6 +13,7 @@ if [[ $? != 0 ]]; then
 fi
 
 delete_flowcollector
+export UUID=$(uuidgen)
 run_workload ripsaw-uperf-crd.yaml
 
 BASELINE_UUID=${BASELINE_HOSTNET_UUID}

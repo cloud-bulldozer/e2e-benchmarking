@@ -4,20 +4,15 @@ source ./common.sh
 export WORKLOAD=pod
 
 for pairs in 1 2 4; do
-  export UUID=$(uuidgen)
   export pairs
-  deploy_netobserv_operator
-  run_workload ripsaw-uperf-crd.yaml
-  delete_flowcollector
-  run_workload ripsaw-uperf-crd.yaml
+  COMPARISON_OUTPUT="${PWD}/pod-${pairs}-pairs-w-netobserv.csv"
+  run_perf_test_w_netobserv
+  COMPARISON_OUTPUT="${PWD}/pod-${pairs}-pairs-wo-netobserv.csv"
+  run_perf_test_wo_netobserv
   if [[ $? != 0 ]]; then
     exit 1
   fi
-  BASELINE_UUID=${BASELINE_POD_UUID[${i}]}
-  # COMPARISON_OUTPUT="${PWD}/pod-${pairs}-pairs.csv"
-  # run_benchmark_comparison
 done
-generate_csv
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup network_perf_pod_network_test
