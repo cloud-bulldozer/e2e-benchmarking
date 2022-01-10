@@ -4,6 +4,11 @@ source ./netobserv_common.sh
 
 NETWORK_VARIANT=$1
 
+if [[ -z $NETWORK_VARIANT ]]; then
+    echo "must pass networking variant as argument"
+    exit 1
+fi 
+
 log "running performance test for $NETWORK_VARIANT"
 run_perf_test_w_netobserv
 if [[ $NETWORK_VARIANT == "POD_NETWORK" ]]; then

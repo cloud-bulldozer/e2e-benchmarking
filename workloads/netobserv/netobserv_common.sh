@@ -65,15 +65,9 @@ add_go_path() {
 }
 
 run_perf_test_w_netobserv() {
-  export UUID=$(uuidgen)
   deploy_netobserv_operator
-  run_workload ripsaw-uperf-crd.yaml
-  run_benchmark_comparison
 }
 
 run_perf_test_wo_netobserv() {
-  export UUID=$(uuidgen)
   delete_flowcollector
-  run_workload ripsaw-uperf-crd.yaml
-  run_benchmark_comparison
 }
