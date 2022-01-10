@@ -5,7 +5,7 @@
 
 install_touchstone() {
   touchstone_tmp=$(mktemp -d)
-  python -m venv ${touchstone_tmp}
+  python3 -m venv ${touchstone_tmp}
   source ${touchstone_tmp}/bin/activate
   pip3 install git+https://github.com/cloud-bulldozer/benchmark-comparison.git
 }
