@@ -20,14 +20,12 @@ log() {
 }
 
 check_cluster_present() {
-  echo ""
   oc get clusterversion
   if [ $? -ne 0 ]; then
     log "Workload Failed for cloud $cloud_name, Unable to connect to the cluster"
     exit 1
   fi
   cluster_version=$(oc get clusterversion --no-headers | awk '{ print $2 }')
-  echo ""
 }
 
 check_cluster_health() {
