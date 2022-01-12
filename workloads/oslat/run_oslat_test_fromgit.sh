@@ -3,13 +3,6 @@ export WORKLOAD=oslat
 
 source ./common.sh
 
-#run_workload ripsaw-oslat-crd.yaml
-#wait_for_benchmark
-#assign_uuid
-#run_benchmark_comparison
-#print_uuid
-#generate_csv
-
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  echo -e "snappy server as backup enabled"
  source ../../utils/snappy-move-results/common.sh

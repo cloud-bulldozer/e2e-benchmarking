@@ -1,7 +1,6 @@
 source env.sh
 source ../../utils/benchmark-operator.sh
 
-
 # If ES_SERVER is set and empty we disable ES indexing and metadata collection
 if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
   export METADATA_COLLECTION=false
@@ -39,25 +38,9 @@ check_cluster_health() {
 }
 
 export_defaults() {
-  operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-  operator_branch=${OPERATOR_BRANCH:=master}
   CRD=${CRD:-ripsaw-oslat-crd.yaml}
-  export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-  _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-  export _metadata_collection=${METADATA_COLLECTION:=true}
-  export _metadata_targeted=true
   export COMPARE=${COMPARE:=false}
-  network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
-  gold_sdn=${GOLD_SDN:=openshiftsdn}
   export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
-
-  if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
-     export GSHEET_KEY_LOCATION=$HOME/.secrets/gsheet_key.json
-  fi
-
-  if [ ! -z ${2} ]; then
-    export KUBECONFIG=${2}
-  fi
 
   cloud_name=$1
   if [ "$cloud_name" == "" ]; then
@@ -83,7 +66,6 @@ export_defaults() {
      sudo yum -y install python3.8
      sudo alternatives --set python3 /usr/bin/python3.8
   fi
-
 }
 
 deploy_perf_profile() {
@@ -101,7 +83,7 @@ deploy_perf_profile() {
       # iterate over worker nodes bareMetalHandles until we have 2
       worker_count=0
       oslat_workers=()
-      workers=$(oc get nodes | grep ^worker | awk '{print $1}')
+      workers=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT} | sed -e 's/^node\///')
       while [ $worker_count -lt 1 ]; do
         for worker in $workers; do
        	  worker_ip=$(oc get node $worker -o json | jq -r ".status.addresses[0].address" | grep 192 )
@@ -149,13 +131,19 @@ deploy_perf_profile() {
   # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes
   # if they're ready we'll continue. Should the performance profile require reboots, that will have
   # started within the 60 seconds
+  iterations=0
   log "Sleeping for 60 seconds"
   sleep 60
   readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
   while [[ $readycount -lt 1 ]]; do
+    if [[ $iterations -gt 40 ]]; then
+      log "Wiated for the -rt MCP for 40 minutes, bailing!"
+      exit 124
+    fi
     log "Waiting for -rt nodes to become ready again, sleeping 1 minute"
     sleep 60
     readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
+    iterations=$((iterations+1))
   done
 }
 
@@ -181,7 +169,7 @@ run_workload() {
 }
 
 check_logs_for_errors() {
-client_pod=$(oc get pods -n benchmark-operator --no-headers | awk '{print $1}' | grep oslat | awk 'NR==1{print $1}')
+client_pod=$(oc get pods -n benchmark-operator --no-headers | grep -i running | awk '{print $1}' | grep oslat | awk 'NR==1{print $1}')
 if [ ! -z "$client_pod" ]; then
   num_critical=$(oc logs ${client_pod} -n benchmark-operator | grep CRITICAL | wc -l)
   if [ $num_critical -gt 3 ] ; then

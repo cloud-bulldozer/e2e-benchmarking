@@ -50,21 +50,11 @@ check_cluster_health() {
 }
 
 export_defaults() {
-  operator_repo=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-  operator_branch=${OPERATOR_BRANCH:=master}
   CRD=${CRD:-ripsaw-testpmd-crd.yaml}
   MCP=${MCP:-machineconfigpool.yaml}
   PFP=${PFP:-perf_profile.yaml}
   NNP=${NNP:-sriov_network_node_policy.yaml}
-  export _es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-  _es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-  export _metadata_collection=${METADATA_COLLECTION:=true}
-  export _metadata_targeted=true
   export COMPARE=${COMPARE:=false}
-  network_type=$(oc get network cluster  -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
-  gold_sdn=${GOLD_SDN:=openshiftsdn}
-  throughput_tolerance=${THROUGHPUT_TOLERANCE:=5}
-  latency_tolerance=${LATENCY_TOLERANCE:=5}
   export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
 
   #Check to see if the infrastructure type is baremetal to adjust script as necessary 
@@ -73,14 +63,6 @@ export_defaults() {
     export isBareMetal=true
   else
     export isBareMetal=false
-  fi
-
-  if [[ -z "$GSHEET_KEY_LOCATION" ]]; then
-     export GSHEET_KEY_LOCATION=$HOME/.secrets/gsheet_key.json
-  fi
-
-  if [ ! -z ${2} ]; then
-    export KUBECONFIG=${2}
   fi
 
   cloud_name=$1
@@ -108,9 +90,8 @@ deploy_perf_profile() {
   # find suitable nodes
   if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
     log "Trying to find 2 suitable nodes only for testpmd"
-    # iterate over worker nodes bareMetalHandles until we have at least 2 
     worker_count=0
-    workers=$(oc get nodes | grep -v master | grep -v worker-lb | grep -v custom | grep -v NotReady | grep ^worker | awk '{print $1}')
+    workers=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT} | sed -e 's/^node\///')
     # turn it into an array
     workers=($workers) 
     if [[ ${#workers[@]} -lt 1 ]] ; then
@@ -269,13 +250,19 @@ deploy_perf_profile() {
   # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes
   # if they're ready, we'll continue. Should the performance profile require reboots, that will have
   # started within the 60 seconds
+  iterations=0
   log "Sleeping for 60 seconds"
   sleep 60
   readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
   while [[ $readycount -lt 2 ]]; do
+    if [[ $iterations -gt 40 ]]; then
+      log "Waited for the -rt MCP for 40 minutes, bailing!"
+      exit 124
+    fi
     log "Waiting for -rt nodes to become ready again after the performance-profile has been deployed, sleeping 1 minute"
     sleep 60
     readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
+    iterations=$((iterations+1))
   done
 
   # apply the node policy
@@ -285,13 +272,19 @@ deploy_perf_profile() {
     exit 1
   fi
   # we need to wait for the second reboot
+  iterations=0
   log "Sleeping for 60 seconds"
   sleep 60
   readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
   while [[ $readycount -lt 2 ]]; do
+    if [[ $iterations -gt 40 ]]; then
+      log "Waited for the -rt MCP for 40 minutes, bailing"
+      exit 124
+    fi
     log "Waiting for -rt nodes to become ready again after the sriov-network-policy has been deployed, sleeping 1 minute"
     sleep 60
     readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
+    iterations=$((iterations+1))
   done
 
   # create the network
@@ -317,11 +310,17 @@ cleanup_network() {
   oc delete -f sriov_network_node_policy.yaml
   log "Removing the sriov network"
   oc delete -f sriov_network.yaml
+  iterations=0
   readycount=$(oc get mcp worker --no-headers | awk '{print $7}')
   while [[ $readycount -ne 2 ]]; do
+    if [[ $iterations -gt 40 ]]; then
+      log "Waited for the -rt MCP for 40 minutes, bailing"
+      exit 124
+    fi
     log "Waiting for worker nodes to become ready again after the sriov-network-policy has been deployed, sleeping 1 minute"
     sleep 60
     readycount=$(oc get mcp worker --no-headers | awk '{print $7}')
+    iterations=$((iterations+1))
   done
 
 }
@@ -348,7 +347,7 @@ run_workload() {
 }
 
 check_logs_for_errors() {
-client_pod=$(oc get pods -n benchmark-operator --no-headers | awk '{print $1}' | grep trex-traffic-gen | awk 'NR==1{print $1}')
+client_pod=$(oc get pods -n benchmark-operator --no-headers | grep -i running | awk '{print $1}' | grep trex-traffic-gen | awk 'NR==1{print $1}')
 if [ ! -z "$client_pod" ]; then
   num_critical=$(oc logs ${client_pod} -n benchmark-operator | grep CRITICAL | wc -l)
   if [ $num_critical -gt 3 ] ; then

@@ -137,7 +137,6 @@ run_workload() {
 
 
 run_benchmark_comparison() {
-<<<<<<< HEAD
   if [[ -n ${ES_SERVER} ]]; then
     log "Installing touchstone"
     install_touchstone
