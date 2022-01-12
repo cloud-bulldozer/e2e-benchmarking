@@ -95,15 +95,11 @@ export_defaults() {
       exit 1
     fi
   # If MULTI_AZ is disabled we use the two first nodes from the first AZ
-    else
-      nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
-      if [[ ${#nodes[@]} -lt 2 ]]; then
-        log "At least 2 worker nodes placed in the topology zone ${zones[0]} are required"
-        exit 1
-      fi
-      log "Colocating uperf pods in the same AZ"
-      export server=${nodes[0]}
-      export client=${nodes[1]}
+  else
+    nodes=($(oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",topology.kubernetes.io/zone=${zones[0]} -o jsonpath='{range .items[*]}{ .metadata.labels.kubernetes\.io/hostname}{"\n"}{end}'))
+    if [[ ${#nodes[@]} -lt 2 ]]; then
+      log "At least 2 worker nodes placed in the topology zone ${zones[0]} are required"
+      exit 1
     fi
     log "Colocating uperf pods in the same AZ"
     export server=${nodes[0]}
