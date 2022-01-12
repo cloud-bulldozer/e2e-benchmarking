@@ -109,6 +109,10 @@ deploy_perf_profile() {
   fi
   
   # get the interface's NUMA zone
+  if [ ! -f /home/kni/.ssh/id_rsa ] ; then
+	  log "id_rsa for user kni doesn't exist, bailing!"
+	  exit 1
+  fi
   for w in ${testpmd_workers[@]}; do
         nic=$(ssh -i /home/kni/.ssh/id_rsa -o StrictHostKeyChecking=no core@$w "sudo ovs-vsctl list-ports br-ex | head -1")
 	export sriov_nic=$nic
