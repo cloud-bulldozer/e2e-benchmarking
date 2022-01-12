@@ -414,23 +414,24 @@
 
 ## Collector
 
-- query: rox_collector_counters
-  metricName: rox_collector_counters
+# RS-415: These take too long to index.
+# - query: rox_collector_counters
+#   metricName: rox_collector_counters
 
-- query: rox_collector_event_times_us_avg
-  metricName: rox_collector_event_times_us_avg
+# - query: rox_collector_event_times_us_avg
+#   metricName: rox_collector_event_times_us_avg
 
-- query: rox_collector_event_times_us_total
-  metricName: rox_collector_event_times_us_total
+# - query: rox_collector_event_times_us_total
+#   metricName: rox_collector_event_times_us_total
 
-- query: rox_collector_events_typed
-  metricName: rox_collector_events_typed
+# - query: rox_collector_events_typed
+#   metricName: rox_collector_events_typed
 
-- query: rox_collector_events
-  metricName: rox_collector_events
+# - query: rox_collector_events
+#   metricName: rox_collector_events
 
-- query: rox_collector_process_lineage_info
-  metricName: rox_collector_process_lineage_info
+# - query: rox_collector_process_lineage_info
+#   metricName: rox_collector_process_lineage_info
 
-- query: rox_collector_timers
-  metricName: rox_collector_timers
+# - query: rox_collector_timers
+#   metricName: rox_collector_timers
