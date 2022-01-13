@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
 
+##############################################################################
+# Prints log messages
+# Arguments:
+#   Log string
+##############################################################################
+log() {
+  echo -e "\033[1m$(date -u) ${@}\033[0m"
+}
 
 function openshift_login () {
   if [[ -z $KUBECONFIG ]] && [[ ! -s $HOME/.kube/config ]]; then
-    echo "KUBECONFIG var is not defined and cannot find kube config in the home directory, trying to use oc login"
+    log "KUBECONFIG var is not defined and cannot find kube config in the home directory, trying to use oc login"
     if [[ -n ${KUBEUSER}} ]] && [[ -n ${KUBEPASSWORD} ]] && [[ -n ${KUBEURL} ]]; then
   	  oc login -u ${KUBEUSER} -p ${KUBEPASSWORD} ${KUBEURL}
     else
-  	  echo "No openshift authentication method found, exiting"
-	    exit 1
+  	  log "No openshift authentication method found, exiting"
+         exit 1
     fi
   fi
 }
@@ -69,14 +77,7 @@ function check_pod_ready_state () {
 }
 
 
-##############################################################################
-# Prints log messages
-# Arguments:
-#   Log string
-##############################################################################
-log() {
-  echo -e "\033[1m$(date -u) ${@}\033[0m"
-}
+
 
 ##############################################################################
 # Imports a CSV file into a google spreadsheet
