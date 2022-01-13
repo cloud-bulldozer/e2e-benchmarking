@@ -1,5 +1,5 @@
 #!/bin/bash
-
+source ../common.sh 
 #set -eo pipefail
 
 prometheus_namespace=openshift-monitoring
@@ -46,10 +46,7 @@ if [[ -z "$OPENSHIFT_MUST_GATHER" ]]; then
 fi
 
 # Check for kubeconfig
-if [[ -z $KUBECONFIG ]] && [[ ! -s $HOME/.kube/config ]]; then
-    echo "KUBECONFIG var is not defined and cannot find kube config in the home directory, please check"
-    exit 1
-fi
+openshift_login
 
 # Check if oc client is installed
 which oc &>/dev/null
