@@ -3,6 +3,8 @@
 source ./common.sh
 source ../../utils/common.sh
 
+openshift_login
+
 log "Starting test for cloud: ${CLOUD_NAME}"
 start_time=`date`
 deploy_operator

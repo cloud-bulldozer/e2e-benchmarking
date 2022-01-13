@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+source ../../utils/common.sh
+
+openshift_login
 set -x
 
 export TERM=screen-256color

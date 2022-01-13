@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 
+
+function openshift_login () {
+  if [[ -z $KUBECONFIG ]] && [[ ! -s $HOME/.kube/config ]]; then
+    echo "KUBECONFIG var is not defined and cannot find kube config in the home directory, trying to use oc login"
+    if [[ -n ${KUBEUSER}} ]] && [[ -n ${KUBEPASSWORD} ]] && [[ -n ${KUBEURL} ]]; then
+  	  oc login -u ${KUBEUSER} -p ${KUBEPASSWORD} ${KUBEURL}
+    else
+  	  echo "No openshift authentication method found, exiting"
+	    exit 1
+    fi
+  fi
+}
+
+
 # Two arguments are 'pod label' and 'timeout in seconds'
 function get_pod () {
   counter=0

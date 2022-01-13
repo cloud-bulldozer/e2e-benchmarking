@@ -1,8 +1,7 @@
-# Check for kubeconfig
-if [[ -z $KUBECONFIG ]] && [[ ! -s $HOME/.kube/config ]]; then
-    echo "KUBECONFIG var is not defined and cannot find kube config in the home directory, please check"
-    exit 1
-fi
+#!/usr/bin/env bash
+source ../../utils/common.sh
+
+openshift_login
 
 export KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.14.2/kube-burner-0.14.2-Linux-x86_64.tar.gz}
 

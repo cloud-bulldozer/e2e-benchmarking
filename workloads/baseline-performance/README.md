@@ -3,7 +3,6 @@
 The baseline performance benchmark is used to measure the performance metrics of the cluster when there are no resources loaded on the cluster. Helps in understanding the baseline performance of the control plane components, nodes, etcd, kubelet etc of Openshift. The baseline workload will sleep for ${WATCH_TIME} minutes and call kube-burner indexer to collect the metrics without loading the cluster.
 
 
-
 ## Common variables
 
 These environment variables can be customized 

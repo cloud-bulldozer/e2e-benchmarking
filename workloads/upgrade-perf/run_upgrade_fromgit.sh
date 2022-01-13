@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-set -x
-
 source ./common.sh
+set -x
 
 # Check if we're on bareMetal
 export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)

@@ -4,6 +4,8 @@ source ../../utils/common.sh
 source ../../utils/benchmark-operator.sh
 source env.sh
 
+openshift_login
+
 # If INDEXING is disabled we disable metadata collection
 if [[ ${INDEXING} == "false" ]]; then
   export METADATA_COLLECTION=false

@@ -2,6 +2,7 @@
 
 source ../../utils/compare.sh
 source ../../utils/common.sh
+openshift_login
 source env.sh
 
 get_scenario(){

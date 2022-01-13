@@ -5,6 +5,8 @@ source ../../utils/common.sh
 source ../../utils/benchmark-operator.sh
 source ../../utils/compare.sh
 
+openshift_login
+
 check_cluster_health() {
   if [[ ${CERBERUS_URL} ]]; then
     response=$(curl ${CERBERUS_URL})

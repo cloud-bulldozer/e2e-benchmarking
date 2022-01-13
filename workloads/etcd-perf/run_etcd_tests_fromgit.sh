@@ -2,6 +2,7 @@
 source ../../utils/common.sh
 set -x
 
+
 # Removing benchmark-operator namespace, if it exists
 oc delete namespace benchmark-operator --ignore-not-found
 
@@ -14,6 +15,7 @@ curl_body='{"_source": false, "aggs": {"max-fsync-lat-99th": {"max": {"field": "
 if [ ! -z ${2} ]; then
   export KUBECONFIG=${2}
 fi
+openshift_login
 
 cloud_name=$1
 if [ "$cloud_name" == "" ]; then

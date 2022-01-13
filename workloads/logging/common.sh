@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 source env.sh
 source ../../utils/benchmark-operator.sh
+source ../../utils/common.sh
+
+openshift_login
 
 # Logging format
 log() {
