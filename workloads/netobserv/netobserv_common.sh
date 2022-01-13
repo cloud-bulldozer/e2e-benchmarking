@@ -15,7 +15,7 @@ deploy_netobserv_operator() {
   log "waiting 60 seconds before checking IPFIX collector IP in OVS"
   sleep 60
   get_ipfix_collector_ip
-  
+
   # operate_loki "add" && \
   # operate_netobserv_console_plugin "add"
 }
@@ -65,7 +65,7 @@ run_perf_test_wo_netobserv() {
 
 get_ipfix_collector_ip(){
   ovnkubePods=$(oc get pods -l app=ovnkube-node -n openshift-ovn-kubernetes -o jsonpath='{.items[*].metadata.name}')
-  for podName in ovnkubePods; do
+  for podName in $ovnkubePods; do
     OVS_IPFIX_COLLECTOR_IP=$(oc get pod/$podName -n openshift-ovn-kubernetes -o jsonpath='{.spec.containers[*].env[?(@.name=="IPFIX_COLLECTORS")].value}')
     if [[ -z "$OVS_IPFIX_COLLECTOR_IP" ]]; then
         log "IPFIX collector IP is not configured in OVS"
