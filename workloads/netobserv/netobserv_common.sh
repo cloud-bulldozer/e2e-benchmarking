@@ -1,14 +1,3 @@
-patch_cno() {
-  if [[ ! -z $1 ]]; then
-    log "patching CNO with goflow-kube IP as collector"
-    oc patch networks.operator.openshift.io cluster --type='json' -p "$(sed -e "s/GF_IP/$1/" ${NETOBSERV_DIR}/config/samples/net-cluster-patch.json)"
-  else
-    log "updating CNO by removing goflow-kube IP as collector"
-
-    sed -i 's/add/remove/g' ${NETOBSERV_DIR}/config/samples/net-cluster-patch.json
-    oc patch networks.operator.openshift.io cluster --type='json' -p "$(sed -e "s/GF_IP/$GF_IP/" ${NETOBSERV_DIR}/config/samples/net-cluster-patch.json)"
-  fi
-}
 
 deploy_netobserv_operator() {
   log "deploying network-observability operator and flowcollector CR"
@@ -23,18 +12,20 @@ deploy_netobserv_operator() {
   sleep 15
   export GF_IP=$(oc get svc goflow-kube -n network-observability -ojsonpath='{.spec.clusterIP}')
   log "goflow collector IP: ${GF_IP}"
-  patch_cno ${GF_IP} && \ 
-  operate_loki "add" && \
-  operate_netobserv_console_plugin "add"
+  log "waiting 60 seconds before checking IPFIX collector IP in OVS"
+  sleep 60
+  get_ipfix_collector_ip
+  
+  # operate_loki "add" && \
+  # operate_netobserv_console_plugin "add"
 }
 
 delete_flowcollector() {
   log "deleteing flowcollector"
   oc delete -f $NETOBSERV_DIR/config/samples/flows_v1alpha1_flowcollector.yaml
-  patch_cno ''
   rm -rf $NETOBSERV_DIR
-  operate_loki "remove" && \
-  operate_netobserv_console_plugin "remove"
+  # operate_loki "remove" && \
+  # operate_netobserv_console_plugin "remove"
 }
 
 operate_loki() {
@@ -70,4 +61,16 @@ run_perf_test_w_netobserv() {
 
 run_perf_test_wo_netobserv() {
   delete_flowcollector
+}
+
+get_ipfix_collector_ip(){
+  ovnkubePods=$(oc get pods -l app=ovnkube-node -n openshift-ovn-kubernetes -o jsonpath='{.items[*].metadata.name}')
+  for podName in ovnkubePods; do
+    OVS_IPFIX_COLLECTOR_IP=$(oc get pod/$podName -n openshift-ovn-kubernetes -o jsonpath='{.spec.containers[*].env[?(@.name=="IPFIX_COLLECTORS")].value}')
+    if [[ -z "$OVS_IPFIX_COLLECTOR_IP" ]]; then
+        log "IPFIX collector IP is not configured in OVS"
+        exit 1
+    fi
+    log "$OVS_IPFIX_COLLECTOR_IP is configured for $podName"
+  done
 }
