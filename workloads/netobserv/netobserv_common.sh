@@ -12,8 +12,8 @@ deploy_netobserv_operator() {
   sleep 15
   export GF_IP=$(oc get svc goflow-kube -n network-observability -ojsonpath='{.spec.clusterIP}')
   log "goflow collector IP: ${GF_IP}"
-  log "waiting 60 seconds before checking IPFIX collector IP in OVS"
-  sleep 60
+  log "waiting 120 seconds before checking IPFIX collector IP in OVS"
+  sleep 120
   get_ipfix_collector_ip
 
   # operate_loki "add" && \
