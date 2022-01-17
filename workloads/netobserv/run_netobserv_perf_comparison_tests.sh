@@ -10,9 +10,10 @@ if [[ -z $NETWORK_VARIANT ]]; then
 fi 
 
 log "running performance test for $NETWORK_VARIANT"
+RIPSAW_UPERF_PATH=$PWD/ripsaw-uperf-crd.yaml
 run_perf_test_w_netobserv
 if [[ $NETWORK_VARIANT == "POD_NETWORK" ]]; then
-    cd ../network-perf && ./run_pod_network_test_fromgit.sh
+    cd ../network-perf && ./run_pod_network_test_fromgit.sh $RIPSAW_UPERF_PATH
     run_perf_test_wo_netobserv
     cd ../network-perf && ./run_pod_network_test_fromgit.sh
 elif [[ $NETWORK_VARIANT == "SERVICEIP_NETWORK" ]]; then

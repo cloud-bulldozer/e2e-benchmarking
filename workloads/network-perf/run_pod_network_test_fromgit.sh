@@ -2,11 +2,16 @@
 
 source ./common.sh
 export WORKLOAD=pod
+export PATH_TO_RIPSAW_UPERF=$1
+
+if [[ -z $PATH_TO_RIPSAW_UPERF ]]; then
+    export PATH_TO_RIPSAW_UPERF=ripsaw-uperf-crd.yaml
+fi
 
 for pairs in 1 2 4; do
   export UUID=$(uuidgen)
   export pairs
-  run_workload ripsaw-uperf-crd.yaml
+  run_workload $PATH_TO_RIPSAW_UPERF
   if [[ $? != 0 ]]; then
     exit 1
   fi
