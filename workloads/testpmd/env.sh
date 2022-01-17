@@ -37,4 +37,4 @@ export TREX_NETWORK_COUNT=${TREX_NETWORK_COUNT:-2}
 export TEST_TIMEOUT=${TEST_TIMEOUT:-600}
 export TEST_CLEANUP=${TEST_CLEANUP:-"true"}
 export OPERATOR_REPO=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-export OPERATOR_BRANCH=${OPERATOR_BRANCH:=master
+export OPERATOR_BRANCH=${OPERATOR_BRANCH:=master}
