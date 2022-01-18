@@ -60,7 +60,7 @@ jobs:
     qps: ${QPS}
     burst: ${BURST}
     namespacedIterations: true
-    namespace: cluster-density-${UUID}
+    namespace: ${UUID}
     podWait: ${POD_WAIT}
     cleanup: ${CLEANUP}
     waitFor: ${WAIT_FOR}

@@ -55,12 +55,12 @@ global:
         url: https://localhost:2379/debug/pprof/profile?timeout=30
 {{ end }}
 jobs:
-  - name: max-serv
+  - name: max-services
     jobIterations: ${TEST_JOB_ITERATIONS}
     qps: ${QPS}
     burst: ${BURST}
     namespacedIterations: false
-    namespace: max-serv-${UUID}
+    namespace: ${UUID}
     podWait: ${POD_WAIT}
     cleanup: ${CLEANUP}
     waitFor: ${WAIT_FOR}
