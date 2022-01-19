@@ -372,7 +372,7 @@ wait_for_benchmark() {
       log "Cerberus status is False, Cluster is unhealthy"
       exit 1
     fi
-    oc describe -n benchmark-operator benchmarks/testpmd-benchmark| grep State | grep Complete
+    oc describe -n benchmark-operator benchmarks/testpmd-benchmark-$UUID | grep State | grep Complete
     if [ $? -eq 0 ]; then
       log "testpmd workload done!"
       testpmd_state=$?

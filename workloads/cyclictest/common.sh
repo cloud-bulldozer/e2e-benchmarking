@@ -188,7 +188,7 @@ wait_for_benchmark() {
       log "Cerberus status is False, Cluster is unhealthy"
       exit 1
     fi
-    oc describe -n benchmark-operator benchmarks/cyclictest | grep State | grep Complete
+    oc describe -n benchmark-operator benchmarks/cyclictest-$UUID | grep State | grep Complete
     if [ $? -eq 0 ]; then
       log "cyclictest workload done!"
       cyclictest_state=$?
