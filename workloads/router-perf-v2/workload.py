@@ -17,10 +17,17 @@ host_network = os.getenv("HOST_NETWORK", "")
 number_of_routers = os.getenv("NUMBER_OF_ROUTERS", "")
 
 
-def index_result(payload):
+def index_result(payload, retry_count=3):
     print(f"Indexing documents in {es_index}")
-    es = elasticsearch.Elasticsearch([es_server], send_get_body_as='POST')
-    es.index(index=es_index, body=payload)
+    while retry_count > 0:
+        try:
+            es = elasticsearch.Elasticsearch([es_server], send_get_body_as='POST')
+            es.index(index=es_index, body=payload)
+            retry_count = 0
+        except Exception as e:
+            print("Failed Indexing - \n" + str(e.message))
+            print("Retrying again to index...")
+            retry_count -= 1
 
 
 def run_mb(mb_config, runtime, output):
