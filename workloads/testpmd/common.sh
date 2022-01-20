@@ -259,8 +259,8 @@ deploy_perf_profile() {
   sleep 60
   readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
   while [[ $readycount -lt 2 ]]; do
-    if [[ $iterations -gt 40 ]]; then
-      log "Waited for the -rt MCP for 40 minutes, bailing!"
+    if [[ $iterations -gt $PROFILE_TIMEOUT ]]; then
+      log "Waited for the -rt MCP for $PROFILE_TIMEOUT minutes, bailing!"
       exit 124
     fi
     log "Waiting for -rt nodes to become ready again after the performance-profile has been deployed, sleeping 1 minute"
@@ -281,8 +281,8 @@ deploy_perf_profile() {
   sleep 60
   readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
   while [[ $readycount -lt 2 ]]; do
-    if [[ $iterations -gt 40 ]]; then
-      log "Waited for the -rt MCP for 40 minutes, bailing"
+    if [[ $iterations -gt $PROFILE_TIMEOUT ]]; then
+      log "Waited for the -rt MCP for $PROFILE_TIMEOUT minutes, bailing"
       exit 124
     fi
     log "Waiting for -rt nodes to become ready again after the sriov-network-policy has been deployed, sleeping 1 minute"

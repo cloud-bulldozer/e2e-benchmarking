@@ -22,3 +22,4 @@ export NODE_COUNT=${NODE_COUNT:-2}
 # general options
 export TEST_TIMEOUT=${TEST_TIMEOUT:-600}
 export TEST_CLEANUP=${TEST_CLEANUP:-"true"}
+export PROFILE_TIMEOUT=${PROFILE_TIMEOUT:-40}

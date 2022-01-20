@@ -32,9 +32,11 @@ export NUM_STREAM=${NUM_STREAM:-1}
 export NETWORK_NAME=${NETWORK_NAME:-testpmd-sriov-network}
 export TESTPMD_NETWORK_COUNT=${TESTPMD_NETWORK_COUNT:-2}
 export TREX_NETWORK_COUNT=${TREX_NETWORK_COUNT:-2}
+export PROFILE_TIMEOUT=${PROFILE_TIMEOUT:-40}
 
 # general options 
 export TEST_TIMEOUT=${TEST_TIMEOUT:-600}
 export TEST_CLEANUP=${TEST_CLEANUP:-"true"}
 export OPERATOR_REPO=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
 export OPERATOR_BRANCH=${OPERATOR_BRANCH:=master}
+
