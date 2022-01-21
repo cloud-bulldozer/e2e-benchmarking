@@ -83,12 +83,13 @@ deploy_perf_profile() {
       worker_count=0
       testpmd_workers=()
       workers=$(oc get bmh -n openshift-machine-api | grep worker | awk '{print $1}')
-      until [ $worker_count -eq 1 ]; do
+      while [ $worker_count -lt 1 ] ; do
         for worker in $workers; do
-    	  worker_ip=$(oc get node $worker -o json | jq -r ".status.addresses[0].addres" | grep 192 )
+    	  worker_ip=$(oc get node $worker -o json | jq -r ".status.addresses[0].address" | grep 192 )
           if [[ ! -z "$worker_ip" ]]; then 
             testpmd_workers+=( $worker )
   	    ((worker_count=worker_count+1))
+	    break
           fi
         done
       done
@@ -132,7 +133,7 @@ deploy_perf_profile() {
     log "Sleeping for 60 seconds"
     sleep 60
     readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-    while [[ $readycount -lt 2 ]]; do
+    while [[ $readycount -lt 1 ]]; do
       if [[ $iterations -gt $PROFILE_TIMEOUT ]] ; then
         log "Waited for the -rt MCP for $PROFILE_TIMEOUT minutes, bailing!"
 	exit 124
