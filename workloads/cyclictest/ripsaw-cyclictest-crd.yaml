@@ -1,7 +1,7 @@
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
-  name: cyclictest-${UUID}
+  name: cyclictest
   namespace: benchmark-operator
 spec:
   elasticsearch:
