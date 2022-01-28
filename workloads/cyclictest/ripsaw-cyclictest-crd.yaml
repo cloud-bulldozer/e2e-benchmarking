@@ -5,7 +5,7 @@ metadata:
   namespace: benchmark-operator
 spec:
   elasticsearch:
-    server: $_es
+    server: ${ES_SERVER}
   workload:
     name: "cyclictest"
     args:
