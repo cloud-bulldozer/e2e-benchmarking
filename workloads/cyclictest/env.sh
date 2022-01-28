@@ -11,7 +11,6 @@ export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4b
 export ES_INDEX=${ES_INDEX:-ripsaw-cyclictest}
 export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 
-export METADATA_COLLECTION=true
 export COMPARE=false
 export COMPARE_WITH_GOLD=
 export GOLD_SDN=
