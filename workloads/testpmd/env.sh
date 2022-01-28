@@ -1,5 +1,12 @@
+# Benchmark-operator
+export OPERATOR_REPO=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
+export OPERATOR_BRANCH=${OPERATOR_BRANCH:=master}
+
+# Benchmark comparison
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-export METADATA_COLLECTION=true
+export ES_INDEX=${ES_INDEX:-ripsaw-testpmd}
+export METADATA_COLLECTION={METADATA_COLLECTION:-true}
+
 export COMPARE=false
 export COMPARE_WITH_GOLD=
 export GOLD_SDN=
@@ -10,6 +17,7 @@ export ES_SERVER_BASELINE=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chm
 #export CERBERUS_URL=http://1.2.3.4:8080
 #export GSHEET_KEY_LOCATION=
 #export EMAIL_ID_FOR_RESULTS_SHEET=<your_email_id>  # Will only work if you have google service account key
+
 # testpmd specific variables
 export NODE_COUNT=${NODE_COUNT:-2}
 export PRIVILEGED=${PRIVILEGED:-true}
@@ -37,6 +45,4 @@ export PROFILE_TIMEOUT=${PROFILE_TIMEOUT:-40}
 # general options 
 export TEST_TIMEOUT=${TEST_TIMEOUT:-600}
 export TEST_CLEANUP=${TEST_CLEANUP:-"true"}
-export OPERATOR_REPO=${OPERATOR_REPO:=https://github.com/cloud-bulldozer/benchmark-operator.git}
-export OPERATOR_BRANCH=${OPERATOR_BRANCH:=master}
 

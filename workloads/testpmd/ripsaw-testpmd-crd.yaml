@@ -4,6 +4,10 @@ metadata:
   name: testpmd-benchmark
   namespace: benchmark-operator
 spec:
+  elasticsearch:
+    server: ${ES_SERVER}
+  metadata: 
+  collection: ${METADATA_COLLECTION}
   clustername: myk8scluster
   workload:
     name: testpmd

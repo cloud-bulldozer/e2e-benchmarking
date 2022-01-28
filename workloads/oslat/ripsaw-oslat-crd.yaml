@@ -8,6 +8,8 @@ metadata:
 spec:
   elasticsearch:
     server: ${ES_SERVER}
+  metadata:
+    collection: ${METADATA_COLLECTION}
   workload:
     name: "oslat"
     args:
