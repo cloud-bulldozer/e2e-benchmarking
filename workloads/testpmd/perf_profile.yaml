@@ -1,0 +1,24 @@
+---
+apiVersion: performance.openshift.io/v1
+kind: PerformanceProfile
+metadata:
+   name: benchmark-performance-profile-0
+spec:
+   cpu:
+     isolated: "$isolated_cpus"
+     reserved: "$reserved_cpus"
+   hugepages:
+     defaultHugepagesSize: "1G"
+     pages:
+     - size: "1G"
+       count: 16
+       node: $numa_node
+   numa:
+     topologyPolicy: "best-effort"
+   nodeSelector:
+     node-role.kubernetes.io/worker-rt: ""
+   realTimeKernel:
+     enabled: false
+   additionalKernelArgs:
+     - nosmt
+     - tsc=reliable

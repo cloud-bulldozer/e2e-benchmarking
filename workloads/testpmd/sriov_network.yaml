@@ -1,0 +1,21 @@
+apiVersion: sriovnetwork.openshift.io/v1
+kind: SriovNetwork
+metadata:
+  name: testpmd-sriov-network
+  namespace: openshift-sriov-network-operator
+spec:
+  ipam: |
+    {
+      "type": "host-local",
+      "subnet": "10.57.1.0/24",
+      "rangeStart": "10.57.1.100",
+      "rangeEnd": "10.57.1.200",
+      "routes": [{
+        "dst": "0.0.0.0/0"
+      }],
+      "gateway": "10.57.1.1"
+    }
+  spoofChk: "on"
+  trust: "on"
+  resourceName: intelnics
+  networkNamespace: benchmark-operator

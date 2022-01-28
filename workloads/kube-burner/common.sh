@@ -16,6 +16,21 @@ fi
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=${UUID:-$(uuidgen)}
 
+export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
+
+#Check to see if the infrastructure type is baremetal to adjust script as necessary 
+if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
+  log "BareMetal infastructure: setting isBareMetal accordingly"
+  export isBareMetal=true
+else
+  export isBareMetal=false
+fi
+
+if [[ "${isBareMetal}" == "true" ]]; then
+  # installing python3.8
+  sudo yum -y install python3.8
+  #sudo alternatives --set python3 /usr/bin/python3.8
+fi
 
 collect_pprof() {
   sleep 50
@@ -25,6 +40,9 @@ collect_pprof() {
     sleep 60
   done
 }
+
+
+  
 
 
 deploy_operator() {
