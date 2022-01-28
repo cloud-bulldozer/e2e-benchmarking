@@ -10,7 +10,7 @@ export COMPARE_WITH_GOLD=${COMPARE_WITH_GOLD:-false}
 # indexing variables
 export INDEXING=${INDEXING:-true}
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
+export ES_INDEX=${ES_INDEX:-ripsaw-cyclictest}
 export STEP_SIZE=${STEP_SIZE:-30s}
 export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 export PROM_URL=${PROM_URL:-https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091}
