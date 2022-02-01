@@ -5,7 +5,7 @@ metadata:
   namespace: benchmark-operator
 spec:
   elasticsearch:
-    server: ${ES_SERVER}
+    url: ${ES_SERVER}
   metadata: 
     collection: ${METADATA_COLLECTION}
   clustername: myk8scluster
