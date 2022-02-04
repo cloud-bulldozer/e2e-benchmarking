@@ -14,6 +14,9 @@ export NETWORK_POLICY=${NETWORK_POLICY:=false}
 export MULTI_AZ=${MULTI_AZ:=true}
 export HOSTNETWORK=false
 export SERVICEIP=false
+export SERVICETYPE=clusterip
+export ADDRESSPOOL=addresspool-l2
+export SERVICE_ETP=Cluster
 export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
 
 # Comparison and csv generation

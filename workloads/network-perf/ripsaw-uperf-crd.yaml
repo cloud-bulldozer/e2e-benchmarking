@@ -21,6 +21,10 @@ spec:
       run_id: "$RUN_ID"
       hostnetwork: ${HOSTNETWORK}
       serviceip: ${SERVICEIP}
+      servicetype: ${SERVICETYPE}
+      metallb:
+        addresspool: "${ADDRESSPOOL}"
+        service_etp: "${SERVICE_ETP}" 
       networkpolicy: ${NETWORK_POLICY}
       pin: true
       pin_server: "$server"
