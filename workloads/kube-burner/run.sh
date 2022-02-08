@@ -25,6 +25,20 @@ case ${WORKLOAD} in
     PODS_PER_NODE=${PODS_PER_NODE:-245}
     label_nodes heavy
   ;;
+  node-density-cni)
+    WORKLOAD_TEMPLATE=workloads/node-density-cni/node-density-cni.yml
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
+    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
+    PODS_PER_NODE=${PODS_PER_NODE:-245}
+    label_nodes cni
+  ;;
+  node-density-cni-networkpolicy)
+    WORKLOAD_TEMPLATE=workloads/node-density-cni-networkpolicy/node-density-cni-networkpolicy.yml
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
+    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
+    PODS_PER_NODE=${PODS_PER_NODE:-245}
+    label_nodes cni
+  ;;
   pod-density)
     WORKLOAD_TEMPLATE=workloads/node-pod-density/node-pod-density.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}

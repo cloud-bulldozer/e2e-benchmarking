@@ -5,6 +5,8 @@ In order to kick off one of these benchmarks you must use the run.sh script. The
 - **`cluster-density`**: `WORKLOAD=cluster-density ./run.sh`
 - **`node-density`**: `WORKLOAD=node-density ./run.sh`
 - **`node-density-heavy`**: `WORKLOAD=node-density-heavy ./run.sh`
+- **`node-density-cni`**: `WORKLOAD=node-density-cni ./run.sh`
+- **`node-density-cni-networkpolicy`**: `WORKLOAD=node-density-cni-networkpolicy ./run.sh`
 - **`max-namespaces`**: `WORKLOAD=max-namespaces ./run.sh`
 - **`max-services`**: `WORKLOAD=max-services./run.sh`
 - **`pod-density`**: `WORKLOAD=pod-density ./run.sh`
@@ -85,6 +87,22 @@ Each iteration of this workload can be broken down in:
   - 1 deployment holding a postgresql database
   - 1 deployment holding a client application for the previous database
   - 1 service pointing to the postgresl database
+
+- **node-density-cni**. Creates a **single namespace with a number of applications equals to job_iterations**. This application consists on two deployments (a node.js webserver and a simple client that curls the webserver) and a service that is used by the client to reach the webserver.
+Each iteration of this workload creates the following objects:
+  - 1 deployment holding a node.js webserver
+  - 1 deployment holding a client application for curling the webserver
+  - 1 service pointing to the webserver
+
+    The startupProbe of the client pod depends on being able to reach the webserver so that the PodReady latencies collected by kube-burner reflect network connectivity.
+
+- **node-density-cni-policy**. Creates a **single namespace with a number of applications equals to job_iterations**. This application consists on two deployments (a node.js webserver and a simple client that curls the webserver) and a service that is used by the client to reach the webserver.
+Each iteration of this workload creates the following objects:
+  - 1 deployment holding a node.js webserver
+  - 1 deployment holding a client application for curling the webserver
+  - 1 service pointing to the webserver
+
+    A NetworkPolicy to deny all connections is created in the namspace first and then NetworkPolicies specifically applying the connection of each client-webserver pair are applied. The startupProbe of the client pod depends on being able to reach the webserver so that the PodReady latencies collected by kube-burner reflect network connectivity.
 
 ### Max-namespaces
 
