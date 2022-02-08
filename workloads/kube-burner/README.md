@@ -35,6 +35,8 @@ All scripts can be tweaked with the following environment variables:
 | **VERIFY_OBJECTS**   | Verify objects created by kube-burner | true |
 | **ERROR_ON_VERIFY**  | Make kube-burner pod to hang when verification fails | true |
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
+| **PRELOAD_IMAGES**   | Preload kube-buner's benchmark images in the cluster | true |
+| **PRELOAD_PERIOD**   | How long the preload stage will last | 2m |
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
