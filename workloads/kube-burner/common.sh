@@ -115,7 +115,7 @@ label_nodes() {
     exit 1
   fi
   log "Number of pods to deploy on nodes: ${total_pod_count}"
-  if [[ ${1} == "heavy" ]]; then
+  if [[ ${1} == "heavy" ]] || [[ ${1} == *cni* ]]; then
     total_pod_count=$((total_pod_count / 2))
   fi
   export TEST_JOB_ITERATIONS=${total_pod_count}

@@ -1,0 +1,102 @@
+---
+global:
+  writeToFile: false
+  indexerConfig:
+    enabled: ${INDEXING}
+    esServers: ["${ES_SERVER}"]
+    insecureSkipVerify: true
+    defaultIndex: ${ES_INDEX}
+    type: elastic
+  measurements:
+    - name: podLatency
+      esIndex: ${ES_INDEX}
+{{ if eq .PPROF_COLLECTION "True" }}
+    - name: pprof
+      pprofInterval: {{ .PPROF_COLLECTION_INTERVAL }}
+      pprofDirectory: /tmp/pprof-data
+      pprofTargets:
+
+      - name: kube-apiserver-cpu
+        namespace: "openshift-kube-apiserver"
+        labelSelector: {app: openshift-kube-apiserver}
+        bearerToken: {{ .BEARER_TOKEN }}
+        url: https://localhost:6443/debug/pprof/profile?timeout=30
+
+      - name: kube-apiserver-heap
+        namespace: "openshift-kube-apiserver"
+        labelSelector: {app: openshift-kube-apiserver}
+        bearerToken: {{ .BEARER_TOKEN }}
+        url: https://localhost:6443/debug/pprof/heap
+
+      - name: kube-controller-manager-heap
+        namespace: "openshift-kube-controller-manager"
+        labelSelector: {app: kube-controller-manager}
+        bearerToken: {{ .BEARER_TOKEN }}
+        url: https://localhost:10257/debug/pprof/heap
+
+      - name: kube-controller-manager-cpu
+        namespace: "openshift-kube-controller-manager"
+        labelSelector: {app: kube-controller-manager}
+        bearerToken: {{ .BEARER_TOKEN }}
+        url: https://localhost:10257/debug/pprof/profile?timeout=30
+
+      - name: etcd-heap
+        namespace: "openshift-etcd"
+        labelSelector: {app: etcd}
+        cert: {{ .CERTIFICATE }}
+        key: {{ .PRIVATE_KEY }}
+        url: https://localhost:2379/debug/pprof/heap
+
+      - name: etcd-cpu
+        namespace: "openshift-etcd"
+        labelSelector: {app: etcd}
+        cert: {{ .CERTIFICATE }}
+        key: {{ .PRIVATE_KEY }}
+        url: https://localhost:2379/debug/pprof/profile?timeout=30
+{{ end }}
+jobs:
+  - name: deny-all-policy
+    jobIterations: 1
+    qps: 1
+    burst: 1
+    namespacedIterations: false
+    namespace: ${UUID}
+    cleanup: ${CLEANUP}
+    jobPause: 1m
+    objects:
+
+      - objectTemplate: deny-all.yml
+        replicas: 1
+
+  - name: node-density-cni-policy
+    jobIterations: ${TEST_JOB_ITERATIONS}
+    qps: ${QPS}
+    burst: ${BURST}
+    namespacedIterations: false
+    namespace: ${UUID}
+    podWait: ${POD_WAIT}
+    waitFor: ${WAIT_FOR}
+    waitWhenFinished: ${WAIT_WHEN_FINISHED}
+    verifyObjects: ${VERIFY_OBJECTS}
+    errorOnVerify: ${ERROR_ON_VERIFY}
+    maxWaitTimeout: ${MAX_WAIT_TIMEOUT}
+    preLoadImages: ${PRELOAD_IMAGES}
+    preLoadPeriod: ${PRELOAD_PERIOD}
+    objects:
+
+      - objectTemplate: webserver-deployment.yml
+        replicas: 1
+        inputVars:
+          nodeSelector: "${POD_NODE_SELECTOR}"
+
+      - objectTemplate: webserver-service.yml
+        replicas: 1
+
+      - objectTemplate: allow-http.yml
+        replicas: 1
+
+      - objectTemplate: curl-deployment.yml
+        replicas: 1
+        inputVars:
+          nodeSelector: "${POD_NODE_SELECTOR}"
+
