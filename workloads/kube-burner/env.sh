@@ -24,13 +24,15 @@ export POD_WAIT=${POD_WAIT:-false}
 export WAIT_FOR=${WAIT_FOR:-[]}
 export VERIFY_OBJECTS=${VERIFY_OBJECTS:-true}
 export ERROR_ON_VERIFY=${ERROR_ON_VERIFY:-true}
+export PRELOAD_IMAGES=${PRELOAD_IMAGES:-true}
+export PRELOAD_PERIOD=${PRELOAD_PERIOD:-2m}
 
 # Remote configuration
 export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE}
 export REMOTE_ALERT_PROFILE=${REMOTE_ALERT_PROFILE}
 
 # Kube-burner job
-export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burner:v0.14.3}
+export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burner:v0.15.1}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
 export LOG_STREAMING=${LOG_STREAMING:-true}
