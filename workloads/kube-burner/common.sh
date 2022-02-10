@@ -150,13 +150,11 @@ cleanup() {
   kube_ns=$(oc get ns -l kube-burner-uuid=${UUID} -o custom-columns=name:{.metadata.name} --no-headers)
 
   if [[ $kube_ns ]]; then
-    # Ignore cluster density workloads
-    if [[ ! "$WORKLOAD" =~ cluster ]]; then
-      # Force delete individual pods
-      for cleanup in $(oc get pods -n ${kube_ns} --no-headers -o custom-columns=name:{.metadata.name}); do
-        oc delete -n ${kube_ns} pod/${cleanup} --force
-      done
-    fi
+    
+    # Force delete individual pods
+    for cleanup in $(oc get pods -n ${kube_ns} --no-headers -o custom-columns=name:{.metadata.name}); do
+      oc delete -n ${kube_ns} pod/${cleanup} --force --ignore-not-found
+    done
 
     # Force delete the remaining namespaces
     for ns in ${kube_ns}; do
