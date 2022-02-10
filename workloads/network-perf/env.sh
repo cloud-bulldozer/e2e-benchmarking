@@ -15,6 +15,7 @@ export MULTI_AZ=${MULTI_AZ:=true}
 export HOSTNETWORK=false
 export SERVICEIP=false
 export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
+export SAMPLES=${SAMPLES:-3}
 
 # Comparison and csv generation
 BASELINE_HOSTNET_UUID=${BASELINE_HOSTNET_UUID}
