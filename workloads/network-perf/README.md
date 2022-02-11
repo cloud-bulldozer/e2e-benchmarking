@@ -32,6 +32,23 @@ Elasticsearch server to index the results of the current run. Use the notation `
 Default: `true`   
 Enable/Disable collection of metadata
 
+### SERVICETYPE
+Default: `clusterip`  
+Used only when `SERVICEIP` is set to `true` 
+To provide specifics about openshift service types, supported options `clusterip`, `nodeport`, `metallb`   
+`metallb` type requires manual installation of operators and configuration of BGPPeers as explained [here](https://github.com/cloud-bulldozer/benchmark-operator/blob/master/docs/uperf.md#advanced-service-types)
+
+### ADDRESSPOOL
+Default: `addresspool-l2`  
+Used only when `SERVICETYPE` is `metallb`  
+To provide MetalLB addresspool for a service, this will be used as LoadBalancer network.  
+Mentioned addresspool should be pre-provisioned before execution of this script.  
+
+### SERVICE_ETP
+Default: `Cluster`  
+Used only when `SERVICETYPE` is `metallb` 
+To mention the type of `ExternalTrafficPolicy` of a service, supported option `Cluster` or `Local`
+
 ## Comparison
 
 ### COMPARE_WITH_GOLD
