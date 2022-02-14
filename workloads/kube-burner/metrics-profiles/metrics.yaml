@@ -1,10 +1,13 @@
 # API server
 
-- query: irate(apiserver_request_total{verb="POST", resource="pods", subresource="binding",code="201"}[2m]
-  metricName: SchedulingThroughput
+- query: irate(apiserver_request_total{verb="POST", resource="pods", subresource="binding",code="201"}[2m]) > 0
+  metricName: schedulingThroughput
 
-- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{apiserver="kube-apiserver", verb!="WATCH", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope))
-  metricName: APICallsLatency
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{apiserver="kube-apiserver", verb=~"LIST|GET", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope))
+  metricName: readOnlyAPICallsLatency
+
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{apiserver="kube-apiserver", verb=~"POST|PUT|DELETE|PATCH", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope))
+  metricName: mutatingAPICallsLatency
 
 - query: sum(irate(apiserver_request_total{apiserver="kube-apiserver",verb!="WATCH"}[2m])) by (verb,resource,code) > 0
   metricName: APIRequestRate
@@ -15,16 +18,18 @@
   metricName: kubeproxyP99ProgrammingLatency
 
 # Containers & pod metrics
-- query: sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|monitoring|image-registry)"}[2m]) * 100) by (container, pod, namespace, node)
+
+- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}[2m]) * 100) by (container, pod, namespace, node)) > 0
   metricName: containerCPU
 
-- query: sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|monitoring)"}) by (container, pod, namespace, node)
+- query: sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler)"}) by (container, pod, namespace, node)
   metricName: containerMemory
 
 - query: (sum(rate(container_fs_writes_bytes_total{container!="",device!~".+dm.+"}[5m])) by (device, container, node) and on (node) kube_node_role{role="master"}) > 0
   metricName: containerDiskUsage
 
-# Kubelet & CRI-O metrics
+# Kubelet & CRI-O runtime metrics
+
 - query: sum(irate(process_cpu_seconds_total{service="kubelet",job="kubelet"}[2m]) * 100) by (node) and on (node) kube_node_role{role="worker"}
   metricName: kubeletCPU
 
@@ -43,26 +48,42 @@
 - query: irate(container_runtime_crio_operations_latency_microseconds{operation_type="network_setup_overall"}[2m]) > 0
   metricName: containerNetworkSetupOverallLatency
 
-# Node metrics
+# Node metrics: CPU & Memory
+
 - query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")) > 0
-  metricName: nodeCPU-workers
+  metricName: nodeCPU-Workers
 
 - query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")) > 0
-  metricName: nodeCPU-masters
+  metricName: nodeCPU-Masters
 
 - query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")) > 0
-  metricName: nodeCPU-infra
+  metricName: nodeCPU-Infra
 
 - query: node_memory_MemAvailable_bytes and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")
-  metricName: nodeMemoryAvailable
+  metricName: nodeMemoryAvailable-Masters
+
+- query: node_memory_MemAvailable_bytes and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryAvailable-Workers
+
+- query: node_memory_MemAvailable_bytes and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryAvailable-Infra
 
 - query: node_memory_MemTotal_bytes and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")
-  metricName: nodeMemoryTotal
+  metricName: nodeMemoryTotal-Masters
+  instant: true
+
+- query: node_memory_MemTotal_bytes and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryTotal-Workers
+  instant: true
+
+- query: node_memory_MemTotal_bytes and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryTotal-Infra
   instant: true
 
 # Etcd metrics
+
 - query: sum(rate(etcd_server_leader_changes_seen_total[2m]))
- metricName: etcdLeaderChangesRate
+  metricName: etcdLeaderChangesRate
 
 - query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket[2m]))
   metricName: 99thEtcdDiskBackendCommitDurationSeconds
@@ -87,6 +108,7 @@
   metricName: P99APIEtcdRequestLatency
 
 # Cluster metrics
+
 - query: sum(kube_namespace_status_phase) by (phase) > 0
   metricName: namespaceCount
 
