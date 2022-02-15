@@ -79,9 +79,6 @@
 - query: sum(rate(etcd_server_leader_changes_seen_total[2m]))
   metricName: etcdLeaderChangesRate
 
-- query: etcd_server_is_leader > 0
-  metricName: etcdServerIsLeader
-
 - query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket[2m]))
   metricName: 99thEtcdDiskBackendCommitDurationSeconds
 
@@ -90,12 +87,6 @@
 
 - query: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[5m]))
   metricName: 99thEtcdRoundTripTimeSeconds
-
-- query: etcd_mvcc_db_total_size_in_bytes
-  metricName: etcdDBPhysicalSizeBytes
-
-- query: etcd_mvcc_db_total_size_in_use_in_bytes
-  metricName: etcdDBLogicalSizeBytes
 
 - query: sum by (cluster_version)(etcd_cluster_version)
   metricName: etcdVersion
