@@ -32,6 +32,20 @@ Elasticsearch server to index the results of the current run. Use the notation `
 Default: `true`   
 Enable/Disable collection of metadata
 
+## Workload
+
+### HOSTNETWORK
+Default: `false` 
+If enabled will test the performance of the node the pod will run on
+
+### SERVICEIP
+Default: `false`
+This option (if enabled) will place the uperf server behind a K8s Service
+
+### SAMPLES
+Default: `3`
+How many times to run the tests
+
 ### SERVICETYPE
 Default: `clusterip`  
 Used only when `SERVICEIP` is set to `true` 

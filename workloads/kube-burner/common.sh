@@ -147,19 +147,24 @@ cleanup() {
   WORKLOAD=$1
   oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600
 
-  # Ignore cluster density workloads
-  if [[ ! "$WORKLOAD" =~ cluster ]]; then
-    # Force delete individual pods
-    for cleanup in $(oc get pods -n $(oc get ns -l kube-burner-uuid=${UUID} -o custom-columns=name:{.metadata.name} --no-headers) --no-headers -o custom-columns=name:{.metadata.name}); do
-      oc delete -n $(oc get ns -l kube-burner-uuid=${UUID} -o custom-columns=name:{.metadata.name} --no-headers) pod/${cleanup} --force
+  kube_ns=$(oc get ns -l kube-burner-uuid=${UUID} -o custom-columns=name:{.metadata.name} --no-headers)
+
+  if [[ $kube_ns ]]; then
+    # Ignore cluster density workloads
+    if [[ ! "$WORKLOAD" =~ cluster ]]; then
+      # Force delete individual pods
+      for cleanup in $(oc get pods -n ${kube_ns} --no-headers -o custom-columns=name:{.metadata.name}); do
+        oc delete -n ${kube_ns} pod/${cleanup} --force
+      done
+    fi
+
+    # Force delete the remaining namespaces
+    for ns in ${kube_ns}; do
+      oc delete --all pods -n ${ns} --force --grace-period=0 --ignore-not-found --wait
+      oc delete namespace ${ns} --ignore-not-found
     done
   fi
 
-  # Force delete the remaining namespaces
-  for ns in $(oc get ns -l kube-burner-uuid=${UUID} -o custom-columns=name:{.metadata.name} --no-headers); do
-    oc delete --all pods -n ${ns} --force --grace-period=0 --ignore-not-found --wait
-    oc delete namespace ${ns} --ignore-not-found
-  done
 }
 
 get_pprof_secrets() {

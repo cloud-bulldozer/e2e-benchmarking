@@ -18,6 +18,7 @@ export SERVICETYPE=clusterip
 export ADDRESSPOOL=addresspool-l2
 export SERVICE_ETP=Cluster
 export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
+export SAMPLES=${SAMPLES:-3}
 
 # Comparison and csv generation
 BASELINE_HOSTNET_UUID=${BASELINE_HOSTNET_UUID}

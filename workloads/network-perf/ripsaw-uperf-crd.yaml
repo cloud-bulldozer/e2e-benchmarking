@@ -31,7 +31,7 @@ spec:
       pin_client: "$client"
       multus:
         enabled: false
-      samples: 3
+      samples: ${SAMPLES}
       pair: ${pairs}
       nthrs:
         - 1

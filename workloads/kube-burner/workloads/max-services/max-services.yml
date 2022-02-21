@@ -68,6 +68,8 @@ jobs:
     verifyObjects: ${VERIFY_OBJECTS}
     errorOnVerify: ${ERROR_ON_VERIFY}
     maxWaitTimeout: ${MAX_WAIT_TIMEOUT}
+    preLoadImages: ${PRELOAD_IMAGES}
+    preLoadPeriod: ${PRELOAD_PERIOD}
     objects:
       - objectTemplate: deployment.yml
         replicas: 1
