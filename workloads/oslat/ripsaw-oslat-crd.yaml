@@ -7,13 +7,13 @@ metadata:
   namespace: benchmark-operator
 spec:
   elasticsearch:
-    url: ${ES_SERVER}
+    server: ${ES_SERVER}
   metadata:
     collection: ${METADATA_COLLECTION}
   workload:
     name: "oslat"
     args:
-      node_selector: node-role.kubernetes.io/worker-rt=
+      node_selector: node-role.kubernetes.io/worker-oslat=
       runtime: ${RUNTIME}
       disable_cpu_balance: ${DISABLE_CPU_BALANCE}
       use_taskset: ${USE_TASKSET}

@@ -1,5 +1,6 @@
 source env.sh
 source ../../utils/benchmark-operator.sh
+#source ../../utils/library.sh
 
 # If ES_SERVER is set and empty we disable ES indexing and metadata collection
 if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
@@ -69,7 +70,7 @@ export_defaults() {
 }
 
 deploy_perf_profile() {
-  if [[ $(oc get performanceprofile --no-headers | awk '{print $1}') == "benchmark-performance-profile-0" ]]; then
+  if [[ $(oc get performanceprofile --no-headers | awk '{print $1}') == "benchmark-performance-profile-oslat" ]]; then
     log "Performance profile already exists. Applying the oslat profile"
     oc apply -f perf_profile.yaml
     if [ $? -ne 0 ]; then
@@ -83,7 +84,7 @@ deploy_perf_profile() {
       # iterate over worker nodes bareMetalHandles until we have 2
       worker_count=0
       oslat_workers=()
-      workers=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT} | sed -e 's/^node\///')
+      workers=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker=,node-role.kubernetes.io/worker-pmd!="",node-role.kubernetes.io/worker-cyclic!="" | head -${NODE_COUNT} | sed -e 's/^node\///')
       while [ $worker_count -lt 1 ]; do
         for worker in $workers; do
        	  worker_ip=$(oc get node $worker -o json | jq -r ".status.addresses[0].address" | grep 192 )
@@ -97,54 +98,65 @@ deploy_perf_profile() {
     fi
   fi
   # label the two nodes for the performance profile
-  log "Labeling -lat nodes"
+  log "Labeling -oslat nodes"
   for w in ${oslat_workers[@]}; do
-    oc label node $w node-role.kubernetes.io/worker-rt="" --overwrite=true
+    oc label node $w node-role.kubernetes.io/worker-oslat="" --overwrite=true
   done
   # create the machineconfigpool
-  log "Creating the MCP"
-  oc apply -f machineconfigpool.yaml
-  sleep 30
-  if [ $? -ne 0 ] ; then
-    log "Couldn't create the MCP, exiting!"
-    exit 1
-  fi
-  # add the label to the MCP pool 
-  log "Labeling the MCP"
-  oc label mcp worker-rt machineconfiguration.openshift.io/role=worker-rt --overwrite=true
-  if [ $? -ne 0 ] ; then
-    log "Couldn't label the MCP, exiting!"
-    exit 1
-  fi
-  # apply the performanceProfile
-  log "Applying the performanceProfile since it doesn't exist yet"
-  profile=$(oc get performanceprofile benchmark-performance-profile-0 --no-headers)
-  if [ $? -ne 0 ] ; then
-    log "PerformanceProfile not found, creating it"
-    oc apply -f perf_profile.yaml
+  mcps=$(oc get mcp --no-headers | awk {'print $1'})
+  if [[ $mcps =~ "worker-oslat" ]]; then
+    log "MCP already exists"
+  else
+    log "Creating the MCP"
+    oc apply -f machineconfigpool.yaml
+    sleep 30
     if [ $? -ne 0 ] ; then
-      log "Couldn't apply the performance profile, exiting!"
+      log "Couldn't create the MCP, exiting!"
+      exit 1
+    fi
+    # add the label to the MCP pool 
+    log "Labeling the MCP"
+    oc label mcp worker-oslat machineconfiguration.openshift.io/role=worker-oslat --overwrite=true
+    if [ $? -ne 0 ] ; then
+      log "Couldn't label the MCP, exiting!"
       exit 1
     fi
   fi
-  # We need to wait for the nodes with the perfProfile applied to to reboot
-  # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes
-  # if they're ready we'll continue. Should the performance profile require reboots, that will have
-  # started within the 60 seconds
-  iterations=0
-  log "Sleeping for 60 seconds"
-  sleep 60
-  readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-  while [[ $readycount -lt 1 ]]; do
-    if [[ $iterations -gt $PROFILE_TIMEOUT ]]; then
-      log "Waited for the -rt MCP for $PROFILE_TIMEOUT minutes, bailing!"
-      exit 124
+
+  pprofile=$(oc get performanceprofile --no-headers | awk '{print $1}')
+  if [[ $pprofile =~ "benchmark-performance-profile-oslat" ]]; then
+    log "PerformanceProfile already exists"
+  else
+    # apply the performanceProfile
+    log "Applying the performanceProfile since it doesn't exist yet"
+    profile=$(oc get performanceprofile benchmark-performance-profile-oslat --no-headers)
+    if [ $? -ne 0 ] ; then
+      log "PerformanceProfile not found, creating it"
+      oc apply -f perf_profile.yaml
+      if [ $? -ne 0 ] ; then
+        log "Couldn't apply the performance profile, exiting!"
+        exit 1
+      fi
     fi
-    log "Waiting for -rt nodes to become ready again, sleeping 1 minute"
+    # We need to wait for the nodes with the perfProfile applied to to reboot
+    # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes
+    # if they're ready we'll continue. Should the performance profile require reboots, that will have
+    # started within the 60 seconds
+    iterations=0
+    log "Sleeping for 60 seconds"
     sleep 60
-    readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-    iterations=$((iterations+1))
-  done
+    readycount=$(oc get mcp worker-oslat --no-headers | awk '{print $7}')
+    while [[ $readycount -lt 1 ]]; do
+      if [[ $iterations -gt $PROFILE_TIMEOUT ]]; then
+        log "Waited for the -oslat MCP for $PROFILE_TIMEOUT minutes, bailing!"
+        exit 124
+      fi
+      log "Waiting for -oslat nodes to become ready again, sleeping 1 minute"
+      sleep 60
+      readycount=$(oc get mcp worker-oslat --no-headers | awk '{print $7}')
+      iterations=$((iterations+1))
+    done
+  fi
 }
 
 deploy_operator() {
@@ -157,10 +169,14 @@ deploy_operator() {
 
 run_workload() {
   log "Deploying oslat benchmark"
+  #START_DATE=$(date +%s)
   local TMPCR=$(mktemp)
   envsubst < $1 > ${TMPCR}
   run_benchmark ${TMPCR} ${TEST_TIMEOUT}
   local rc=$?
+  #END_DATE=$(date +%s)
+  log "Generating metadata document"
+  echo gen_metadata $WORKLOAD $START_DATE $END_DATE
   if [[ ${TEST_CLEANUP} == "true" ]]; then 
     log "Cleaning up benchmark"
     kubectl delete -f ${TMPCR}

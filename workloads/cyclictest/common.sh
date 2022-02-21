@@ -69,81 +69,78 @@ export_defaults() {
 } 
 
 deploy_perf_profile() {
-  if [[ $(oc get performanceprofile --no-headers | awk '{print $1}') == "benchmark-performance-profile-0" ]]; then
-    log "Performance profile already exists. Applying the cyclictest profile"
-    oc apply -f perf_profile.yaml
-    if [ $? -ne 0 ]; then
-      log "Couldn't apply performance profile, exiting!"
-      exit 1
-    fi
-  else 
-    if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
-      log "Trying to find a suitable node for testpmd"
-      # iterate over worker nodes until we have at least 1 
-      worker_count=0
-      testpmd_workers=()
-      workers=$(oc get bmh -n openshift-machine-api | grep worker | awk '{print $1}')
-      while [ $worker_count -lt 1 ] ; do
-        for worker in $workers; do
-    	  worker_ip=$(oc get node $worker -o json | jq -r ".status.addresses[0].address" | grep 192 )
-          if [[ ! -z "$worker_ip" ]]; then 
-            testpmd_workers+=( $worker )
-  	    ((worker_count=worker_count+1))
-	    break
-          fi
-        done
+  if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
+    log "Trying to find a suitable node for the cyclictest"
+    # iterate over worker nodes until we have at least 1 
+    worker_count=0
+    cyclictest_workers=()
+    workers=$(oc get nodes -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker="",node-role.kubernetes.io/worker-pmd!="",node-role.kubernetes.io/worker-oslat!="" | head -${NODE_COUNT} | sed -e 's/^node\///')
+    while [ $worker_count -lt 1 ]; do
+      for worker in $workers; do
+	worker_ip=$(oc get node $worker -o json | jq -r ".status.addresses[0].address" | grep 192 )
+	if [[ ! -z "worker_ip" ]]; then
+	  cyclictest_workers+=( $worker )
+	  ((worker_count=worker_count+1))
+	  break
+	fi
       done
-    fi
-    # label the two nodes for the performance profile
-    log "Labeling -rt nodes"
-    for w in ${testpmd_workers[@]}; do
-      oc label node $w node-role.kubernetes.io/worker-rt="" --overwrite=true
     done
-    # create the machineconfigpool
+  fi
+
+  # label the node for the performance profile
+  log "Labeling -cyclic node"
+  for w in ${cyclictest_workers[@]}; do
+    oc label node $w node-role.kubernetes.io/worker-cyclic="" --overwrite=true
+  done
+  # create the machineconfigpool if it doesn't exist
+  mcp=$(oc get mcp | grep cyclic | awk {'print $1'})
+  if [ $mcp = "worker-cyclic" ]; then
+    log "MCP already exists"
+  else
     log "Create the MCP"
     oc create -f machineconfigpool.yaml
-    sleep 30
     if [ $? -ne 0 ] ; then
       log "Couldn't create the MCP, exiting!"
       exit 1
+    sleep 30
     fi
     # add the label to the MCP pool 
     log "Labeling the MCP"
-    oc label mcp worker-rt machineconfiguration.openshift.io/role=worker-rt
+    oc label mcp worker-cyclic machineconfiguration.openshift.io/role=worker-cyclic
     if [ $? -ne 0 ] ; then
       log "Couldn't label the MCP, exiting!"
       exit 1
     fi
-    # apply the performanceProfile
-    log "Applying the performanceProfile if it doesn't exist yet"
-    profile=$(oc get performanceprofile benchmark-performance-profile-0 --no-headers)
-    if [ $? -ne 0 ] ; then
-      log "PerformanceProfile not found, creating it"
-      oc create -f perf_profile.yaml
-      if [ $? -ne 0 ] ; then
-        log "Couldn't apply the performance profile, exiting!"
-        exit 1
-      fi
-    fi
-    # We need to wait for the nodes with the perfProfile applied to to reboot
-    # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes 
-    # if they're ready we'll continue. Should the performance profile require reboots, that will have
-    # started within the 60 seconds 
-    iterations=0
-    log "Sleeping for 60 seconds"
-    sleep 60
-    readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-    while [[ $readycount -lt 1 ]]; do
-      if [[ $iterations -gt $PROFILE_TIMEOUT ]] ; then
-        log "Waited for the -rt MCP for $PROFILE_TIMEOUT minutes, bailing!"
-	exit 124
-      fi
-      log "Waiting for -rt nodes to become ready again, sleeping 1 minute"
-      sleep 60
-      readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-      iterations=$((iterations+1))
-    done
   fi
+  # apply the performanceProfile
+  log "Applying the performanceProfile if it doesn't exist yet"
+  profile=$(oc get performanceprofile benchmark-performance-profile-cyclic --no-headers)
+  if [ $? -ne 0 ] ; then
+    log "PerformanceProfile not found, creating it"
+    oc create -f perf_profile.yaml
+    if [ $? -ne 0 ] ; then
+      log "Couldn't apply the performance profile, exiting!"
+    exit 1
+    fi
+  fi
+  # We need to wait for the nodes with the perfProfile applied to to reboot
+  # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes 
+  # if they're ready we'll continue. Should the performance profile require reboots, that will have
+  # started within the 60 seconds 
+  iterations=0
+  log "Sleeping for 60 seconds"
+  sleep 60
+  readycount=$(oc get mcp worker-cyclic --no-headers | awk '{print $7}')
+  while [[ $readycount -lt 1 ]]; do
+    if [[ $iterations -gt $PROFILE_TIMEOUT ]] ; then
+      log "Waited for the -cyclic MCP for $PROFILE_TIMEOUT minutes, bailing!"
+      exit 124
+    fi
+    log "Waiting for -cyclic nodes to become ready again, sleeping 1 minute"
+    sleep 60
+    readycount=$(oc get mcp worker-cyclic --no-headers | awk '{print $7}')
+    iterations=$((iterations+1))
+  done
 }
 
 deploy_operator() {

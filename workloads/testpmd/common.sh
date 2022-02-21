@@ -91,7 +91,7 @@ deploy_perf_profile() {
   if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
     log "Trying to find 2 suitable nodes only for testpmd"
     worker_count=0
-    workers=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT} | sed -e 's/^node\///')
+    workers=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker-oslat!="",node-role.kubernetes.io/worker-cyclic!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT} | sed -e 's/^node\///')
     # turn it into an array
     workers=($workers) 
     if [[ ${#workers[@]} -lt 1 ]] ; then
@@ -107,7 +107,7 @@ deploy_perf_profile() {
         fi
     done
   fi
-  
+   
   # get the interface's NUMA zone
   if [ ! -f /home/kni/.ssh/id_rsa ] ; then
 	  log "id_rsa for user kni doesn't exist, bailing!"
@@ -220,82 +220,102 @@ deploy_perf_profile() {
   export reserved_cpus=$reserved_string
  
   # label the two nodes for the performance profile
-  log "Labeling -rt nodes"
+  log "Labeling -pmd nodes"
   for w in ${testpmd_workers[@]}; do
-    oc label node $w node-role.kubernetes.io/worker-rt="" --overwrite=true
+    oc label node $w node-role.kubernetes.io/worker-pmd="" --overwrite=true
   done
 
   # create the machineconfigpool
-  log "Create the MCP"
-  envsubst < $MCP | oc apply -f -
-  sleep 30
-  if [ $? -ne 0 ] ; then
-    log "Couldn't create the MCP, exiting!"
-    exit 1
+  mcps=$(oc get mcp --no-headers | awk {'print $1'})
+  if [[ $mcps =~ "worker-pmd" ]]; then 
+    log "MCP already exists"
+  else
+    log "Create the MCP"
+    envsubst < $MCP | oc apply -f -
+    sleep 30
+    if [ $? -ne 0 ] ; then
+      log "Couldn't create the MCP, exiting!"
+      exit 1
+    fi
+
+    # add the label to the MCP pool 
+    log "Labeling the MCP"
+    oc label mcp worker-pmd machineconfiguration.openshift.io/role=worker-pmd --overwrite=true
+    if [ $? -ne 0 ] ; then
+      log "Couldn't label the MCP, exiting!"
+      exit 1
+    fi
   fi
 
-  # add the label to the MCP pool 
-  log "Labeling the MCP"
-  oc label mcp worker-rt machineconfiguration.openshift.io/role=worker-rt --overwrite=true
-  if [ $? -ne 0 ] ; then
-    log "Couldn't label the MCP, exiting!"
-    exit 1
-  fi
-
-  # apply the performanceProfile
-  log "Applying the performanceProfile"
-  envsubst < $PFP | oc apply -f -
-  if [ $? -ne 0 ] ; then
-    log "Couldn't apply the performance profile, exiting!"
-    exit 1
-  fi
+  pprofile=$(oc get performanceprofile --no-headers | awk '{print $1}')
+  if [[ $pprofile =~ "benchmark-performance-profile-testpmd" ]]; then 
+    log "PerformanceProfile already exists"
+  else
+    # apply the performanceProfile
+    log "Applying the performanceProfile"
+    envsubst < $PFP | oc apply -f -
+    if [ $? -ne 0 ] ; then
+      log "Couldn't apply the performance profile, exiting!"
+      exit 1
+    fi
   
-  # We need to wait for the nodes with the perfProfile applied to to reboot
-  # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes
-  # if they're ready, we'll continue. Should the performance profile require reboots, that will have
-  # started within the 60 seconds
-  iterations=0
-  log "Sleeping for 60 seconds"
-  sleep 60
-  readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-  while [[ $readycount -lt 2 ]]; do
-    if [[ $iterations -gt $PROFILE_TIMEOUT ]]; then
-      log "Waited for the -rt MCP for $PROFILE_TIMEOUT minutes, bailing!"
-      exit 124
-    fi
-    log "Waiting for -rt nodes to become ready again after the performance-profile has been deployed, sleeping 1 minute"
+    # We need to wait for the nodes with the perfProfile applied to to reboot
+    # this is a catchall approach, we sleep for 60 seconds and check the status of the nodes
+    # if they're ready, we'll continue. Should the performance profile require reboots, that will have
+    # started within the 60 seconds
+    iterations=0
+    log "Sleeping for 60 seconds"
     sleep 60
-    readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-    iterations=$((iterations+1))
-  done
-
-  # apply the node policy
-  envsubst < $NNP | oc apply -f -
-  if [ $? -ne 0 ] ; then
-    log "Could't create the network node policy, exiting!"
-    exit 1
+    readycount=$(oc get mcp worker-pmd --no-headers | awk '{print $7}')
+    while [[ $readycount -lt 2 ]]; do
+      if [[ $iterations -gt $PROFILE_TIMEOUT ]]; then
+        log "Waited for the -rt MCP for $PROFILE_TIMEOUT minutes, bailing!"
+        exit 124
+      fi
+      log "Waiting for -pmd nodes to become ready again after the performance-profile has been deployed, sleeping 1 minute"
+      sleep 60
+      readycount=$(oc get mcp worker-pmd --no-headers | awk '{print $7}')
+      iterations=$((iterations+1))
+    done
   fi
-  # we need to wait for the second reboot
-  iterations=0
-  log "Sleeping for 60 seconds"
-  sleep 60
-  readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-  while [[ $readycount -lt 2 ]]; do
-    if [[ $iterations -gt $PROFILE_TIMEOUT ]]; then
-      log "Waited for the -rt MCP for $PROFILE_TIMEOUT minutes, bailing"
-      exit 124
+
+  nodepolicy=$(oc get SriovNetworkNodePolicy --no-headers | awk '{print $1}')
+  if [[ $nodepolicy =~ "testpmd-policy" ]] ; then
+    log "Node policy already exists"
+  else
+    # apply the node policy
+    envsubst < $NNP | oc apply -f -
+    if [ $? -ne 0 ] ; then
+      log "Could't create the network node policy, exiting!"
+      exit 1
     fi
-    log "Waiting for -rt nodes to become ready again after the sriov-network-policy has been deployed, sleeping 1 minute"
+    # we need to wait for the second reboot
+    iterations=0
+    log "Sleeping for 60 seconds"
     sleep 60
-    readycount=$(oc get mcp worker-rt --no-headers | awk '{print $7}')
-    iterations=$((iterations+1))
-  done
+    readycount=$(oc get mcp worker-pmd --no-headers | awk '{print $7}')
+    while [[ $readycount -lt 2 ]]; do
+      if [[ $iterations -gt $PROFILE_TIMEOUT ]]; then
+        log "Waited for the -rt MCP for $PROFILE_TIMEOUT minutes, bailing"
+        exit 124
+      fi
+      log "Waiting for -pmd nodes to become ready again after the sriov-network-policy has been deployed, sleeping 1 minute"
+      sleep 60
+      readycount=$(oc get mcp worker-pmd --no-headers | awk '{print $7}')
+      iterations=$((iterations+1))
+    done
+  fi
 
   # create the network
-  oc apply -f sriov_network.yaml
-  if [ $? -ne 0 ] ; then
-    log "Could not create the sriov network, exiting!"
-    exit 1
+  network=$(oc get SriovNetwork --no-headers | awk {'print $1'})
+  if [[ $network =~ "testpmd-sriov-network" ]]; then
+    log "SRIOV network already exists"
+  else
+    oc apply -f sriov_network.yaml
+    if [ $? -ne 0 ] ; then
+      log "Could not create the sriov network, exiting!"
+      exit 1
+    fi
   fi
 }
 

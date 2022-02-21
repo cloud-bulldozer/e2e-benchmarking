@@ -9,7 +9,7 @@ export COMPARE_WITH_GOLD=${COMPARE_WITH_GOLD:-false}
 # indexing variables
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=${ES_INDEX:-ripsaw-cyclictest}
-export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
+export METADATA_COLLECTION=${METADATA_COLLECTION:-false}
 
 export COMPARE=false
 export COMPARE_WITH_GOLD=
@@ -28,7 +28,7 @@ export DISABLE_CPU_BALANCE=${DISABLE_CPU_BALANCE:-true}
 export STRESSNG=${STRESSNG:-false}
 export MEMORY_REQUESTS=${MEMORY_REQUESTS:-200Mi}
 export CPU_REQUESTS=${CPU_REQUESTS:-4}
-export MEMORY_LIMITS=${MEMORY_LIMITS:-200Mi}
+export MEMORY_LIMITS=${MEMORY_LIMITS:-400Mi}
 export CPU_LIMITS=${CPU_LIMITS:-4}
 export TEST_TIMEOUT=${TEST_TIMEOUT:-600}
 

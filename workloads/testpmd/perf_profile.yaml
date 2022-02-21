@@ -2,7 +2,7 @@
 apiVersion: performance.openshift.io/v1
 kind: PerformanceProfile
 metadata:
-   name: benchmark-performance-profile-0
+   name: benchmark-performance-profile-testpmd
 spec:
    cpu:
      isolated: "$isolated_cpus"
@@ -16,7 +16,7 @@ spec:
    numa:
      topologyPolicy: "best-effort"
    nodeSelector:
-     node-role.kubernetes.io/worker-rt: ""
+     node-role.kubernetes.io/worker-pmd: ""
    realTimeKernel:
      enabled: false
    additionalKernelArgs:

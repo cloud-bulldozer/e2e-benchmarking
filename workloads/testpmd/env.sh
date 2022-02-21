@@ -5,7 +5,7 @@ export OPERATOR_BRANCH=${OPERATOR_BRANCH:=master}
 # Benchmark comparison
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=${ES_INDEX:-ripsaw-testpmd}
-export METADATA_COLLECTION={METADATA_COLLECTION:-true}
+export METADATA_COLLECTION=${METADATA_COLLECTION:-false}
 
 export COMPARE=false
 export COMPARE_WITH_GOLD=

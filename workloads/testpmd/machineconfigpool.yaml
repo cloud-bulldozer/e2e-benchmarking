@@ -1,11 +1,11 @@
 apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfigPool
 metadata:
-  name: "worker-rt"
+  name: "worker-pmd"
 spec:
   machineConfigSelector:
     matchExpressions:
-      - {key: machineconfiguration.openshift.io/role, operator: In, values: [worker,worker-rt]}
+      - {key: machineconfiguration.openshift.io/role, operator: In, values: [worker,worker-pmd]}
   nodeSelector:
     matchLabels:
-      node-role.kubernetes.io/worker-rt: ""
+      node-role.kubernetes.io/worker-pmd: ""
