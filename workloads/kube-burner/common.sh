@@ -72,6 +72,9 @@ run_workload() {
    cp ${ALERTS_PROFILE} ${tmpdir}/alerts.yml
   fi
   log "Creating kube-burner configmap"
+  if [[ ${CLEANUP} == true ]]; then
+    kubectl delete -n benchmark-operator configmap/kube-burner-cfg-${UUID} --ignore-not-found
+  fi
   kubectl create configmap -n benchmark-operator --from-file=${tmpdir} kube-burner-cfg-${UUID}
   rm -rf ${tmpdir}
   log "Deploying benchmark"

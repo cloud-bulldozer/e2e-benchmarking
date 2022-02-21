@@ -38,7 +38,7 @@ All scripts can be tweaked with the following environment variables:
 | **PRELOAD_IMAGES**   | Preload kube-buner's benchmark images in the cluster | true |
 | **PRELOAD_PERIOD**   | How long the preload stage will last | 2m |
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
-| **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
+| **CLEANUP**          | Delete workload's old namespaces and kube-burner config configmap before starting the benchmark | false |
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
 | **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.14.3 |
 | **LOG_LEVEL**        | Kube-burner log level | info |
