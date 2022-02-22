@@ -19,8 +19,8 @@ All scripts can be tweaked with the following environment variables:
 | **OPERATOR_REPO**              | Benchmark-operator repo                     | https://github.com/cloud-bulldozer/benchmark-operator.git      |
 | **OPERATOR_BRANCH**              | Benchmark-operator branch                     | master      |
 | **INDEXING**         | Enable/disable indexing         | true    |
-| **ES_SERVER**        | Elastic search endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
-| **ES_INDEX**         | Elastic search index            | ripsaw-kube-burner|
+| **ES_SERVER**        | Elasticsearch endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
+| **ES_INDEX**         | Elasticsearch index            | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
 | **METADATA_COLLECTION**    | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
 | **JOB_TIMEOUT**      | Kube-burner's job timeout, in seconds      | 14400 (4 hours) |

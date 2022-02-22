@@ -1,20 +1,48 @@
 #!/usr/bin/env bash
 
 source ./common.sh
-export WORKLOAD=${WORKLOAD}
 
-if [[ $WORKLOAD == "hostnet" ]]; then
+CR=ripsaw-uperf-crd.yaml
+export PAIRS=${PAIRS:-1}
+
+case ${WORKLOAD} in
+  pod2pod)
+  ;;
+  pod2svc)
+    export SERVICEIP=true
+  ;;
+  hostnet)
     export HOSTNETWORK=true
-elif [[ $WORKLOAD == "service" ]]; then
-    export SERVICEIP=true 
+  ;;
+  smoke)
+    CR=smoke-crd.yaml
+    export SAMPLES=1
+  ;;
+  *)
+     log "Unkonwn workload ${WORKLOAD}, exiting"
+     exit 1
+  ;;
+esac
+
+log "###############################################"
+log "Workload: ${WORKLOAD}"
+log "Network policy: ${NETWORK_POLICY}"
+log "Samples: ${SAMPLES}"
+log "Pairs: ${PAIRS}"
+log "###############################################"
+
+for pairs in ${PAIRS}; do
+  export PAIRS=${pairs}
+  if ! run_workload ${CR}; then
+    exit 1
+  fi
+done
+
+BASELINE_UUID=${BASELINE_POD_UUID}
+COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
+run_benchmark_comparison
+
+if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
+  snappy_backup network_perf_${WORKLOAD}_test
 fi
-
-export pairs=${PAIRS:-1}
-export UUID=${UUID:-$(uuidgen)}
-
-run_workload ripsaw-uperf-crd.yaml
-if [[ $? != 0 ]]; then
-  exit 1
-fi
-
 log "Finished workload ${0}"

@@ -1,9 +1,8 @@
 ---
-
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
-  name: uperf-benchmark-${WORKLOAD}-network-${pairs}
+  name: uperf-${WORKLOAD}-network-${PAIRS}
   namespace: benchmark-operator
 spec:
   uuid: ${UUID}
@@ -27,8 +26,8 @@ spec:
       pin_client: "$client"
       multus:
         enabled: false
-      samples: 1
-      pair: ${pairs}
+      samples: ${SAMPLES}
+      pair: ${PAIRS}
       nthrs:
         - 1
       protos:
