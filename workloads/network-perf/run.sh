@@ -14,6 +14,7 @@ case ${WORKLOAD} in
     export HOSTNETWORK=true
   ;;
   smoke)
+    COMPARISON_CONFIG=uperf-touchstone-smoke.json
     CR=smoke-crd.yaml
     export SAMPLES=1
   ;;
