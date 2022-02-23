@@ -3,7 +3,6 @@
 source ./common.sh
 
 CR=ripsaw-uperf-crd.yaml
-export PAIRS=${PAIRS:-1}
 
 case ${WORKLOAD} in
   pod2pod)
