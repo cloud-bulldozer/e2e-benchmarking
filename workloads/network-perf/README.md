@@ -7,7 +7,8 @@ There are 5 types network tests:
 2. pod to pod using SDN and network policy: `WORKLOAD=pod2pod NETWORK_POLICY=true ./run.sh`
 3. pod to pod using Hostnetwork: `WORKLOAD=pod2pod HOSTNETWORK=true ./run.sh`
 4. pod to service: `WORKLOAD=pod2svc ./run.sh`
-5. pod to pod using Multus (NetworkAttachmentDefinition needs to be provided): `./run_multus_network_tests_fromgit.sh`
+5. pod to service and network policy: `WORKLOAD=pod2svc NETWORK_POLICY=true ./run.sh`
+6. pod to pod using Multus (NetworkAttachmentDefinition needs to be provided): `./run_multus_network_tests_fromgit.sh`
 
 Running from CLI:
 
