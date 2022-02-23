@@ -2,7 +2,7 @@
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
-  name: uperf-${WORKLOAD}-network-${PAIRS}
+  name: uperf-${WORKLOAD}-${PAIRS}
   namespace: benchmark-operator
 spec:
   uuid: ${UUID}

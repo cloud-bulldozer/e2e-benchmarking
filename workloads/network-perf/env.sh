@@ -15,6 +15,7 @@ export WORKLOAD=${WORKLOAD:-smoke}
 export NETWORK_POLICY=${NETWORK_POLICY:=false}
 export MULTI_AZ=${MULTI_AZ:=true}
 export HOSTNETWORK=false
+export SERVICEIP=false
 export SERVICETYPE=${SERVICETYPE:-clusterip}
 export ADDRESSPOOL=${ADDRESSPOOL:-addresspool-l2}
 export SERVICE_ETP=${SERVICE_ETP:-Cluster}
