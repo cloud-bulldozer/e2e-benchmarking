@@ -29,6 +29,11 @@ log "Workload: ${WORKLOAD}"
 log "Network policy: ${NETWORK_POLICY}"
 log "Samples: ${SAMPLES}"
 log "Pairs: ${PAIRS}"
+if [[ ${SERVICEIP} == "true" && ${SERVICETYPE} == "metallb" ]]; then
+  log "Service type: ${SERVICETYPE}"
+  log "Address pool: ${ADDRESSPOOL}"
+  log "Service ETP: ${SERVICE_ET}"
+fi
 log "###############################################"
 
 for pairs in ${PAIRS}; do

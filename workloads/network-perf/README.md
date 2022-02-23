@@ -3,11 +3,11 @@
 The purpose of the network scripts is to run uperf workload on the Openshift Cluster.
 There are 5 types network tests:
 
-1. pod to pod using SDN: `export WORKLOAD=pod2pod`
-2. pod to pod using SDN and network policy: `export WORKLOAD=pod2pod NETWORK_POLICY=true`
-3. pod to pod using Hostnetwork: `export WORKLOAD=pod2pod HOSTNETWORK=true`
-4. pod to service: `export WORKLOAD=pod2svc`
-5. pod to pod using Multus (NetworkAttachmentDefinition needs to be provided)
+1. pod to pod using SDN: `WORKLOAD=pod2pod ./run.sh`
+2. pod to pod using SDN and network policy: `WORKLOAD=pod2pod NETWORK_POLICY=true ./run.sh`
+3. pod to pod using Hostnetwork: `WORKLOAD=pod2pod HOSTNETWORK=true ./run.sh`
+4. pod to service: `WORKLOAD=pod2svc ./run.sh`
+5. pod to pod using Multus (NetworkAttachmentDefinition needs to be provided): `./run_multus_network_tests_fromgit.sh`
 
 Running from CLI:
 
@@ -28,6 +28,10 @@ The run.sh script can be tweaked with the following environment variables
 | **METADATA_COLLECTION** | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
 | **HOSTNETWORK**         | If enabled, will test the performance of the node the pod will run on | false |
 | **NETWORK_POLICY**      | If enabled, benchmark-operator will create a network policy to allow ingress trafic in uperf server pods | false |
+| **SERVICETYPE**         | To provide specifics about openshift service types, supported options `clusterip`, `nodeport`, `metallb`
+`metallb` type requires manual installation of operators and configuration of BGPPeers as explained [here](https://github.com/cloud-bulldozer/benchmark-operator/blob/master/docs/uperf.md#advanced-service-types) | clusterip |
+| **ADDRESSPOOL**         | To provide MetalLB addresspool for a service, this will be used as LoadBalancer network. Mentioned addresspool should be pre-provisioned before execution of this script. | addresspool-l2 |
+| **SERVICE_ETP**         | To mention the type of `ExternalTrafficPolicy` of a service, supported option `Cluster` or `Local` | Cluster |
 | **SAMPLES**             | How many times to run the tests | 3 |
 | **MULTI_AZ**            | If true, uperf client and server pods will be colocated in different topology zones or AZs (`topology.kubernetes.io/zone` in k8s terminology). 2 worker nodes in differet topology zones are required to enable this flag.  If false, uperf client and server pods will be colocated in the same topology zone | true |
 | **PAIRS**               | List with the number of pairs the test will be triggered | 1 2 4 |
