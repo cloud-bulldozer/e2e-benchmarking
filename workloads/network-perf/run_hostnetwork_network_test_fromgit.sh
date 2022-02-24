@@ -3,6 +3,7 @@
 source ./common.sh
 export WORKLOAD=hostnet
 export HOSTNETWORK=true
+export SERVICEIP=false
 export pairs=1
 export UUID=$(uuidgen)
 
