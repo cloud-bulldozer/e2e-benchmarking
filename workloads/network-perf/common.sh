@@ -117,7 +117,6 @@ deploy_operator() {
   kubectl apply -f benchmark-operator/resources/backpack_role.yaml
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
-  oc patch scc restricted --type=merge -p '{"allowHostNetwork": true}'
 }
 
 run_workload() {
