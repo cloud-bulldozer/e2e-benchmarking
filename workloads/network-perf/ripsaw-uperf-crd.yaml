@@ -13,7 +13,6 @@ spec:
     serviceaccount: backpack-view
     privileged: true
     targeted: ${METADATA_TARGETED}
-  cerberus_url: "$CERBERUS_URL"
   workload:
     name: uperf
     args:

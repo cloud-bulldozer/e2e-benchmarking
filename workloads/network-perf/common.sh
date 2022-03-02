@@ -7,17 +7,6 @@ source ../../utils/compare.sh
 
 openshift_login
 
-check_cluster_health() {
-  if [[ ${CERBERUS_URL} ]]; then
-    response=$(curl ${CERBERUS_URL})
-    if [ "$response" != "True" ]; then
-      log "Cerberus status is False, Cluster is unhealthy"
-      exit 1
-    fi
-  fi
-}
-
-
 export_defaults() {
   network_type=$(oc get network cluster -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
   export UUID=$(uuidgen)
@@ -146,5 +135,4 @@ snappy_backup(){
 }
 
 export_defaults
-check_cluster_health
 deploy_operator
