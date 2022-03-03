@@ -6,6 +6,7 @@ metadata:
   namespace: benchmark-operator
 spec:
   uuid: ${UUID}
+  clustername: ${CLUSTER_NAME}
   elasticsearch:
     url: ${ES_SERVER}
   metadata:
