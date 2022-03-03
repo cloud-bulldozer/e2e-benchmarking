@@ -7,51 +7,19 @@ source ../../utils/compare.sh
 
 openshift_login
 
-check_cluster_health() {
-  if [[ ${CERBERUS_URL} ]]; then
-    response=$(curl ${CERBERUS_URL})
-    if [ "$response" != "True" ]; then
-      log "Cerberus status is False, Cluster is unhealthy"
-      exit 1
-    fi
-  fi
-}
-
-
-get_gold_ocp_version(){
-  current_version=$(oc get clusterversion | grep -o [0-9.]* | head -1 | cut -c 1-3)
-  GOLD_OCP_VERSION=$( bc <<< "$current_version - 0.1" )
-}
-
-
 export_defaults() {
   network_type=$(oc get network cluster -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
   export UUID=$(uuidgen)
-  export client_server_pairs=(1 2 4)
-  export CR_NAME=${BENCHMARK:=benchmark}
-  export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
+  export CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath="{.status.infrastructureName}")
+  local baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
   platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
-  log "Platform is found to be: ${platform} "
-  if [[ ${COMPARE_WITH_GOLD} == "true" ]]; then
-    ES_SERVER_BASELINE=${ES_GOLD}
-    log "Comparison with gold enabled, getting golden results from ES: ${ES_SERVER_BASELINE}"
-    get_gold_ocp_version
-    local gold_index=$(curl "${ES_GOLD}/openshift-gold-${platform}-results/_search" -H 'Content-Type: application/json' -d ' {"query": {"term": {"version": '\"${GOLD_OCP_VERSION}\"'}}}')
-    BASELINE_HOSTNET_UUID=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."hostnetwork"."num_pairs"."1"."uuid"')
-    BASELINE_POD_UUID[1]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."podnetwork"."num_pairs"."1"."uuid"')
-    BASELINE_POD_UUID[2]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."podnetwork"."num_pairs"."2"."uuid"')
-    BASELINE_POD_UUID[4]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."podnetwork"."num_pairs"."4"."uuid"')
-    BASELINE_SVC_UUID[1]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."serviceip"."num_pairs"."1"."uuid"')
-    BASELINE_SVC_UUID[2]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."serviceip"."num_pairs"."2"."uuid"')
-    BASELINE_SVC_UUID[4]=$(echo $gold_index | jq -r '."hits".hits[0]."_source"."uperf-benchmark".'\"${GOLD_SDN}\"'."network_type"."serviceip"."num_pairs"."4"."uuid"')
-  fi
   #Check to see if the infrastructure type is baremetal to adjust script as necessary 
   if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
     log "BareMetal infastructure: setting isBareMetal accordingly"
-    export isBareMetal=true
+    isBareMetal=true
   else
-    export isBareMetal=false
+    isBareMetal=false
   fi
 
   #If using baremetal we use different query to find worker nodes
@@ -112,9 +80,7 @@ export_defaults() {
 
 deploy_operator() {
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
-  rm -rf benchmark-operator
-  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
-  kubectl apply -f benchmark-operator/resources/backpack_role.yaml
+  kubectl apply -f https://raw.githubusercontent.com/cloud-bulldozer/benchmark-operator/${OPERATOR_BRANCH}/resources/backpack_role.yaml
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
 }
@@ -169,5 +135,4 @@ snappy_backup(){
 }
 
 export_defaults
-check_cluster_health
 deploy_operator

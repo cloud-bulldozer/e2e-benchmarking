@@ -41,7 +41,6 @@ spec:
     collection: ${METADATA_COLLECTION}
     serviceaccount: backpack-view
     privileged: true
-  cerberus_url: "$CERBERUS_URL" 
   workload:
     name: uperf
     args:
@@ -77,10 +76,6 @@ sleep 30
 
 uperf_state=1
 for i in {1..240}; do
-  if [ "$(oc get benchmarks.ripsaw.cloudbulldozer.io/uperf-benchmark-multus-network -n benchmark-operator -o jsonpath='{.status.state}')" == "Error" ]; then
-    echo "Cerberus status is False, Cluster is unhealthy"
-    exit 1
-  fi
   oc describe -n benchmark-operator benchmarks/uperf-benchmark-multus-network | grep State | grep Complete
   if [ $? -eq 0 ]; then
           echo "UPerf Workload done"

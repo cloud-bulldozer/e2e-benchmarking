@@ -1,12 +1,12 @@
 ---
-
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
 kind: Benchmark
 metadata:
-  name: uperf-benchmark-${WORKLOAD}-network-${pairs}
+  name: uperf-${WORKLOAD}-${PAIRS}
   namespace: benchmark-operator
 spec:
   uuid: ${UUID}
+  clustername: ${CLUSTER_NAME}
   elasticsearch:
     url: ${ES_SERVER}
   metadata:
@@ -14,7 +14,6 @@ spec:
     serviceaccount: backpack-view
     privileged: true
     targeted: ${METADATA_TARGETED}
-  cerberus_url: "$CERBERUS_URL"
   workload:
     name: uperf
     args:
@@ -27,8 +26,8 @@ spec:
       pin_client: "$client"
       multus:
         enabled: false
-      samples: 1
-      pair: ${pairs}
+      samples: ${SAMPLES}
+      pair: ${PAIRS}
       nthrs:
         - 1
       protos:
