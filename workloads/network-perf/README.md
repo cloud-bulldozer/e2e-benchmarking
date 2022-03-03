@@ -5,7 +5,7 @@ There are 5 types network tests:
 
 1. pod to pod using SDN: `WORKLOAD=pod2pod ./run.sh`
 2. pod to pod using SDN and network policy: `WORKLOAD=pod2pod NETWORK_POLICY=true ./run.sh`
-3. pod to pod using Hostnetwork: `WORKLOAD=pod2pod HOSTNETWORK=true ./run.sh`
+3. pod to pod using Hostnetwork: `WORKLOAD=hostnet ./run.sh`
 4. pod to service: `WORKLOAD=pod2svc ./run.sh`
 5. pod to service and network policy: `WORKLOAD=pod2svc NETWORK_POLICY=true ./run.sh`
 6. pod to pod using Multus (NetworkAttachmentDefinition needs to be provided): `./run_multus_network_tests_fromgit.sh`
@@ -28,7 +28,6 @@ The run.sh script can be tweaked with the following environment variables
 | **ES_SERVER**           | Elasticsearch endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 |
 | **METADATA_COLLECTION** | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
 | **METADATA_TARGETED**   | Enable metadata targeted collection | true |
-| **HOSTNETWORK**         | If enabled, will test the performance of the node the pod will run on | false |
 | **NETWORK_POLICY**      | If enabled, benchmark-operator will create a network policy to allow ingress trafic in uperf server pods | false |
 | **SERVICETYPE**         | To provide specifics about openshift service types, supported options `clusterip`, `nodeport`, `metallb`. `metallb` type requires manual installation of operators and configuration of BGPPeers as explained [here](https://github.com/cloud-bulldozer/benchmark-operator/blob/master/docs/uperf.md#advanced-service-types) | clusterip |
 | **ADDRESSPOOL**         | To provide MetalLB addresspool for a service, this will be used as LoadBalancer network. Mentioned addresspool should be pre-provisioned before execution of this script. | addresspool-l2 |
