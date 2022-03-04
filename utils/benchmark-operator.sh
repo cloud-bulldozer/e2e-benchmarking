@@ -52,8 +52,15 @@ remove_benchmark_operator() {
 ############################################################################
 run_benchmark() {
   source ${ripsaw_tmp}/bin/activate
-  set -e
-  ripsaw benchmark run -f ${1} -t ${2}
-  set +e
+  if ! ripsaw benchmark run -f ${1} -t ${2}; then
+    log "Benchmark failed, dumping workload more recent logs to stdout"
+    kubectl -n benchmark-operator get pod -l benchmark-uuid=${UUID}
+    for pod in $(kubectl -n benchmark-operator get pod -l benchmark-uuid=${UUID} -o custom-columns="name:.metadata.name" --no-headers); do
+      log "Pod ${pod}"
+      kubectl logs --prefix --since=30s ${pod}
+    done
+    remove_cli
+    exit 1
+  fi
   deactivate
 }
