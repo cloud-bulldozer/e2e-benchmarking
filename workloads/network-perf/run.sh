@@ -36,16 +36,12 @@ if [[ ${SERVICEIP} == "true" && ${SERVICETYPE} == "metallb" ]]; then
 fi
 log "###############################################"
 
-count=0
 for pairs in ${PAIRS}; do
   export PAIRS=${pairs}
-  if [ $count -gt 0 ]; then
-    export METADATA_COLLECTION=false
-  fi
   if ! run_workload ${CR}; then
     exit 1
   fi
-  ((count++))
+  export METADATA_COLLECTION=false
 done
 
 BASELINE_UUID=${BASELINE_POD_UUID}
