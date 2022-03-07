@@ -16,6 +16,7 @@ uuid = os.getenv("UUID")
 host_network = os.getenv("HOST_NETWORK", "")
 number_of_routers = os.getenv("NUMBER_OF_ROUTERS", "")
 cluster_id = os.getenv("CLUSTER_ID", "")
+cluster_name = os.getenv("CLUSTER_NAME", "")
 openshift_version = os.getenv("OPENSHIFT_VERSION", "")
 kubernetes_version = os.getenv("KUBERNETES_VERSION", "")
 network_type = os.getenv("CLUSTER_NETWORK_TYPE", "")
@@ -81,6 +82,7 @@ def main():
                "test_type": args.termination,
                "uuid": uuid,
                "cluster.id": cluster_id,
+               "cluster.name": cluster_name,
                "cluster.ocp_version": openshift_version,
                "cluster.kubernetes_version": kubernetes_version,
                "cluster.sdn": network_type,

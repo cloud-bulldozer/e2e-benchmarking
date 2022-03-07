@@ -23,6 +23,7 @@ export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/workload: }'}
 
 # Cluster information
 export CLUSTER_ID=$(oc get clusterversion -o jsonpath='{.items[].spec.clusterID}')
+export CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
 export OPENSHIFT_VERSION=$(oc version -o json |  jq -r '.openshiftVersion')
 KUBERNETES_MAJOR_VERSION=$(oc version -o json |  jq -r '.serverVersion.major')
 KUBERNETES_MINOR_VERSION=$(oc version -o json |  jq -r '.serverVersion.minor')

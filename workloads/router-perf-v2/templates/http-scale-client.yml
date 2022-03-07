@@ -34,6 +34,8 @@ spec:
           value: {{.UUID}}
         - name: CLUSTER_ID
           value: "{{.clusterID}}"
+        - name: CLUSTER_NAME
+          value: "{{.clusterName}}"
         - name: OPENSHIFT_VERSION
           value: "{{.openshiftVersion}}"
         - name: KUBERNETES_VERSION
