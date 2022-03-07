@@ -34,7 +34,7 @@ The run.sh script can be tweaked with the following environment variables
 | **SERVICE_ETP**         | To mention the type of `ExternalTrafficPolicy` of a service, supported option `Cluster` or `Local` | Cluster |
 | **SAMPLES**             | How many times to run the tests | 3 |
 | **MULTI_AZ**            | If true, uperf client and server pods will be colocated in different topology zones or AZs (`topology.kubernetes.io/zone` in k8s terminology). 2 worker nodes in differet topology zones are required to enable this flag.  If false, uperf client and server pods will be colocated in the same topology zone | true |
-| **PAIRS**               | List with the number of pairs the test will be triggered | 1 2 4 |
+| **PAIRS**               | List with the number of pairs the test will be triggered (hostnet variant is executed w/ 1 pair only) | 1 2 4 |
 | **TEST_TIMEOUT**        | Benchmark timeout, in seconds | 7200 (2 hours) |
 | **TEST_CLEANUP**        | Remove benchmark CR at the end | true |
 
