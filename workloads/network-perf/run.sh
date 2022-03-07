@@ -41,6 +41,9 @@ for pairs in ${PAIRS}; do
   if ! run_workload ${CR}; then
     exit 1
   fi
+  if [[ ${WORKLOAD} == "hostnet" ]]; then
+    break
+  fi
 done
 
 BASELINE_UUID=${BASELINE_POD_UUID}
