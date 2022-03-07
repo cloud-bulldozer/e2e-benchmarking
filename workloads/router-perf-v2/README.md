@@ -91,6 +91,7 @@ Indexed documents look like:
     "termination": "mix",
     "uuid": "babdc414-09bd-4da1-815f-b95da239faa5",
     "cluster.id": "0d7ce156-90d7-4f87-a4e1-d0553151e78f",
+    "cluster.name": "some-cluster",
     "cluster.ocp_version": "4.9.12",
     "cluster.kubernetes_version": "1.22",
     "cluster.sdn": "OpenShiftSDN",
