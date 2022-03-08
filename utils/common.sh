@@ -126,13 +126,15 @@ gen_metadata() {
         local VERSION_INFO=$(oc version -o json)
         local INFRA_INFO=$(oc get infrastructure.config.openshift.io cluster -o json)
         local PLATFORM=$(echo ${INFRA_INFO} | jq -r .spec.platformSpec.type)
+	if [[ ${PLATFORM} =~ "AWS" ]]; then
+          local CLUSTERTYPE=$(echo ${INFRA_INFO} | jq -r .status.platformStatus.aws.resourceTags[0].value)
+	fi
         local CLUSTER_NAME=$(echo ${INFRA_INFO} | jq -r .status.infrastructureName)
         local OCP_VERSION=$(echo ${VERSION_INFO} | jq -r .openshiftVersion)
         local K8S_VERSION=$(echo ${VERSION_INFO} | jq -r .serverVersion.gitVersion)
         local MASTER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/master= --no-headers | wc -l)
         local WORKER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/worker= --no-headers | wc -l)
         local INFRA_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/infra= --no-headers --ignore-not-found | wc -l)
-        local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/workload= --no-headers --ignore-not-found | wc -l)
         local SDN_TYPE=$(oc get networks.operator.openshift.io cluster -o jsonpath="{.spec.defaultNetwork.type}")
         if [[ ${PLATFORM} != "BareMetal" ]]; then
           local MASTER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/master= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
@@ -161,6 +163,7 @@ local METADATA=$(cat << EOF
 {
 "uuid":"${UUID}",
 "platform":"${PLATFORM}",
+"clustertype":"${CLUSTERTYPE}",
 "ocp_version":"${OCP_VERSION}",
 "k8s_version":"${K8S_VERSION}",
 "master_nodes_type":"${MASTER_NODES_TYPE}",
