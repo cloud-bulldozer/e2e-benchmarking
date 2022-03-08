@@ -94,6 +94,7 @@ Indexed documents look like:
     "cluster.name": "some-cluster",
     "cluster.ocp_version": "4.9.12",
     "cluster.kubernetes_version": "1.22",
+    "cluster.type": "rosa",
     "cluster.sdn": "OpenShiftSDN",
     "cluster.platform": "AWS",
     "requests_per_second": 58529,
