@@ -47,7 +47,6 @@ export PPROF_COLLECTION_INTERVAL=${PPROF_COLLECTION_INTERVAL:-5m}
 
 # Hypershift vars
 export HYPERSHIFT=${HYPERSHIFT:-false}
-export HOSTED_CLUSTER_NAME=${HOSTED_CLUSTER_NAME:-perf-hosted-1}
 export MGMT_CLUSTER_NAME=${MGMT_CLUSTER_NAME:-perf-management-cluster}
 export HOSTED_CLUSTER_NS=${HOSTED_CLUSTER_NS:-clusters-perf-hosted-1}
 export THANOS_RECEIVER_URL=${THANOS_RECEIVER_URL:-http://thanos.apps.cluster.devcluster/api/v1/receive}

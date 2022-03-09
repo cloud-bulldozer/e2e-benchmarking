@@ -15,6 +15,7 @@ else
     export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
   else
     export PROM_TOKEN=""
+    export HOSTED_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
   fi
 fi
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
