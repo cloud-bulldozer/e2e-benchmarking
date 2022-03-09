@@ -32,6 +32,20 @@ spec:
           value: {{.ESIndex}}
         - name: UUID
           value: {{.UUID}}
+        - name: CLUSTER_ID
+          value: "{{.clusterID}}"
+        - name: CLUSTER_NAME
+          value: "{{.clusterName}}"
+        - name: OPENSHIFT_VERSION
+          value: "{{.openshiftVersion}}"
+        - name: KUBERNETES_VERSION
+          value: "{{.kubernetesVersion}}"
+        - name: CLUSTER_NETWORK_TYPE
+          value: "{{.clusterNetworkType}}"
+        - name: CLOUD_TYPE
+          value: "{{.cloudType}}"
+        - name: CLUSTER_TYPE
+          value: "{{.clusterType}}"
         - name: HOST_NETWORK
           value: "{{.hostNetwork}}"
         - name: NUMBER_OF_ROUTERS
