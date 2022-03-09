@@ -11,7 +11,11 @@ if [[ ${INDEXING} == "false" ]]; then
   export METADATA_COLLECTION=false
   unset PROM_URL
 else
-  export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
+  if [[ ${HYPERSHIFT} == "false" ]]; then
+    export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
+  else
+    export PROM_TOKEN=""
+  fi
 fi
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=${UUID:-$(uuidgen)}
@@ -30,6 +34,18 @@ if [[ "${isBareMetal}" == "true" ]]; then
   # installing python3.8
   sudo yum -y install python3.8
   #sudo alternatives --set python3 /usr/bin/python3.8
+fi
+
+if [[ ${HYPERSHIFT} == "true" ]]; then
+  if [[ $(oc get project | grep grafana-agent) ]]; then
+    echo "Grafana agent is already installed"
+  else
+    export CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
+    export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
+    export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}')
+    export PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
+    export DAG_ID=$(oc version -o json | jq -r '.openshiftVersion')-$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}') # setting a dynamic value
+    envsubst < ./grafana-agent.yaml | oc apply -f -
 fi
 
 collect_pprof() {
@@ -66,7 +82,7 @@ run_workload() {
   cp -pR $(dirname ${WORKLOAD_TEMPLATE})/* ${tmpdir}
   envsubst < ${WORKLOAD_TEMPLATE} > ${tmpdir}/config.yml
   if [[ -n ${METRICS_PROFILE} ]]; then
-    cp metrics-profiles/${METRICS_PROFILE} ${tmpdir}/metrics.yml || cp ${METRICS_PROFILE} ${tmpdir}/metrics.yml
+    envsubst < metrics-profiles/${METRICS_PROFILE} > ${tmpdir}/metrics.yml || envsubst <  ${METRICS_PROFILE} > ${tmpdir}/metrics.yml
   fi
   if [[ -n ${ALERTS_PROFILE} ]]; then
    cp ${ALERTS_PROFILE} ${tmpdir}/alerts.yml
