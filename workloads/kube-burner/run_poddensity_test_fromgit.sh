@@ -2,7 +2,6 @@
 
 WORKLOAD_TEMPLATE=workloads/node-pod-density/node-pod-density.yml
 METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
-METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yml}
 export TEST_JOB_ITERATIONS=${PODS:-1000}
 export WORKLOAD=pod-density
 
