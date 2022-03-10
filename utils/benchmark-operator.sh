@@ -59,8 +59,8 @@ run_benchmark() {
     for pod in $(kubectl -n benchmark-operator get pod -l benchmark-uuid=${UUID} -o custom-columns="name:.metadata.name" --no-headers); do
       pod_log=${tmp_dir}/${pod}.log
       log "Writing pod logs in ${pod_log}"
-      kubectl logs --prefix --tail=30 ${pod}
-      kubectl logs --prefix --tail=-1 ${pod} >> ${pod_log}
+      kubectl logs -n benchmark-operator --prefix --tail=30 ${pod}
+      kubectl logs -n benchmark-operator --prefix --tail=-1 ${pod} >> ${pod_log}
     done
     remove_cli
     exit 1
