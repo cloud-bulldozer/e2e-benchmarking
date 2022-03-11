@@ -83,7 +83,7 @@ run_workload() {
   cp -pR $(dirname ${WORKLOAD_TEMPLATE})/* ${tmpdir}
   envsubst < ${WORKLOAD_TEMPLATE} > ${tmpdir}/config.yml
   if [[ -n ${METRICS_PROFILE} ]]; then
-    envsubst < metrics-profiles/${METRICS_PROFILE} > ${tmpdir}/metrics.yml || envsubst <  ${METRICS_PROFILE} > ${tmpdir}/metrics.yml
+    envsubst < ${METRICS_PROFILE} > ${tmpdir}/metrics.yml || envsubst <  ${METRICS_PROFILE} > ${tmpdir}/metrics.yml
   fi
   if [[ -n ${ALERTS_PROFILE} ]]; then
    cp ${ALERTS_PROFILE} ${tmpdir}/alerts.yml

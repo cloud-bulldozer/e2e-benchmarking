@@ -15,6 +15,13 @@ es_index = os.getenv("ES_INDEX")
 uuid = os.getenv("UUID")
 host_network = os.getenv("HOST_NETWORK", "")
 number_of_routers = os.getenv("NUMBER_OF_ROUTERS", "")
+cluster_id = os.getenv("CLUSTER_ID", "")
+cluster_name = os.getenv("CLUSTER_NAME", "")
+openshift_version = os.getenv("OPENSHIFT_VERSION", "")
+kubernetes_version = os.getenv("KUBERNETES_VERSION", "")
+network_type = os.getenv("CLUSTER_NETWORK_TYPE", "")
+cloud_type = os.getenv("CLOUD_TYPE", "")
+cluster_type = os.getenv("CLUSTER_TYPE", "")
 
 
 def index_result(payload, retry_count=3):
@@ -75,6 +82,13 @@ def main():
     payload = {"termination": args.termination,
                "test_type": args.termination,
                "uuid": uuid,
+               "cluster.id": cluster_id,
+               "cluster.name": cluster_name,
+               "cluster.ocp_version": openshift_version,
+               "cluster.kubernetes_version": kubernetes_version,
+               "cluster.sdn": network_type,
+               "cluster.platform": cloud_type,
+               "cluster.type": cluster_type,
                "requests_per_second": int(requests_per_second),
                "avg_latency": int(avg_latency),
                "latency_95pctl": int(p95_latency),
