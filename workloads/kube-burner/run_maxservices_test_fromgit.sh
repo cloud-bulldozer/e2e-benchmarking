@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 WORKLOAD_TEMPLATE=workloads/max-services/max-services.yml
-METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
+METRICS_PROFILE=${METRICS_PROFILE:-metrics-aggregated.yaml}
 export TEST_JOB_ITERATIONS=${SERVICE_COUNT:-1000}
 export WORKLOAD=max-services
 

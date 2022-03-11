@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 WORKLOAD_TEMPLATE=workloads/node-pod-density/node-pod-density.yml
-METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
+METRICS_PROFILE=${METRICS_PROFILE:-metrics.yaml}
 NODE_COUNT=${NODE_COUNT:-4}
 PODS_PER_NODE=${PODS_PER_NODE:-250}
 export WORKLOAD=node-density
