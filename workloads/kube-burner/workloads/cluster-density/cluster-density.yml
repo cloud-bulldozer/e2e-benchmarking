@@ -65,7 +65,7 @@ jobs:
     cleanup: ${CLEANUP}
     waitFor: ${WAIT_FOR}
     waitWhenFinished: ${WAIT_WHEN_FINISHED}
-    verifyObjects: ${VERIFY_OBJECTS}
+    verifyObjects: ${/ERIFY_OBJECTS}
     errorOnVerify: ${ERROR_ON_VERIFY}
     maxWaitTimeout: ${MAX_WAIT_TIMEOUT}
     preLoadImages: ${PRELOAD_IMAGES}
