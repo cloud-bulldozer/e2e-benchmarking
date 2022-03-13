@@ -61,7 +61,7 @@ Each iteration creates the following objects:
 - 6 builds
 - 1 deployment with 2 pod replicas (sleep) mounting two secrets each. deployment-2pod
 - 2 deployments with 1 pod replicas (sleep) mounting two secrets. deployment-1pod
-- 3 services, one pointing to deployment-2pod, and other two pointing to deployment-1pod
+- 3 services, one pointing to deployment-2pod, and other two pointing to deployment-1pod. (As a consequence, 3 endpoint objects pointing to 4 pods are created)
 - 3 route. 1 pointing to the service deployment-2pod and other two pointing to deployment-1pod
 - 10 secrets. 2 of them mounted by the previous deployments.
 - 10 configMaps. 2 of them mounted by the previous deployments.
