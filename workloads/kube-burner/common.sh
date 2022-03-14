@@ -47,6 +47,7 @@ if [[ ${HYPERSHIFT} == "true" ]]; then
     export PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
     export DAG_ID=$(oc version -o json | jq -r '.openshiftVersion')-$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}') # setting a dynamic value
     envsubst < ./grafana-agent.yaml | oc apply -f -
+  fi
 fi
 
 collect_pprof() {
