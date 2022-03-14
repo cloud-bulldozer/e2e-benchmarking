@@ -95,6 +95,7 @@ label_nodes() {
     exit 1
   fi
   nodes=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT})
+  unlabel_nodes
   if [[ $(echo "${nodes}" | wc -l) -lt ${NODE_COUNT} ]]; then
     log "Not enough worker nodes to label"
     exit 1
@@ -130,7 +131,7 @@ label_nodes() {
 
 unlabel_nodes() {
   log "Removing node-density=enabled label from worker nodes"
-  for n in ${nodes}; do
+  for n in $(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker=); do
     oc label ${n} node-density-
   done
 }

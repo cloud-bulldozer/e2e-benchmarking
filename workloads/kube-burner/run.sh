@@ -14,14 +14,14 @@ case ${WORKLOAD} in
   node-density)
     WORKLOAD_TEMPLATE=workloads/node-pod-density/node-pod-density.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
-    NODE_COUNT=${NODE_COUNT:-4}
+    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-250}
     label_nodes regular
   ;;
   node-density-heavy)
     WORKLOAD_TEMPLATE=workloads/node-density-heavy/node-density-heavy.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
-    NODE_COUNT=${NODE_COUNT:-4}
+    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-250}
     label_nodes heavy
   ;;
@@ -48,7 +48,7 @@ case ${WORKLOAD} in
   custom)
   ;;
   *)
-     log "Unkonwn workload ${WORKLOAD}, exiting"
+     log "Unknown workload ${WORKLOAD}, exiting"
      exit 1
   ;;
 esac
@@ -56,12 +56,14 @@ esac
 log "###############################################"
 log "Workload: ${WORKLOAD}"
 log "Metrics profile: ${METRICS_PROFILE}"
+log "Alerts profile: ${ALERTS_PROFILE}"
 log "QPS: ${QPS}"
 log "Burst: ${BURST}"
-log "Job iterations: ${TEST_JOB_ITERATIONS}"
 if [[ ${WORKLOAD} == node-density* ]]; then
   log "Node count: ${NODE_COUNT}"
   log "Pods per node: ${PODS_PER_NODE}"
+else
+  log "Job iterations: ${TEST_JOB_ITERATIONS}"
 fi
 log "###############################################"
 if [[ ${PPROF_COLLECTION} == "true" ]] ; then

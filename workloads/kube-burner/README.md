@@ -70,7 +70,7 @@ Each iteration creates the following objects:
 
 The `node-density` and `node-density-heavy` workloads support the following environment variables:
 
-- **NODE_COUNT**: Number of worker nodes to deploy the pods on. During the workload nodes will be labeled with `node-density=true`. Defaults to 4.
+- **NODE_COUNT**: Number of worker nodes to deploy the pods on. During the workload nodes will be labeled with `node-density=true`. Defaults to the number of worker nodes across the cluster
 - **PODS_PER_NODE**: Define the maximum number of pods to deploy on each labeled node. Defaults to 250
 
 These workloads create different objects each:
