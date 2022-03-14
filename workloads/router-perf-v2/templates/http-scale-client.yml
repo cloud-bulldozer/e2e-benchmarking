@@ -44,8 +44,8 @@ spec:
           value: "{{.clusterNetworkType}}"
         - name: CLOUD_TYPE
           value: "{{.cloudType}}"
-        - name: CLUSTER_TYPE
-          value: "{{.clusterType}}"
+        - name: PLATFORM_STATUS
+          value: '{{.platformStatus}}'
         - name: HOST_NETWORK
           value: "{{.hostNetwork}}"
         - name: NUMBER_OF_ROUTERS
