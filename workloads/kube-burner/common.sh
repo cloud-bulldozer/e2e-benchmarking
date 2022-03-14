@@ -131,7 +131,7 @@ label_nodes() {
 
 unlabel_nodes() {
   log "Removing node-density=enabled label from worker nodes"
-  for n in $(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker=); do
+  for n in $(oc get node -o name --no-headers -l node-density=enabled); do
     oc label ${n} node-density-
   done
 }
