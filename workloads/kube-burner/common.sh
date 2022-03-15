@@ -41,7 +41,7 @@ if [[ ${HYPERSHIFT} == "true" ]]; then
   if [[ $(oc get project | grep grafana-agent) ]]; then
     echo "Grafana agent is already installed"
   else
-    export CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
+    export CLUSTER_NAME=${HOSTED_CLUSTER_NAME}
     export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
     export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}')
     export PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
