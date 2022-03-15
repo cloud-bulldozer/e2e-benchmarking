@@ -55,6 +55,7 @@ esac
 
 log "###############################################"
 log "Workload: ${WORKLOAD}"
+log "Workload template: ${WORKLOAD_TEMPLATE}"
 log "Metrics profile: ${METRICS_PROFILE}"
 log "Alerts profile: ${ALERTS_PROFILE}"
 log "QPS: ${QPS}"
