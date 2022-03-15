@@ -14,7 +14,7 @@ else
   if [[ ${HYPERSHIFT} == "false" ]]; then
     export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
   else
-    export PROM_TOKEN=""
+    export PROM_TOKEN="dummytokenforthanos"
     export HOSTED_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
   fi
 fi
