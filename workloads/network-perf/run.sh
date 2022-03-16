@@ -41,6 +41,7 @@ for pairs in ${PAIRS}; do
   if ! run_workload ${CR}; then
     exit 1
   fi
+  export METADATA_COLLECTION=false
   if [[ ${WORKLOAD} == "hostnet" ]]; then
     break
   fi
