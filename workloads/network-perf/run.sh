@@ -19,7 +19,7 @@ case ${WORKLOAD} in
     export SAMPLES=1
   ;;
   *)
-     log "Unkonwn workload ${WORKLOAD}, exiting"
+     log "Unknown workload ${WORKLOAD}, exiting"
      exit 1
   ;;
 esac

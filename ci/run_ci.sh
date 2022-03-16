@@ -27,6 +27,7 @@ Workload                | Test                           | Result | Runtime  |
 EOF
 
 test_rc=0
+IFS=$'\n'
 for test in ${test_list}; do            
   # Clear the /tmp/ripsaw-cli directory to avoid pip version conflicts due to existing temp files.
   rm -rf /tmp/ripsaw-cli
@@ -34,6 +35,7 @@ for test in ${test_list}; do
 
   command=${test##*:}                                     #to extract the shell script name to run
   directory=${test%:*}                                    #to extract the workload directory name 
+  echo $command
   
   echo -e "\n======================================================================"
   echo -e "     CI test for ${test}                    "
@@ -44,7 +46,7 @@ for test in ${test_list}; do
   echo $PWD
 
   (sleep $EACH_TEST_TIMEOUT; sudo pkill -f $command) &  #to kill a workload script if it doesn't execute within default test timeout ; runs in the background
-  bash $command                                         #to execute each shell script
+  bash -c "$command"                                         #to execute each shell script
 
   EXIT_STATUS=$?
   if [ "$EXIT_STATUS" -eq "0" ]                         #to check if the workloads exit successfully or not

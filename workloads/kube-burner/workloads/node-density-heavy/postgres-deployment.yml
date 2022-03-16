@@ -25,6 +25,9 @@ spec:
         imagePullPolicy: IfNotPresent
         securityContext:
           privileged: false
+        requests:
+          memory: "20Mi"
+          cpu: "20m"
       restartPolicy: Always
   replicas: 1
   selector:

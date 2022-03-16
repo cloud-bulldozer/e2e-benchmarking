@@ -32,7 +32,7 @@ export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE}
 export REMOTE_ALERT_PROFILE=${REMOTE_ALERT_PROFILE}
 
 # Kube-burner job
-export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burner:v0.15.2}
+export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burner:v0.15.3}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
 export LOG_STREAMING=${LOG_STREAMING:-true}
@@ -50,3 +50,7 @@ export HYPERSHIFT=${HYPERSHIFT:-false}
 export MGMT_CLUSTER_NAME=${MGMT_CLUSTER_NAME:-perf-management-cluster}
 export HOSTED_CLUSTER_NS=${HOSTED_CLUSTER_NS:-clusters-perf-hosted-1}
 export THANOS_RECEIVER_URL=${THANOS_RECEIVER_URL:-http://thanos.apps.cluster.devcluster/api/v1/receive}
+
+# Thresholds
+export POD_READY_THRESHOLD=${POD_READY_THRESHOLD:-5000ms}
+
