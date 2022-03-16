@@ -10,6 +10,10 @@ global:
   measurements:
     - name: podLatency
       esIndex: ${ES_INDEX}
+      thresholds:
+        - conditionType: Ready
+          metric: P99
+          threshold: ${POD_READY_THRESHOLD}
 {{ if eq .PPROF_COLLECTION "True" }}
     - name: pprof
       pprofInterval: {{ .PPROF_COLLECTION_INTERVAL }}

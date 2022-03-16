@@ -1,28 +1,30 @@
 # Kube-burner e2e benchmarks
 
-The purpose of these scripts is to run a kube-burner workload steered by ripsaw. There are 3 types of workloads at the moment:
+In order to kick off one of these benchmarks you must use the run.sh script. There are 8 different workloads at the moment, that could be launched as follows:
 
-- **`cluster-density`**: Triggered by `run_clusterdensity_test_fromgit.sh`
-- **`node-density`**: Triggered by `run_nodedensity_test_fromgit.sh`
-- **`node-density-heavy`**: Triggered by `run_nodedensity-heavy_test_fromgit.sh`
-- **`max-namespaces`**: Triggered by `run_maxnamespaces_test_fromgit.sh`
-- **`max-services`** Triggered by `run_maxservices_test_fromgit.sh`
-- **`pod-density`**: Triggered by `run_poddensity_test_fromgit.sh`
-- **`pod-density-heavy`**: Triggered by `run_poddensity-heavy_test_fromgit.sh`
+- **`cluster-density`**: `WORKLOAD=cluster-density ./run.sh`
+- **`node-density`**: `WORKLOAD=node-density ./run.sh`
+- **`node-density-heavy`**: `WORKLOAD=node-density-heavy ./run.sh`
+- **`max-namespaces`**: `WORKLOAD=max-namespaces ./run.sh`
+- **`max-services`**: `WORKLOAD=max-services./run.sh`
+- **`pod-density`**: `WORKLOAD=pod-density ./run.sh`
+- **`pod-density-heavy`**: `WORKLOAD=pod-density-heavy ./run.sh`
+- **`custom`**: `WORKLOAD=custom ./run.sh`
 
 ## Environment variables
 
-All scripts can be tweaked with the following environment variables:
+Workloads can be tweaked with the following environment variables:
+
 
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
-| **OPERATOR_REPO**              | Benchmark-operator repo                     | https://github.com/cloud-bulldozer/benchmark-operator.git      |
-| **OPERATOR_BRANCH**              | Benchmark-operator branch                     | master      |
+| **OPERATOR_REPO**    | Benchmark-operator repo         | https://github.com/cloud-bulldozer/benchmark-operator.git      |
+| **OPERATOR_BRANCH**  | Benchmark-operator branch       | master  |
 | **INDEXING**         | Enable/disable indexing         | true    |
-| **ES_SERVER**        | Elasticsearch endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
-| **ES_INDEX**         | Elasticsearch index            | ripsaw-kube-burner|
-| **PROM_URL**         | Prometheus endpoint         | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
-| **METADATA_COLLECTION**    | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
+| **ES_SERVER**        | Elasticsearch endpoint          | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
+| **ES_INDEX**         | Elasticsearch index             | ripsaw-kube-burner|
+| **PROM_URL**         | Prometheus endpoint             | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
+| **METADATA_COLLECTION**   | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
 | **JOB_TIMEOUT**      | Kube-burner's job timeout, in seconds      | 14400 (4 hours) |
 | **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 180 |
 | **NODE_SELECTOR**    | The kube-burner pod deployed by benchmark-operator will use this node selector          | {node-role.kubernetes.io/worker: } |
@@ -45,6 +47,7 @@ All scripts can be tweaked with the following environment variables:
 | **PPROF_COLLECTION** | Collect and store pprof data locally | false |
 | **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5m | 
 | **TEST_CLEANUP**     | Remove benchmark CR at the end | true |
+| **POD_READY_THRESHOLD** | Pod ready latency threshold (only applies node-density and pod-density workloads). [More info](https://kube-burner.readthedocs.io/en/latest/measurements/#pod-latency-thresholds) | 5000ms |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
@@ -59,7 +62,7 @@ Each iteration creates the following objects:
 - 6 builds
 - 1 deployment with 2 pod replicas (sleep) mounting two secrets each. deployment-2pod
 - 2 deployments with 1 pod replicas (sleep) mounting two secrets. deployment-1pod
-- 3 services, one pointing to deployment-2pod, and other two pointing to deployment-1pod
+- 3 services, one pointing to deployment-2pod, and other two pointing to deployment-1pod. (As a consequence, 3 endpoint objects pointing to 4 pods are created)
 - 3 route. 1 pointing to the service deployment-2pod and other two pointing to deployment-1pod
 - 10 secrets. 2 of them mounted by the previous deployments.
 - 10 configMaps. 2 of them mounted by the previous deployments.
@@ -68,8 +71,8 @@ Each iteration creates the following objects:
 
 The `node-density` and `node-density-heavy` workloads support the following environment variables:
 
-- **NODE_COUNT**: Number of worker nodes to deploy the pods on. During the workload nodes will be labeled with `node-density=true`. Defaults to 4.
-- **PODS_PER_NODE**: Define the maximum number of pods to deploy on each labeled node. Defaults to 250
+- **NODE_COUNT**: Number of worker nodes to deploy the pods on. During the workload nodes will be labeled with `node-density=enabled`. Defaults to the number of worker nodes across the cluster (Nodes resulting of the expression `oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker=`
+- **PODS_PER_NODE**: Define the maximum number of pods to deploy on each labeled node. Defaults to 245
 
 These workloads create different objects each:
 
@@ -112,12 +115,10 @@ Apart from the pre-defined workloads and metric profiles available in this repo,
 - **`METRICS_PROFILE`**: Path to the kube-burner metrics-profile. (Optional)
 - **`ALERTS_PROFILE`**: Path to the kube-burner alert-profile. (Optional)
 
-The script `run_custom_workload_fromgit.sh` provides a shortcut to launch the benchmark.
-
 For example, the command:
 
 ```shell
-$ INDEXING=false WORKLOAD_TEMPLATE=my-config/kube-burner.cfg METRICS_PROFILE=my-metrics/metrics.yml ALERTS_PROFILE=my-alerts/alerts-profile.yml ./run_custom_workload_fromgit.sh
+$ INDEXING=false WORKLOAD_TEMPLATE=my-config/kube-burner.cfg METRICS_PROFILE=my-metrics/metrics.yml ALERTS_PROFILE=my-alerts/alerts-profile.yml WORKLOAD=custom ./run.sh
 ```
 
 will launch a pod running a kube-burner process that will use the configuration file defined at https://raw.githubusercontent.com/cloud-bulldozer/cluster-perf-ci/master/configmap-scale.yml
@@ -148,4 +149,3 @@ Password for the Snappy data-server.
 **`SNAPPY_USER_FOLDER`**
 Default: 'perf-ci'
 To store the data for a specific user.
-

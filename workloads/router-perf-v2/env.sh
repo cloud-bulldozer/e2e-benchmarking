@@ -21,6 +21,17 @@ export NUMBER_OF_ROUTERS=${NUMBER_OF_ROUTERS:-2}
 export HOST_NETWORK=${HOST_NETWORK:-true}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/workload: }'}
 
+# Cluster information
+export CLUSTER_ID=$(oc get clusterversion -o jsonpath='{.items[].spec.clusterID}')
+export CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
+export OPENSHIFT_VERSION=$(oc version -o json |  jq -r '.openshiftVersion')
+KUBERNETES_MAJOR_VERSION=$(oc version -o json |  jq -r '.serverVersion.major')
+KUBERNETES_MINOR_VERSION=$(oc version -o json |  jq -r '.serverVersion.minor')
+export KUBERNETES_VERSION=${KUBERNETES_MAJOR_VERSION}.${KUBERNETES_MINOR_VERSION}
+export CLUSTER_NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.spec.networkType}')
+export CLOUD_TYPE=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
+export PLATFORM_STATUS=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus}')
+
 # Benchmark configuration
 RUNTIME=${RUNTIME:-60}
 TLS_REUSE=${TLS_REUSE:-true}

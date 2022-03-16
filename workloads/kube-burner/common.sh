@@ -41,10 +41,6 @@ collect_pprof() {
   done
 }
 
-
-  
-
-
 deploy_operator() {
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
   if [[ $? != 0 ]]; then
@@ -66,7 +62,7 @@ run_workload() {
   cp -pR $(dirname ${WORKLOAD_TEMPLATE})/* ${tmpdir}
   envsubst < ${WORKLOAD_TEMPLATE} > ${tmpdir}/config.yml
   if [[ -n ${METRICS_PROFILE} ]]; then
-    cp metrics-profiles/${METRICS_PROFILE} ${tmpdir}/metrics.yml || cp ${METRICS_PROFILE} ${tmpdir}/metrics.yml
+    cp ${METRICS_PROFILE} ${tmpdir}/metrics.yml || cp ${METRICS_PROFILE} ${tmpdir}/metrics.yml
   fi
   if [[ -n ${ALERTS_PROFILE} ]]; then
    cp ${ALERTS_PROFILE} ${tmpdir}/alerts.yml
@@ -83,6 +79,7 @@ run_workload() {
   if [[ ${TEST_CLEANUP} == "true" ]]; then
     log "Cleaning up benchmark"
     kubectl delete -f ${TMPCR}
+    kubectl delete configmap -n benchmark-operator kube-burner-cfg-${UUID}
   fi
   return ${rc}
 }
@@ -94,6 +91,7 @@ label_nodes() {
     exit 1
   fi
   nodes=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT})
+  unlabel_nodes
   if [[ $(echo "${nodes}" | wc -l) -lt ${NODE_COUNT} ]]; then
     log "Not enough worker nodes to label"
     exit 1
@@ -129,7 +127,7 @@ label_nodes() {
 
 unlabel_nodes() {
   log "Removing node-density=enabled label from worker nodes"
-  for n in ${nodes}; do
+  for n in $(oc get node -o name --no-headers -l node-density=enabled); do
     oc label ${n} node-density-
   done
 }
@@ -144,27 +142,10 @@ check_running_benchmarks() {
 }
 
 cleanup() {
-  WORKLOAD=$1
-  oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600
-
-  kube_ns=$(oc get ns -l kube-burner-uuid=${UUID} -o custom-columns=name:{.metadata.name} --no-headers)
-
-  if [[ $kube_ns ]]; then
-    # Ignore cluster density workloads
-    if [[ ! "$WORKLOAD" =~ cluster ]]; then
-      # Force delete individual pods
-      for cleanup in $(oc get pods -n ${kube_ns} --no-headers -o custom-columns=name:{.metadata.name}); do
-        oc delete -n ${kube_ns} pod/${cleanup} --force
-      done
-    fi
-
-    # Force delete the remaining namespaces
-    for ns in ${kube_ns}; do
-      oc delete --all pods -n ${ns} --force --grace-period=0 --ignore-not-found --wait
-      oc delete namespace ${ns} --ignore-not-found
-    done
+  if ! oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600 --timeout=30m; then
+    log "Namespaces cleanup failure"
+    rc=1
   fi
-
 }
 
 get_pprof_secrets() {

@@ -19,7 +19,7 @@ case ${WORKLOAD} in
     export SAMPLES=1
   ;;
   *)
-     log "Unkonwn workload ${WORKLOAD}, exiting"
+     log "Unknown workload ${WORKLOAD}, exiting"
      exit 1
   ;;
 esac
@@ -42,6 +42,9 @@ for pairs in ${PAIRS}; do
     exit 1
   fi
   export METADATA_COLLECTION=false
+  if [[ ${WORKLOAD} == "hostnet" ]]; then
+    break
+  fi
 done
 
 BASELINE_UUID=${BASELINE_POD_UUID}
