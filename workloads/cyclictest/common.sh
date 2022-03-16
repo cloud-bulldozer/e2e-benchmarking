@@ -74,7 +74,7 @@ deploy_perf_profile() {
     # iterate over worker nodes until we have at least 1 
     worker_count=0
     cyclictest_workers=()
-    workers=$(oc get nodes -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker="",node-role.kubernetes.io/worker-pmd!="",node-role.kubernetes.io/worker-oslat!="" | head -${NODE_COUNT} | sed -e 's/^node\///')
+    workers=$(oc get nodes -o name --no-headers -l node-role.kubernetes.io/worker-lb!="",node-role.kubernetes.io/worker-spk!="",node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker="",node-role.kubernetes.io/worker-pmd!="",node-role.kubernetes.io/worker-oslat!="" | head -${NODE_COUNT} | sed -e 's/^node\///')
     while [ $worker_count -lt 1 ]; do
       for worker in $workers; do
 	worker_ip=$(oc get node $worker -o json | jq -r ".status.addresses[0].address" | grep 192 )
