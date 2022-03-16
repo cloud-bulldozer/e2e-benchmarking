@@ -29,6 +29,9 @@ spec:
           failureThreshold: 1
           timeoutSeconds: 15
           initialDelaySeconds: 30
+        requests:
+          memory: "10Mi"
+          cpu: "10m"
         ports:
         - containerPort: 8080
           protocol: TCP
