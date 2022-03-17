@@ -52,7 +52,9 @@ remove_benchmark_operator() {
 ############################################################################
 run_benchmark() {
   source ${ripsaw_tmp}/bin/activate
+  local rc=0
   if ! ripsaw benchmark run -f ${1} -t ${2}; then
+    rc=1
     log "Benchmark failed, dumping workload more recent logs"
     local tmp_dir=$(mktemp -d)
     kubectl -n benchmark-operator get pod -l benchmark-uuid=${UUID}
@@ -63,7 +65,7 @@ run_benchmark() {
       kubectl logs -n benchmark-operator --prefix --tail=-1 ${pod} >> ${pod_log}
     done
     remove_cli
-    exit 1
   fi
   deactivate
+  return ${rc}
 }
