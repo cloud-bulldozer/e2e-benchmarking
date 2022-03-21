@@ -72,7 +72,7 @@ run_workload() {
   rm -rf ${tmpdir}
   log "Deploying benchmark"
   set +e
-  local TMPCR=$(mktemp)
+  TMPCR=$(mktemp)
   envsubst < $1 > ${TMPCR}
   run_benchmark ${TMPCR} $((JOB_TIMEOUT + 600))
   rc=$?
