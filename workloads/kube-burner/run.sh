@@ -73,7 +73,6 @@ if [[ ${PPROF_COLLECTION} == "true" ]] ; then
   get_pprof_secrets
 fi 
 run_workload kube-burner-crd.yaml
-rc=$?
 if [[ ${WORKLOAD} == node-density* ]]; then
   unlabel_nodes
 fi

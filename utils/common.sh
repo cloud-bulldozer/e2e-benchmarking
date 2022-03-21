@@ -79,6 +79,11 @@ function check_pod_ready_state () {
 
 
 
+gen_spreadsheet_helper() {
+  pip install oauth2client>=4.1.3 gspread
+  python3 $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_gen.py --sheetname ${1}-$(date "+%Y-%m-%dT%H:%M:%S") -c ${2} --email ${3} --service-account ${4}
+}
+
 ##############################################################################
 # Imports a CSV file into a google spreadsheet
 # Arguments:
@@ -87,12 +92,6 @@ function check_pod_ready_state () {
 #   Gmail email address
 #   Service account file
 ##############################################################################
-
-gen_spreadsheet_helper() {
-  pip install oauth2client>=4.1.3 gspread
-  python3 $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_gen.py --sheetname ${1}-$(date "+%Y-%m-%dT%H:%M:%S") -c ${2} --email ${3} --service-account ${4}
-}
-
 gen_spreadsheet() {
   log "Installing requirements to generate spreadsheet"
   if [[ "${VIRTUAL_ENV}" != "" ]]; then
@@ -116,46 +115,45 @@ gen_spreadsheet() {
 #   start_date (epoch)
 #   end_date (epoch)
 ##############################################################################
-
 gen_metadata() {
-        BENCHMARK=$1
-        START_DATE=$2
-        END_DATE=$3
+  local BENCHMARK=$1
+  local START_DATE=$2
+  local END_DATE=$3
 
-        # construct all the required information
-        local VERSION_INFO=$(oc version -o json)
-        local INFRA_INFO=$(oc get infrastructure.config.openshift.io cluster -o json)
-        local PLATFORM=$(echo ${INFRA_INFO} | jq -r .spec.platformSpec.type)
-	if [[ ${PLATFORM} =~ "AWS" ]]; then
-          local CLUSTERTYPE=$(echo ${INFRA_INFO} | jq -r .status.platformStatus.aws.resourceTags[0].value)
-	fi
-        local CLUSTER_NAME=$(echo ${INFRA_INFO} | jq -r .status.infrastructureName)
-        local OCP_VERSION=$(echo ${VERSION_INFO} | jq -r .openshiftVersion)
-        local K8S_VERSION=$(echo ${VERSION_INFO} | jq -r .serverVersion.gitVersion)
-        local MASTER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/master= --no-headers | wc -l)
-        local WORKER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/worker= --no-headers | wc -l)
-        local INFRA_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/infra= --no-headers --ignore-not-found | wc -l)
-        local SDN_TYPE=$(oc get networks.operator.openshift.io cluster -o jsonpath="{.spec.defaultNetwork.type}")
-        if [[ ${PLATFORM} != "BareMetal" ]]; then
-          local MASTER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/master= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
-          local WORKLOAD_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/workload= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
-          local WORKER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/worker= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
-          if [[ ${INFRA_NODES} -gt 0 ]]; then
-            local INFRA_NODES_TYPE=$(oc get node --ignore-not-found -l node-role.kubernetes.io/infra= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
-          fi
-        fi
-        if [[ ${BENCHMARK} =~ "cyclictest" ]]; then
-          local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/cyclictest= --no-headers --ignore-not-found | wc -l)
-        elif [[ $BENCHMARK =~ "oslat" ]]; then
-          local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/oslat= --no-headers --ignore-not-found | wc -l)
-        elif [[ $BENCHMARK =~ "testpmd" ]]; then
-          local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/testpmd= --no-headers --ignore-not-found | wc -l)
-        else
-          local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/workload= --no-headers --ignore-not-found | wc -l)
-        fi
-        local TOTAL_NODES=$(oc get node --no-headers | wc -l)
-        local RESULT=$(oc get benchmark ${BENCHMARK} -o json | jq -r '.status.state')
-        local UUID=$(oc get benchmark ${BENCHMARK} -o json | jq -r '.status.uuid')
+  # construct all the required information
+  local VERSION_INFO=$(oc version -o json)
+  local INFRA_INFO=$(oc get infrastructure.config.openshift.io cluster -o json)
+  local PLATFORM=$(echo ${INFRA_INFO} | jq -r .spec.platformSpec.type)
+  if [[ ${PLATFORM} =~ "AWS" ]]; then
+    local CLUSTERTYPE=$(echo ${INFRA_INFO} | jq -r .status.platformStatus.aws.resourceTags[0].value)
+  fi
+  local CLUSTER_NAME=$(echo ${INFRA_INFO} | jq -r .status.infrastructureName)
+  local OCP_VERSION=$(echo ${VERSION_INFO} | jq -r .openshiftVersion)
+  local K8S_VERSION=$(echo ${VERSION_INFO} | jq -r .serverVersion.gitVersion)
+  local MASTER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/master= --no-headers | wc -l)
+  local WORKER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/worker= --no-headers | wc -l)
+  local INFRA_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/infra= --no-headers --ignore-not-found | wc -l)
+  local SDN_TYPE=$(oc get networks.operator.openshift.io cluster -o jsonpath="{.spec.defaultNetwork.type}")
+  if [[ ${PLATFORM} != "BareMetal" ]]; then
+    local MASTER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/master= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+    local WORKLOAD_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/workload= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+    local WORKER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/worker= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+    if [[ ${INFRA_NODES} -gt 0 ]]; then
+      local INFRA_NODES_TYPE=$(oc get node --ignore-not-found -l node-role.kubernetes.io/infra= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+    fi
+  fi
+  if [[ ${BENCHMARK} =~ "cyclictest" ]]; then
+    local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/cyclictest= --no-headers --ignore-not-found | wc -l)
+  elif [[ $BENCHMARK =~ "oslat" ]]; then
+    local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/oslat= --no-headers --ignore-not-found | wc -l)
+  elif [[ $BENCHMARK =~ "testpmd" ]]; then
+    local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/testpmd= --no-headers --ignore-not-found | wc -l)
+  else
+    local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/workload= --no-headers --ignore-not-found | wc -l)
+  fi
+  local TOTAL_NODES=$(oc get node --no-headers | wc -l)
+  local RESULT=$(oc get benchmark ${BENCHMARK} -o json | jq -r '.status.state')
+  local UUID=$(oc get benchmark ${BENCHMARK} -o json | jq -r '.status.uuid')
 
 
 # stupid indentation because bash won't find the closing EOF if it's not at the beginning of the line
@@ -177,15 +175,15 @@ local METADATA=$(cat << EOF
 "total_nodes":"${TOTAL_NODES}",
 "sdn_type":"${SDN_TYPE}",
 "benchmark":"${BENCHMARK}",
-"start_date":"${START_DATE}",
+"timestamp":"${START_DATE}",
 "end_date":"${END_DATE}",
 "result":"${RESULT}"
 }
 EOF
 )
 
-# send the document to ES
-curl -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}"
+  # send the document to ES
+  curl -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}"
 }
 
 
