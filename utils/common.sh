@@ -132,13 +132,16 @@ gen_metadata() {
   local K8S_VERSION=$(echo ${VERSION_INFO} | jq -r .serverVersion.gitVersion)
   local MASTER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/master= --no-headers | wc -l)
   local WORKER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/worker= --no-headers | wc -l)
+  local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/workload= --no-headers --ignore-not-found | wc -l)
   local INFRA_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/infra= --no-headers --ignore-not-found | wc -l)
   local SDN_TYPE=$(oc get networks.operator.openshift.io cluster -o jsonpath="{.spec.defaultNetwork.type}")
   if [[ ${PLATFORM} != "BareMetal" ]]; then
     local MASTER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/master= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
-    local WORKLOAD_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/workload= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
     local WORKER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/worker= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
-    if [[ ${INFRA_NODES} -gt 0 ]]; then
+    if [[ ${WORKLOAD_NODES_COUNT} -gt 0 ]]; then
+      local WORKLOAD_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/workload= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+    fi
+    if [[ ${INFRA_NODES_COUNT} -gt 0 ]]; then
       local INFRA_NODES_TYPE=$(oc get node --ignore-not-found -l node-role.kubernetes.io/infra= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
     fi
   fi
