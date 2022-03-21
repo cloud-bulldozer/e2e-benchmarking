@@ -106,3 +106,86 @@ gen_spreadsheet() {
     rm -rf ${csv_tmp}
   fi
 }
+
+
+
+##############################################################################
+# Creates a new document containing cluster information
+# Arguments:
+#   Benchmark name (as `oc get benchmark` displays it
+#   start_date (epoch)
+#   end_date (epoch)
+##############################################################################
+
+gen_metadata() {
+        BENCHMARK=$1
+        START_DATE=$2
+        END_DATE=$3
+
+        # construct all the required information
+        local VERSION_INFO=$(oc version -o json)
+        local INFRA_INFO=$(oc get infrastructure.config.openshift.io cluster -o json)
+        local PLATFORM=$(echo ${INFRA_INFO} | jq -r .spec.platformSpec.type)
+	if [[ ${PLATFORM} =~ "AWS" ]]; then
+          local CLUSTERTYPE=$(echo ${INFRA_INFO} | jq -r .status.platformStatus.aws.resourceTags[0].value)
+	fi
+        local CLUSTER_NAME=$(echo ${INFRA_INFO} | jq -r .status.infrastructureName)
+        local OCP_VERSION=$(echo ${VERSION_INFO} | jq -r .openshiftVersion)
+        local K8S_VERSION=$(echo ${VERSION_INFO} | jq -r .serverVersion.gitVersion)
+        local MASTER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/master= --no-headers | wc -l)
+        local WORKER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/worker= --no-headers | wc -l)
+        local INFRA_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/infra= --no-headers --ignore-not-found | wc -l)
+        local SDN_TYPE=$(oc get networks.operator.openshift.io cluster -o jsonpath="{.spec.defaultNetwork.type}")
+        if [[ ${PLATFORM} != "BareMetal" ]]; then
+          local MASTER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/master= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+          local WORKLOAD_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/workload= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+          local WORKER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/worker= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+          if [[ ${INFRA_NODES} -gt 0 ]]; then
+            local INFRA_NODES_TYPE=$(oc get node --ignore-not-found -l node-role.kubernetes.io/infra= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+          fi
+        fi
+        if [[ ${BENCHMARK} =~ "cyclictest" ]]; then
+          local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/cyclictest= --no-headers --ignore-not-found | wc -l)
+        elif [[ $BENCHMARK =~ "oslat" ]]; then
+          local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/oslat= --no-headers --ignore-not-found | wc -l)
+        elif [[ $BENCHMARK =~ "testpmd" ]]; then
+          local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/testpmd= --no-headers --ignore-not-found | wc -l)
+        else
+          local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/workload= --no-headers --ignore-not-found | wc -l)
+        fi
+        local TOTAL_NODES=$(oc get node --no-headers | wc -l)
+        local RESULT=$(oc get benchmark ${BENCHMARK} -o json | jq -r '.status.state')
+        local UUID=$(oc get benchmark ${BENCHMARK} -o json | jq -r '.status.uuid')
+
+
+# stupid indentation because bash won't find the closing EOF if it's not at the beginning of the line
+local METADATA=$(cat << EOF
+{
+"uuid":"${UUID}",
+"platform":"${PLATFORM}",
+"clustertype":"${CLUSTERTYPE}",
+"ocp_version":"${OCP_VERSION}",
+"k8s_version":"${K8S_VERSION}",
+"master_nodes_type":"${MASTER_NODES_TYPE}",
+"worker_nodes_type":"${WORKER_NODES_TYPE}",
+"infra_nodes_type":"${INFRA_NODES_TYPE}",
+"workload_nodes_type":"${INFRA_NODES_TYPE}",
+"master_nodes_count":"${MASTER_NODES_COUNT}",
+"worker_nodes_count":"${WORKER_NODES_COUNT}",
+"infra_nodes_count":"${INFRA_NODES_COUNT}",
+"workload_nodes_count":${WORKLOAD_NODES_COUNT},
+"total_nodes":"${TOTAL_NODES}",
+"sdn_type":"${SDN_TYPE}",
+"benchmark":"${BENCHMARK}",
+"start_date":"${START_DATE}",
+"end_date":"${END_DATE}",
+"result":"${RESULT}"
+}
+EOF
+)
+
+# send the document to ES
+curl -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}"
+}
+
+
