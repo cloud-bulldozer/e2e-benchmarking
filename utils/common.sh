@@ -186,7 +186,8 @@ EOF
 )
 
   # send the document to ES
-  curl -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}"
+  log "Indexing benchmark metadata to ${ES_SERVER}/${ES_INDEX}"
+  curl -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}"
 }
 
 
