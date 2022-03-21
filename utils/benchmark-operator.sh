@@ -52,7 +52,7 @@ remove_benchmark_operator() {
 ############################################################################
 run_benchmark() {
   source ${ripsaw_tmp}/bin/activate
-  local start_date=$(date +%s)
+  local start_date=$(date +%s%3N)
   local rc=0
   if ! ripsaw benchmark run -f ${1} -t ${2}; then
     rc=1
@@ -68,6 +68,6 @@ run_benchmark() {
     remove_cli
   fi
   local benchmark_name=$(cat ${1} | python -c 'import yaml; import sys; print(yaml.safe_load(sys.stdin.read())["metadata"]["name"])')
-  gen_metadata ${benchmark_name} ${start_date} $(date +%s)
+  gen_metadata ${benchmark_name} ${start_date} $(date +%s%3N)
   return ${rc}
 }
