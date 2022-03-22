@@ -175,3 +175,8 @@ snappy_backup() {
  ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
  store_on_elastic
 }
+
+remove_update_taint() {
+  # This is only here until BZ https://bugzilla.redhat.com/show_bug.cgi?id=2035005 gets resolved
+  oc adm taint nodes UpdateInProgress:PreferNoSchedule- --all || true
+}

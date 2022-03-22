@@ -2,6 +2,7 @@
 
 . common.sh
 
+remove_update_taint
 deploy_operator
 check_running_benchmarks
 
