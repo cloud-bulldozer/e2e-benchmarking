@@ -90,12 +90,6 @@
   metricName: nodeMemoryTotal-AggregatedWorkers
   instant: true
 
-- query: irate(container_runtime_crio_operations_latency_microseconds{{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"},operation_type="network_setup_pod"}[2m]) > 0
-  metricName: containerNetworkSetupLatency
-
-- query: irate(container_runtime_crio_operations_latency_microseconds{{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"},operation_type="network_setup_overall"}[2m]) > 0
-  metricName: containerNetworkSetupOverallLatency
-
 # Etcd metrics
 
 - query: sum(rate(etcd_server_leader_changes_seen_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]))
