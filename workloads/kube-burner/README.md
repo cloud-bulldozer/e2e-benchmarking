@@ -54,6 +54,20 @@ Workloads can be tweaked with the following environment variables:
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
+## Comparison
+
+The environment variables below are used to configure benchmark comparison and/or result reporting
+
+| Variable                | Description              | Default |
+|-------------------------|--------------------------|---------|
+| **COMPARISON_ALIASES**  | Benchmark-comparison aliases (UUIDs will be replaced by these aliases | "" |
+| **ES_SERVER_BASELINE**  | Elasticsearch endpoint used used by the baseline benchmark | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 |
+| **BASELINE_UUID**       | Baseline UUID used for comparison | "" |
+| **COMPARISON_CONFIG**   | Benchmark-comparison config file | `${PWD}/kube-burner-touchstone.json` |
+| **COMPARISON_RC**       | Benchmark-comparison return code if tolerancy check fails | 0 |
+| **GSHEET_KEY_LOCATION** | Location of the Google Service Account Key | "" |
+| **EMAIL_ID_FOR_RESULTS_SHEET**   | Email to push CSV results | "" |
+
 ### Cluster-density variables
 
 The `cluster-density` workload supports the environment variable **JOB_ITERATIONS**. This variable configures the number of cluster-density jobs iterations to perform (1 namespace per iteration). By default 1000.

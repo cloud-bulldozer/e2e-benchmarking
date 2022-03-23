@@ -2,6 +2,7 @@
 
 source ../../utils/common.sh
 source ../../utils/benchmark-operator.sh
+source ../../utils/compare.sh
 source env.sh
 
 openshift_login
@@ -171,6 +172,25 @@ remove_update_taint() {
   oc adm taint nodes UpdateInProgress:PreferNoSchedule- --all || true
 }
 
+
+run_benchmark_comparison() {
+  if [[ -n ${ES_SERVER} ]]; then
+    log "Installing touchstone"
+    install_touchstone
+    if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
+      log "Comparing with baseline"
+      compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" ${COMPARISON_CONFIG} csv
+    else
+      log "Querying results"
+      compare ${ES_SERVER} ${UUID} ${COMPARISON_CONFIG} csv
+    fi
+    if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
+      gen_spreadsheet ${WORKLOAD} ${COMPARISON_OUTPUT} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
+    fi
+    log "Removing touchstone"
+    remove_touchstone
+  fi
+}
 
 label_node_with_label() {
   colon_param=$(echo $1 | tr "=" ":" | sed 's/:/: /g')

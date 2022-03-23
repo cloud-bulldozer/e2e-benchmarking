@@ -1,0 +1,39 @@
+{
+  "elasticsearch": {
+    "metadata": {
+      "k8s_cluster_info-metadata": {
+        "fields": [
+          "value.cluster_version"
+        ]
+      }
+    },
+    "ripsaw-kube-burner": [
+      {
+        "filter": {
+          "metricName.keyword": "podLatencyQuantilesMeasurement"
+        },
+        "buckets": [
+          "quantileName.keyword"
+        ],
+        "aggregations": {
+          "P99": [
+            "avg"
+          ]
+        }
+      },
+      {
+        "exclude": {
+          "metricName.keyword": "podLatencyQuantilesMeasurement"
+        },
+        "buckets": [
+          "metricName.keyword"
+        ],
+        "aggregations": {
+          "value": [
+            "avg"
+          ]
+        }
+      }
+    ]
+  }
+}

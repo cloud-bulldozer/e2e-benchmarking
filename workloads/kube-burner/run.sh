@@ -140,5 +140,9 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup kube-burner-${WORKLOAD}
 fi
 
+export COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
+run_benchmark_comparison
+
 remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+
 exit ${rc}
