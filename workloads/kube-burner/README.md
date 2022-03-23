@@ -42,7 +42,7 @@ Workloads can be tweaked with the following environment variables:
 | **PRELOAD_IMAGES**   | Preload kube-buner's benchmark images in the cluster | true |
 | **PRELOAD_PERIOD**   | How long the preload stage will last | 2m |
 | **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
-| **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | false |
+| **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | true |
 | **CLEANUP_WHEN_FINISH** | Delete benchmark objects and workload's namespaces after running it | false |
 | **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.14.3 |
 | **LOG_LEVEL**        | Kube-burner log level | info |
@@ -58,15 +58,13 @@ The `cluster-density` workload supports the environment variable **JOB_ITERATION
 
 Each iteration creates the following objects:
 
-- 12 imagestreams
-- 3 buildconfigs
-- 6 builds
-- 1 deployment with 2 pod replicas (sleep) mounting two secrets each. deployment-2pod
-- 2 deployments with 1 pod replicas (sleep) mounting two secrets. deployment-1pod
-- 3 services, one pointing to deployment-2pod, and other two pointing to deployment-1pod. (As a consequence, 3 endpoint objects pointing to 4 pods are created)
-- 3 route. 1 pointing to the service deployment-2pod and other two pointing to deployment-1pod
-- 10 secrets. 2 of them mounted by the previous deployments.
-- 10 configMaps. 2 of them mounted by the previous deployments.
+- 1 imagestream
+- 1 build
+- 5 deployments with pod 2 replicas (sleep) mounting 4 secrets, 4 configmaps and 1 downwardAPI volume each
+- 5 services, each ont pointing to the TCP/8080 port of one of the previous deployments
+- 1 route pointing to the to first service
+- 10 secrets containing 2048 character random string
+- 10 configMaps containing a 2048 character random string
 
 ### Node-density and Node-density-heavy variables
 
