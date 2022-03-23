@@ -72,16 +72,10 @@ run_workload() {
   rm -rf ${tmpdir}
   log "Deploying benchmark"
   set +e
-  local TMPCR=$(mktemp)
+  TMPCR=$(mktemp)
   envsubst < $1 > ${TMPCR}
   run_benchmark ${TMPCR} $((JOB_TIMEOUT + 600))
-  local rc=$?
-  if [[ ${TEST_CLEANUP} == "true" ]]; then
-    log "Cleaning up benchmark"
-    kubectl delete -f ${TMPCR}
-    kubectl delete configmap -n benchmark-operator kube-burner-cfg-${UUID}
-  fi
-  return ${rc}
+  rc=$?
 }
 
 label_nodes() {
@@ -142,6 +136,9 @@ check_running_benchmarks() {
 }
 
 cleanup() {
+  log "Cleaning up benchmark"
+  kubectl delete -f ${TMPCR}
+  kubectl delete configmap -n benchmark-operator kube-burner-cfg-${UUID}
   if ! oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600 --timeout=30m; then
     log "Namespaces cleanup failure"
     rc=1

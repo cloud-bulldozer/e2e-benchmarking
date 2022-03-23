@@ -45,13 +45,14 @@ remove_benchmark_operator() {
 }
 
 ############################################################################
-# Creates a benchmark and wait for it to complete
+# Creates a benchmark, waits for it to complete and index benchmark metadata
 # Arguments:
 #   Benchmark CR
 #   Timeout in seconds
 ############################################################################
 run_benchmark() {
   source ${ripsaw_tmp}/bin/activate
+  local start_date=$(date +%s%3N)
   local rc=0
   if ! ripsaw benchmark run -f ${1} -t ${2}; then
     rc=1
@@ -66,6 +67,7 @@ run_benchmark() {
     done
     remove_cli
   fi
-  deactivate
+  local benchmark_name=$(cat ${1} | python -c 'import yaml; import sys; print(yaml.safe_load(sys.stdin.read())["metadata"]["name"])')
+  gen_metadata ${benchmark_name} ${start_date} $(date +%s%3N)
   return ${rc}
 }
