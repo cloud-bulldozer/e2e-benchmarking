@@ -17,6 +17,7 @@ export NODE_COUNT=1
 export PODS_PER_NODE=75
 export PODS=50
 export POD_READY_THRESHOLD=1m
+export ALERTS_PROFILE=alerts-profiles/ci.yml
 
 # For upgrade perf
 export TOVERSION=`oc get clusterversion | grep -o [0-9.]* | head -1`

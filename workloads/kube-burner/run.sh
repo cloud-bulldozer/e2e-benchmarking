@@ -10,7 +10,7 @@ case ${WORKLOAD} in
   cluster-density)
     WORKLOAD_TEMPLATE=workloads/cluster-density/cluster-density.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
-    ALERTS_PROFILE=${ALERTS_PROFILE:-alert-profiles/generalistic.yml}
+    ALERTS_PROFILE=${ALERTS_PROFILE:-alerts-profiles/cluster-density.yml}
     export TEST_JOB_ITERATIONS=${JOB_ITERATIONS:-1000}
   ;;
   node-density)
