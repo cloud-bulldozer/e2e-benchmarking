@@ -30,11 +30,10 @@
   severity: error
 
 # Control plane pods
-- expr: rate(kube_pod_container_status_restarts_total{namespace=~"openshift-.*(apiserver|etcd|kube-controller-manager|scheduler)", container=~"etcd|kube-apiserver|openshift-apiserver|kube-controller-manager|kube-scheduler"}[2m]) > 1
-  description: Detected restart of container {{$labels.container}} from pod {{$labels.pod}}
+- expr: up{apiserver=~"kube-apiserver|openshift-apiserver"} == 0
+  description: {{$labels.apiserver}} ${{labels.instance}} down
   severity: error
 
-# SDN pods
-- expr: rate(kube_pod_container_status_restarts_total{namespace=~"openshift-(sdn|ovn-kubernetes)"}[2m]) > 1
-  description: Detected restart of container {{$labels.container}} from pod {{$labels.pod}}
+- expr: up{namespace=~"openshift-.*(etcd|kube-controller-manager|scheduler|controller-manager|sdn|ovn-kubernetes|dns)"} == 0
+  description: {{$labels.namespace}}/{{$labels.pod}} down
   severity: error
