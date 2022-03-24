@@ -31,9 +31,9 @@
 
 # Control plane pods
 - expr: up{apiserver=~"kube-apiserver|openshift-apiserver"} == 0
-  description: {{$labels.apiserver}} ${{labels.instance}} down
+  description: "{{$labels.apiserver}} {{$labels.instance}} down"
   severity: error
 
 - expr: up{namespace=~"openshift-.*(etcd|kube-controller-manager|scheduler|controller-manager|sdn|ovn-kubernetes|dns)"} == 0
-  description: {{$labels.namespace}}/{{$labels.pod}} down
+  description: "{{$labels.namespace}}/{{$labels.pod}} down"
   severity: error
