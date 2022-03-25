@@ -155,8 +155,8 @@ gen_metadata() {
     local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/workload= --no-headers --ignore-not-found | wc -l)
   fi
   local TOTAL_NODES=$(oc get node --no-headers | wc -l)
-  local RESULT=$(oc get benchmark ${BENCHMARK} -o json | jq -r '.status.state')
-  local UUID=$(oc get benchmark ${BENCHMARK} -o json | jq -r '.status.uuid')
+  local RESULT=$(oc get benchmark -n benchmark-operator ${BENCHMARK} -o json | jq -r '.status.state')
+  local UUID=$(oc get benchmark -n benchmark-operator ${BENCHMARK} -o json | jq -r '.status.uuid')
 
 
 # stupid indentation because bash won't find the closing EOF if it's not at the beginning of the line
@@ -187,7 +187,7 @@ EOF
 
   # send the document to ES
   log "Indexing benchmark metadata to ${ES_SERVER}/${ES_INDEX}"
-  curl -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}"
+  curl -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}" -o /dev/null
 }
 
 
