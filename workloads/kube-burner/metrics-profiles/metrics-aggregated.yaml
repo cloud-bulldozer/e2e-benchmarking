@@ -12,10 +12,10 @@
 - query: sum(irate(apiserver_request_total{apiserver="kube-apiserver",verb!="WATCH"}[2m])) by (verb,resource,code) > 0
   metricName: APIRequestRate
 
-# Kubeproxy - (SDN only)
+# Kubeproxy and OVN service sync latency
 
-- query: histogram_quantile(0.99, rate(kubeproxy_network_programming_duration_seconds_bucket[2m])) > 0
-  metricName: kubeproxyP99ProgrammingLatency
+- query: histogram_quantile(0.99, sum(rate(ovnkube_master_sync_service_latency_seconds_bucket{}[2m])) by (le)) > 0 or histogram_quantile(0.99, sum(rate(kubeproxy_network_programming_duration_seconds_bucket[2m])) by (le)) > 0
+  metricName: serviceSyncLatency
 
 # Containers & pod metrics
 
@@ -73,10 +73,8 @@
 - query: irate(container_runtime_crio_operations_latency_microseconds{operation_type="network_setup_pod"}[2m]) > 0
   metricName: containerNetworkSetupLatency
 
-- query: irate(container_runtime_crio_operations_latency_microseconds{operation_type="network_setup_overall"}[2m]) > 0
-  metricName: containerNetworkSetupOverallLatency
-
 # Etcd metrics
+
 - query: sum(rate(etcd_server_leader_changes_seen_total[2m]))
   metricName: etcdLeaderChangesRate
 
@@ -92,9 +90,6 @@
 - query: sum by (cluster_version)(etcd_cluster_version)
   metricName: etcdVersion
   instant: true
-
-- query: histogram_quantile(0.99,sum(rate(etcd_request_duration_seconds_bucket[2m])) by (le,operation,apiserver)) > 0
-  metricName: P99APIEtcdRequestLatency
 
 # Cluster metrics
 
