@@ -12,14 +12,14 @@
 - query: sum(irate(apiserver_request_total{apiserver="kube-apiserver",verb!="WATCH"}[2m])) by (verb,resource,code) > 0
   metricName: APIRequestRate
 
-# Kubeproxy - (SDN only)
+# Kubeproxy and OVN service sync latency
 
-- query: histogram_quantile(0.99, rate(kubeproxy_network_programming_duration_seconds_bucket[2m])) > 0
-  metricName: kubeproxyP99ProgrammingLatency
+- query: histogram_quantile(0.99, sum(rate(ovnkube_master_sync_service_latency_seconds_bucket{}[2m])) by (le)) > 0 or histogram_quantile(0.99, sum(rate(kubeproxy_network_programming_duration_seconds_bucket[2m])) by (le)) > 0
+  metricName: serviceSyncLatency
 
 # Containers & pod metrics
 
-- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!~"POD|",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}[2m]) * 100) by (container, pod, namespace, node)) > 0
+- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!~"POD|",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler)"}[2m]) * 100) by (container, pod, namespace, node)) > 0
   metricName: containerCPU
 
 - query: sum(container_memory_rss{name!="",container!~"POD|",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler)"}) by (container, pod, namespace, node)
@@ -42,9 +42,6 @@
 - query: irate(container_runtime_crio_operations_latency_microseconds{operation_type="network_setup_pod"}[2m]) > 0
   metricName: containerNetworkSetupLatency
 
-- query: irate(container_runtime_crio_operations_latency_microseconds{operation_type="network_setup_overall"}[2m]) > 0
-  metricName: containerNetworkSetupOverallLatency
-
 # Node metrics: CPU & Memory
 
 - query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")) > 0
@@ -63,6 +60,7 @@
   metricName: nodeMemoryAvailable-Workers
 
 # We compute memory utilization by substrating available memory to the total
+
 - query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
   metricName: nodeMemoryUtilization-Workers
 
@@ -95,9 +93,6 @@
 - query: sum by (cluster_version)(etcd_cluster_version)
   metricName: etcdVersion
   instant: true
-
-- query: histogram_quantile(0.99,sum(rate(etcd_request_duration_seconds_bucket[2m])) by (le,operation,apiserver)) > 0
-  metricName: P99APIEtcdRequestLatency
 
 # Cluster metrics
 
