@@ -38,6 +38,7 @@ log "###############################################"
 
 for pairs in ${PAIRS}; do
   export PAIRS=${pairs}
+  export UUID=$(uuidgen)
   if ! run_workload ${CR}; then
     exit 1
   fi
