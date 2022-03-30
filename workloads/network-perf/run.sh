@@ -11,6 +11,7 @@ case ${WORKLOAD} in
     export SERVICEIP=true
   ;;
   hostnet)
+    export PAIRS=1
     export HOSTNETWORK=true
   ;;
   smoke)
