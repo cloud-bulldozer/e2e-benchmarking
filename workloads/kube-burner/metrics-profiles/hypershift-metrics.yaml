@@ -1,0 +1,146 @@
+# API server
+
+- query: irate(apiserver_request_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}",verb="POST", resource="pods", subresource="binding",code="201"}[2m]) > 0
+  metricName: schedulingThroughput
+
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}", verb=~"LIST|GET", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope))
+  metricName: readOnlyAPICallsLatency
+
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}", verb=~"POST|PUT|DELETE|PATCH", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope))
+  metricName: mutatingAPICallsLatency
+
+- query: sum(irate(apiserver_request_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}",verb!="WATCH"}[2m])) by (verb,resource,code) > 0
+  metricName: APIRequestRate
+
+# Kubeproxy - (SDN only)
+
+- query: histogram_quantile(0.99, rate(kubeproxy_network_programming_duration_seconds_bucket{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}[2m]))
+  metricName: kubeproxyP99ProgrammingLatency
+
+# ControlPlane Containers & pod metrics
+
+- query: (sum((irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]) * 100) or (irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}[2m]) * 100))  by (container, pod, namespace, node, openshift_cluster_name)) > 0
+  metricName: containerCPU
+
+- query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"} or container_memory_rss{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}) by (container, pod, namespace, node, openshift_cluster_name)
+  metricName: containerMemory
+
+- query: (sum(irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]) * 100) by (container, pod, namespace, node, openshift_cluster_name)) > 0
+  metricName: containerCPU-Controlplane
+
+- query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (container, pod, namespace, node, openshift_cluster_name)
+  metricName: containerMemory-Controlplane
+
+# Containers & pod metrics
+
+- query: (sum(irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]) * 100) by (container, pod, namespace, node, openshift_cluster_name)) > 0
+  metricName: containerCPU-Masters
+
+- query: (avg(irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}[2m]) * 100) by (namespace, pod, container, openshift_cluster_name)) > 0
+  metricName: containerCPU-AggregatedWorkers
+
+- query: (sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (container, pod, namespace, node, openshift_cluster_name)) > 0
+  metricName: containerMemory-Masters
+
+- query: avg(container_memory_rss{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}) by (pod, container, namespace, openshift_cluster_name)
+  metricName: containerMemory-AggregatedWorkers
+
+# Kubelet & CRI-O runtime metrics
+
+- query: sum(irate(process_cpu_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",service="kubelet",job="kubelet"}[2m]) * 100) by (node) and on (node) kube_node_role{role="worker"}
+  metricName: kubeletCPU
+
+- query: sum(process_resident_memory_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",service="kubelet",job="kubelet"}) by (node) and on (node) kube_node_role{role="worker"}
+  metricName: kubeletMemory
+
+- query: sum(irate(process_cpu_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",service="kubelet",job="crio"}[2m]) * 100) by (node) and on (node) kube_node_role{role="worker"}
+  metricName: crioCPU
+
+- query: sum(process_resident_memory_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",service="kubelet",job="crio"}) by (node) and on (node) kube_node_role{role="worker"}
+  metricName: crioMemory
+
+- query: irate(container_runtime_crio_operations_latency_microseconds{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",operation_type="network_setup_pod"}[2m]) > 0
+  metricName: containerNetworkSetupLatency
+
+- query: irate(container_runtime_crio_operations_latency_microseconds{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",operation_type="network_setup_overall"}[2m]) > 0
+  metricName: containerNetworkSetupOverallLatency
+
+# Node metrics: CPU & Memory
+
+- query: (sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: nodeCPU-Workers
+
+- query: node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryAvailable-Workers
+
+# We compute memory utilization by substrating available memory to the total
+- query: (node_memory_MemTotal_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} - node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryUtilization-Workers
+
+- query: node_memory_MemTotal_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryTotal-Workers
+
+- query: (avg((sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))) by (mode)) > 0
+  metricName: nodeCPU-AggregatedWorkers
+
+- query: avg(node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
+  metricName: nodeMemoryAvailable-AggregatedWorkers
+
+- query: avg(node_memory_MemTotal_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
+  metricName: nodeMemoryTotal-AggregatedWorkers
+  instant: true
+
+# Etcd metrics
+
+- query: sum(rate(etcd_server_leader_changes_seen_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]))
+  metricName: etcdLeaderChangesRate
+
+- query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]))
+  metricName: 99thEtcdDiskBackendCommitDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]))
+  metricName: 99thEtcdDiskWalFsyncDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}"}[5m]))
+  metricName: 99thEtcdRoundTripTimeSeconds
+
+- query: sum by (cluster_version)(etcd_cluster_version{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}"})
+  metricName: etcdVersion
+  instant: true
+
+- query: histogram_quantile(0.99,sum(rate(etcd_request_duration_seconds_bucket{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}"}[2m])) by (le,operation,apiserver)) > 0
+  metricName: P99APIEtcdRequestLatency
+
+# Cluster metrics
+
+- query: sum(kube_namespace_status_phase{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}) by (phase) > 0
+  metricName: namespaceCount
+
+- query: sum(kube_pod_status_phase{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}) by (phase)
+  metricName: podStatusCount
+
+- query: count(kube_secret_info{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"})
+  metricName: secretCount
+  instant: true
+
+- query: count(kube_deployment_labels{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"})
+  metricName: deploymentCount
+  instant: true
+
+- query: count(kube_configmap_info{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"})
+  metricName: configmapCount
+  instant: true
+
+- query: count(kube_service_info{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"})
+  metricName: serviceCount
+  instant: true
+
+- query: kube_node_role{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}
+  metricName: nodeRoles
+
+- query: sum(kube_node_status_condition{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",status="true"}) by (condition)
+  metricName: nodeStatus
+
+- query: cluster_version{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}",type="completed"}
+  metricName: clusterVersion
+  instant: true

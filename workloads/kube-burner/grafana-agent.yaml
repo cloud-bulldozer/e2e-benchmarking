@@ -1,0 +1,140 @@
+apiVersion: v1                                                                                                                                                                                                                               
+kind: Namespace                                                                                                                                                                                                                              
+metadata:                                                                                                                                                                                                                                                                                                                                                                                                                                         
+  name: grafana-agent 
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-agent
+  namespace: grafana-agent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grafana-agent
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- nonResourceURLs:
+  - /metrics
+  - /federate
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grafana-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grafana-agent
+subjects:
+- kind: ServiceAccount
+  name: grafana-agent
+  namespace: grafana-agent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-agent
+  namespace: grafana-agent
+spec:
+  minReadySeconds: 10
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      name: grafana-agent
+  template:
+    metadata:
+      labels:
+        name: grafana-agent
+    spec:
+      containers:
+      - args:
+        - --config.file=/etc/agent/agent.yaml
+        - --log.level=debug
+        command:
+        - /bin/agent
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        image: grafana/agent:v0.20.0
+        imagePullPolicy: IfNotPresent
+        name: agent
+        ports:
+        - containerPort: 12345
+          name: http-metrics
+        volumeMounts:
+        - mountPath: /etc/agent
+          name: grafana-agent
+      serviceAccount: grafana-agent
+      volumes:
+      - configMap:
+          name: grafana-agent
+        name: grafana-agent
+---
+kind: ConfigMap
+metadata:
+  name: grafana-agent
+  namespace: grafana-agent
+apiVersion: v1
+data:
+  agent.yaml: |
+    server:
+      http_listen_port: 12345
+    prometheus:
+      wal_directory: /tmp/grafana-agent-wal
+      global:
+        scrape_interval: 15s
+        external_labels:
+          openshift_cluster_name: $CLUSTER_NAME
+          openshift_network_type: $NETWORK_TYPE
+          openshift_version: $OPENSHIFT_VERSION
+          openshift_platform: $PLATFORM
+          dag_id: $DAG_ID
+      configs:
+        - name: integrations
+          remote_write:
+            - url: "$THANOS_RECEIVER_URL"
+              queue_config:
+                max_samples_per_send: 1000
+                max_shards: 200
+                capacity: 2500
+          scrape_configs:
+            - job_name: cluster-monitoring
+              honor_labels: true
+              params:
+                'match[]': 
+                  - '{__name__=~".+"}'
+              scrape_interval: 30s
+              scrape_timeout: 30s
+              metrics_path: /federate
+              scheme: https
+              kubernetes_sd_configs:
+              - role: endpoints
+                namespaces:
+                  names:
+                  - openshift-monitoring
+                selectors:
+                  - role: endpoints 
+                    label: app.kubernetes.io/name=prometheus
+              authorization:
+                credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+              tls_config:
+                insecure_skip_verify: true
