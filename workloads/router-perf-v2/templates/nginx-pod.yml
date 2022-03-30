@@ -10,5 +10,9 @@ spec:
   containers:
   - image: quay.io/openshift-scale/nginx
     name: nginx
+    resources:
+      requests:
+        memory: "10Mi"
+        cpu: "10m"    
   dnsPolicy: ClusterFirst
   restartPolicy: Always
