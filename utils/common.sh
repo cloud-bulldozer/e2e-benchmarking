@@ -180,6 +180,7 @@ local METADATA=$(cat << EOF
 "benchmark":"${BENCHMARK}",
 "timestamp":"${START_DATE}",
 "end_date":"${END_DATE}",
+"workload": "${WORKLOAD}",
 "result":"${RESULT}"
 }
 EOF
