@@ -37,3 +37,7 @@
 - expr: up{namespace=~"openshift-.*(etcd|kube-controller-manager|scheduler|controller-manager|sdn|ovn-kubernetes|dns)"} == 0
   description: "{{$labels.namespace}}/{{$labels.pod}} down"
   severity: error
+
+# Service sync latency
+- expr: histogram_quantile(0.99, sum(rate(ovnkube_master_sync_service_latency_seconds_bucket{}[2m])) by (le)) > 10 or histogram_quantile(0.99, sum(rate(kubeproxy_network_programming_duration_seconds_bucket[2m])) by (le)) > 10
+  description: Service 99th sync latency higher than configured threshold (OpenShiftSDN 10s and OVNKubernetes 10s). {{$value}}s 
