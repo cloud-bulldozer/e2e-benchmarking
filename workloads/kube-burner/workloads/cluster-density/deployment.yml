@@ -45,6 +45,8 @@ spec:
         ports:
         - containerPort: 8080
           protocol: TCP
+        - containerPort: 8443
+          protocol: TCP
         name: {{.name}}
         env:
         - name: ENVVAR1_{{.name}}
