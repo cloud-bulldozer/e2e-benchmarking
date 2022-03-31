@@ -14,7 +14,7 @@
 
 # Kubeproxy and OVN service sync latency
 
-- query: histogram_quantile(0.99, sum(rate(ovnkube_master_sync_service_latency_seconds_bucket{}[2m])) by (le)) > 0 or histogram_quantile(0.99, sum(rate(kubeproxy_network_programming_duration_seconds_bucket[2m])) by (le)) > 0
+- query: histogram_quantile(0.99, sum(rate(kubeproxy_network_programming_duration_seconds_bucket[2m])) by (le)) > 0
   metricName: serviceSyncLatency
 
 # Containers & pod metrics
