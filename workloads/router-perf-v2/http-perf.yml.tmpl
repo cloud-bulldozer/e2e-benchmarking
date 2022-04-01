@@ -1,5 +1,6 @@
 ---
 jobs:
+{{ if or (contains "http" .TERMINATIONS) (contains "mix" .TERMINATIONS) }}
 - name: http-scale-http
   jobIterations: 1
   qps: 100
@@ -21,8 +22,9 @@ jobs:
 
     - objectTemplate: templates/http-route.yml
       replicas: ${NUMBER_OF_ROUTES}
+{{ end }}
 
-
+{{ if or (contains "edge" .TERMINATIONS) (contains "mix" .TERMINATIONS) }}
 - name: http-scale-edge
   jobIterations: 1
   qps: 100
@@ -44,8 +46,9 @@ jobs:
 
     - objectTemplate: templates/edge-route.yml
       replicas: ${NUMBER_OF_ROUTES}
+{{ end }}
 
-
+{{ if or (contains "passthrough" .TERMINATIONS) (contains "mix" .TERMINATIONS) }}
 - name: http-scale-passthrough
   jobIterations: 1
   qps: 100
@@ -67,8 +70,9 @@ jobs:
 
     - objectTemplate: templates/passthrough-route.yml
       replicas: ${NUMBER_OF_ROUTES}
+{{ end }}
 
-
+{{ if or (contains "reencrypt" .TERMINATIONS) (contains "mix" .TERMINATIONS) }}
 - name: http-scale-reencrypt
   jobIterations: 1
   qps: 100
@@ -90,6 +94,7 @@ jobs:
 
     - objectTemplate: templates/reencrypt-route.yml
       replicas: ${NUMBER_OF_ROUTES}
+{{ end }}
 
 - name: http-scale-client
   namespace: http-scale-client
