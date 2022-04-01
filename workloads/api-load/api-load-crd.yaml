@@ -1,0 +1,30 @@
+---
+apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
+kind: Benchmark
+metadata:
+  name: api-load-${UUID}
+  namespace: benchmark-operator
+spec:
+  uuid: ${UUID}
+  elasticsearch:
+    url: ${ES_SERVER}
+    index_name: ${ES_INDEX}
+  snappy:
+    url: ${SNAPPY_SERVER}
+    user: ${SNAPPY_USER}
+    password: ${SNAPPY_PASSWORD}
+  workload:
+    name: api_load
+    args:
+      gateway_url: ${GATEWAY_URL}
+      ocm_token: ${OCM_TOKEN}
+      duration: ${DURATION}
+      rate: ${RATE}
+      output_path: ${OUTPUT_PATH}
+      aws_access_key: ${AWS_ACCESS_KEY}
+      aws_access_secret: ${AWS_ACCESS_SECRET}
+      aws_account_id: ${AWS_ACCOUNT_ID}
+      cooldown: ${COOLDOWN}
+      sleep: ${SLEEP}
+      test_list: 
+${TESTS_DICT}
