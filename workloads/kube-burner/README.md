@@ -61,7 +61,7 @@ Each iteration creates the following objects:
 - 1 imagestream
 - 1 build
 - 5 deployments with pod 2 replicas (sleep) mounting 4 secrets, 4 configmaps and 1 downwardAPI volume each
-- 5 services, each ont pointing to the TCP/8080 port of one of the previous deployments
+- 5 services, each one pointing to the TCP/8080 and TCP/8443 ports of one of the previous deployments
 - 1 route pointing to the to first service
 - 10 secrets containing 2048 character random string
 - 10 configMaps containing a 2048 character random string
