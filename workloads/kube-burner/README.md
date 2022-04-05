@@ -164,3 +164,13 @@ Password for the Snappy data-server.
 **`SNAPPY_USER_FOLDER`**
 Default: 'perf-ci'
 To store the data for a specific user.
+
+### Alerts
+
+Syntax reference in kube-burner documentation: https://kube-burner.readthedocs.io/en/latest/alerting/. The special variable `{{ .elapsed }}` takes the value of the workload duration. The metric up returns 0 when the service in question is down.
+
+Some of the alerts defined use the [avg_over_time function](https://prometheus.io/docs/prometheus/latest/querying/functions/#aggregation_over_time) to prevent firing when the metric suffers isolated spikes.
+
+Three metric profiles are defined in the [alerts-profiles directory](alerts-profiles):
+- ci.yml: This is meant for CI purposes, all the expressions here have warning severity
+- cluster-density.yml: By default, used by the cluster-density workload.
