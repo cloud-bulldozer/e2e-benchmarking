@@ -42,8 +42,6 @@ spec:
           value: "{{.kubernetesVersion}}"
         - name: CLUSTER_NETWORK_TYPE
           value: "{{.clusterNetworkType}}"
-        - name: CLOUD_TYPE
-          value: "{{.cloudType}}"
         - name: PLATFORM_STATUS
           value: '{{.platformStatus}}'
         - name: HOST_NETWORK

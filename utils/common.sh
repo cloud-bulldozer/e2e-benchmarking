@@ -123,9 +123,12 @@ gen_metadata() {
   # construct all the required information
   local VERSION_INFO=$(oc version -o json)
   local INFRA_INFO=$(oc get infrastructure.config.openshift.io cluster -o json)
-  local PLATFORM=$(echo ${INFRA_INFO} | jq -r .spec.platformSpec.type)
-  if [[ ${PLATFORM} =~ "AWS" ]]; then
-    local CLUSTERTYPE=$(echo ${INFRA_INFO} | jq -r .status.platformStatus.aws.resourceTags[0].value)
+  local PLATFORM=$(echo ${INFRA_INFO} | jq -r .status.platformStatus.type)
+  if [[ ${PLATFORM} == "AWS" ]] ; then
+    local CLUSTERTYPE=$(echo ${INFRA_INFO} | jq -r '.status.platformStatus.aws.resourceTags | map(select(.key == "red-hat-clustertype"))[0].value' | tr '[:lower:]' '[:upper:]')
+    if [[ ${CLUSTERTYPE} != "NULL" ]] ; then
+      PLATFORM=${CLUSTERTYPE}
+    fi
   fi
   local CLUSTER_NAME=$(echo ${INFRA_INFO} | jq -r .status.infrastructureName)
   local OCP_VERSION=$(echo ${VERSION_INFO} | jq -r .openshiftVersion)
@@ -164,7 +167,6 @@ local METADATA=$(cat << EOF
 {
 "uuid":"${UUID}",
 "platform":"${PLATFORM}",
-"clustertype":"${CLUSTERTYPE}",
 "ocp_version":"${OCP_VERSION}",
 "k8s_version":"${K8S_VERSION}",
 "master_nodes_type":"${MASTER_NODES_TYPE}",
