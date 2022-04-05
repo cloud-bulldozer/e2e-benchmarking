@@ -73,69 +73,32 @@ jobs:
     objects:
 
       - objectTemplate: imagestream.yml
-        replicas: 3
-        inputVars:
-          prefix: cluster-density-src
-          image: quay.io/cloud-bulldozer/ubi8-go-toolset
-
-      - objectTemplate: imagestream.yml
-        replicas: 3
-        inputVars:
-          prefix: cluster-density-dst
-          image: quay.io/cloud-bulldozer/ubi8-go-toolset
-
-      - objectTemplate: buildconfig.yml
-        replicas: 3
-        inputVars:
-          from: cluster-density-src
-          to: cluster-density-dst
-          gitUri: https://github.com/cloud-bulldozer/hello-openshift.git  
-          nodeSelector: "${POD_NODE_SELECTOR}"
-
-      - objectTemplate: imagestream.yml
-        replicas: 6
+        replicas: 1
         inputVars:
           prefix: cluster-density
 
       - objectTemplate: build.yml
-        replicas: 6
+        replicas: 1
         inputVars:
           prefix: cluster-density
           nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: deployment.yml
-        replicas: 1
+        replicas: 5
         inputVars:
           podReplicas: 2
-          name: deployment-2pod
+          name: cluster-density
           nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: service.yml
-        replicas: 1
+        replicas: 5
         inputVars:
-          name: deployment-2pod
+          name: cluster-density
         
-      - objectTemplate: deployment.yml
-        replicas: 2
-        inputVars:
-          podReplicas: 1
-          name: deployment-1pod
-          nodeSelector: "${POD_NODE_SELECTOR}"
-      
-      - objectTemplate: service.yml
-        replicas: 2
-        inputVars:
-          name: deployment-1pod
-
       - objectTemplate: route.yml
         replicas: 1
         inputVars:
-          name: deployment-2pod
-
-      - objectTemplate: route.yml
-        replicas: 2
-        inputVars:
-          name: deployment-1pod
+          name: cluster-density
 
       - objectTemplate: secret.yml
         replicas: 10
