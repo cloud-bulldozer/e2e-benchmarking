@@ -8,9 +8,7 @@ source ../../utils/compare.sh
 openshift_login
 
 export_defaults() {
-  network_type=$(oc get network cluster -o jsonpath='{.status.networkType}' | tr '[:upper:]' '[:lower:]')
   export UUID=$(uuidgen)
-  export CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath="{.status.infrastructureName}")
   local baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
   zones=($(oc get nodes -l node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/worker -o go-template='{{ range .items }}{{ index .metadata.labels "topology.kubernetes.io/zone" }}{{ "\n" }}{{ end }}' | uniq))
   platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}' | tr '[:upper:]' '[:lower:]')
@@ -126,7 +124,7 @@ snappy_backup(){
   mkdir -p files_list
   cp $csv_list ./files_list
   tar -zcf snappy_files.tar.gz ./files_list
-  local snappy_path="${SNAPPY_USER_FOLDER}/${runid}${platform}-${cluster_version}-${network_type}/${1}/${folder_date_time}/"
+  local snappy_path="${SNAPPY_USER_FOLDER}/${runid}${platform}-${cluster_version}-${CLUSTER_NETWORK_TYPE}/${1}/${folder_date_time}/"
   generate_metadata > metadata.json  
   ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz $snappy_path
   ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path

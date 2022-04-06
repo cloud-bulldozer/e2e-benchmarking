@@ -23,6 +23,16 @@ export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
 export SAMPLES=${SAMPLES:-3}
 export PAIRS=${PAIRS:-1 2 4}
 
+# Cluster info
+export CLUSTER_ID=$(oc get clusterversion -o jsonpath='{.items[].spec.clusterID}')
+export CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
+export OPENSHIFT_VERSION=$(oc version -o json |  jq -r '.openshiftVersion')
+KUBERNETES_MAJOR_VERSION=$(oc version -o json |  jq -r '.serverVersion.major')
+KUBERNETES_MINOR_VERSION=$(oc version -o json |  jq -r '.serverVersion.minor')
+export KUBERNETES_VERSION=${KUBERNETES_MAJOR_VERSION}.${KUBERNETES_MINOR_VERSION}
+export CLUSTER_NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.spec.networkType}')
+export CLOUD_TYPE=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
+
 # Comparison and csv generation
 
 BASELINE_MULTUS_UUID=${BASELINE_MULTUS_UUID}

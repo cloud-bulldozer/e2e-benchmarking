@@ -6,7 +6,6 @@ metadata:
   namespace: benchmark-operator
 spec:
   uuid: ${UUID}
-  clustername: ${CLUSTER_NAME}
   elasticsearch:
     url: ${ES_SERVER}
   metadata:
@@ -14,6 +13,13 @@ spec:
     serviceaccount: backpack-view
     privileged: true
     targeted: ${METADATA_TARGETED}
+  cluster:
+    name: ${CLUSTER_NAME}
+    id: ${CLUSTER_ID}
+    ocp_version: ${OPENSHIFT_VERSION}
+    kubernetes_version: ${KUBERNETES_VERSION}
+    platform: ${CLOUD_TYPE}
+    sdn: ${CLUSTER_NETWORK_TYPE}
   workload:
     name: uperf
     args:
