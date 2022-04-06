@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-source ../../utils/common.sh
-source ../../utils/benchmark-operator.sh
 source env.sh
 
 prep(){
