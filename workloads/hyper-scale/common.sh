@@ -12,6 +12,12 @@ prep(){
         make build
         popd 
         cp ./hypershift/bin/hypershift /usr/local/bin/ -u
+        curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output /usr/local/bin/rosa
+        curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output /usr/local/bin/ocm
+        chmod +x /usr/local/bin/rosa && chmod +x /usr/local/bin/ocm
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        ./aws/install
     fi
 }
 setup(){
@@ -48,27 +54,27 @@ create_cluster(){
     echo $PULL_SECRET > pull-secret
     hypershift create cluster aws --name $HOSTED_CLUSTER_NAME --node-pool-replicas=$COMPUTE_WORKERS_NUMBER --base-domain $BASEDOMAIN --pull-secret pull-secret --aws-creds aws_credentials --region $AWS_REGION --control-plane-availability-policy $REPLICA_TYPE --network-type $NETWORK_TYPE --instance-type $COMPUTE_WORKERS_TYPE # --control-plane-operator-image=quay.io/hypershift/hypershift:latest
     echo "Wait till hosted cluster got created and in progress.."
-    kubectl wait --for=condition=available=false --timeout=60s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
-    kubectl get hostedcluster -n clusters $HOSTED_CLUSTER_NAME
+    oc wait --for=condition=available=false --timeout=60s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
+    oc get hostedcluster -n clusters $HOSTED_CLUSTER_NAME
 }
 
 create_empty_cluster(){
     echo $PULL_SECRET > pull-secret
     hypershift create cluster none --name $HOSTED_CLUSTER_NAME --node-pool-replicas=0 --base-domain $BASEDOMAIN --pull-secret pull-secret --control-plane-availability-policy $REPLICA_TYPE --network-type $NETWORK_TYPE
     echo "Wait till hosted cluster got created and in progress.."
-    kubectl wait --for=condition=available=false --timeout=60s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
-    kubectl get hostedcluster -n clusters $HOSTED_CLUSTER_NAME
+    oc wait --for=condition=available=false --timeout=60s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
+    oc get hostedcluster -n clusters $HOSTED_CLUSTER_NAME
 }
 
 postinstall(){
     echo "Wait till hosted cluster is ready.."
-    kubectl wait --for=condition=available --timeout=3600s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
+    oc wait --for=condition=available --timeout=3600s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
 }
 
 cleanup(){
     echo "Cleanup Hosted Cluster..."
-    kubectl get hostedcluster -n clusters
-    LIST_OF_HOSTED_CLUSTER=$(kubectl get hostedcluster -n clusters --no-headers | awk '{print$1}')
+    oc get hostedcluster -n clusters
+    LIST_OF_HOSTED_CLUSTER=$(oc get hostedcluster -n clusters --no-headers | awk '{print$1}')
     for h in $LIST_OF_HOSTED_CLUSTER
     do
         echo "Destroy Hosted cluster $h ..."
