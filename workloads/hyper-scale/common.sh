@@ -17,7 +17,7 @@ prep(){
     fi
 }
 setup(){
-    export MGMT_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
+    export MGMT_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}'| cut -c 1-13)
     export BASEDOMAIN=$(oc get dns cluster -o jsonpath='{.spec.baseDomain}')
     echo [default] > aws_credentials
     echo aws_access_key_id=$AWS_ACCESS_KEY_ID >> aws_credentials
@@ -27,10 +27,6 @@ setup(){
     rosa whoami
     rosa verify quota
     rosa verify permissions
-    echo "MANAGEMENT CLUSTER VERSION:"
-    ocm list cluster $MGMT_CLUSTER_NAME
-    echo "MANAGEMENT CLUSTER NODES:"
-    kubectl get nodes
 }
 
 install(){
