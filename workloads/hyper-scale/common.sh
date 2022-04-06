@@ -4,8 +4,21 @@ source ../../utils/common.sh
 source ../../utils/benchmark-operator.sh
 source env.sh
 
+prep(){
+    if [[ -z $(go version) ]]; then
+        curl -L https://go.dev/dl/go1.17.6.linux-amd64.tar.gz -o go1.17.6.linux-amd64.tar.gz
+        tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+        export PATH=$PATH:/usr/local/go/bin
+        git clone --branch main https://github.com/openshift/hypershift
+        pushd hypershift
+        make build
+        popd 
+        cp ./hypershift/bin/hypershift /usr/local/bin/ -u
+    fi
+}
 setup(){
     export MGMT_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
+    export BASEDOMAIN=$(oc get dns cluster -o jsonpath='{.spec.baseDomain}')
     echo [default] > aws_credentials
     echo aws_access_key_id=$AWS_ACCESS_KEY_ID >> aws_credentials
     echo aws_secret_access_key=$AWS_SECRET_ACCESS_KEY >> aws_credentials
@@ -21,8 +34,9 @@ setup(){
 }
 
 install(){
-    echo "Install Hypershift Operator"
+    echo "Create S3 bucket and route53 doamin.."
     aws s3api create-bucket --acl public-read --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org --create-bucket-configuration LocationConstraint=$AWS_REGION --region $AWS_REGION || true
+    aws route53 create-hosted-zone --name $BASEDOMAIN --caller-reference perfscale-ci-$(date --iso-8601=seconds) || true
     echo "Wait till S3 bucket is ready.."
     aws s3api wait bucket-exists --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org 
     hypershift install --oidc-storage-provider-s3-bucket-name $MGMT_CLUSTER_NAME-aws-rhperfscale-org --oidc-storage-provider-s3-credentials aws_credentials --oidc-storage-provider-s3-region $AWS_REGION  --enable-ocp-cluster-monitoring
@@ -31,22 +45,20 @@ install(){
     while [[ $cm != "oidc-storage-provider-s3-config" ]]
     do
         cm=$(oc get configmap -n kube-public oidc-storage-provider-s3-config --no-headers | awk '{print$1}' || true)
-        echo "Hypershift Operator is not ready yet.."
+        echo "Hypershift Operator is not ready yet..Retrying after few seconds"
         sleep 5
     done
 }
 
 create_cluster(){
-    BASEDOMAIN=$(oc get dns cluster -o jsonpath='{.spec.baseDomain}')
     echo $PULL_SECRET > pull-secret
-    hypershift create cluster aws --name $HOSTED_CLUSTER_NAME --node-pool-replicas=$COMPUTE_WORKERS_NUMBER --base-domain $BASEDOMAIN --pull-secret pull-secret --aws-creds aws_credentials --region $AWS_REGION --control-plane-availability-policy $REPLICA_TYPE --network-type $NETWORK_TYPE --instance-type $COMPUTE_WORKERS_TYPE
+    hypershift create cluster aws --name $HOSTED_CLUSTER_NAME --node-pool-replicas=$COMPUTE_WORKERS_NUMBER --base-domain $BASEDOMAIN --pull-secret pull-secret --aws-creds aws_credentials --region $AWS_REGION --control-plane-availability-policy $REPLICA_TYPE --network-type $NETWORK_TYPE --instance-type $COMPUTE_WORKERS_TYPE # --control-plane-operator-image=quay.io/hypershift/hypershift:latest
     echo "Wait till hosted cluster got created and in progress.."
     kubectl wait --for=condition=available=false --timeout=60s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
     kubectl get hostedcluster -n clusters $HOSTED_CLUSTER_NAME
 }
 
 create_empty_cluster(){
-    BASEDOMAIN=$(oc get dns cluster -o jsonpath='{.spec.baseDomain}')
     echo $PULL_SECRET > pull-secret
     hypershift create cluster none --name $HOSTED_CLUSTER_NAME --node-pool-replicas=0 --base-domain $BASEDOMAIN --pull-secret pull-secret --control-plane-availability-policy $REPLICA_TYPE --network-type $NETWORK_TYPE
     echo "Wait till hosted cluster got created and in progress.."
@@ -80,4 +92,7 @@ cleanup(){
     done    
     aws s3api delete-bucket --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org
     aws s3api wait bucket-not-exists --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org
+    sleep 10
+    ROUTE_ID=$(aws route53 list-hosted-zones --output text --query HostedZones | grep $BASEDOMAIN | grep -v terraform | awk '{print$2}' | awk -F/ '{print$3}')
+    for id in $ROUTE_ID; do aws route53 delete-hosted-zone --id=$id || true ; done
 }
