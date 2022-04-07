@@ -55,4 +55,7 @@ run_benchmark_comparison
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup network_perf_${WORKLOAD}_test
 fi
+
+remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+
 log "Finished workload ${0}"
