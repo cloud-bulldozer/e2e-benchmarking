@@ -136,7 +136,7 @@ cleanup() {
   log "Cleaning up benchmark"
   kubectl delete -f ${TMPCR}
   kubectl delete configmap -n benchmark-operator kube-burner-cfg-${UUID}
-  if ! oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600 --timeout=30m; then
+  if ! oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600 --timeout=${CLEANUP_TIMEOUT}; then
     log "Namespaces cleanup failure"
     rc=1
   fi

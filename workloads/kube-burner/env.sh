@@ -39,6 +39,7 @@ export LOG_STREAMING=${LOG_STREAMING:-true}
 
 # Misc
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
+export CLEANUP_TIMEOUT=${CLEANUP_TIMEOUT:-30m}
 export LOG_LEVEL=${LOG_LEVEL:-info}
 
 # Pprof
