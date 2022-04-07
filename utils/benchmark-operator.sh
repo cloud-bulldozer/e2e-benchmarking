@@ -65,7 +65,6 @@ run_benchmark() {
       kubectl logs -n benchmark-operator --prefix --tail=30 ${pod}
       kubectl logs -n benchmark-operator --prefix --tail=-1 ${pod} >> ${pod_log}
     done
-    remove_cli
   fi
   local benchmark_name=$(cat ${1} | python -c 'import yaml; import sys; print(yaml.safe_load(sys.stdin.read())["metadata"]["name"])')
   gen_metadata ${benchmark_name} ${start_date} $(date +%s%3N)

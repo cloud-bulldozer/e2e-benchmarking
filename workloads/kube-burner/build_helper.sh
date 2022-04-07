@@ -3,20 +3,22 @@
 function prepare_builds_file()
 {
   project_name=`oc get project --no-headers | grep -m 1 conc-b | awk {'print $1'}`
-  bc_name=`oc get bc -n $project_name --no-headers | awk {'print $1'}`
-  running_build_file="running-builds.json"
-  # generate running-builds.json on the fly
-  printf '%s\n' "[" > "${running_build_file}"
-  proj_substring=${project_name::${#project_name}-1}
-  for (( c=1; c<"${MAX_CONC_BUILDS}"; c++ ))
-  do
-    if [[ "$c" == $((MAX_CONC_BUILDS - 1)) ]]; then
-      printf '%s\n' "{\"namespace\":\"$proj_substring${c}\", \"name\":\"$bc_name\"}" >> "${running_build_file}"
-    else
-      printf '%s\n' "{\"namespace\":\"$proj_substring${c}\", \"name\":\"$bc_name\"}," >> "${running_build_file}"
-    fi
-  done
-  printf '%s' "]" >> "${running_build_file}"
+  if [[ $project_name ]]; then
+    bc_name=`oc get bc -n $project_name --no-headers | awk {'print $1'}`
+    running_build_file="running-builds.json"
+    # generate running-builds.json on the fly
+    printf '%s\n' "[" > "${running_build_file}"
+    proj_substring=${project_name::${#project_name}-1}
+    for (( c=1; c<"${MAX_CONC_BUILDS}"; c++ ))
+    do
+      if [[ "$c" == $((MAX_CONC_BUILDS - 1)) ]]; then
+        printf '%s\n' "{\"namespace\":\"$proj_substring${c}\", \"name\":\"$bc_name\"}" >> "${running_build_file}"
+      else
+        printf '%s\n' "{\"namespace\":\"$proj_substring${c}\", \"name\":\"$bc_name\"}," >> "${running_build_file}"
+      fi
+    done
+    printf '%s' "]" >> "${running_build_file}"
+  fi
 }
 
 
