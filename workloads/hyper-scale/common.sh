@@ -52,7 +52,11 @@ install(){
 
 create_cluster(){
     echo $PULL_SECRET > pull-secret
-    hypershift create cluster aws --name $HOSTED_CLUSTER_NAME --node-pool-replicas=$COMPUTE_WORKERS_NUMBER --base-domain $BASEDOMAIN --pull-secret pull-secret --aws-creds aws_credentials --region $AWS_REGION --control-plane-availability-policy $REPLICA_TYPE --network-type $NETWORK_TYPE --instance-type $COMPUTE_WORKERS_TYPE # --control-plane-operator-image=quay.io/hypershift/hypershift:latest
+    RELEASE=""
+    if [[ $RELEASE_IMAGE != "" ]]; then
+        RELEASE="--release-image=$RELEASE_IMAGE"
+    fi
+    hypershift create cluster aws --name $HOSTED_CLUSTER_NAME --node-pool-replicas=$COMPUTE_WORKERS_NUMBER --base-domain $BASEDOMAIN --pull-secret pull-secret --aws-creds aws_credentials --region $AWS_REGION --control-plane-availability-policy $REPLICA_TYPE --network-type $NETWORK_TYPE --instance-type $COMPUTE_WORKERS_TYPE  $RELEASE# --control-plane-operator-image=quay.io/hypershift/hypershift:latest
     echo "Wait till hosted cluster got created and in progress.."
     oc wait --for=condition=available=false --timeout=60s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
     oc get hostedcluster -n clusters $HOSTED_CLUSTER_NAME
