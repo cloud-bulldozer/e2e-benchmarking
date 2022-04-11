@@ -4,7 +4,9 @@ TEST_CLEANUP=${TEST_CLEANUP:-true}
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=ripsaw-uperf-results
 export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
-export METADATA_TARGETED=${METADATA_TARGETED:-true}
+# Metadata collection can sometimes cause port collisions in uperf when running in targeted mode
+# It is recommended to run it with targeted set to false
+export METADATA_TARGETED=${METADATA_TARGETED:-false}
 
 # Benchark-operator
 OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
