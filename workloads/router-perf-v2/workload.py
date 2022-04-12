@@ -27,7 +27,7 @@ def index_result(payload, retry_count=3):
     print(f"Indexing documents in {es_index}")
     while retry_count > 0:
         try:
-            es = elasticsearch.Elasticsearch([es_server], send_get_body_as='POST')
+            es = elasticsearch.Elasticsearch([es_server], send_get_body_as='POST', ca_certs=False, verify_certs=False)
             es.index(index=es_index, body=payload)
             retry_count = 0
         except Exception as e:
