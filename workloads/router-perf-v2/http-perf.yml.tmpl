@@ -25,8 +25,8 @@ jobs:
 
 - name: http-scale-edge
   jobIterations: 1
-  qps: 100
-  burst: 100
+  qps: 20
+  burst: 20
   namespacedIterations: false
   namespace: http-scale-edge
   cleanup: true
@@ -48,8 +48,8 @@ jobs:
 
 - name: http-scale-passthrough
   jobIterations: 1
-  qps: 100
-  burst: 100
+  qps: 20
+  burst: 20
   namespacedIterations: false
   namespace: http-scale-passthrough
   cleanup: true
@@ -71,8 +71,8 @@ jobs:
 
 - name: http-scale-reencrypt
   jobIterations: 1
-  qps: 100
-  burst: 100
+  qps: 20
+  burst: 20
   namespacedIterations: false
   namespace: http-scale-reencrypt
   cleanup: true
