@@ -112,7 +112,7 @@ if [ "$fio_state" == "1" ] ; then
   exit 1
 fi
 
-fsync_lat=$(curl -s ${_es}/${index}/_search?q=uuid:${uuid} -H "Content-Type: application/json" -d "${curl_body}" | python -c 'import sys,json;print(int(json.loads(sys.stdin.read())["aggregations"]["max-fsync-lat-99th"]["value"]))')
+fsync_lat=$(curl -k -s ${_es}/${index}/_search?q=uuid:${uuid} -H "Content-Type: application/json" -d "${curl_body}" | python -c 'import sys,json;print(int(json.loads(sys.stdin.read())["aggregations"]["max-fsync-lat-99th"]["value"]))')
 echo "Max 99th fsync latency observed: ${fsync_lat} ns"
 if [[ ${fsync_lat} -gt ${latency_th} ]]; then
   echo "Latency greater than configured threshold: ${latency_th} ns"
