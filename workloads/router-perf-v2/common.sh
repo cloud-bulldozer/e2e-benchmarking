@@ -22,13 +22,15 @@ get_scenario(){
 
 deploy_infra(){
   log "Deploying benchmark infrastructure"
-  WORKLOAD_NODE_SELECTOR=$(echo ${NODE_SELECTOR} | tr -d {:} | tr -d " ") # Remove braces and spaces
-  if [[ $(oc get node --show-labels -l ${WORKLOAD_NODE_SELECTOR} --no-headers | grep ${WORKLOAD_NODE_SELECTOR} -c) -eq 0 ]]; then
+  WORKLOAD_NODE_SELECTOR=$(echo ${NODE_SELECTOR} | sed 's/^{\(.*\)\:.*$/\1/') # Capture between '{' and ':'
+  WORKLOAD_NODE_COUNT=$(oc get node --no-headers -l ${WORKLOAD_NODE_SELECTOR} | wc -l)
+  if [[ ${WORKLOAD_NODE_COUNT} -eq 0 ]]; then
     log "No nodes with label ${WORKLOAD_NODE_SELECTOR} found, proceeding to label a worker node at random."
     SELECTED_NODE=$(oc get nodes -l "node-role.kubernetes.io/worker=" -o custom-columns=:.metadata.name | tail -n1)
     log "Selected ${SELECTED_NODE} to label as ${WORKLOAD_NODE_SELECTOR}"
     oc label node ${SELECTED_NODE} ${WORKLOAD_NODE_SELECTOR}=""
   fi
+
   envsubst < ${INFRA_TEMPLATE} > ${INFRA_CONFIG}
   if [[ ${ENGINE} == "local" ]]; then
     log "Downloading and extracting kube-burner binary"
@@ -37,15 +39,27 @@ deploy_infra(){
   else
     ${ENGINE} run --rm -v $(pwd)/templates:/templates:z -v ${KUBECONFIG}:/root/.kube/config:z -v $(pwd)/${INFRA_CONFIG}:/http-perf.yml:z ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
   fi
+
+  log "Creating configmap from workload.py file"
   oc create configmap -n http-scale-client workload --from-file=workload.py
   log "Adding workload.py to the client pod"
-  oc set volumes -n http-scale-client deploy/http-scale-client --type=configmap --mount-path=/workload --configmap-name=workload --add
+  oc set volumes -n http-scale-client deploy/http-scale-client --add --type=configmap --mount-path=/workload --configmap-name=workload
+  log "Waiting for http-scale-client rollout"
   oc rollout status -n http-scale-client deploy/http-scale-client
 }
 
 tune_liveness_probe(){
-  log "Disabling cluster version and ingress operators"
+  log "Disabling cluster version operator"
   oc scale --replicas=0 -n openshift-cluster-version deploy/cluster-version-operator
+  if [[ ! -z "${HAPROXY_IMAGE}" ]]; then
+    log "Replacing router with ${HAPROXY_IMAGE}"
+    oc -n openshift-ingress-operator patch deploy/ingress-operator --type=strategic --patch='{"spec":{"template":{"spec":{"containers":[{"name":"ingress-operator","env":[{"name":"IMAGE","value":"'${HAPROXY_IMAGE}'"}]}]}}}}'
+    log "Waiting for ingress-operator IMAGE to change"
+    oc rollout status -n openshift-ingress deploy/router-default
+    # TODO: validate image in running pods
+    sleep 120
+  fi
+  log "Scaling ingress-operator down to 0"
   oc scale --replicas=0 -n openshift-ingress-operator deploy/ingress-operator
   log "Increasing ingress controller liveness probe period to $((RUNTIME * 2))s"
   oc scale --replicas=0 -n openshift-ingress deploy/router-default
@@ -53,12 +67,13 @@ tune_liveness_probe(){
   log "Scaling number of routers to ${NUMBER_OF_ROUTERS}"
   oc scale --replicas=${NUMBER_OF_ROUTERS} -n openshift-ingress deploy/router-default
   oc rollout status -n openshift-ingress deploy/router-default
+  # TODO: validate liveness period and image
 }
 
 tune_workload_node(){
-  TUNED_SELECTOR=$(echo ${NODE_SELECTOR} | tr -d {:})
-  log "${1} tuned profile for node labeled with ${TUNED_SELECTOR}"
-  sed "s#TUNED_SELECTOR#${TUNED_SELECTOR}#g" tuned-profile.yml | oc ${1} -f -
+  TUNED_NODE_SELECTOR=$(echo ${NODE_SELECTOR} | sed 's/^{\(.*\)\:.*$/\1/')
+  log "${1^} tuned profile for node labeled with ${TUNED_NODE_SELECTOR}"
+  sed "s#TUNED_NODE_SELECTOR#${TUNED_NODE_SELECTOR}#g" tuned-profile.yml | oc ${1} -f -
 }
 
 collect_metadata(){
@@ -71,6 +86,7 @@ collect_metadata(){
 }
 
 run_mb(){
+  # TODO: capture start time
   if [[ ${termination} == "mix" ]]; then
     gen_mb_mix_config
   else
@@ -84,6 +100,8 @@ run_mb(){
     log "Sleeping for ${QUIET_PERIOD} before next test"
     sleep ${QUIET_PERIOD}
   done
+  # TODO: capture end time
+  # TODO: collect system metrics via kube-burner between ${startTime} & ${endTime} with metrics.yml
 }
 
 enable_ingress_operator(){
@@ -95,7 +113,7 @@ enable_ingress_operator(){
 cleanup_infra(){
   log "Deleting infrastructure"
   oc delete ns -l kube-burner-uuid=${UUID} --ignore-not-found
-  rm -f /tmp/temp-route*.txt
+  rm -f /tmp/temp-route*.txt http-perf.yml http-*.json
 }
 
 gen_mb_config(){
