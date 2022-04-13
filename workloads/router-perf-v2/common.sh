@@ -50,15 +50,12 @@ deploy_infra(){
 tune_liveness_probe(){
   log "Disabling cluster version operator"
   oc scale --replicas=0 -n openshift-cluster-version deploy/cluster-version-operator
-  log "Patching maxConnections"
-  oc patch -n openshift-ingress-operator ingresscontroller/default -p '{"spec":{"unsupportedConfigOverrides":{"maxConnections":40000}}}' --type=merge
-  #oc patch clusterversions/version --type=json --patch='[{"op":"add","path":"/spec/overrides","value":[{"kind":"Deployment","group":"apps/v1","name":"ingress-operator","namespace":"openshift-ingress-operator","unmanaged":true}]}]'
   if [[ ! -z "${HAPROXY_IMAGE}" ]]; then
     log "Replacing router with ${HAPROXY_IMAGE}"
     oc -n openshift-ingress-operator patch deploy/ingress-operator --type=strategic --patch='{"spec":{"template":{"spec":{"containers":[{"name":"ingress-operator","env":[{"name":"IMAGE","value":"'${HAPROXY_IMAGE}'"}]}]}}}}'
     log "Waiting for ingress-operator IMAGE to change"
     oc rollout status -n openshift-ingress deploy/router-default
-    # validate image in running pods
+    # TODO: validate image in running pods
     sleep 120
   fi
   log "Scaling ingress-operator down to 0"
@@ -69,7 +66,7 @@ tune_liveness_probe(){
   log "Scaling number of routers to ${NUMBER_OF_ROUTERS}"
   oc scale --replicas=${NUMBER_OF_ROUTERS} -n openshift-ingress deploy/router-default
   oc rollout status -n openshift-ingress deploy/router-default
-  # validate liveness period and image
+  # TODO: validate liveness period and image
 }
 
 tune_workload_node(){
@@ -88,7 +85,7 @@ collect_metadata(){
 }
 
 run_mb(){
-  # Capture start time
+  # TODO: capture start time
   if [[ ${termination} == "mix" ]]; then
     gen_mb_mix_config
   else
@@ -102,14 +99,13 @@ run_mb(){
     log "Sleeping for ${QUIET_PERIOD} before next test"
     sleep ${QUIET_PERIOD}
   done
-  # Capture end time
-  # Collect system metrics via kube-burner between ${startTime} & ${endTime} with metrics.yml
+  # TODO: capture end time
+  # TODO: collect system metrics via kube-burner between ${startTime} & ${endTime} with metrics.yml
 }
 
 enable_ingress_operator(){
   log "Enabling cluster version and ingress operators"
   oc scale --replicas=1 -n openshift-cluster-version deploy/cluster-version-operator
-  #oc patch clusterversions/version --type=json --patch='[{"op":"add","path":"/spec/overrides","value":[{"kind":"Deployment","group":"apps/v1","name":"ingress-operator","namespace":"openshift-ingress-operator","unmanaged":false}]}]'
   oc scale --replicas=1 -n openshift-ingress-operator deploy/ingress-operator
 }
 
