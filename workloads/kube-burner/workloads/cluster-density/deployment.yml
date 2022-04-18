@@ -19,9 +19,10 @@ spec:
         - sleep
         - infinity
         image: k8s.gcr.io/pause:3.1
-        requests:
-          memory: "10Mi"
-          cpu: "10m"
+        resources:
+          requests:
+            memory: "10Mi"
+            cpu: "10m"
         volumeMounts:
         - name: secret-1
           mountPath: /secret1
