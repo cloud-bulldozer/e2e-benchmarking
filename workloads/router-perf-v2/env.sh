@@ -16,7 +16,6 @@ KUBE_BURNER_IMAGE=quay.io/cloud-bulldozer/kube-burner:latest
 #HAPROXY_IMAGE="quay.io/cloud-bulldozer/openshift-router-perfscale:-haproxy-v2.2.20"
 TERMINATIONS=${TERMINATIONS:-"http edge passthrough reencrypt mix"}
 INFRA_TEMPLATE=${INFRA_TEMPLATE:-"http-perf.yml.tmpl"}
-INFRA_CONFIG=http-perf.yml
 export DEPLOYMENT_REPLICAS=${DEPLOYMENT_REPLICAS:-10}
 #export SMALL_SCALE_ROUTES=10
 #export LARGE_SCALE_ROUTES=50
