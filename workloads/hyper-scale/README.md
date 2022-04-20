@@ -30,3 +30,4 @@ The run.sh script can be tweaked with the following environment variables
 | **REPLICA_TYPE**             | Hosted control plane availability, supported values are `HighlyAvailable`, `SingleReplica` | `HighlyAvailable` |
 | **COMPUTE_WORKERS_TYPE**            | AWS instance type of the workers to be used | `m5.4xlarge` |
 | **RELEASE_IMAGE**    | The OCP release image for the hostedcluster, ex: `quay.io/openshift-release-dev/ocp-release:4.10.5-x86_64` |  |
+| **CPO_IMAGE** | Custom control plane operator image ex: `quay.io/hypershift/hypershift:latest` |  |
