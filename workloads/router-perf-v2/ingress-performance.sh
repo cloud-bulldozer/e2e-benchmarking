@@ -7,6 +7,7 @@ get_scenario
 deploy_infra
 tune_workload_node apply
 client_pod=$(oc get pod -l app=http-scale-client -n http-scale-client | awk '/Running/{print $1}')
+configure_ingress_images
 tune_liveness_probe
 if [[ ${METADATA_COLLECTION} == "true" ]]; then
   collect_metadata

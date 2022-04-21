@@ -14,6 +14,7 @@ ENGINE=${ENGINE:-podman}
 KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.11/kube-burner-0.11-Linux-x86_64.tar.gz}
 KUBE_BURNER_IMAGE=quay.io/cloud-bulldozer/kube-burner:latest
 #HAPROXY_IMAGE="quay.io/cloud-bulldozer/openshift-router-perfscale:-haproxy-v2.2.20"
+#INGRESS_OPERATOR_IMAGE="quay.io/cloud-bulldozer/openshift-cluster-ingress-operator:balance-random"
 TERMINATIONS=${TERMINATIONS:-"http edge passthrough reencrypt mix"}
 INFRA_TEMPLATE=${INFRA_TEMPLATE:-"http-perf.yml.tmpl"}
 export DEPLOYMENT_REPLICAS=${DEPLOYMENT_REPLICAS:-10}
