@@ -14,6 +14,7 @@ export COMPUTE_WORKERS_NUMBER=${COMPUTE_WORKERS_NUMBER:-24}
 
 # Hosted cluster spec
 export RELEASE_IMAGE=""
+export CPO_IMAGE=""
 export NETWORK_TYPE=${NETWORK_TYPE:-OpenShiftSDN}
 export REPLICA_TYPE=${REPLICA_TYPE:-HighlyAvailable}
 export COMPUTE_WORKERS_TYPE=${COMPUTE_WORKERS_TYPE:-m5.4xlarge}
