@@ -139,5 +139,11 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup kube-burner-${WORKLOAD}
 fi
 run_benchmark_comparison
-remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+
+if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
+  remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+else
+  remove_cli
+fi
+
 exit ${rc}
