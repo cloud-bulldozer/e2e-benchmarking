@@ -31,13 +31,13 @@ deploy_infra(){
     oc label node ${SELECTED_NODE} ${WORKLOAD_NODE_SELECTOR}=""
   fi
 
-  envsubst < ${INFRA_TEMPLATE} > ${INFRA_CONFIG}
+  envsubst < ${INFRA_TEMPLATE} > http-perf.yml
   if [[ ${ENGINE} == "local" ]]; then
     log "Downloading and extracting kube-burner binary"
     curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz
     ./kube-burner init -c http-perf.yml --uuid=${UUID}
   else
-    ${ENGINE} run --rm -v $(pwd)/templates:/templates:z -v ${KUBECONFIG}:/root/.kube/config:z -v $(pwd)/${INFRA_CONFIG}:/http-perf.yml:z ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
+    ${ENGINE} run --rm -v $(pwd)/templates:/templates:z -v ${KUBECONFIG}:/root/.kube/config:z -v $(pwd)/http-perf.yml:/http-perf.yml:z ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
   fi
 
   log "Creating configmap from workload.py file"

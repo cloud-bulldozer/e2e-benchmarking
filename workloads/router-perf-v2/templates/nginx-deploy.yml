@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: http-perf-{{.Replica}}
+  labels:
+    run: http-perf
+    app: nginx-{{.Replica}}
+spec:
+  replicas: {{.deploymentReplicas}}
+  selector:
+    matchLabels:
+      app: nginx-{{.Replica}}
+  template:
+    metadata:
+      labels:
+        app: nginx-{{.Replica}}
+    spec:
+      nodeSelector: {{.nodeSelector}}
+      containers:
+      - name: nginx
+        image: quay.io/openshift-scale/nginx
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "10Mi"
+            cpu: "10m"    
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
