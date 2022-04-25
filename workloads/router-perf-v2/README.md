@@ -63,6 +63,7 @@ It's possible to tune the default configuration through environment variables. T
 | ES_INDEX              | Elasticsearch index | `router-test-results` |
 | SERVICE_TYPE          | K8S service type to use | `NodePort` |
 | METADATA_COLLECTION   | Collect metadata prior to trigger the workload | `true` |
+| HAPROXY_IMAGE         | Variable to override the default HAProxy container image | unset |
 
 ### Benchmark-comparison variables:
 
