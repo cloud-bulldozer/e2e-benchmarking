@@ -18,6 +18,11 @@
   metricName: serviceSyncLatency
 
 # Containers & pod metrics
+- query: sum(irate(container_cpu_usage_seconds_total{name!="",namespace=~"openshift-(etcd|oauth-apiserver|.*apiserver|ovn-kubernetes|sdn|ingress|authentication|.*controller-manager|.*scheduler|monitoring|logging|image-registry)"}[2m]) * 100) by (pod, namespace, node)
+  metricName: podCPU
+
+- query: sum(container_memory_rss{name!="",namespace=~"openshift-(etcd|oauth-apiserver|.*apiserver|ovn-kubernetes|sdn|ingress|authentication|.*controller-manager|.*scheduler|monitoring|logging|image-registry)"}) by (pod, namespace, node)
+  metricName: podMemory
 
 - query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!~"POD|",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler)"}[2m]) * 100) by (container, pod, namespace, node)) > 0
   metricName: containerCPU

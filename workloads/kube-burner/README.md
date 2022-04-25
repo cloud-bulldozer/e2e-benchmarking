@@ -51,6 +51,10 @@ Workloads can be tweaked with the following environment variables:
 | **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5m | 
 | **POD_READY_THRESHOLD** | Pod ready latency threshold (only applies node-density and pod-density workloads). [More info](https://kube-burner.readthedocs.io/en/latest/measurements/#pod-latency-thresholds) | 5000ms |
 | **PLATFORM_ALERTS** | Platform alerting enables, kube-burner alerting based cluster's platform, either ALERT_PROFILE or this variable can be set | false |
+| **COMPARISON_CONFIG**        | Touchstone configs. Multiple config files can be passed here. Ex. COMPARISON_CONFIG="podCPU-avg.json clusterVersion.json". [Sample files](https://github.com/cloud-bulldozer/e2e-benchmarking/tree/master/workloads/kube-burner/touchstone-configs) |  |
+| **TOUCHSTONE_NAMESPACE**        | Namespace where we query for metrics specified in touchstone config files | openshift-sdn or openshift-ovn-kubernetes |
+| **GSHEET_KEY_LOCATION**        | Location of service account key to generate google sheets |  |
+| **EMAIL_ID_FOR_RESULTS_SHEET**        | Email id where the google sheets needs to be sent |  |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 

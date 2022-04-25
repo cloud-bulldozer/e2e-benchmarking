@@ -3,7 +3,6 @@
 . common.sh
 . build_helper.sh
 
-remove_update_taint
 deploy_operator
 check_running_benchmarks
 
@@ -139,6 +138,6 @@ delete_pprof_secrets
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup kube-burner-${WORKLOAD}
 fi
-
+run_benchmark_comparison
 remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
 exit ${rc}
