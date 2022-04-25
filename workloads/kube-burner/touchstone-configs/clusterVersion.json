@@ -1,0 +1,20 @@
+{
+  "elasticsearch": {
+    "ripsaw-kube-burner": [
+      {
+        "filter": {
+          "metricName.keyword": "clusterVersion"
+        },
+        "buckets": [
+          "labels.version.keyword"
+        ],
+        "aggregations": {
+          "timestamp": [
+            "max"
+          ]
+        }
+      }
+    ]
+  }
+}
+

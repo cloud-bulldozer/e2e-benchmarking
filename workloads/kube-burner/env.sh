@@ -31,6 +31,8 @@ export PRELOAD_PERIOD=${PRELOAD_PERIOD:-2m}
 export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burner:v0.15.4}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
+export LOG_STREAMING=${LOG_STREAMING:-true}
+export METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
 
 # Misc
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
@@ -69,3 +71,7 @@ export POD_READY_THRESHOLD=${POD_READY_THRESHOLD:-5000ms}
 # Alerting
 export PLATFORM_ALERTS=${PLATFORM_ALERTS:-false}
 
+# Output and Comparisons
+export COMPARISON_CONFIG=${COMPARISON_CONFIG:-""}
+export GSHEET_KEY_LOCATION=${GSHEET_KEY_LOCATION}
+export EMAIL_ID_FOR_RESULTS_SHEET=${EMAIL_ID_FOR_RESULTS_SHEET}

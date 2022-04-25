@@ -41,7 +41,7 @@ def push_to_gsheet(sheetname, csv_file_name, google_svc_acc_key, email_id):
       ]
     }
     sh.batch_update(fit_to_data_body)
-    print(f"Google Spreadsheet link -> {spreadsheet_url}")
+    print(f"************** Google Spreadsheet link ---> {spreadsheet_url} ***************")
 
 
 # Main

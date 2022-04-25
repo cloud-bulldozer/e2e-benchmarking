@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-
 source ../../utils/common.sh
 source ../../utils/benchmark-operator.sh
 source env.sh
+source ../../utils/compare.sh
 
 openshift_login
 
@@ -20,6 +20,8 @@ else
 fi
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=${UUID:-$(uuidgen)}
+export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion') 
+export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}') 
 
 platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
 
@@ -35,9 +37,7 @@ if [[ ${HYPERSHIFT} == "true" ]]; then
     log "Grafana agent is already installed"
   else
     export CLUSTER_NAME=${HOSTED_CLUSTER_NAME}
-    export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
-    export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}')
-    export PLATFORM=${platform}
+    export PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
     export DAG_ID=$(oc version -o json | jq -r '.openshiftVersion')-$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}') # setting a dynamic value
     envsubst < ./grafana-agent.yaml | oc apply -f -
   fi
@@ -166,17 +166,65 @@ snappy_backup() {
  store_on_elastic
 }
 
-remove_update_taint() {
-  # This is only here until BZ https://bugzilla.redhat.com/show_bug.cgi?id=2035005 gets resolved
-  oc adm taint nodes UpdateInProgress:PreferNoSchedule- --all || true
+get_network_type() {
+if [[ $NETWORK_TYPE == "OVNKubernetes" ]]; then
+  network_ns=openshift-ovn-kubernetes
+else
+  network_ns=openshift-sdn
+fi
+echo $network_ns
 }
 
+check_metric_to_modify() {
+  export div_by=1
+  echo $config | grep -i memory
+  if [[ $? == 0 ]]; then 
+   export div_by=1048576
+  fi
+  echo $config | grep -i latency
+  if [[ $? == 0 ]]; then
+    export div_by=1000
+  fi
+}
+
+run_benchmark_comparison() {
+   if [[ -n ${ES_SERVER} ]] && [[ -n ${COMPARISON_CONFIG} ]]; then
+     log "Installing touchstone"
+     install_touchstone
+     get_network_type
+     export TOUCHSTONE_NAMESPACE=${TOUCHSTONE_NAMESPACE:-"$network_ns"}
+     res_output_dir="/tmp/${WORKLOAD}-${UUID}"
+     mkdir -p ${res_output_dir}
+     final_csv=${res_output_dir}/${UUID}.csv
+     for config in ${COMPARISON_CONFIG}
+     do
+       check_metric_to_modify
+       envsubst < touchstone-configs/${config} > /tmp/${config}
+       COMPARISON_OUTPUT="${res_output_dir}/${config}"
+       if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
+         log "Comparing with baseline"
+         compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "/tmp/${config}" "csv"
+       else
+         log "Querying results"
+         compare ${ES_SERVER} ${UUID} "/tmp/${config}" "csv"
+       fi
+       python ../../utils/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_csv}
+     done
+     if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
+       gen_spreadsheet ${WORKLOAD} ${final_csv} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
+     fi
+     log "Removing touchstone"
+     remove_touchstone
+  fi
+ }
 
 label_node_with_label() {
   colon_param=$(echo $1 | tr "=" ":" | sed 's/:/: /g')
   export POD_NODE_SELECTOR="{$colon_param}"
   export NODE_SELECTOR="$1"
-  NODE_COUNT=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | wc -l )
+  if [[ -z "$NODE_COUNT=" ]]; then
+    NODE_COUNT=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | wc -l )
+  fi
   if [[ ${NODE_COUNT} -le 0 ]]; then
     log "Node count <= 0: ${NODE_COUNT}"
     exit 1
