@@ -55,7 +55,7 @@ fi
 if [[ -v COMPARISON_OUTPUT_CFG ]]; then
   COMPARISON_OUTPUT=${COMPARISON_OUTPUT_CFG}
 else
-  COMPARISON_OUTPUT=${PWD}/ingress-performance.csv
+  COMPARISON_OUTPUT=${PWD}/ingress-performance-${UUID}.csv
 fi
 
 GSHEET_KEY_LOCATION=${GSHEET_KEY_LOCATION}
