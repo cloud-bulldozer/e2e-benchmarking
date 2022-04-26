@@ -21,31 +21,23 @@ fi
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=${UUID:-$(uuidgen)}
 
-export baremetalCheck=$(oc get infrastructure cluster -o json | jq .spec.platformSpec.type)
+platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
 
-#Check to see if the infrastructure type is baremetal to adjust script as necessary
-if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
-  log "BareMetal infastructure: setting isBareMetal accordingly"
-  export isBareMetal=true
-else
-  export isBareMetal=false
-fi
-
-if [[ "${isBareMetal}" == "true" ]]; then
+if [[ ${platform} == "BareMetal" ]]; then
   # installing python3.8
-  sudo yum -y install python3.8
+  sudo dnf -y install python3.8
   #sudo alternatives --set python3 /usr/bin/python3.8
 fi
 
 if [[ ${HYPERSHIFT} == "true" ]]; then
   # shellcheck disable=SC2143
-  if [[ $(oc get project | grep grafana-agent) ]]; then
+  if oc get ns grafana-agent; then
     log "Grafana agent is already installed"
   else
     export CLUSTER_NAME=${HOSTED_CLUSTER_NAME}
     export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
     export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}')
-    export PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
+    export PLATFORM=${platform}
     export DAG_ID=$(oc version -o json | jq -r '.openshiftVersion')-$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}') # setting a dynamic value
     envsubst < ./grafana-agent.yaml | oc apply -f -
   fi
@@ -84,7 +76,11 @@ run_workload() {
     envsubst < ${METRICS_PROFILE} > ${tmpdir}/metrics.yml || envsubst <  ${METRICS_PROFILE} > ${tmpdir}/metrics.yml
   fi
   if [[ -n ${ALERTS_PROFILE} ]]; then
-   cp ${ALERTS_PROFILE} ${tmpdir}/alerts.yml
+    log "Alerting is enabled, fetching ${ALERTS_PROFILE}"
+    cp ${ALERTS_PROFILE} ${tmpdir}/alerts.yml
+  elif [[ ${PLATFORM_ALERTS} == "true" ]]; then
+    log "Platform alerting is enabled, fetching alerst-profiles/${WORKLOAD}-${platform}.yml"
+    cp alerts-profiles/${WORKLOAD}-${platform}.yml ${tmpdir}/alerts.yml
   fi
   log "Creating kube-burner configmap"
   kubectl create configmap -n benchmark-operator --from-file=${tmpdir} kube-burner-cfg-${UUID}
@@ -205,6 +201,6 @@ unlabel_nodes_with_label() {
     for n in ${WORKER_NODE_NAMES}; do
       oc label ${n} $p-
     done
-  break
+    break
   done
 }

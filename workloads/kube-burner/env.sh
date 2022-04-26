@@ -27,15 +27,10 @@ export ERROR_ON_VERIFY=${ERROR_ON_VERIFY:-true}
 export PRELOAD_IMAGES=${PRELOAD_IMAGES:-true}
 export PRELOAD_PERIOD=${PRELOAD_PERIOD:-2m}
 
-# Remote configuration
-export REMOTE_METRIC_PROFILE=${REMOTE_METRIC_PROFILE}
-export REMOTE_ALERT_PROFILE=${REMOTE_ALERT_PROFILE}
-
 # Kube-burner job
 export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burner:v0.15.4}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
-export LOG_STREAMING=${LOG_STREAMING:-true}
 
 # Misc
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
@@ -70,4 +65,7 @@ export GIT_URL=""
 
 # Thresholds
 export POD_READY_THRESHOLD=${POD_READY_THRESHOLD:-5000ms}
+
+# Alerting
+export PLATFORM_ALERTS=${PLATFORM_ALERTS:-false}
 
