@@ -42,7 +42,6 @@ Workloads can be tweaked with the following environment variables:
 | **STEP_SIZE**        | Prometheus step size, useful for long benchmarks | 30s|
 | **PRELOAD_IMAGES**   | Preload kube-buner's benchmark images in the cluster | true |
 | **PRELOAD_PERIOD**   | How long the preload stage will last | 2m |
-| **LOG_STREAMING**    | Enable log streaming of kube-burner pod | true |
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | true |
 | **CLEANUP_WHEN_FINISH** | Delete benchmark objects and workload's namespaces after running it | false |
 | **CLEANUP_TIMEOUT**  | Timeout value used in resource deletion | 30m |
@@ -51,6 +50,7 @@ Workloads can be tweaked with the following environment variables:
 | **PPROF_COLLECTION** | Collect and store pprof data locally | false |
 | **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5m | 
 | **POD_READY_THRESHOLD** | Pod ready latency threshold (only applies node-density and pod-density workloads). [More info](https://kube-burner.readthedocs.io/en/latest/measurements/#pod-latency-thresholds) | 5000ms |
+| **PLATFORM_ALERTS** | Platform alerting enables, kube-burner alerting based cluster's platform, either ALERT_PROFILE or this variable can be set | false |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
