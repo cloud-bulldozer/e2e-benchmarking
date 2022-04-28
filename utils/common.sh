@@ -125,8 +125,8 @@ gen_metadata() {
   local INFRA_INFO=$(oc get infrastructure.config.openshift.io cluster -o json)
   local PLATFORM=$(echo ${INFRA_INFO} | jq -r .status.platformStatus.type)
   if [[ ${PLATFORM} == "AWS" ]] ; then
-    local CLUSTERTYPE=$(echo ${INFRA_INFO} | jq -r '.status.platformStatus.aws.resourceTags | map(select(.key == "red-hat-clustertype"))[0].value' | tr '[:lower:]' '[:upper:]')
-    if [[ ${CLUSTERTYPE} != "NULL" ]] ; then
+    local CLUSTERTYPE=$(echo ${INFRA_INFO} | jq -r 'try .status.platformStatus.aws.resourceTags | map(select(.key == "red-hat-clustertype"))[0].value' | tr '[:lower:]' '[:upper:]')
+    if [[ ! -z ${CLUSTERTYPE} ]] ; then
       PLATFORM=${CLUSTERTYPE}
     fi
   fi
