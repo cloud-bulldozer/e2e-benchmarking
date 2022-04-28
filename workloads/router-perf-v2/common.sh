@@ -48,19 +48,58 @@ deploy_infra(){
   oc rollout status -n http-scale-client deploy/http-scale-client
 }
 
-tune_liveness_probe(){
+configure_ingress_images() {
   log "Disabling cluster version operator"
   oc scale --replicas=0 -n openshift-cluster-version deploy/cluster-version-operator
+
+  # Scale the ingress-operator if you are changing any images (it needs to reconcile inorder to propagate new image)
+  if [[ ! -z "${INGRESS_OPERATOR_IMAGE}" ]] || [[ ! -z "${HAPROXY_IMAGE}" ]]; then
+    log "Scaling ingress-operator up to 1"
+    oc scale --replicas=1 -n openshift-ingress-operator deploy/ingress-operator
+    oc rollout status -n openshift-ingress-operator deploy/ingress-operator --timeout 120s
+  fi
+
+  # Configure the ingress operator image
+  # Though we scale down the ingress operator later, we can still test ENV changes that the ingress-operator configures on the router deployment
+  # So it's important we update the ingress-operator image before the router image
+  if [[ ! -z "${INGRESS_OPERATOR_IMAGE}" ]]; then
+    log "Replacing ingress-operator image with ${INGRESS_OPERATOR_IMAGE}"
+    oc -n openshift-ingress-operator patch deploy/ingress-operator --type=strategic --patch='{"spec":{"template":{"spec":{"containers":[{"name":"ingress-operator","image":"'${INGRESS_OPERATOR_IMAGE}'"}]}}}}'
+    oc rollout status -n openshift-ingress-operator deploy/ingress-operator --timeout 120s
+    if [[ $? -ne 0 ]]; then
+      log "ERROR: Ingress Operator failed to rollout image ${INGRESS_OPERATOR_IMAGE}"
+      exit 1
+    fi
+  else
+    log "Using the default ingress-operator image"
+  fi
+
+  # Set router image and wait for all pods in the deployment to be the correct image
   if [[ ! -z "${HAPROXY_IMAGE}" ]]; then
     log "Replacing router with ${HAPROXY_IMAGE}"
     oc -n openshift-ingress-operator patch deploy/ingress-operator --type=strategic --patch='{"spec":{"template":{"spec":{"containers":[{"name":"ingress-operator","env":[{"name":"IMAGE","value":"'${HAPROXY_IMAGE}'"}]}]}}}}'
-    log "Waiting for ingress-operator IMAGE to change"
-    oc rollout status -n openshift-ingress deploy/router-default
-    # TODO: validate image in running pods
-    sleep 120
+    TIMEOUT=240
+    # Monitor pod image is easier/safer than doing a rollout because the operator starts the rollout asynchronously 
+    while [[ "$(oc get pods -n openshift-ingress -o jsonpath='{.items[*].spec.containers[*].image}' | tr -s '[[:space:]]' '\n' | uniq)" != "${HAPROXY_IMAGE}" ]]; do
+      log "Waiting for all router images to become ${HAPROXY_IMAGE}..."
+      sleep 1
+      if [[ "${TIMEOUT}" -eq 0 ]]; then
+        log "ERROR: Timeout waiting for all router pods to use image: ${HAPROXY_IMAGE}"
+	exit 1
+      fi
+      TIMEOUT=$((TIMEOUT-1))
+    done
+  else
+    log "Using the default router image"
   fi
+
   log "Scaling ingress-operator down to 0"
   oc scale --replicas=0 -n openshift-ingress-operator deploy/ingress-operator
+  log "Scaling number of routers to ${NUMBER_OF_ROUTERS}"
+  oc scale --replicas=${NUMBER_OF_ROUTERS} -n openshift-ingress deploy/router-default
+}
+
+tune_liveness_probe(){
   log "Increasing ingress controller liveness probe period to $((RUNTIME * 2))s"
   oc scale --replicas=0 -n openshift-ingress deploy/router-default
   oc set probe -n openshift-ingress --liveness --period-seconds=$((RUNTIME * 2)) deploy/router-default
