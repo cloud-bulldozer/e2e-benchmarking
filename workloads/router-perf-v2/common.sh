@@ -31,13 +31,9 @@ deploy_infra(){
     oc label node ${SELECTED_NODE} ${WORKLOAD_NODE_SELECTOR}=""
   fi
 
-  if [[ ${ENGINE} == "local" ]]; then
-    log "Downloading and extracting kube-burner binary"
-    curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz
-    ./kube-burner init -c ${INFRA_TEMPLATE} --uuid=${UUID}
-  else
-    ${ENGINE} run --rm -v $(pwd)/templates:/templates:z -v ${KUBECONFIG}:/root/.kube/config:z -v $(pwd)/http-perf.yml:/http-perf.yml:z ${KUBE_BURNER_IMAGE} init -c http-perf.yml --uuid=${UUID}
-  fi
+  log "Downloading and extracting kube-burner binary"
+  curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz kube-burner
+  ./kube-burner init -c ${INFRA_TEMPLATE} --uuid=${UUID}
 
   log "Creating configmap from workload.py file"
   oc create configmap -n http-scale-client workload --from-file=workload.py
