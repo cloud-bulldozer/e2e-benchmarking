@@ -10,18 +10,18 @@ jobs:
   waitWhenFinished: true
   objects:
     - objectTemplate: templates/nginx-deploy.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
-        deploymentReplicas: ${DEPLOYMENT_REPLICAS}
+        deploymentReplicas: {{ .DEPLOYMENT_REPLICAS }}
         nodeSelector: "{node-role.kubernetes.io/worker: }"
 
     - objectTemplate: templates/http-service.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
-        serviceType: ${SERVICE_TYPE}
+        serviceType: {{ .SERVICE_TYPE }}
 
     - objectTemplate: templates/http-route.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
 
 
 - name: http-scale-edge
@@ -34,18 +34,18 @@ jobs:
   waitWhenFinished: true
   objects:
     - objectTemplate: templates/nginx-deploy.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
-        deploymentReplicas: ${DEPLOYMENT_REPLICAS}
+        deploymentReplicas: {{ .DEPLOYMENT_REPLICAS }}
         nodeSelector: "{node-role.kubernetes.io/worker: }"
 
     - objectTemplate: templates/http-service.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
-        serviceType: ${SERVICE_TYPE}
+        serviceType: {{ .SERVICE_TYPE }}
 
     - objectTemplate: templates/edge-route.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
 
 
 - name: http-scale-passthrough
@@ -58,18 +58,18 @@ jobs:
   waitWhenFinished: true
   objects:
     - objectTemplate: templates/nginx-deploy.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
-        deploymentReplicas: ${DEPLOYMENT_REPLICAS}
+        deploymentReplicas: {{ .DEPLOYMENT_REPLICAS }}
         nodeSelector: "{node-role.kubernetes.io/worker: }"
 
     - objectTemplate: templates/https-service.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
-        serviceType: ${SERVICE_TYPE}
+        serviceType: {{ .SERVICE_TYPE }}
 
     - objectTemplate: templates/passthrough-route.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
 
 
 - name: http-scale-reencrypt
@@ -82,18 +82,18 @@ jobs:
   waitWhenFinished: true
   objects:
     - objectTemplate: templates/nginx-deploy.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
-        deploymentReplicas: ${DEPLOYMENT_REPLICAS}
+        deploymentReplicas: {{ .DEPLOYMENT_REPLICAS }}
         nodeSelector: "{node-role.kubernetes.io/worker: }"
 
     - objectTemplate: templates/https-service.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
-        serviceType: ${SERVICE_TYPE}
+        serviceType: {{ .SERVICE_TYPE }}
 
     - objectTemplate: templates/reencrypt-route.yml
-      replicas: ${NUMBER_OF_ROUTES}
+      replicas: {{ .NUMBER_OF_ROUTES }}
 
 - name: http-scale-client
   namespace: http-scale-client
@@ -111,14 +111,14 @@ jobs:
     - objectTemplate: templates/http-scale-client.yml
       replicas: 1
       inputVars:
-        ESServer: "${ES_SERVER}"
-        ESIndex: ${ES_INDEX}
-        hostNetwork: ${HOST_NETWORK}
-        nodeSelector: "${NODE_SELECTOR}"
-        numberOfRouters: "${NUMBER_OF_ROUTERS}"
-        clusterID: "${CLUSTER_ID}"
-        clusterName: "${CLUSTER_NAME}"
-        openshiftVersion: "${OPENSHIFT_VERSION}"
-        kubernetesVersion: "${KUBERNETES_VERSION}"
-        clusterNetworkType: "${CLUSTER_NETWORK_TYPE}"
-        platformStatus: '${PLATFORM_STATUS}'
+        ESServer: "{{ .ES_SERVER }}"
+        ESIndex: {{ .ES_INDEX }}
+        hostNetwork: {{ .HOST_NETWORK }}
+        nodeSelector: "{{ .NODE_SELECTOR }}"
+        numberOfRouters: "{{ .NUMBER_OF_ROUTERS }}"
+        clusterID: "{{ .CLUSTER_ID }}"
+        clusterName: "{{ .CLUSTER_NAME }}"
+        openshiftVersion: "{{ .OPENSHIFT_VERSION }}"
+        kubernetesVersion: "{{ .KUBERNETES_VERSION }}"
+        clusterNetworkType: "{{ .CLUSTER_NETWORK_TYPE }}"
+        platformStatus: '{{ .PLATFORM_STATUS }}'
