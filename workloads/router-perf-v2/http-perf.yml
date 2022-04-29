@@ -10,9 +10,10 @@ jobs:
   cleanup: true
   waitWhenFinished: true
   objects:
-    - objectTemplate: templates/nginx-pod.yml
+    - objectTemplate: templates/nginx-deploy.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
+        deploymentReplicas: {{ .DEPLOYMENT_REPLICAS }}
         nodeSelector: "{node-role.kubernetes.io/worker: }"
 
     - objectTemplate: templates/http-service.yml
@@ -22,6 +23,7 @@ jobs:
 
     - objectTemplate: templates/http-route.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
+{{ end }}
 
 {{ if or (contains "edge" .TERMINATIONS) (contains "mix" .TERMINATIONS) }}
 - name: http-scale-edge
@@ -33,9 +35,10 @@ jobs:
   cleanup: true
   waitWhenFinished: true
   objects:
-    - objectTemplate: templates/nginx-pod.yml
+    - objectTemplate: templates/nginx-deploy.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
+        deploymentReplicas: {{ .DEPLOYMENT_REPLICAS }}
         nodeSelector: "{node-role.kubernetes.io/worker: }"
 
     - objectTemplate: templates/http-service.yml
@@ -45,6 +48,7 @@ jobs:
 
     - objectTemplate: templates/edge-route.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
+{{ end }}
 
 {{ if or (contains "passthrough" .TERMINATIONS) (contains "mix" .TERMINATIONS) }}
 - name: http-scale-passthrough
@@ -56,9 +60,10 @@ jobs:
   cleanup: true
   waitWhenFinished: true
   objects:
-    - objectTemplate: templates/nginx-pod.yml
+    - objectTemplate: templates/nginx-deploy.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
+        deploymentReplicas: {{ .DEPLOYMENT_REPLICAS }}
         nodeSelector: "{node-role.kubernetes.io/worker: }"
 
     - objectTemplate: templates/https-service.yml
@@ -68,6 +73,7 @@ jobs:
 
     - objectTemplate: templates/passthrough-route.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
+{{ end }}
 
 {{ if or (contains "reencrypt" .TERMINATIONS) (contains "mix" .TERMINATIONS) }}
 - name: http-scale-reencrypt
@@ -79,9 +85,10 @@ jobs:
   cleanup: true
   waitWhenFinished: true
   objects:
-    - objectTemplate: templates/nginx-pod.yml
+    - objectTemplate: templates/nginx-deploy.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
       inputVars:
+        deploymentReplicas: {{ .DEPLOYMENT_REPLICAS }}
         nodeSelector: "{node-role.kubernetes.io/worker: }"
 
     - objectTemplate: templates/https-service.yml
@@ -91,6 +98,7 @@ jobs:
 
     - objectTemplate: templates/reencrypt-route.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
+{{ end }}
 
 - name: http-scale-client
   namespace: http-scale-client

@@ -50,7 +50,7 @@ It's possible to tune the default configuration through environment variables. T
 | LARGE_SCALE_ROUTES    | Number of routes of each termination to create in the large scale scenario | `500` |
 | LARGE_SCALE_CLIENTS   | Threads/route to use in the large scale scenario | `1 20 80` |
 | LARGE_SCALE_CLIENTS_MIX | Threads/route to use in the large scale scenario with mix termination | `1 10 20` |
-| DEPLOYMENT_REPLICAS   | Number of replicas per deployment when using deployments rather than pods | `10` |
+| DEPLOYMENT_REPLICAS   | Number of pod replicas per deployment | `1` |
 | TLS_REUSE             | Reuse TLS session | `true` |
 | SAMPLES               | Number of samples to perform of each test | `2` |
 | HOST_NETWORK          | Enable hostNetwork in the mb client | `true` |

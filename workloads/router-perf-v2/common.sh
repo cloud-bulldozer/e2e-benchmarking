@@ -33,7 +33,7 @@ deploy_infra(){
 
   log "Downloading and extracting kube-burner binary"
   curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz kube-burner
-  ./kube-burner init -c ${INFRA_TEMPLATE} --uuid=${UUID}
+  ./kube-burner init -c http-perf.yml --uuid=${UUID}
 
   log "Creating configmap from workload.py file"
   oc create configmap -n http-scale-client workload --from-file=workload.py
