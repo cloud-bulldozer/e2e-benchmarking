@@ -9,6 +9,9 @@ import numpy
 import argparse
 import json
 import ssl
+import urllib3
+
+urllib3.disable_warnings()
 
 # Environment vars
 es_server = os.getenv("ES_SERVER")
