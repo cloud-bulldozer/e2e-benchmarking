@@ -10,14 +10,12 @@ export ES_INDEX=${ES_INDEX:-router-test-results}
 NUM_NODES=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!= --no-headers | grep -cw Ready)
 LARGE_SCALE_THRESHOLD=${LARGE_SCALE_THRESHOLD:-24}
 METADATA_COLLECTION=${METADATA_COLLECTION:-true}
-ENGINE=${ENGINE:-local}
 KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.15.4/kube-burner-0.15.4-Linux-x86_64.tar.gz}
 KUBE_BURNER_IMAGE=quay.io/cloud-bulldozer/kube-burner:latest
 #HAPROXY_IMAGE="quay.io/cloud-bulldozer/openshift-router-perfscale:-haproxy-v2.2.20"
 #INGRESS_OPERATOR_IMAGE="quay.io/cloud-bulldozer/openshift-cluster-ingress-operator:balance-random"
 export TERMINATIONS=${TERMINATIONS:-"http edge passthrough reencrypt mix"}
-INFRA_TEMPLATE=${INFRA_TEMPLATE:-"http-perf.yml.tmpl"}
-export DEPLOYMENT_REPLICAS=${DEPLOYMENT_REPLICAS:-10}
+export DEPLOYMENT_REPLICAS=${DEPLOYMENT_REPLICAS:-1}
 #export SMALL_SCALE_ROUTES=10
 #export LARGE_SCALE_ROUTES=50
 export SERVICE_TYPE=${SERVICE_TYPE:-NodePort}

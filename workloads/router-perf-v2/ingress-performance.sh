@@ -1,9 +1,16 @@
 #!/usr/bin/bash -e
-set -ex
+set -e
 
 source ./common.sh
 
 get_scenario
+log "###############################################"
+log "Routes: ${NUMBER_OF_ROUTES}"
+log "Routers: ${NUMBER_OF_ROUTERS}"
+log "Service type: ${SERVICE_TYPE}"
+log "Terminations: ${TERMINATIONS}"
+log "Deployment replicas: ${DEPLOYMENT_REPLICAS}"
+log "###############################################"
 deploy_infra
 tune_workload_node apply
 client_pod=$(oc get pod -l app=http-scale-client -n http-scale-client | awk '/Running/{print $1}')
