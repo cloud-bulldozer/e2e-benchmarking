@@ -1,4 +1,8 @@
 - json_path: ["test_type", "*", "routes", "*", "conn_per_targetroute", "*", "keepalive", "*", "avg(requests_per_second)"]
-  tolerancy: -30
+  tolerancy: -25
+  # Maximum percentage of allowed failures
+  max_failures: 33
 - json_path: ["test_type", "*", "routes", "*", "conn_per_targetroute", "*", "keepalive", "*", "avg(latency_95pctl)"]
-  tolerancy: -30
+  tolerancy: 25
+  # Maximum percentage of allowed failures
+  max_failures: 33
