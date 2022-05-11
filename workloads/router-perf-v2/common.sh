@@ -105,12 +105,13 @@ tune_liveness_probe(){
 }
 
 reschedule_monitoring_stack(){
+   [[ $(oc get cm -n openshift-monitoring cluster-monitoring-config --ignore-not-found --no-headers | wc -l) == 0 ]] && return 0
    log "Re-scheduling monitoring stack to ${1} nodes"
-   kubectl get cm -n openshift-monitoring  cluster-monitoring-config -o yaml | sed "s#kubernetes.io/.*#kubernetes.io/${1}#g" | kubectl apply -f -
+   oc get cm -n openshift-monitoring cluster-monitoring-config -o yaml | sed "s#kubernetes.io/.*#kubernetes.io/${1}#g" | kubectl apply -f -
    # cluster-monitoring-operator can take some time to reconcile the changes
    sleep 1m
-   kubectl rollout status -n openshift-monitoring deploy/cluster-monitoring-operator
-   kubectl rollout status -n openshift-monitoring sts/prometheus-k8s
+   oc rollout status -n openshift-monitoring deploy/cluster-monitoring-operator
+   oc rollout status -n openshift-monitoring sts/prometheus-k8s
 }
 
 tune_workload_node(){
