@@ -80,7 +80,7 @@ configure_ingress_images() {
       sleep 1
       if [[ "${TIMEOUT}" -eq 0 ]]; then
         log "ERROR: Timeout waiting for all router pods to use image: ${HAPROXY_IMAGE}"
-	exit 1
+        exit 1
       fi
       TIMEOUT=$((TIMEOUT-1))
     done
@@ -233,22 +233,4 @@ test_routes(){
       curl --retry 3 --connect-timeout 5 -sSk ${scheme}${host}${URL_PATH} -o /dev/null
     done
   done
-}
-
-snappy_backup() {
- log "snappy server as backup enabled"
- source ../../utils/snappy-move-results/common.sh
- csv_list=`find . -name "*.csv"` 
- json_list=`find . -name "*.json"`
- compare_file=`find . -name "compare*"`
- mkdir files_list
- cp $csv_list $compare_file $json_list http-perf.yml ./files_list
- tar -zcf snappy_files.tar.gz ./files_list
- workload=router-perf-v2 
- local snappy_path="$SNAPPY_USER_FOLDER/$runid$platform-$cluster_version-$network_type/$UUID-$workload/$folder_date_time/"
- generate_metadata > metadata.json  
- ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz $snappy_path
- ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
- store_on_elastic
- rm -rf files_list
 }

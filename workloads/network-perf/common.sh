@@ -118,21 +118,5 @@ run_benchmark_comparison() {
   fi
 }
 
-
-snappy_backup(){
-  log "Snappy server as backup enabled"
-  source ../../utils/snappy-move-results/common.sh
-  csv_list=`find . -name "*.csv"` 
-  mkdir -p files_list
-  cp $csv_list ./files_list
-  tar -zcf snappy_files.tar.gz ./files_list
-  local snappy_path="${SNAPPY_USER_FOLDER}/${runid}${platform}-${cluster_version}-${network_type}/${1}/${folder_date_time}/"
-  generate_metadata > metadata.json  
-  ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz $snappy_path
-  ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
-  store_on_elastic
-  rm -rf files_list
-}
-
 export_defaults
 deploy_operator

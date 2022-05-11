@@ -13,10 +13,10 @@ function openshift_login () {
   if [[ -z $KUBECONFIG ]] && [[ ! -s $HOME/.kube/config ]]; then
     log "KUBECONFIG var is not defined and cannot find kube config in the home directory, trying to use oc login"
     if [[ -n ${KUBEUSER}} ]] && [[ -n ${KUBEPASSWORD} ]] && [[ -n ${KUBEURL} ]]; then
-  	  oc login -u ${KUBEUSER} -p ${KUBEPASSWORD} ${KUBEURL}
+      oc login -u ${KUBEUSER} -p ${KUBEPASSWORD} ${KUBEURL}
     else
-  	  log "No openshift authentication method found, exiting"
-         exit 1
+     log "No openshift authentication method found, exiting"
+     exit 1
     fi
   fi
 }
@@ -194,3 +194,30 @@ EOF
 }
 
 
+##############################################################################
+# Saves a workload backup in the snappy server
+# Arguments:
+#   File terminations list
+#   File list
+#   Workload name
+##############################################################################
+snappy_backup(){
+  log "Backing up stuff in snappy server"
+  local files
+  mkdir -p files_list
+  source snappy-move-results/common.sh
+  for term in ${1}; do
+    files=$(find . -name "*.${term}")
+    cp ${files} files_list
+  done
+  for f in ${2}; do
+    cp ${f} files_list
+  done
+  tar czf snappy_files.tar.gz files_list metadata.json
+  local snappy_path="${SNAPPY_USER_FOLDER}/${runid}${platform}-${cluster_version}/${workload}/${folder_date_time}/"
+  generate_metadata > metadata.json
+  ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz $snappy_path
+  ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
+  store_on_elastic
+  rm -rf files_list metadata.json
+}
