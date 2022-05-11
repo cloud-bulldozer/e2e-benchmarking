@@ -13,7 +13,7 @@ install_cli() {
       fi
   fi
   source ${ripsaw_tmp}/bin/activate
-  pip3 install -qq -U "git+https://github.com/cloud-bulldozer/benchmark-operator.git/#egg=ripsaw-cli&subdirectory=cli"
+  pip3 install -qq -U "git+${1}@${2}#egg=ripsaw-cli&subdirectory=cli"
 }
 
 remove_cli() {
@@ -30,7 +30,8 @@ remove_cli() {
 #   Benchmark-operator branch
 ############################################################################
 deploy_benchmark_operator() {
-  install_cli
+
+  install_cli ${1} ${2}
   if ! ripsaw operator install --repo=${1} --branch=${2}; then
      exit 1
   fi
