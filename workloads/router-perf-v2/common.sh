@@ -104,6 +104,16 @@ tune_liveness_probe(){
   # TODO: validate liveness period and image
 }
 
+reschedule_monitoring_stack(){
+   [[ $(oc get cm -n openshift-monitoring cluster-monitoring-config --ignore-not-found --no-headers | wc -l) == 0 ]] && return 0
+   log "Re-scheduling monitoring stack to ${1} nodes"
+   oc get cm -n openshift-monitoring cluster-monitoring-config -o yaml | sed "s#kubernetes.io/\w*#kubernetes.io/${1}#g" | oc apply -f -
+   # cluster-monitoring-operator can take some time to reconcile the changes
+   sleep 1m
+   oc rollout status -n openshift-monitoring deploy/cluster-monitoring-operator
+   oc rollout status -n openshift-monitoring sts/prometheus-k8s
+}
+
 tune_workload_node(){
   TUNED_NODE_SELECTOR=$(echo ${NODE_SELECTOR} | sed 's/^{\(.*\)\:.*$/\1/')
   log "${1^} tuned profile for node labeled with ${TUNED_NODE_SELECTOR}"
