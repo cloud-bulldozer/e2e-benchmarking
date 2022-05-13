@@ -6,7 +6,7 @@ source ../../utils/common.sh
 openshift_login
 
 log "Starting test for cloud: ${CLOUD_NAME}"
-start_time=`date`
+start_time=$(date +%s)
 deploy_operator
 
 # Get initial worker count
@@ -41,7 +41,7 @@ for x in $(seq 1 ${RUNS}); do
     fi
   done
 done
-end_time=`date`
-duration=`date -ud@$(($(date -ud"$end_time" +%s)-$(date -ud"$start_time" +%s))) +%T`
+end_time=$(date +%s)
+duration=$(date -ud@$((${end_time} - ${start_time})) +%T)
 log "Duration of execution: ${duration} for number of scale runs: ${RUNS}"
 remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
