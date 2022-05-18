@@ -48,7 +48,6 @@ for pairs in ${PAIRS}; do
   fi
 done
 
-BASELINE_UUID=${BASELINE_POD_UUID}
 COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
 run_benchmark_comparison
 
