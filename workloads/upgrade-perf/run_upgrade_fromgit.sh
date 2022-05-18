@@ -18,6 +18,19 @@ if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
 
 fi
 
+# Check if we're on ROSA
+INFRA_INFO=$(oc get infrastructure.config.openshift.io cluster -o json)
+CLUSTERTYPE=$(echo ${INFRA_INFO} | jq -r 'try .status.platformStatus.aws.resourceTags | map(select(.key == "red-hat-clustertype"))[0].value' | tr '[:lower:]' '[:upper:]')
+if [[ "${CLUSTERTYPE}" == "ROSA" ]]; then
+  log "ROSA infastructure Upgrade"
+  source ./rosa_upgrade.sh
+  if [ -z "${ROSA_CLUSTER_NAME}" ] || [ -z "${ROSA_TOKEN}" ] ; then
+    log "ERROR: Missing one or more ROSA required vars: ROSA_CLUSTER_NAME ROSA_TOKEN"
+    exit 1
+  fi
+  export ROSA_CLUSTER_NAME ROSA_TOKEN
+  rosa_upgrade
+fi
 
 # set the channel to find the builds to upgrade to
 if [[ -n $CHANNEL ]]; then
