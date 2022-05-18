@@ -13,9 +13,6 @@
         "aggregations": {
           "requests_per_second": [
             "avg"
-          ],
-          "latency_95pctl": [
-            "avg"
           ]
         }
       },
@@ -30,9 +27,6 @@
         ],
         "aggregations": {
           "requests_per_second": [
-            "avg"
-          ],
-          "latency_95pctl": [
             "avg"
           ]
         }
@@ -49,9 +43,6 @@
         "aggregations": {
           "requests_per_second": [
             "avg"
-          ],
-          "latency_95pctl": [
-            "avg"
           ]
         }
       },
@@ -67,9 +58,6 @@
         "aggregations": {
           "requests_per_second": [
             "avg"
-          ],
-          "latency_95pctl": [
-            "avg"
           ]
         }
       },
@@ -84,9 +72,6 @@
         ],
         "aggregations": {
           "requests_per_second": [
-            "avg"
-          ],
-          "latency_95pctl": [
             "avg"
           ]
         }
