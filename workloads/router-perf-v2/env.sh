@@ -43,7 +43,7 @@ KEEPALIVE_REQUESTS=${KEEPALIVE_REQUESTS:-"0 1 50"}
 
 # Comparison and csv generation
 BASELINE_UUID=${BASELINE_UUID}
-ES_SERVER_BASELINE=${ES_SERVER_BASELINE}
+ES_SERVER_BASELINE=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 COMPARISON_CONFIG=${COMPARISON_CONFIG:-${PWD}/mb-touchstone.json}
 COMPARISON_RC=${COMPARISON_RC:-0}
 if [[ -v TOLERANCY_RULES_CFG ]]; then

@@ -68,19 +68,16 @@ It's possible to tune the default configuration through environment variables. T
 
 The ingress-performance script is able to invoke benchmark-comparison to perform results comparisons and then generate a google spreadsheet document. If `ES_SERVER_BASELINE` is not set, benchmark-comparison is used to generate a CSV results file.
 
-
-| Variable              | Description     | Default	          | Required |
-|-----------------------|-----------------|-------------------|---------------------------------|
-| ES_SERVER_BASELINE    | Elasticsearch endpoint used to fetch baseline results | "" | no |
-| BASELINE_UUID         | UUID of the benchmark to use as baseline in comparison | "" | no | 
-| COMPARISON_CONFIG     | Benchmark-comparison configuration file | `${PWD}/mb-touchstone.json` | no |
-| COMPARISON_ALIASES    | Benchmark-comparison aliases       | "" | no |
-| COMPARISON_OUTPUT_CFG | Benchmark-comparison output file   | `${PWD}/ingress-performance.csv`| no |
-| COMPARISON_RC         | Benchmark-comparison return code if tolerancy check fails | 0 | no |
-| TOLERANCY_RULES_CFG   | Tolerancy rules configuration file | `{PWD}/mb-tolerancy-rules.yaml` | no |
-| GSHEET_KEY_LOCATION   | Path to service account key to generate google sheets (optional) | "" | no |
-| EMAIL_ID_FOR_RESULTS_SHEET | It will push your local results CSV to Google Spreadsheets and send an email with the attachment | "" | no |
-
+| Variable                | Description              | Default |
+|-------------------------|--------------------------|---------|
+| **COMPARISON_ALIASES**  | Benchmark-comparison aliases (UUIDs will be replaced by these aliases | "" |
+| **ES_SERVER_BASELINE**  | Elasticsearch endpoint used used by the baseline benchmark | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 |
+| **BASELINE_UUID**       | Baseline UUID used for comparison | "" |
+| **COMPARISON_CONFIG**   | Benchmark-comparison config file | `${PWD}/ingress-performance.csv` |
+| **COMPARISON_RC**       | Benchmark-comparison return code if tolerancy check fails | 0 |
+| **TOLERANCY_RULES_CFG** | Tolerancy rules configuration file | mb-tolerancy-rules.yaml |
+| **GSHEET_KEY_LOCATION** | Location of the Google Service Account Key | "" |
+| **EMAIL_ID_FOR_RESULTS_SHEET**   | Email to push CSV results | "" |
 
 ## Metrics
 
