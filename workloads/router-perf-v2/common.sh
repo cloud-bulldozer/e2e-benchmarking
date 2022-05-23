@@ -157,7 +157,7 @@ enable_ingress_operator(){
 cleanup_infra(){
   log "Deleting infrastructure"
   oc delete ns -l kube-burner-uuid=${UUID} --ignore-not-found
-  rm -f /tmp/temp-route*.txt http-perf.yml http-*.json
+  rm -f /tmp/temp-route*.txt http-*.json
 }
 
 gen_mb_config(){
