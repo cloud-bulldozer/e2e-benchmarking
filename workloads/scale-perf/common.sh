@@ -42,3 +42,43 @@ run_workload() {
   fi
   return ${rc}
 }
+
+index_result() {
+  local INIT_WORKER_COUNT=$1
+  local FINAL_WORKER_COUNT=$2
+  local START_DATE=$3
+  local END_DATE=$4
+  local DURATION=$5
+
+  local ES_INDEX="openshift-scale-timings"
+
+  log "Indexing scale data to Elasticsearch"
+  local VERSION_INFO=$(oc version -o json)
+  local INFRA_INFO=$(oc get infrastructure.config.openshift.io cluster -o json)
+  local PLATFORM=$(echo ${INFRA_INFO} | jq -r .status.platformStatus.type)
+  local CLUSTER_NAME=$(echo ${INFRA_INFO} | jq -r .status.infrastructureName)
+  local OCP_VERSION=$(echo ${VERSION_INFO} | jq -r .openshiftVersion)
+  local K8S_VERSION=$(echo ${VERSION_INFO} | jq -r .serverVersion.gitVersion)
+  local SDN_TYPE=$(oc get networks.operator.openshift.io cluster -o jsonpath="{.spec.defaultNetwork.type}")
+  local UUID=$(oc get benchmark -n benchmark-operator ${BENCHMARK} -o json | jq -r '.status.uuid')
+
+local DATA=$(cat << EOF
+{
+"uuid":"${UUID}",
+"platform":"${PLATFORM}",
+"ocp_version":"${OCP_VERSION}",
+"k8s_version":"${K8S_VERSION}",
+"sdn_type":"${SDN_TYPE}",
+"timestamp":"${START_DATE}",
+"end_date":"${END_DATE}",
+"init_worker_count": "${INIT_WORKER_COUNT}",
+"final_worker_count": "${FINAL_WORKER_COUNT}",
+"scale_duration": "${DURATION}"
+}
+EOF
+)
+
+  # send the document to ES
+  log "Indexing benchmark metadata to ${ES_SERVER}/${ES_INDEX}"
+  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${DATA}" -o /dev/null
+}

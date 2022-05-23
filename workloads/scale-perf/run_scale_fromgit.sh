@@ -43,5 +43,6 @@ for x in $(seq 1 ${RUNS}); do
 done
 end_time=$(date +%s)
 duration=$(date -ud@$((${end_time} - ${start_time})) +%T)
+index_result ${_init_worker_count} ${SCALE} ${start_time} ${end_time} ${duration}
 log "Duration of execution: ${duration} for number of scale runs: ${RUNS}"
 remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
