@@ -1,0 +1,25 @@
+{
+  "elasticsearch": {
+    "ripsaw-uperf-results": [
+      {
+        "filter": {
+          "test_type.keyword": "stream"
+        },
+        "exclude": {
+          "norm_ops": 0
+        },
+        "buckets": [
+          "protocol.keyword",
+          "message_size",
+          "num_threads",
+          "num_pairs.keyword"
+        ],
+        "aggregations": {
+          "norm_byte": [
+            "avg"
+          ]
+        }
+      }
+    ]
+  }
+}

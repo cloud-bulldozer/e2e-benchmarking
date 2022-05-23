@@ -2,6 +2,7 @@
 
 . common.sh
 . build_helper.sh
+. ../../utils/compare.sh
 
 label=""
 case ${WORKLOAD} in

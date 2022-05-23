@@ -12,7 +12,7 @@ log() {
 function openshift_login () {
   if [[ -z $KUBECONFIG ]] && [[ ! -s $HOME/.kube/config ]]; then
     log "KUBECONFIG var is not defined and cannot find kube config in the home directory, trying to use oc login"
-    if [[ -n ${KUBEUSER}} ]] && [[ -n ${KUBEPASSWORD} ]] && [[ -n ${KUBEURL} ]]; then
+    if [[ -n ${KUBEUSER} ]] && [[ -n ${KUBEPASSWORD} ]] && [[ -n ${KUBEURL} ]]; then
       oc login -u ${KUBEUSER} -p ${KUBEPASSWORD} ${KUBEURL}
     else
      log "No openshift authentication method found, exiting"
@@ -75,9 +75,6 @@ function check_pod_ready_state () {
   oc wait --for=condition=ready pods --namespace ${3:-benchmark-operator} $pod_name --timeout=$timeout
   return $?
 }
-
-
-
 
 gen_spreadsheet_helper() {
   pip install oauth2client>=4.1.3 gspread

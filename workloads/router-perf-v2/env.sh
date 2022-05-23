@@ -31,6 +31,7 @@ KUBERNETES_MAJOR_VERSION=$(oc version -o json |  jq -r '.serverVersion.major')
 KUBERNETES_MINOR_VERSION=$(oc version -o json |  jq -r '.serverVersion.minor')
 export KUBERNETES_VERSION=${KUBERNETES_MAJOR_VERSION}.${KUBERNETES_MINOR_VERSION}
 export CLUSTER_NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.spec.networkType}')
+export NETWORK_TYPE=$CLUSTER_NETWORK_TYPE
 export PLATFORM_STATUS=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus}')
 
 # Benchmark configuration
@@ -44,7 +45,7 @@ KEEPALIVE_REQUESTS=${KEEPALIVE_REQUESTS:-"0 1 50"}
 # Comparison and csv generation
 BASELINE_UUID=${BASELINE_UUID}
 ES_SERVER_BASELINE=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-COMPARISON_CONFIG=${COMPARISON_CONFIG:-${PWD}/mb-touchstone.json}
+COMPARISON_CONFIG=${COMPARISON_CONFIG:-"mb-touchstone.json"}
 COMPARISON_RC=${COMPARISON_RC:-0}
 GEN_CSV=${GEN_CSV:-false}
 if [[ -v TOLERANCY_RULES_CFG ]]; then
@@ -60,3 +61,4 @@ fi
 
 GSHEET_KEY_LOCATION=${GSHEET_KEY_LOCATION}
 EMAIL_ID_FOR_RESULTS_SHEET=${EMAIL_ID_FOR_RESULTS_SHEET}
+export SORT_BY_VALUE=${SORT_BY_VALUE:-false}
