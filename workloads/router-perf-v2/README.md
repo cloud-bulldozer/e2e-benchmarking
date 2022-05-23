@@ -73,12 +73,13 @@ The ingress-performance script is able to invoke benchmark-comparison to perform
 | **COMPARISON_ALIASES**  | Benchmark-comparison aliases (UUIDs will be replaced by these aliases | "" |
 | **ES_SERVER_BASELINE**  | Elasticsearch endpoint used used by the baseline benchmark | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 |
 | **BASELINE_UUID**       | Baseline UUID used for comparison | "" |
-| **COMPARISON_CONFIG**   | Benchmark-comparison config file | `${PWD}/ingress-performance.csv` |
+| **COMPARISON_CONFIG**   | Benchmark-comparison config file, file needs to be in e2e-benchmarking/utils/touchstone-config folder | [mb-touchstone.json](../../utils/touchstone-configs/mb-touchstone.json) |
 | **COMPARISON_RC**       | Benchmark-comparison return code if tolerancy check fails | 0 |
 | **TOLERANCY_RULES_CFG** | Tolerancy rules configuration file | mb-tolerancy-rules.yaml |
 | **GSHEET_KEY_LOCATION** | Location of the Google Service Account Key, used to import a resulting csv | "" |
 | **EMAIL_ID_FOR_RESULTS_SHEET**   | Email to push CSV results | "" |
 | **GEN_CSV**             | Generate a benchmark-comparison csv, required to generate the spreadsheet | "false" |
+| **SORT_BY_VALUE**             | Sort the generated CSV by value | false |
 
 ## Metrics
 

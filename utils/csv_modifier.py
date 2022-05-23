@@ -1,6 +1,5 @@
 import pandas as pd
 from typing import *
-import sys
 import argparse
 import os
 
@@ -38,7 +37,10 @@ def read_csv(filepath: str) -> pd.DataFrame:
 
 def divide_col(x: float) -> float:
     div_by = os.environ.get("div_by", 1)
-    return round(x / float((div_by)), 3)
+    try: 
+        return round(x / float((div_by)), 3)
+    except:
+        return x
 
 
 def write_df(df: pd.DataFrame, target_filepath: str, mode: str = "a"):
@@ -57,7 +59,8 @@ def main():
             select_columns = -1
             if "ES_SERVER_BASELINE" in os.environ and "BASELINE_UUID" in os.environ:
                 select_columns = -2
-            df.sort_values(df.columns[-1], ascending=False, inplace=True)
+            if ("SORT_BY_VALUE" in os.environ) and (os.getenv("SORT_BY_VALUE") == "true"):
+                df.sort_values(df.columns[-1], ascending=False, inplace=True)
             df[df.columns[select_columns:num_columns]] = df[
                 df.columns[select_columns:num_columns]
             ].apply(divide_col)

@@ -2,6 +2,7 @@
 set -e
 
 source ./common.sh
+source ../../utils/compare.sh
 
 get_scenario
 log "###############################################"
@@ -48,6 +49,8 @@ done
 tune_workload_node delete
 cleanup_infra
 reschedule_monitoring_stack infra
+
+export WORKLOAD="router-perf"
 run_benchmark_comparison
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then

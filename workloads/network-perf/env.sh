@@ -8,6 +8,7 @@ export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 # It is recommended to run it with targeted set to false
 export METADATA_TARGETED=${METADATA_TARGETED:-false}
 export SYSTEM_METRICS_COLLECTION=${SYSTEM_METRICS_COLLECTION:-false}
+export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}') 
 
 # Workload
 export WORKLOAD=${WORKLOAD:-smoke}
@@ -26,9 +27,10 @@ export PAIRS=${PAIRS:-1 2}
 
 BASELINE_MULTUS_UUID=${BASELINE_MULTUS_UUID}
 ES_SERVER_BASELINE=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-COMPARISON_CONFIG=${COMPARISON_CONFIG:-${PWD}/uperf-touchstone.json}
+COMPARISON_CONFIG=${COMPARISON_CONFIG:-"uperf-touchstone.json"}
 COMPARISON_RC=${COMPARISON_RC:-0}
 GEN_CSV=${GEN_CSV:-false}
+export SORT_BY_VALUE=${SORT_BY_VALUE:-false}
 if [[ -v TOLERANCY_RULES_CFG ]]; then
   TOLERANCY_RULES=${TOLERANCY_RULES_CFG}
 else

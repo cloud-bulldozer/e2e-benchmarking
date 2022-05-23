@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 source ./common.sh
-
+. ../../utils/compare.sh
 CR=ripsaw-uperf-crd.yaml
 
 case ${WORKLOAD} in
@@ -48,7 +48,6 @@ for pairs in ${PAIRS}; do
   fi
 done
 
-COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
 run_benchmark_comparison
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
