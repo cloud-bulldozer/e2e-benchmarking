@@ -35,12 +35,12 @@ compare() {
   if [[ -n ${COMPARISON_ALIASES} ]]; then
     cmd+=" --alias ${COMPARISON_ALIASES}"
   fi
-  if [[ -n ${COMPARISON_OUTPUT} ]]; then
+  if [[ -n ${COMPARISON_FORMAT} ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
     cmd+=" --output-file ${COMPARISON_OUTPUT}"
   fi
   if [[ -n ${COMPARISON_RC} ]]; then
     cmd+=" --rc ${COMPARISON_RC}"
   fi
-  echo ${cmd}
+  log "Running: ${cmd}"
   ${cmd}
 }

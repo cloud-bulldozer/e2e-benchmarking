@@ -81,7 +81,12 @@ function check_pod_ready_state () {
 
 gen_spreadsheet_helper() {
   pip install oauth2client>=4.1.3 gspread
-  python3 $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_gen.py --sheetname ${1}-$(date "+%Y-%m-%dT%H:%M:%S") -c ${2} --email ${3} --service-account ${4}
+  sheetname=${1}-$(date "+%Y-%m-%dT%H:%M:%S")
+  log "Sheetname: ${sheetname}"
+  log "CSV: ${2}"
+  log "Email: ${3}"
+  log "Service-account: ${4}"
+  python3 $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_gen.py --sheetname "${sheetname}" -c "${2}" --email "${3}" --service-account "${4}"
 }
 
 ##############################################################################
@@ -95,12 +100,12 @@ gen_spreadsheet_helper() {
 gen_spreadsheet() {
   log "Installing requirements to generate spreadsheet"
   if [[ "${VIRTUAL_ENV}" != "" ]]; then
-    gen_spreadsheet_helper ${1} ${2} ${3} ${4}
+    gen_spreadsheet_helper "${1}" "${2}" "${3}" "${4}"
   else
     csv_tmp=$(mktemp -d)
     python -m venv ${csv_tmp}
     source ${csv_tmp}/bin/activate
-    gen_spreadsheet_helper ${1} ${2} ${3} ${4}
+    gen_spreadsheet_helper "${1}" "${2}" "${3}" "${4}"
     deactivate
     rm -rf ${csv_tmp}
   fi
