@@ -183,6 +183,7 @@ local METADATA=$(cat << EOF
 "timestamp":"${START_DATE}",
 "end_date":"${END_DATE}",
 "workload": "${WORKLOAD}",
+"cluster_name": "${CLUSTER_NAME}",
 "result":"${RESULT}"
 }
 EOF
