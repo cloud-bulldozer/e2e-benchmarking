@@ -53,7 +53,7 @@ The environment variables below are used to configure benchmark comparison and/o
 | **TOLERANCY_RULES_CFG** | Tolerancy rules configuration file | uperf-tolerancy-rules.yaml |
 | **GSHEET_KEY_LOCATION** | Location of the Google Service Account Key, used to import a resulting csv | "" |
 | **EMAIL_ID_FOR_RESULTS_SHEET**   | Email to push CSV results | "" |
-| **COMPARISON_FORMAT**   | Benchmark-comparison output format, only empty (default output) and csv outputs are supported) | "" |
+| **COMPARISON_FORMAT**   | Benchmark-comparison output format, only empty (default output) and csv outputs are supported) | "csv" |
 
 ## Snappy integration configurations
 
