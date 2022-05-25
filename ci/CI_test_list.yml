@@ -1,7 +1,7 @@
 router-perf-v2:./ingress-performance.sh
 etcd-perf:./run_etcd_tests_fromgit.sh 
 scale-perf:./run_scale_fromgit.sh 
-network-perf:./run.sh
+network-perf:COMPARISON_FORMAT="" ./run.sh
 kube-burner:WORKLOAD=cluster-density ./run.sh
 kube-burner:WORKLOAD=node-density ./run.sh
 kube-burner:WORKLOAD=node-density-heavy ./run.sh
