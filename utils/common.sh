@@ -215,7 +215,7 @@ snappy_backup(){
   done
   generate_metadata > metadata.json
   tar czf snappy_files.tar.gz files_list metadata.json
-  local snappy_path="${SNAPPY_USER_FOLDER}/${runid}${platform}-${cluster_version}/${3}/${folder_date_time}/"
+  local snappy_path="${SNAPPY_USER_FOLDER}/${runid}${platform}-${cluster_version}-${network_type}/${3}/${folder_date_time}/"
   ../../utils/snappy-move-results/run_snappy.sh snappy_files.tar.gz $snappy_path
   ../../utils/snappy-move-results/run_snappy.sh metadata.json $snappy_path
   store_on_elastic
