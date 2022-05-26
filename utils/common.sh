@@ -205,7 +205,7 @@ snappy_backup(){
   log "Backing up stuff in snappy server"
   local files
   mkdir -p files_list
-  source snappy-move-results/common.sh
+  source ../../utils/snappy-move-results/common.sh
   for term in ${1}; do
     files=$(find . -name "*.${term}")
     cp ${files} files_list
