@@ -52,7 +52,7 @@ COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
 run_benchmark_comparison
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
-  snappy_backup network_perf_${WORKLOAD}_test
+  snappy_backup "csv" "" "${WORKLOAD}"
 fi
 
 remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}

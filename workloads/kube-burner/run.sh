@@ -136,7 +136,8 @@ if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
 fi
 delete_pprof_secrets
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
-  snappy_backup kube-burner-${WORKLOAD}
+  tar czf pprof.tar.gz ./pprof-data
+  snappy_backup "" "pprof.tar.gz" ${WORKLOAD}
 fi
 run_benchmark_comparison
 

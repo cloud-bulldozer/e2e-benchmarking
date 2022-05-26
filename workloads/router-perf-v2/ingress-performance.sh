@@ -67,5 +67,5 @@ if [[ -n ${ES_SERVER} ]]; then
 fi
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
- snappy_backup
+ snappy_backup "csv json" "http-perf.yml" "router-perf-v2"
 fi
