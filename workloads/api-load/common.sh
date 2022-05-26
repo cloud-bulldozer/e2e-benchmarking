@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 source env.sh
 source ../../utils/common.sh
@@ -8,6 +9,18 @@ openshift_login
 
 export_defaults() {
   export UUID=$(uuidgen)
+  # create_clusters endpoint needs OsdCcsAdmin user's key.
+  # Only 2 keys are allowed at a time
+  echo "Create new OSD access key.."
+  keys=`aws iam list-access-keys --user-name OsdCcsAdmin --output json  | jq -r '.AccessKeyMetadata[].AccessKeyId' | wc -l`
+  if [[ $keys == 2 ]]; then
+    exit 1
+  fi
+  export ADMIN_KEY=$(aws iam create-access-key --user-name OsdCcsAdmin --output json)
+  export AWS_ACCESS_KEY_ID=$(echo $ADMIN_KEY | jq -r '.AccessKey.AccessKeyId')
+  export AWS_SECRET_ACCESS_KEY=$(echo $ADMIN_KEY | jq -r '.AccessKey.SecretAccessKey')
+  sleep 60
+  aws iam get-user --output json | jq -r .User.UserName
 }
 
 deploy_operator() {
@@ -62,6 +75,7 @@ run_workload() {
     log "Cleaning up benchmark"
     kubectl delete -f ${TMPCR}
   fi
+  aws iam delete-access-key --user-name OsdCcsAdmin --access-key-id $AWS_ACCESS_KEY_ID || true
   return ${rc}
 }
 

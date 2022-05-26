@@ -8,6 +8,11 @@ Running from CLI:
 $TESTS="list-clusters list-subscriptions" GATEWAY_URL="http://localhost:8080" OCM_TOKEN="notARealToken" RATE=10/s AWS_ACCESS_KEY="empty" AWS_ACCESS_SECRET="empty" AWS_ACCOUNT_ID="empty" ./run.sh
 ```
 
+## Dependencies
+
+This workload requires awscli tool. Please install awscli before running this workload.
+
+
 ## Environment variables
 
 Workloads can be tweaked with the following environment variables:
@@ -23,9 +28,12 @@ Workloads can be tweaked with the following environment variables:
 | **TEST_CLEANUP**        | Remove benchmark CR at the end | true |
 | **GATEWAY_URL**      | Gateway url to perform the test against       | "https://api.integration.openshift.com |
 | **OCM_TOKEN**| OCM Authorization token |  |
-| **AWS_ACCESS_KEY**    | AWS access key          |  |
-| **AWS_ACCESS_SECRET**              | AWS access secret                     |       |
+| **AWS_ACCESS_KEY_ID**    | AWS access key          |  |
+| **AWS_SECRET_ACCESS_KEY**              | AWS access secret                     |       |
 | **AWS_ACCOUNT_ID**            | AWS Account ID, is the 12-digit account number |       |
+| **SNAPPY_DATA_SERVER_URL**    | The Snappy data server url, where you want to move files          |  |
+| **SNAPPY_DATA_SERVER_USERNAME**    | Username for the Snappy data-server          |  |
+| **SNAPPY_DATA_SERVER_PASSWORD**    | Password for the Snappy data-server          |  |
 | **RATE**| Rate of the attack. Format example 5/s | 10/s |
 | **DURATION**         | Duration of each individual run in minutes | 1 |
 | **OUTPUT_PATH** | Output directory for result and report files | /tmp/results |
