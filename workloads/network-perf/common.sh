@@ -80,9 +80,7 @@ export_defaults() {
 
 deploy_operator() {
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
-  kubectl apply -f https://raw.githubusercontent.com/cloud-bulldozer/benchmark-operator/${OPERATOR_BRANCH}/resources/backpack_role.yaml
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
-  oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
 }
 
 run_workload() {

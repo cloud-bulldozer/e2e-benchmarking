@@ -24,10 +24,7 @@ deploy_operator() {
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
   rm -rf benchmark-operator
   git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
-  kubectl apply -f benchmark-operator/resources/backpack_role.yaml
-  kubectl apply -f benchmark-operator/resources/scale_role.yaml
   oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
-  oc adm policy -n benchmark-operator add-scc-to-user privileged -z backpack-view
 }
 
 run_workload() {
