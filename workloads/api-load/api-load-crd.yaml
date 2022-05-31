@@ -21,8 +21,8 @@ spec:
       duration: ${DURATION}
       rate: ${RATE}
       output_path: ${OUTPUT_PATH}
-      aws_access_key: ${AWS_ACCESS_KEY_ID}
-      aws_access_secret: ${AWS_SECRET_ACCESS_KEY}
+      aws_access_key: ${AWS_ACCESS_KEY}
+      aws_access_secret: ${AWS_ACCESS_SECRET}
       aws_account_id: ${AWS_ACCOUNT_ID}
       cooldown: ${COOLDOWN}
       sleep: ${SLEEP}
