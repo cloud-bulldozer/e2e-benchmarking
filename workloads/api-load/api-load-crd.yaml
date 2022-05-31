@@ -10,9 +10,9 @@ spec:
     url: ${ES_SERVER}
     index_name: ${ES_INDEX}
   snappy:
-    url: ${SNAPPY_SERVER}
-    user: ${SNAPPY_USER}
-    password: ${SNAPPY_PASSWORD}
+    url: ${SNAPPY_DATA_SERVER_URL}
+    user: ${SNAPPY_DATA_SERVER_USERNAME}
+    password: ${SNAPPY_DATA_SERVER_PASSWORD}
   workload:
     name: api_load
     args:
@@ -21,8 +21,8 @@ spec:
       duration: ${DURATION}
       rate: ${RATE}
       output_path: ${OUTPUT_PATH}
-      aws_access_key: ${AWS_ACCESS_KEY}
-      aws_access_secret: ${AWS_ACCESS_SECRET}
+      aws_access_key: ${AWS_ACCESS_KEY_ID}
+      aws_access_secret: ${AWS_SECRET_ACCESS_KEY}
       aws_account_id: ${AWS_ACCOUNT_ID}
       cooldown: ${COOLDOWN}
       sleep: ${SLEEP}
