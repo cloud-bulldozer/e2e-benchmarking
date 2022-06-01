@@ -42,7 +42,7 @@ It's possible to tune the default configuration through environment variables. T
 | TERMINATIONS          | List of HTTP terminations to test | `http edge passthrough reencrypt mix` |
 | URL_PATH              | URL path to use in the benchmark | `/1024.html` |
 | KEEPALIVE_REQUESTS    | List with the number of keep alive requests to perform in the same HTTP session | `0 1 50` |
-| KUBE_BURNER_RELEASE_URL    | Kube-burner binary URL | `https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.15.4/kube-burner-0.15.4-Linux-x86_64.tar.gz` |
+| KUBE_BURNER_RELEASE_URL    | Kube-burner binary URL | `https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.15.5/kube-burner-0.15.5-Linux-x86_64.tar.gz` |
 | LARGE_SCALE_THRESHOLD | Number of worker nodes required to consider a large scale scenario | `24` |
 | SMALL_SCALE_ROUTES    | Number of routes of each termination to create in the small scale scenario | `100` |
 | SMALL_SCALE_CLIENTS   | Threads/route to use in the small scale scenario | `1 40 200` |
