@@ -95,9 +95,17 @@ run_workload() {
 
 find_running_pods_num() {
   pod_count=0
-  for n in ${WORKER_NODE_NAMES}; do
-    pods=$(oc describe ${n} | awk '/Non-terminated/{print $3}' | sed "s/(//g")
-    pod_count=$((pods + pod_count))
+  # The next statement outputs something similar to:
+  # ip-10-0-177-166.us-west-2.compute.internal:20
+  # ip-10-0-250-197.us-west-2.compute.internal:17
+  # ip-10-0-151-0.us-west-2.compute.internal:19
+  NODE_PODS=$(kubectl get pods --field-selector=status.phase=Running -o go-template --template='{{range .items}}{{.spec.nodeName}}{{"\n"}}{{end}}' -A | awk '{nodes[$1]++ }END{ for (n in nodes) print n":"nodes[n]}')
+  for worker_node in ${WORKER_NODE_NAMES}; do
+    for node_pod in ${NODE_PODS}; do
+      # We use awk to match the node name and then we take the number of pods, which is the number after the colon
+      pods=$(echo "${node_pod}" | awk -F: '/'$worker_node'/{print $2}')
+      pod_count=$((pods + pod_count))
+    done
   done
   log "Total running pods across nodes: ${pod_count}"
   if [[ ${NODE_SELECTOR} =~ node-role.kubernetes.io/worker ]]; then
@@ -208,34 +216,29 @@ run_benchmark_comparison() {
 label_node_with_label() {
   colon_param=$(echo $1 | tr "=" ":" | sed 's/:/: /g')
   export POD_NODE_SELECTOR="{$colon_param}"
-  export NODE_SELECTOR="$1"
-  if [[ -z "$NODE_COUNT=" ]]; then
+  export NODE_SELECTOR=$1
+  if [[ -z $NODE_COUNT ]]; then
     NODE_COUNT=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | wc -l )
   fi
   if [[ ${NODE_COUNT} -le 0 ]]; then
     log "Node count <= 0: ${NODE_COUNT}"
     exit 1
   fi
-  WORKER_NODE_NAMES=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -n ${NODE_COUNT})
+  WORKER_NODE_NAMES=$(oc get node -o custom-columns=name:.metadata.name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -n ${NODE_COUNT})
   if [[ $(echo "${WORKER_NODE_NAMES}" | wc -l) -lt ${NODE_COUNT} ]]; then
     log "Not enough worker nodes to label"
     exit 1
   fi
 
   log "Labeling ${NODE_COUNT} worker nodes with $1"
-  for n in ${WORKER_NODE_NAMES}; do
-    oc label ${n} $1 --overwrite
-  done
-
+  oc label node ${WORKER_NODE_NAMES} $1 --overwrite
 }
 
 unlabel_nodes_with_label() {
   split_param=$(echo $1 | tr "=" " ")
   log "Removing $1 label from worker nodes"
   for p in ${split_param}; do
-    for n in ${WORKER_NODE_NAMES}; do
-      oc label ${n} $p-
-    done
+    oc label node ${WORKER_NODE_NAMES} $p-
     break
   done
 }
