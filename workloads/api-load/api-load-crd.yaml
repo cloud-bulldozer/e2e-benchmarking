@@ -9,6 +9,7 @@ spec:
   elasticsearch:
     url: ${ES_SERVER}
     index_name: ${ES_INDEX}
+    verify_cert: ${ES_SKIP_VERIFY}
   snappy:
     url: ${SNAPPY_DATA_SERVER_URL}
     user: ${SNAPPY_DATA_SERVER_USERNAME}
