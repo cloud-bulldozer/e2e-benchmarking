@@ -216,7 +216,6 @@ run_benchmark_comparison() {
 label_node_with_label() {
   colon_param=$(echo $1 | tr "=" ":" | sed 's/:/: /g')
   export POD_NODE_SELECTOR="{$colon_param}"
-  export NODE_SELECTOR=$1
   if [[ -z $NODE_COUNT ]]; then
     NODE_COUNT=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | wc -l )
   fi
