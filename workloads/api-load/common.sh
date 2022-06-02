@@ -17,8 +17,8 @@ export_defaults() {
     exit 1
   fi
   export ADMIN_KEY=$(aws iam create-access-key --user-name OsdCcsAdmin --output json)
-  export AWS_ACCESS_KEY_ID=$(echo $ADMIN_KEY | jq -r '.AccessKey.AccessKeyId')
-  export AWS_SECRET_ACCESS_KEY=$(echo $ADMIN_KEY | jq -r '.AccessKey.SecretAccessKey')
+  export AWS_ACCESS_KEY=$(echo $ADMIN_KEY | jq -r '.AccessKey.AccessKeyId')
+  export AWS_ACCESS_SECRET=$(echo $ADMIN_KEY | jq -r '.AccessKey.SecretAccessKey')
   sleep 60
   aws iam get-user --output json | jq -r .User.UserName
 }
@@ -75,7 +75,7 @@ run_workload() {
     log "Cleaning up benchmark"
     kubectl delete -f ${TMPCR}
   fi
-  aws iam delete-access-key --user-name OsdCcsAdmin --access-key-id $AWS_ACCESS_KEY_ID || true
+  aws iam delete-access-key --user-name OsdCcsAdmin --access-key-id $AWS_ACCESS_KEY || true
   return ${rc}
 }
 

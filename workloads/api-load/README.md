@@ -5,7 +5,7 @@ In order to kick off one of these benchmarks you must use the run.sh script.
 Running from CLI:
 
 ```sh
-$TESTS="list-clusters list-subscriptions" GATEWAY_URL="http://localhost:8080" OCM_TOKEN="notARealToken" RATE=10/s AWS_ACCESS_KEY="empty" AWS_ACCESS_SECRET="empty" AWS_ACCOUNT_ID="empty" ./run.sh
+$TESTS="list-clusters list-subscriptions" GATEWAY_URL="http://localhost:8080" OCM_TOKEN="notARealToken" RATE=10/s AWS_ACCESS_KEY_ID="empty" AWS_SECRET_ACCESS_KEY="empty" AWS_ACCOUNT_ID="empty" ./run.sh
 ```
 
 ## Dependencies
