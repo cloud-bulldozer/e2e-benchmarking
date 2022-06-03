@@ -12,7 +12,7 @@ if [[ ${INDEXING} == "false" ]]; then
   unset PROM_URL
 else
   if [[ ${HYPERSHIFT} == "false" ]]; then
-    export PROM_TOKEN=$(oc sa get-token -n openshift-monitoring prometheus-k8s || oc create token -n openshift-monitoring prometheus-k8s)
+    export PROM_TOKEN=$(oc sa get-token -n openshift-monitoring prometheus-k8s || oc sa new-token -n openshift-monitoring prometheus-k8s)
   else
     export PROM_TOKEN="dummytokenforthanos"
     export HOSTED_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
@@ -151,7 +151,7 @@ get_pprof_secrets() {
  oc extract -n openshift-etcd secret/$certkey
  export CERTIFICATE=`base64 -w0 tls.crt`
  export PRIVATE_KEY=`base64 -w0 tls.key`
- export BEARER_TOKEN=$(oc sa get-token kube-burner -n benchmark-operator || oc create token -n benchmark-operator kube-burner)
+ export BEARER_TOKEN=$(oc sa get-token kube-burner -n benchmark-operator || oc sa new-token -n benchmark-operator kube-burner)
 }
 
 delete_pprof_secrets() {
