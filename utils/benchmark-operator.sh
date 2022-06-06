@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 install_cli() {
-  ripsaw_tmp=/tmp/ripsaw-cli
+  export UUID=${UUID:-`uuidgen`}
+  run_dir=/tmp/${UUID}
+  ripsaw_tmp=${run_dir}/ripsaw-cli
   mkdir -p ${ripsaw_tmp}
   if [[ ! -f ${ripsaw_tmp}/bin/activate ]]; then
       if [[ "${isBareMetal}" == "true" ]]; then
@@ -16,7 +18,7 @@ install_cli() {
 
 remove_cli() {
   deactivate
-  rm -rf ${ripsaw_tmp}
+  rm -rf ${run_dir}
 }
 
 ############################################################################
@@ -40,7 +42,7 @@ deploy_benchmark_operator() {
 remove_benchmark_operator() {
   source ${ripsaw_tmp}/bin/activate
   ripsaw operator delete --repo=${1} --branch=${2}
-  rm -rf ${ripsaw_tmp}
+  rm -rf ${run_dir}
   remove_cli
 }
 
