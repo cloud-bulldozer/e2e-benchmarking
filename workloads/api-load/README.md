@@ -24,7 +24,8 @@ Workloads can be tweaked with the following environment variables:
 | **OPERATOR_BRANCH**  | Benchmark-operator branch       | master  |
 | **ES_SERVER**        | Elasticsearch endpoint          | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elasticsearch index             | ripsaw-api-load|
-| **TEST_TIMEOUT**        | Benchmark timeout, in seconds | 7200 (2 hours) |
+| **TEST_TIMEOUT**        | Benchmark timeout, in seconds | 28800 (8 hours) |
+| **JOB_TIMEOUT**        | api-load job timeout, in seconds | 28800 (8 hours) |
 | **TEST_CLEANUP**        | Remove benchmark CR at the end | true |
 | **GATEWAY_URL**      | Gateway url to perform the test against       | "https://api.integration.openshift.com |
 | **OCM_TOKEN**| OCM Authorization token |  |
