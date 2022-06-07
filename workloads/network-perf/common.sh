@@ -80,7 +80,6 @@ export_defaults() {
 
 deploy_operator() {
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
-  oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
 }
 
 run_workload() {

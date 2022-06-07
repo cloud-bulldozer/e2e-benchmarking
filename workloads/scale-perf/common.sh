@@ -22,9 +22,6 @@ fi
 
 deploy_operator() {
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
-  rm -rf benchmark-operator
-  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
-  oc adm policy -n benchmark-operator add-scc-to-user privileged -z benchmark-operator
 }
 
 run_workload() {

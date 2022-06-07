@@ -27,7 +27,9 @@ remove_cli() {
 ############################################################################
 deploy_benchmark_operator() {
   install_cli
-  ripsaw operator install --repo=${1} --branch=${2}
+  if ! ripsaw operator install --repo=${1} --branch=${2}; then
+     exit 1
+  fi
   deactivate
 }
 

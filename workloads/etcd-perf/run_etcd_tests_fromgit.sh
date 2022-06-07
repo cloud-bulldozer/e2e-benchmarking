@@ -33,7 +33,6 @@ git clone http://github.com/cloud-bulldozer/benchmark-operator /tmp/benchmark-op
 (cd /tmp/benchmark-operator && make deploy)
 oc wait --for=condition=available "deployment/benchmark-controller-manager" -n benchmark-operator --timeout=300s
 
-oc adm policy add-scc-to-user -n benchmark-operator privileged -z benchmark-operator
 
 cat << EOF | oc create -n benchmark-operator -f -
 apiVersion: ripsaw.cloudbulldozer.io/v1alpha1
@@ -49,7 +48,6 @@ spec:
   metadata:
     collection: true
     serviceaccount: backpack-view
-    privileged: true
   hostpath: /var/lib/fio-etcd
   workload:
     name: fio_distributed
