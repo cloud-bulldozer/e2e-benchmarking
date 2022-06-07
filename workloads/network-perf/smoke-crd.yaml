@@ -12,7 +12,6 @@ spec:
   metadata:
     collection: ${METADATA_COLLECTION}
     serviceaccount: backpack-view
-    privileged: true
     targeted: ${METADATA_TARGETED}
   workload:
     name: uperf
