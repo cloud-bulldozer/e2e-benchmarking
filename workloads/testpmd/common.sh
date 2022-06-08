@@ -333,19 +333,6 @@ deploy_operator() {
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
 }
 
-run_workload() {
-  log "Deploying testpmd benchmark"
-  local TMPCR=$(mktemp)
-  envsubst < $1 > ${TMPCR}
-  run_benchmark ${TMPCR} ${TEST_TIMEOUT}
-  local rc=$?
-  if [[ ${TEST_CLEANUP} == "true" ]]; then
-    log "Cleaning up benchmark"
-    kubectl delete -f ${TMPCR}
-  fi
-  return ${rc}
-}
-
 check_logs_for_errors() {
 client_pod=$(oc get pods -n benchmark-operator --no-headers | grep -i running | awk '{print $1}' | grep trex-traffic-gen | awk 'NR==1{print $1}')
 if [ ! -z "$client_pod" ]; then

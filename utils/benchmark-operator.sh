@@ -50,6 +50,24 @@ remove_benchmark_operator() {
 }
 
 ############################################################################
+# Triggers workload using benchmark CR.
+# Arguments:
+#   Benchmark CR
+############################################################################
+run_workload() {
+  log "Deploying benchmark"
+  local TMPCR=$(mktemp)
+  envsubst < $1 > ${TMPCR}
+  run_benchmark ${TMPCR} ${TEST_TIMEOUT}
+  local rc=$?
+  if [[ ${TEST_CLEANUP} == "true" ]]; then
+    log "Cleaning up benchmark"
+    kubectl delete -f ${TMPCR}
+  fi
+  return ${rc}
+}
+
+############################################################################
 # Creates a benchmark, waits for it to complete and index benchmark metadata
 # Arguments:
 #   Benchmark CR

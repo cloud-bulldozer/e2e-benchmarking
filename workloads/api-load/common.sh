@@ -64,20 +64,5 @@ prepare_tests() {
   done`
 }
 
-run_workload() {
-  prepare_tests
-  log "Deploying benchmark"
-  local TMPCR=$(mktemp)
-  envsubst < $1 > ${TMPCR}
-  run_benchmark ${TMPCR} ${TEST_TIMEOUT}
-  local rc=$?
-  if [[ ${TEST_CLEANUP} == "true" ]]; then
-    log "Cleaning up benchmark"
-    kubectl delete -f ${TMPCR}
-  fi
-  aws iam delete-access-key --user-name OsdCcsAdmin --access-key-id $AWS_ACCESS_KEY || true
-  return ${rc}
-}
-
 export_defaults
 deploy_operator
