@@ -96,20 +96,23 @@ case ${WORKLOAD} in
   ;;
 esac
 
-log "###############################################"
-log "Workload: ${WORKLOAD}"
-log "Workload template: ${WORKLOAD_TEMPLATE}"
-log "Metrics profile: ${METRICS_PROFILE}"
-log "Alerts profile: ${ALERTS_PROFILE}"
-log "QPS: ${QPS}"
-log "Burst: ${BURST}"
+cat << EOF
+###############################################
+Workload: ${WORKLOAD}
+Workload template: ${WORKLOAD_TEMPLATE}
+Metrics profile: ${METRICS_PROFILE}
+Alerts profile: ${ALERTS_PROFILE}
+QPS: ${QPS}
+Burst: ${BURST}
+UUID: ${UUID}
+EOF
 if [[ ${WORKLOAD} == node-density* ]]; then
-  log "Node count: ${NODE_COUNT}"
-  log "Pods per node: ${PODS_PER_NODE}"
+  echo "Node count: ${NODE_COUNT}"
+  echo "Pods per node: ${PODS_PER_NODE}"
 else
-  log "Job iterations: ${TEST_JOB_ITERATIONS}"
+  echo "Job iterations: ${TEST_JOB_ITERATIONS}"
 fi
-log "###############################################"
+echo "###############################################"
 if [[ ${PPROF_COLLECTION} == "true" ]] ; then
   delete_pprof_secrets
   delete_oldpprof_folder

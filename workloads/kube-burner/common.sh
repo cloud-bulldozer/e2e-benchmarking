@@ -130,10 +130,10 @@ check_running_benchmarks() {
 }
 
 cleanup() {
-  log "Cleaning up benchmark"
-  kubectl delete -f ${TMPCR}
-  kubectl delete configmap -n benchmark-operator kube-burner-cfg-${UUID}
-  if ! oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600 --timeout=${CLEANUP_TIMEOUT}; then
+  log "Cleaning up benchmark assets"
+  kubectl delete -f ${TMPCR} 1>/dev/null
+  kubectl delete configmap -n benchmark-operator kube-burner-cfg-${UUID} 1>/dev/null
+  if ! oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600 --timeout=${CLEANUP_TIMEOUT} 1>/dev/null; then
     log "Namespaces cleanup failure"
     rc=1
   fi
@@ -223,14 +223,14 @@ label_node_with_label() {
   fi
 
   log "Labeling ${NODE_COUNT} worker nodes with $1"
-  oc label node ${WORKER_NODE_NAMES} $1 --overwrite
+  oc label node ${WORKER_NODE_NAMES} $1 --overwrite 1>/dev/null
 }
 
 unlabel_nodes_with_label() {
   split_param=$(echo $1 | tr "=" " ")
   log "Removing $1 label from worker nodes"
   for p in ${split_param}; do
-    oc label node ${WORKER_NODE_NAMES} $p-
+    oc label node ${WORKER_NODE_NAMES} $p- 1>/dev/null
     break
   done
 }
