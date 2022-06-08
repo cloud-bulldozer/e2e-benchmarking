@@ -54,13 +54,6 @@ collect_pprof() {
 
 deploy_operator() {
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
-  if [[ $? != 0 ]]; then
-    exit 1
-  fi
-  rm -rf benchmark-operator
-  git clone --single-branch --branch ${OPERATOR_BRANCH} ${OPERATOR_REPO} --depth 1
-  kubectl apply -f benchmark-operator/resources/backpack_role.yaml
-  kubectl apply -f benchmark-operator/resources/kube-burner-role.yml
 }
 
 run_workload() {

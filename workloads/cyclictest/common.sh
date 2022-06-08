@@ -148,10 +148,6 @@ deploy_perf_profile() {
 
 deploy_operator() {
   deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
-  if [[ $? != 0 ]]; then
-     exit 1
-  fi
-  rm -rf benchmark-operator
 }
 
 run_workload() {
