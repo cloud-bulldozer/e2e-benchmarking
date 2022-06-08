@@ -10,7 +10,7 @@ export ES_INDEX=${ES_INDEX:-router-test-results}
 NUM_NODES=$(oc get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!=,node-role.kubernetes.io/infra!= --no-headers | grep -cw Ready)
 LARGE_SCALE_THRESHOLD=${LARGE_SCALE_THRESHOLD:-24}
 METADATA_COLLECTION=${METADATA_COLLECTION:-true}
-KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.15.5/kube-burner-0.15.5-Linux-x86_64.tar.gz}
+KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.16/kube-burner-0.16-Linux-x86_64.tar.gz}
 KUBE_BURNER_IMAGE=quay.io/cloud-bulldozer/kube-burner:latest
 #HAPROXY_IMAGE="quay.io/cloud-bulldozer/openshift-router-perfscale:-haproxy-v2.2.20"
 #INGRESS_OPERATOR_IMAGE="quay.io/cloud-bulldozer/openshift-cluster-ingress-operator:balance-random"
