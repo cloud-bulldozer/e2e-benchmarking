@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 install_cli() {
-  export UUID=${UUID:-`uuidgen`}
   run_dir=/tmp/${UUID}
   ripsaw_tmp=${run_dir}/ripsaw-cli
   log "creating python virtual environment at path: ${ripsaw_tmp}"
