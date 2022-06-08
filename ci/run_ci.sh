@@ -29,8 +29,6 @@ EOF
 test_rc=0
 IFS=$'\n'
 for test in ${test_list}; do            
-  # Clear the /tmp/ripsaw-cli directory to avoid pip version conflicts due to existing temp files.
-  rm -rf /tmp/ripsaw-cli
   start_time=`date`
 
   command=${test##*:}                                     #to extract the shell script name to run

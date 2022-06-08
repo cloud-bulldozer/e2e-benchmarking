@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 install_cli() {
-  ripsaw_tmp=/tmp/ripsaw-cli
+  run_dir=/tmp/${UUID}
+  ripsaw_tmp=${run_dir}/ripsaw-cli
+  log "creating python virtual environment at path: ${ripsaw_tmp}"
   mkdir -p ${ripsaw_tmp}
   if [[ ! -f ${ripsaw_tmp}/bin/activate ]]; then
       if [[ "${isBareMetal}" == "true" ]]; then
@@ -15,8 +17,10 @@ install_cli() {
 }
 
 remove_cli() {
+  log "deactivating python virtual environment at path: ${ripsaw_tmp}"
   deactivate
-  rm -rf ${ripsaw_tmp}
+  log "cleaning up unique run directory at path: ${run_dir}"
+  rm -rf ${run_dir}
 }
 
 ############################################################################
@@ -42,7 +46,6 @@ deploy_benchmark_operator() {
 remove_benchmark_operator() {
   source ${ripsaw_tmp}/bin/activate
   ripsaw operator delete --repo=${1} --branch=${2}
-  rm -rf ${ripsaw_tmp}
   remove_cli
 }
 
