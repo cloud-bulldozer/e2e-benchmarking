@@ -88,6 +88,11 @@ case ${WORKLOAD} in
     export MAX_CONC_BUILDS=$((max + 1))
     export TEST_JOB_ITERATIONS=${MAX_CONC_BUILDS:-$max}
   ;;
+  cluster-density-ms)
+    WORKLOAD_TEMPLATE=workloads/managed-services/cluster-density.yml
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/hypershift-metrics.yaml}
+    export TEST_JOB_ITERATIONS=${JOB_ITERATIONS:-75}
+  ;; 
   custom)
   ;;
   *)
