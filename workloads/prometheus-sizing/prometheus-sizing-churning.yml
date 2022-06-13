@@ -21,7 +21,7 @@ jobs:
       - objectTemplate: templates/pod.yml
         replicas: {{ .PODS_PER_NS }}
         inputVars:
-          containerImage: gcr.io/google_containers/pause-amd64:3.0
+          containerImage: gcr.io/google_containers/pause:3.1
 {{ range $pos, $val := sequence 1 .NUMBER_OF_NS }}
   - name: prometheus-sizing-churning-delete-{{ $val }}
     jobType: delete
@@ -42,5 +42,5 @@ jobs:
       - objectTemplate: templates/pod.yml
         replicas: {{ $.PODS_PER_NS }}
         inputVars:
-          containerImage: gcr.io/google_containers/pause-amd64:3.0
+          containerImage: gcr.io/google_containers/pause:3.1
 {{ end }}
