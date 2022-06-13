@@ -76,5 +76,5 @@ jobs:
       - objectTemplate: pod.yml
         replicas: 1
         inputVars:
-          containerImage: gcr.io/google_containers/pause-amd64:3.0
+          containerImage: gcr.io/google_containers/pause:3.1
           nodeSelector: "${POD_NODE_SELECTOR}"

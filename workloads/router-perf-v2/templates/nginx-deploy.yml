@@ -18,7 +18,7 @@ spec:
       nodeSelector: {{.nodeSelector}}
       containers:
       - name: nginx
-        image: quay.io/openshift-scale/nginx
+        image: quay.io/cloud-bulldozer/nginx:latest
         ports:
         - containerPort: 8080
         resources:

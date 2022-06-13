@@ -11,7 +11,7 @@ spec:
       nodeSelector: {{.nodeSelector}}
       containers:
       - name: postgresql
-        image: registry.access.redhat.com/rhscl/postgresql-10-rhel7:latest
+        image: registry.redhat.io/rhel8/postgresql-10:latest
         ports:
         - containerPort: 5432
           protocol: TCP
