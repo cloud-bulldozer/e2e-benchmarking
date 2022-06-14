@@ -19,6 +19,7 @@ if [[ ${CERBERUS_URL} ]]; then
 fi
 
 _es=${ES_SERVER:=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
+_es_index=${ES_INDEX:=openshift-upgrade-timings}
 _es_baseline=${ES_SERVER_BASELINE:=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
 _poll_interval=${POLL_INTERVAL:=5}
 COMPARE=${COMPARE:=false}
@@ -82,7 +83,7 @@ fi
 source upgrade/bin/activate
 pip3 install -e /tmp/snafu
 
-export es_index="openshift-upgrade-timings"
+export es_index=${_es_index}
 export es=${_es}
 _init_version=`oc get clusterversions.config.openshift.io | grep version | awk '{print $2}'`
 
