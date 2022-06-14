@@ -17,6 +17,7 @@ spec:
   workload:
     name: api_load
     args:
+      job_timeout: ${JOB_TIMEOUT}
       gateway_url: ${GATEWAY_URL}
       ocm_token: ${OCM_TOKEN}
       duration: ${DURATION}

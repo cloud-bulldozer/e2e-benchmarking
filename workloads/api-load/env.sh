@@ -5,12 +5,15 @@ export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4b
 export ES_INDEX=ripsaw-api-load
 export ES_SKIP_VERIFY=${ES_SKIP_VERIFY:-true}
 
+# ocm-api-load job
+export JOB_TIMEOUT=${JOB_TIMEOUT:-28800}
+
 # Benchark-operator
 OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
 OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
 
 # Workload
-export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
+export TEST_TIMEOUT=${TEST_TIMEOUT:-28800}
 
 # snappy
 export SNAPPY_DATA_SERVER_URL=${SNAPPY_DATA_SERVER_URL:-http://ec2-34-220-107-152.us-west-2.compute.amazonaws.com:7070}
