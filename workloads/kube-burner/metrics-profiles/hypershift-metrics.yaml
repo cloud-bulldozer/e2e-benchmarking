@@ -86,15 +86,15 @@
   metricName: nodeMemoryAvailable-Workers
 
 # Management Node metrics: CPU & Memory
-- query: (avg((sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role!~"master|infra"}, "instance", "$1", "node", "(.+)"))) by (mode)) > 0
+- query: (avg((sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master="", label_node_role_kubernetes_io_infra=""}, "instance", "$1", "node", "(.+)"))) by (mode, instance)) > 0
   metricName: mgmtNodeCPU-AggregatedWorkers
 
-- query: avg(node_memory_MemAvailable_bytes{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role!~"master|infra"}, "instance", "$1", "node", "(.+)"))
+- query: (avg(node_memory_MemAvailable_bytes{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}"} and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master="", label_node_role_kubernetes_io_infra=""}, "instance", "$1", "node", "(.+)")) by (instance))
   metricName: mgmtNodeMemoryAvailable-AggregatedWorkers
 
-- query: avg(node_memory_MemTotal_bytes{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role!~"master|infra"}, "instance", "$1", "node", "(.+)"))
+- query: (avg(node_memory_MemTotal_bytes{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}"} and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master="", label_node_role_kubernetes_io_infra=""}, "instance", "$1", "node", "(.+)")) by (instance))
   metricName: mgmtNodeMemoryTotal-AggregatedWorkers
-  instant: true
+
 
 # We compute memory utilization by substrating available memory to the total
 - query: (node_memory_MemTotal_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} - node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
