@@ -38,7 +38,7 @@ function run_builds() {
   do
     log "running $i $1 concurrent builds"
     fileName="conc_builds_$1.out"
-    python2 svt/openshift_performance/ose3_perf/scripts/build_test.py -z -a -n 2 -r $i -f running-builds.json > $fileName 2>&1
+    python2 svt/openshift_performance/ose3_perf/scripts/build_test.py -z -a -n 2 -r $i -f running-builds.json >> $fileName 2>&1
     sleep 10
   done
 }
