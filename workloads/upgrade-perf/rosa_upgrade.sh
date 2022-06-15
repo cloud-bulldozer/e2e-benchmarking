@@ -132,7 +132,11 @@ rosa_upgrade_index_results(){
 "workload_count": "$(oc get node -l node-role.kubernetes.io/workload= --no-headers --ignore-not-found 2>/dev/null | wc -l)",
 "total_node_count": "$(oc get nodes 2>/dev/null | wc -l)",
 "ocp_cluster_name": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
-"timestamp": "$(date +%s%3N)"
+"timestamp": "$(date +%s%3N)",
+"cluster_version": null,
+"cluster_major_version": null,
+"aws_authentication_method" : null
+}
 EOF
 )
   printf "Indexing installation timings to ${ES_SERVER}/${_es_index}"
