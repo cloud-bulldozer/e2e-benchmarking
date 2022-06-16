@@ -114,6 +114,11 @@ rosa_control_plane_upgrade_active_waiting(){
 }
 
 rosa_upgrade_index_results(){
+  if [ $(oc get cloudcredential -o json 2>/dev/null | jq -r '.items[].spec.credentialsMode') == "Manual" ] ; then
+    AWS_AUTH="sts"
+  else
+    AWS_AUTH="iam"
+  fi
   METADATA=$(grep -v "^#" << EOF
 {
 "uuid" : "${_uuid}",
@@ -133,9 +138,9 @@ rosa_upgrade_index_results(){
 "total_node_count": "$(oc get nodes 2>/dev/null | wc -l)",
 "ocp_cluster_name": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
 "timestamp": "$(date +%s%3N)",
-"cluster_version": null,
-"cluster_major_version": null,
-"aws_authentication_method" : null
+"cluster_version": "$5",
+"cluster_major_version": "$(echo $5 | awk -F. '{print $1"."$2}')",
+"aws_authentication_method" : "${AWS_AUTH}"
 }
 EOF
 )
