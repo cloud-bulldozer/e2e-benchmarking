@@ -31,17 +31,13 @@
 - query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (container, pod, namespace, node, openshift_cluster_name)
   metricName: containerMemory-Controlplane
 
-- query: sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) / sum(kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", job="kube-state-metrics", namespace=~"${HOSTED_CLUSTER_NS}", resource="cpu"})
-  metricName: nsCPU
-
-- query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", job="kubelet", metrics_path="/metrics/cadvisor", namespace=~"${HOSTED_CLUSTER_NS}",container!="", image!=""}) / sum(kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", job="kube-state-metrics", namespace=~"${HOSTED_CLUSTER_NS}", resource="memory"})
-  metricName: nsMemory
-
-- query: sum(cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (container, pod, namespace, node, openshift_cluster_name)
+- query: sum(cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod)
   metricName: containerCPUReq
+  instant: true
 
-- query: sum(cluster:namespace:pod_memory:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (container, pod, namespace, node, openshift_cluster_name)
+- query: sum(cluster:namespace:pod_memory:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod)
   metricName: containerMemoryReq
+  instant: true
 
 # Containers & pod metrics
 
