@@ -31,6 +31,9 @@
 - query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (container, pod, namespace, node, openshift_cluster_name)
   metricName: containerMemory-Controlplane
 
+- query: sum(container_memory_cache{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (container, pod, namespace, node, openshift_cluster_name)
+  metricName: containerMemoryCache-Controlplane
+
 - query: sum(cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod)
   metricName: containerCPUReq
   instant: true
