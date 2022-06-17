@@ -10,7 +10,7 @@ label=""
 case ${WORKLOAD} in
   cluster-density)
     WORKLOAD_TEMPLATE=workloads/cluster-density/cluster-density.yml
-    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     export TEST_JOB_ITERATIONS=${JOB_ITERATIONS:-1000}
   ;;
   node-density)
@@ -61,18 +61,18 @@ case ${WORKLOAD} in
   ;;
   max-namespaces)
     WORKLOAD_TEMPLATE=workloads/max-namespaces/max-namespaces.yml
-    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     export TEST_JOB_ITERATIONS=${NAMESPACE_COUNT:-1000}
   ;;
   max-services)
     WORKLOAD_TEMPLATE=workloads/max-services/max-services.yml
-    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     export TEST_JOB_ITERATIONS=${SERVICE_COUNT:-1000}
   ;;
   concurrent-builds)
     rm -rf conc_builds_results.out
     WORKLOAD_TEMPLATE=workloads/concurrent-builds/concurrent-builds.yml
-    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     export build_test_repo=${BUILD_TEST_REPO:=https://github.com/openshift/svt.git}
     export build_test_branch=${BUILD_TEST_BRANCH:=master}
     install_svt_repo
