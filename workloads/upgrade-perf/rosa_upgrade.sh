@@ -40,9 +40,9 @@ rosa_upgrade(){
     echo "INFO: Upgrading cluster to ${VERSION} version..."
   fi
   CURRENT_VERSION=$(oc get clusterversion | grep ^version | awk '{print $2}')
-  rosa upgrade cluster -c ${ROSA_CLUSTER_NAME} --version=${VERSION} -y --schedule-date $(date +%Y-%m-%d) --schedule-time $(date -u --date="+6 minutes" +%H:%M)
-  # Sleep 6 minutes, rosa upgrade dont let to schedule an upgrade in less than 5 minutes from now
-  sleep 360
+  rosa upgrade cluster -c ${ROSA_CLUSTER_NAME} --version=${VERSION} -y --schedule-date $(date +%Y-%m-%d) --schedule-time $(date -u --date="+7 minutes" +%H:%M)
+  # Sleep 7 minutes, rosa upgrade dont let to schedule an upgrade in less than 5 minutes from now
+  sleep 420
   oc delete pods -n openshift-insights --all
   oc delete pods -n openshift-managed-upgrade-operator --all
   rosa_control_plane_upgrade_active_waiting ${VERSION}
