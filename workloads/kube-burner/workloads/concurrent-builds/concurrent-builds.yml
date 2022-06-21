@@ -83,4 +83,3 @@ jobs:
           fromSource: ${SOURCE_STRAT_FROM}
           fromSourceVersion: ${SOURCE_STRAT_FROM_VERSION}
           postCommitScript: ${POST_COMMIT_SCRIPT}
-          nodeSelector: "${POD_NODE_SELECTOR}"

@@ -18,7 +18,6 @@ export QPS=${QPS:-20}
 export BURST=${BURST:-20}
 export MAX_WAIT_TIMEOUT=${MAX_WAIT_TIMEOUT:-1h}
 export CLEANUP=${CLEANUP:-true}
-export POD_NODE_SELECTOR=${POD_NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export WAIT_WHEN_FINISHED=true
 export POD_WAIT=${POD_WAIT:-false}
 export WAIT_FOR=${WAIT_FOR:-[]}
@@ -37,7 +36,7 @@ export METRICS_PROFILE=${METRICS_PROFILE}
 # Misc
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
 export CLEANUP_TIMEOUT=${CLEANUP_TIMEOUT:-30m}
-export LOG_LEVEL=${LOG_LEVEL:-error}
+export LOG_LEVEL=${LOG_LEVEL:-info}
 
 # Pprof
 export PPROF_COLLECTION=${PPROF_COLLECTION:-false}

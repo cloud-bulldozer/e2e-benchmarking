@@ -8,7 +8,6 @@ spec:
       labels:
         name: perfapp-{{.Replica}}-{{.Iteration}}
     spec:
-      nodeSelector: {{.nodeSelector}}
       containers:
       - name: perfapp
         image: quay.io/rsevilla/perfapp:latest
@@ -52,6 +51,22 @@ spec:
         securityContext:
           privileged: false
       restartPolicy: Always
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+            - matchExpressions:
+              - key: node-role.kubernetes.io/infra
+                operator: DoesNotExist
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: DoesNotExist
+            - matchExpressions:
+              - key: node-role.kubernetes.io/workload
+                operator: DoesNotExist
   replicas: 1
   selector:
     matchLabels:

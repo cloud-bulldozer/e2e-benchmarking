@@ -19,7 +19,6 @@ export ES_SERVER_BASELINE=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chm
 #export EMAIL_ID_FOR_RESULTS_SHEET=<your_email_id>  # Will only work if you have google service account key
 
 # testpmd specific variables
-export NODE_COUNT=${NODE_COUNT:-2}
 export PRIVILEGED=${PRIVILEGED:-true}
 export PIN=${PIN:-true}
 export PIN_TESTPMD=${PIN_TESTPMD:-worker-0}

@@ -75,14 +75,12 @@ jobs:
       - objectTemplate: postgres-deployment.yml
         replicas: 1
         inputVars:
-          nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: app-deployment.yml
         replicas: 1
         inputVars:
           readinessPeriod: 10
           livenessPeriod: 10
-          nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: postgres-service.yml
         replicas: 1

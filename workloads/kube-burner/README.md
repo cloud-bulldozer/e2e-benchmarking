@@ -34,7 +34,6 @@ Workloads can be tweaked with the following environment variables:
 | **NODE_SELECTOR**    | The kube-burner pod deployed by benchmark-operator will use this node selector          | {node-role.kubernetes.io/worker: } |
 | **QPS**              | Queries/sec                     | 20      |
 | **BURST**            | Maximum number of simultaneous queries | 20      |
-| **POD_NODE_SELECTOR**| nodeSelector for pods created by the kube-burner workloads | {node-role.kubernetes.io/worker: } |
 | **POD_WAIT**         | Wait for pods to be ready in each iteration | false |
 | **MAX_WAIT_TIMEOUT** | Kube-burner will time out when the pods deployed take more that this value to be ready | 1h |
 | **WAIT_FOR**         | Wait for the resources of this list to be ready | [] (empty means all of them) |
@@ -82,8 +81,7 @@ Each iteration creates the following objects:
 
 The `node-density` and `node-density-heavy` workloads support the following environment variables:
 
-- **NODE_COUNT**: Number of worker nodes to deploy the pods on. During the workload nodes will be labeled with `node-density=enabled`. Defaults to the number of worker nodes across the cluster (Nodes resulting of the expression `oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker=`
-- **PODS_PER_NODE**: Define the maximum number of pods to deploy on each labeled node. Defaults to 245
+- **PODS_PER_NODE**: Define the maximum number of pods to deploy on each node labeled as worker. Defaults to 245
 
 These workloads create different objects each:
 

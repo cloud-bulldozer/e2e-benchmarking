@@ -75,7 +75,6 @@ jobs:
         replicas: 1
         inputVars:
           name: max-serv
-          nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: service.yml
         replicas: 1

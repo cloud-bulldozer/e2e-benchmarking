@@ -4,7 +4,6 @@ apiVersion: build.openshift.io/v1
 metadata:
   name: {{.JobName}}-{{.Replica}}
 spec:
-  nodeSelector: {{.nodeSelector}}
   serviceAccount: builder
   source:
     dockerfile: |-
@@ -21,3 +20,19 @@ spec:
     to:
       kind: ImageStreamTag
       name: {{.prefix}}-{{.Replica}}:latest
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/worker
+            operator: Exists
+        - matchExpressions:
+          - key: node-role.kubernetes.io/infra
+            operator: DoesNotExist
+        - matchExpressions:
+          - key: node-role.kubernetes.io/master
+            operator: DoesNotExist
+        - matchExpressions:
+          - key: node-role.kubernetes.io/workload
+            operator: DoesNotExist

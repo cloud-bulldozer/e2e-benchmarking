@@ -5,7 +5,6 @@ metadata:
   labels:
     name: {{.JobName}}
 spec:
-  nodeSelector: {{.nodeSelector}}
   containers:
   - name: pod-density-heavy
     image: {{.containerImage}}
@@ -38,3 +37,19 @@ spec:
       initialDelaySeconds: 10
     securityContext:
       privileged: false
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/worker
+            operator: Exists
+        - matchExpressions:
+          - key: node-role.kubernetes.io/infra
+            operator: DoesNotExist
+        - matchExpressions:
+          - key: node-role.kubernetes.io/master
+            operator: DoesNotExist
+        - matchExpressions:
+          - key: node-role.kubernetes.io/workload
+            operator: DoesNotExist

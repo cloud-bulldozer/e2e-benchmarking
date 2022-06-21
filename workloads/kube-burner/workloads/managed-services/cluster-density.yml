@@ -82,7 +82,6 @@ jobs:
         inputVars:
           podReplicas: 4
           name: cluster-density
-          nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: service.yml
         replicas: 2

@@ -8,7 +8,6 @@ spec:
       labels:
         name: postgres-{{.Replica}}-{{.Iteration}}
     spec:
-      nodeSelector: {{.nodeSelector}}
       containers:
       - name: postgresql
         image: registry.redhat.io/rhel8/postgresql-10:latest
@@ -30,6 +29,22 @@ spec:
             memory: "20Mi"
             cpu: "20m"
       restartPolicy: Always
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+            - matchExpressions:
+              - key: node-role.kubernetes.io/infra
+                operator: DoesNotExist
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: DoesNotExist
+            - matchExpressions:
+              - key: node-role.kubernetes.io/workload
+                operator: DoesNotExist
   replicas: 1
   selector:
     matchLabels:

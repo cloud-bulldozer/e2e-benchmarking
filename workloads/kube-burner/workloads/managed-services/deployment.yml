@@ -13,7 +13,6 @@ spec:
       labels:
         app: {{.name}}-{{.Iteration}}-{{.Replica}}
     spec:
-      nodeSelector: {{.nodeSelector}}
       containers:
       - args:
         - sleep
@@ -100,4 +99,19 @@ spec:
         operator: "Exists"
         effect: "NoExecute"
         tolerationSeconds: 900
-
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+            - matchExpressions:
+              - key: node-role.kubernetes.io/infra
+                operator: DoesNotExist
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: DoesNotExist
+            - matchExpressions:
+              - key: node-role.kubernetes.io/workload
+                operator: DoesNotExist

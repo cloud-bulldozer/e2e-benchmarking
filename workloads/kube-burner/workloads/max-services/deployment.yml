@@ -12,7 +12,6 @@ spec:
       labels:
         app: {{.name}}-{{.Iteration}}-{{.Replica}}
     spec:
-      nodeSelector: {{.nodeSelector}}
       containers:
       - name: {{.name}}
         image: quay.io/cloud-bulldozer/hello-openshift:latest
@@ -20,3 +19,19 @@ spec:
         ports:
         - containerPort: 8080
           protocol: TCP
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+            - matchExpressions:
+              - key: node-role.kubernetes.io/infra
+                operator: DoesNotExist
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: DoesNotExist
+            - matchExpressions:
+              - key: node-role.kubernetes.io/workload
+                operator: DoesNotExist

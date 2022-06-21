@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2155
 source ../../utils/common.sh
 source ../../utils/benchmark-operator.sh
 source env.sh
@@ -20,8 +21,8 @@ else
 fi
 export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=${UUID:-$(uuidgen)}
-export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion') 
-export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}') 
+export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
+export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}')
 
 platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
 
@@ -45,9 +46,9 @@ fi
 
 collect_pprof() {
   sleep 50
-  while [ $(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.complete}") == "false" ]; do
+  while [ "$(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.complete}")" == "false" ]; do
     log "-----------------------checking for new pprof files--------------------------"
-    oc rsync -n benchmark-operator $(oc get pod -n benchmark-operator -o name -l benchmark-uuid=${UUID}):/tmp/pprof-data $PWD/
+    oc rsync -n benchmark-operator "$(oc get pod -n benchmark-operator -o name -l benchmark-uuid=${UUID})":/tmp/pprof-data $PWD/
     sleep 60
   done
 }
@@ -63,7 +64,7 @@ run_workload() {
     log "WORKLOAD_TEMPLATE not defined or null!"
     exit 1
   fi
-  cp -pR $(dirname ${WORKLOAD_TEMPLATE})/* ${tmpdir}
+  cp -pR "$(dirname ${WORKLOAD_TEMPLATE})"/* ${tmpdir}
   envsubst < ${WORKLOAD_TEMPLATE} > ${tmpdir}/config.yml
   if [[ -n ${METRICS_PROFILE} ]]; then
     envsubst < ${METRICS_PROFILE} > ${tmpdir}/metrics.yml || envsubst <  ${METRICS_PROFILE} > ${tmpdir}/metrics.yml
@@ -92,7 +93,9 @@ find_running_pods_num() {
   # ip-10-0-177-166.us-west-2.compute.internal:20
   # ip-10-0-250-197.us-west-2.compute.internal:17
   # ip-10-0-151-0.us-west-2.compute.internal:19
-  NODE_PODS=$(kubectl get pods --field-selector=status.phase=Running -o go-template --template='{{range .items}}{{.spec.nodeName}}{{"\n"}}{{end}}' -A | awk '{nodes[$1]++ }END{ for (n in nodes) print n":"nodes[n]}')
+  NODE_PODS="$(kubectl get pods --field-selector=status.phase=Running -o go-template --template='{{range .items}}{{.spec.nodeName}}{{"\n"}}{{end}}' -A | awk '{nodes[$1]++ }END{ for (n in nodes) print n":"nodes[n]}')"
+  WORKERS_COUNT="$(oc get nodes --no-headers -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="" | wc -l)"
+  WORKER_NODE_NAMES="$(oc get node -o custom-columns=name:.metadata.name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker=)"
   for worker_node in ${WORKER_NODE_NAMES}; do
     for node_pod in ${NODE_PODS}; do
       # We use awk to match the node name and then we take the number of pods, which is the number after the colon
@@ -102,12 +105,12 @@ find_running_pods_num() {
   done
   log "Total running pods across nodes: ${pod_count}"
   if [[ ${NODE_SELECTOR} =~ node-role.kubernetes.io/worker ]]; then
-    # Number of pods to deploy per node * number of labeled nodes - pods running - kube-burner pod
+    # Number of pods to deploy per node * number of workers - pods running - kube-burner pod
     log "kube-burner will run on a worker node, decreasing by one the number of pods to deploy"
-    total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count - 1))
+    total_pod_count=$((PODS_PER_NODE * WORKERS_COUNT - pod_count - 1))
   else
     # Number of pods to deploy per node * number of labeled nodes - pods running
-    total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count))
+    total_pod_count=$((PODS_PER_NODE * WORKERS_COUNT - pod_count))
   fi
   if [[ ${total_pod_count} -le 0 ]]; then
     log "Number of pods to deploy <= 0"
@@ -166,7 +169,7 @@ fi
 check_metric_to_modify() {
   export div_by=1
   echo $config | grep -i memory
-  if [[ $? == 0 ]]; then 
+  if [[ $? == 0 ]]; then
    export div_by=1048576
   fi
   echo $config | grep -i latency
@@ -206,32 +209,3 @@ run_benchmark_comparison() {
      remove_touchstone
   fi
  }
-
-label_node_with_label() {
-  colon_param=$(echo $1 | tr "=" ":" | sed 's/:/: /g')
-  export POD_NODE_SELECTOR="{$colon_param}"
-  if [[ -z $NODE_COUNT ]]; then
-    NODE_COUNT=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | wc -l )
-  fi
-  if [[ ${NODE_COUNT} -le 0 ]]; then
-    log "Node count <= 0: ${NODE_COUNT}"
-    exit 1
-  fi
-  WORKER_NODE_NAMES=$(oc get node -o custom-columns=name:.metadata.name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -n ${NODE_COUNT})
-  if [[ $(echo "${WORKER_NODE_NAMES}" | wc -l) -lt ${NODE_COUNT} ]]; then
-    log "Not enough worker nodes to label"
-    exit 1
-  fi
-
-  log "Labeling ${NODE_COUNT} worker nodes with $1"
-  oc label node ${WORKER_NODE_NAMES} $1 --overwrite 1>/dev/null
-}
-
-unlabel_nodes_with_label() {
-  split_param=$(echo $1 | tr "=" " ")
-  log "Removing $1 label from worker nodes"
-  for p in ${split_param}; do
-    oc label node ${WORKER_NODE_NAMES} $p- 1>/dev/null
-    break
-  done
-}

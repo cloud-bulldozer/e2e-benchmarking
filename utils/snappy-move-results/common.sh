@@ -44,11 +44,11 @@ store_on_elastic()
 generate_metadata()
 {
     MASTER_COUNT=`oc get nodes -l node-role.kubernetes.io/master | grep -v NAME | wc -l`
-    WORKER_COUNT=`oc get nodes -l node-role.kubernetes.io/worker | grep -v NAME | wc -l`
+    WORKER_COUNT=`oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="" | grep -v NAME | wc -l`
     INFRA_COUNT=`oc get nodes -l node-role.kubernetes.io/infra | grep -v NAME | wc -l`
 
     master=`oc get nodes -l node-role.kubernetes.io/master | grep -v NAME -m 1 | awk '{print $1}'`
-    worker=`oc get nodes -l node-role.kubernetes.io/worker | grep -v NAME -m 1 | awk '{print $1}'`
+    worker=`oc get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="" | grep -v NAME -m 1 | awk '{print $1}'`
     infra=`oc get nodes -l node-role.kubernetes.io/infra | grep -v NAME -m 1 | awk '{print $1}'`
 
     MASTER_NODE_TYPE=`oc describe node $master | grep "node.kubernetes.io/instance-type" | grep -oE "[^=]+$"`

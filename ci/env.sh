@@ -13,7 +13,6 @@ export NAMESPACE_COUNT=1
 export SERVICE_COUNT=1
 export CLEANUP=true
 export CLEANUP_WHEN_FINISH=true
-export NODE_COUNT=1
 export PODS_PER_NODE=75
 export PODS=50
 export POD_READY_THRESHOLD=1m

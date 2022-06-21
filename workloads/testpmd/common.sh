@@ -91,7 +91,7 @@ deploy_perf_profile() {
   if [[ "${baremetalCheck}" == '"BareMetal"' ]]; then
     log "Trying to find 2 suitable nodes only for testpmd"
     worker_count=0
-    workers=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -${NODE_COUNT} | sed -e 's/^node\///')
+    workers=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -2 | sed -e 's/^node\///')
     # turn it into an array
     workers=($workers) 
     if [[ ${#workers[@]} -lt 1 ]] ; then

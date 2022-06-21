@@ -76,6 +76,5 @@ jobs:
         replicas: 1
         inputVars:
           containerImage: quay.io/cloud-bulldozer/hello-openshift:latest
-          nodeSelector: "${POD_NODE_SELECTOR}"
           readinessPeriod: 5
           livenessPeriod: 5

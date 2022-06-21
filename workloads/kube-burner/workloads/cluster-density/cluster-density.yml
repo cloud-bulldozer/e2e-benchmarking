@@ -81,14 +81,12 @@ jobs:
         replicas: 1
         inputVars:
           prefix: cluster-density
-          nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: deployment.yml
         replicas: 5
         inputVars:
           podReplicas: 2
           name: cluster-density
-          nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: service.yml
         replicas: 5

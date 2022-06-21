@@ -24,11 +24,13 @@ global:
         labelSelector: {app: openshift-kube-apiserver}
         bearerToken: {{ .BEARER_TOKEN }}
         url: https://localhost:6443/debug/pprof/profile?timeout=30
+
       - name: kube-apiserver-heap
         namespace: "openshift-kube-apiserver"
         labelSelector: {app: openshift-kube-apiserver}
         bearerToken: {{ .BEARER_TOKEN }}
         url: https://localhost:6443/debug/pprof/heap
+
       - name: kube-controller-manager-heap
         namespace: "openshift-kube-controller-manager"
         labelSelector: {app: kube-controller-manager}
@@ -77,4 +79,3 @@ jobs:
         replicas: 1
         inputVars:
           containerImage: gcr.io/google_containers/pause:3.1
-          nodeSelector: "${POD_NODE_SELECTOR}"
