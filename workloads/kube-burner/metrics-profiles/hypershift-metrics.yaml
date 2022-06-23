@@ -31,6 +31,23 @@
 - query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (container, pod, namespace, node, openshift_cluster_name)
   metricName: containerMemory-Controlplane
 
+- query: (sum(irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]) * 100) by (pod, namespace, node, openshift_cluster_name)) > 0
+  metricName: podCPU-Controlplane
+
+- query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod, namespace, node, openshift_cluster_name)
+  metricName: podMemory-Controlplane
+
+- query: sum(container_memory_cache{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod, namespace, node, openshift_cluster_name)
+  metricName: podMemoryCache-Controlplane
+
+- query: sum(cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod)
+  metricName: podCPUReq
+  instant: true
+
+- query: sum(cluster:namespace:pod_memory:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod)
+  metricName: podMemoryReq
+  instant: true
+
 # Containers & pod metrics
 
 - query: (sum(irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]) * 100) by (container, pod, namespace, node, openshift_cluster_name)) > 0
@@ -72,6 +89,17 @@
 
 - query: node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
   metricName: nodeMemoryAvailable-Workers
+
+# Management Node metrics: CPU & Memory
+- query: (avg((sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master="", label_node_role_kubernetes_io_infra=""}, "instance", "$1", "node", "(.+)"))) by (mode, instance)) > 0
+  metricName: mgmtNodeCPU-AggregatedWorkers
+
+- query: (avg(node_memory_MemAvailable_bytes{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}"} and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master="", label_node_role_kubernetes_io_infra=""}, "instance", "$1", "node", "(.+)")) by (instance))
+  metricName: mgmtNodeMemoryAvailable-AggregatedWorkers
+
+- query: (avg(node_memory_MemTotal_bytes{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}"} and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master="", label_node_role_kubernetes_io_infra=""}, "instance", "$1", "node", "(.+)")) by (instance))
+  metricName: mgmtNodeMemoryTotal-AggregatedWorkers
+
 
 # We compute memory utilization by substrating available memory to the total
 - query: (node_memory_MemTotal_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} - node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
