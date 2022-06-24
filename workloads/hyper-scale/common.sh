@@ -134,9 +134,12 @@ cleanup(){
 index_mgmt_cluster_stat(){
     echo "Indexing Management cluster stat..."
     echo "Installing kube-burner"
-    export KUBE_BURNER_RELEASE=${KUBE_BURNER_RELEASE:-0.16}
-    curl -L https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_RELEASE}/kube-burner-${KUBE_BURNER_RELEASE}-Linux-x86_64.tar.gz -o kube-burner.tar.gz
-    sudo tar -xvzf kube-burner.tar.gz -C /usr/local/bin/
+    KB_EXISTS=$(which kube-burner)
+    if [ $? -ne 0 ]; then
+        export KUBE_BURNER_RELEASE=${KUBE_BURNER_RELEASE:-0.16}
+        curl -L https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_RELEASE}/kube-burner-${KUBE_BURNER_RELEASE}-Linux-x86_64.tar.gz -o kube-burner.tar.gz
+        sudo tar -xvzf kube-burner.tar.gz -C /usr/local/bin/
+    fi
     export MGMT_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
     export HOSTED_CLUSTER_NS="clusters-hypershift.*"
     envsubst < ../kube-burner/metrics-profiles/hypershift-metrics.yaml > hypershift-metrics.yaml
