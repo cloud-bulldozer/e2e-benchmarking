@@ -15,6 +15,8 @@ if [[ "$1" == "clean" ]]; then
     setup
     cleanup
 elif [[ "$1" == "build" ]]; then
+    echo "Set start time of prom scrape"
+    export START_TIME=$(date +"%s")
     setup
     install
 
@@ -37,6 +39,12 @@ elif [[ "$1" == "build" ]]; then
         echo "Check Hosted cluster progress..$HOSTED_CLUSTER_NAME"
         postinstall
     done
+
+    if [[ $ENABLE_INDEX == "true" ]]; then
+        echo "Set end time of prom scrape"
+        export END_TIME=$(date +"%s")    
+        index_mgmt_cluster_stat
+    fi
 
     echo "Run below command to download kubeconfig file of hosted clusters"
     echo "kubectl get secret -n clusters $HOSTED_CLUSTER_NAME-admin-kubeconfig -o json | jq -r '.data.kubeconfig' | base64 -d"

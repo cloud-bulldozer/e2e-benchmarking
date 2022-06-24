@@ -4,14 +4,9 @@ source env.sh
 
 prep(){
     if [[ -z $(go version) ]]; then
-        curl -L https://go.dev/dl/go1.17.6.linux-amd64.tar.gz -o go1.17.6.linux-amd64.tar.gz
-        tar -C /usr/local -xzf go1.17.6.linux-amd64.tar.gz
+        curl -L https://go.dev/dl/go1.18.2.linux-amd64.tar.gz -o go1.18.2.linux-amd64.tar.gz
+        tar -C /usr/local -xzf go1.18.2.linux-amd64.tar.gz
         export PATH=$PATH:/usr/local/go/bin
-        git clone --branch main https://github.com/openshift/hypershift
-        pushd hypershift
-        make build
-        popd 
-        cp ./hypershift/bin/hypershift /usr/local/bin/ -u
         curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output /usr/local/bin/rosa
         curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output /usr/local/bin/ocm
         chmod +x /usr/local/bin/rosa && chmod +x /usr/local/bin/ocm
@@ -19,7 +14,18 @@ prep(){
         unzip awscliv2.zip
         ./aws/install
     fi
+    if [[ ${HYPERSHIFT_CLI_INSTALL} != "false" ]]; then
+        echo "Remove current Hypershift CLI directory.."
+        sudo rm -rf hypershift || true
+        sudo rm /usr/local/bin/hypershift || true
+        git clone -q --depth=1 --single-branch --branch ${HYPERSHIFT_CLI_VERSION} ${HYPERSHIFT_CLI_FORK}    
+        pushd hypershift
+        make build
+        sudo cp bin/hypershift /usr/local/bin
+        popd
+    fi
 }
+
 setup(){
     export MGMT_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}'| cut -c 1-13)
     export BASEDOMAIN=$(oc get dns cluster -o jsonpath='{.spec.baseDomain}')
@@ -40,7 +46,7 @@ install(){
     aws route53 create-hosted-zone --name $BASEDOMAIN --caller-reference perfscale-ci-$(date --iso-8601=seconds) || true
     echo "Wait till S3 bucket is ready.."
     aws s3api wait bucket-exists --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org 
-    hypershift install --oidc-storage-provider-s3-bucket-name $MGMT_CLUSTER_NAME-aws-rhperfscale-org --oidc-storage-provider-s3-credentials aws_credentials --oidc-storage-provider-s3-region $AWS_REGION  --enable-ocp-cluster-monitoring
+    hypershift install --oidc-storage-provider-s3-bucket-name $MGMT_CLUSTER_NAME-aws-rhperfscale-org --oidc-storage-provider-s3-credentials aws_credentials --oidc-storage-provider-s3-region $AWS_REGION  --enable-ocp-cluster-monitoring --metrics-set=All
     echo "Wait till Operator is ready.."
     cm=""
     while [[ $cm != "oidc-storage-provider-s3-config" ]]
@@ -92,8 +98,8 @@ update_fw(){
         echo "Add rules to group $group.."
         aws ec2 authorize-security-group-ingress --group-id $group --protocol tcp --port 22 --cidr 0.0.0.0/0
         aws ec2 authorize-security-group-ingress --group-id $group --protocol tcp --port 2022 --cidr 0.0.0.0/0
-        aws ec2 authorize-security-group-ingress --group-id $group --protocol tcp --port 20000-30109 --cidr 0.0.0.0/0
-        aws ec2 authorize-security-group-ingress --group-id $group --protocol udp --port 20000-30109 --cidr 0.0.0.0/0
+        aws ec2 authorize-security-group-ingress --group-id $group --protocol tcp --port 20000-31000 --cidr 0.0.0.0/0
+        aws ec2 authorize-security-group-ingress --group-id $group --protocol udp --port 20000-31000 --cidr 0.0.0.0/0
         aws ec2 authorize-security-group-ingress --group-id $group --protocol tcp --port 32768-60999 --cidr 0.0.0.0/0
         aws ec2 authorize-security-group-ingress --group-id $group --protocol udp --port 32768-60999 --cidr 0.0.0.0/0
     done
@@ -123,4 +129,19 @@ cleanup(){
     sleep 10
     ROUTE_ID=$(aws route53 list-hosted-zones --output text --query HostedZones | grep $BASEDOMAIN | grep -v terraform | awk '{print$2}' | awk -F/ '{print$3}')
     for id in $ROUTE_ID; do aws route53 delete-hosted-zone --id=$id || true ; done
+}
+
+index_mgmt_cluster_stat(){
+    echo "Indexing Management cluster stat..."
+    echo "Installing kube-burner"
+    export KUBE_BURNER_RELEASE=${KUBE_BURNER_RELEASE:-0.16}
+    curl -L https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_RELEASE}/kube-burner-${KUBE_BURNER_RELEASE}-Linux-x86_64.tar.gz -o kube-burner.tar.gz
+    sudo tar -xvzf kube-burner.tar.gz -C /usr/local/bin/
+    export MGMT_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
+    export HOSTED_CLUSTER_NS="clusters-hypershift.*"
+    envsubst < ../kube-burner/metrics-profiles/hypershift-metrics.yaml > hypershift-metrics.yaml
+    envsubst < ../kube-burner/workloads/managed-services/baseconfig.yml > baseconfig.yml
+    echo "Running kube-burner index.." 
+    kube-burner index --uuid=$(uuidgen) --prometheus-url=${THANOS_RECEIVER_URL} --start=$START_TIME --end=$END_TIME --step 2m --metrics-profile hypershift-metrics.yaml --config baseconfig.yml
+    echo "Finished indexing results"
 }

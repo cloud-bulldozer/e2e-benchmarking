@@ -31,3 +31,10 @@ The run.sh script can be tweaked with the following environment variables
 | **COMPUTE_WORKERS_TYPE**            | AWS instance type of the workers to be used | `m5.4xlarge` |
 | **RELEASE_IMAGE**    | The OCP release image for the hostedcluster, ex: `quay.io/openshift-release-dev/ocp-release:4.10.5-x86_64` |  |
 | **CPO_IMAGE** | Custom control plane operator image ex: `quay.io/hypershift/hypershift:latest` |  |
+| **HYPERSHIFT_CLI_INSTALL**         | Boolean: to install/re-install hypershift CLI  | `true` |
+| **HYPERSHIFT_CLI_VERSION**         | Version of hypershift CLI, branch name of the fork | `master` |
+| **HYPERSHIFT_CLI_FORK**         | Github source url of hypershift CLI | https://github.com/openshift/hypershift |
+| **ENABLE_INDEX**             | Boolean: To index management cluster stats during HostedCluster creation | `true` |
+| **ES_SERVER**            | ElasticSearch server url | |
+| **ES_INDEX**    | ElasticSearch Index to be used | `ripsaw-kube-burner` |
+| **THANOS_RECEIVER_UR** | Thanos receiver url endpoint or management cluster prometheus public endpoint  |  |
