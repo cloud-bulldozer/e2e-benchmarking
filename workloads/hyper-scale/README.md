@@ -37,4 +37,4 @@ The run.sh script can be tweaked with the following environment variables
 | **ENABLE_INDEX**             | Boolean: To index management cluster stats during HostedCluster creation | `true` |
 | **ES_SERVER**            | ElasticSearch server url | |
 | **ES_INDEX**    | ElasticSearch Index to be used | `ripsaw-kube-burner` |
-| **THANOS_RECEIVER_UR** | Thanos receiver url endpoint or management cluster prometheus public endpoint  |  |
+| **THANOS_QUERIER_URL** | Thanos querier url endpoint or management cluster prometheus public endpoint  |  |

@@ -85,6 +85,24 @@ postinstall(){
     echo "Wait till hosted cluster is ready.."
     oc wait --for=condition=available --timeout=3600s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
     if [ "${NODEPOOL_SIZE}" != "0" ] ; then
+        kubectl get secret -n clusters $HOSTED_CLUSTER_NAME-admin-kubeconfig -o json | jq -r '.data.kubeconfig' | base64 -d > ./$HOSTED_CLUSTER_NAME-admin-kubeconfig
+        itr=0
+        while [ $itr -lt 12 ]
+        do
+            node=$(oc get nodes --kubeconfig $HOSTED_CLUSTER_NAME-admin-kubeconfig | grep worker | grep -i ready | grep -iv notready | wc -l)
+            if [[ $node == $NODEPOOL_SIZE ]]; then
+                echo "All nodes are ready in cluster - $HOSTED_CLUSTER_NAME ..."
+                break
+            else
+                echo "Available node(s) is(are) $node, still waiting for remaining nodes"
+                sleep 300
+            fi
+            itr=$((itr+1))
+        done
+        if [[ $node != $NODEPOOL_SIZE ]]; then
+            echo "All nodes are not ready in cluster - $HOSTED_CLUSTER_NAME ..."
+            exit 1
+        fi
         update_fw
     fi
 }
@@ -132,7 +150,10 @@ cleanup(){
 }
 
 index_mgmt_cluster_stat(){
-    echo "Indexing Management cluster stat..."
+    _uuid=$(uuidgen)
+    echo "################################################################################"
+    echo "Indexing Management cluster stat on creation of $HOSTED_CLUSTER_NAME UUID: ${_uuid}"
+    echo "################################################################################"
     echo "Installing kube-burner"
     KB_EXISTS=$(which kube-burner)
     if [ $? -ne 0 ]; then
@@ -141,10 +162,10 @@ index_mgmt_cluster_stat(){
         sudo tar -xvzf kube-burner.tar.gz -C /usr/local/bin/
     fi
     export MGMT_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
-    export HOSTED_CLUSTER_NS="clusters-hypershift.*"
+    export HOSTED_CLUSTER_NS="clusters-$HOSTED_CLUSTER_NAME"
     envsubst < ../kube-burner/metrics-profiles/hypershift-metrics.yaml > hypershift-metrics.yaml
     envsubst < ../kube-burner/workloads/managed-services/baseconfig.yml > baseconfig.yml
-    echo "Running kube-burner index.." 
-    kube-burner index --uuid=$(uuidgen) --prometheus-url=${THANOS_RECEIVER_URL} --start=$START_TIME --end=$END_TIME --step 2m --metrics-profile hypershift-metrics.yaml --config baseconfig.yml
-    echo "Finished indexing results"
+    echo "Running kube-burner index.."
+    kube-burner index --uuid=${_uuid} --prometheus-url=${THANOS_QUERIER_URL} --start=$START_TIME --end=$END_TIME --step 2m --metrics-profile hypershift-metrics.yaml --config baseconfig.yml
+    echo "Finished indexing results for $HOSTED_CLUSTER_NAME"
 }

@@ -28,4 +28,4 @@ export HYPERSHIFT_CLI_FORK="https://github.com/openshift/hypershift"
 export ENABLE_INDEX=${ENABLE_INDEX:-true}
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
-export THANOS_RECEIVER_URL=${THANOS_RECEIVER_URL:-http://thanos.apps.cluster.devcluster/api/v1/receive}
+export THANOS_QUERIER_URL=${THANOS_QUERIER_URL:-http://thanos.apps.cluster.devcluster/api/v1/receive}
