@@ -105,7 +105,7 @@
 - query: sum(kube_namespace_status_phase) by (phase) > 0
   metricName: namespaceCount
 
-- query: sum(kube_pod_status_phase{}) by (phase)
+- query: sum(kube_pod_status_phase{}) by (phase) > 0
   metricName: podStatusCount
 
 - query: count(kube_secret_info{})
@@ -127,7 +127,7 @@
 - query: kube_node_role
   metricName: nodeRoles
 
-- query: sum(kube_node_status_condition{status="true"}) by (condition)
+- query: sum(kube_node_status_condition{status="true"}) by (condition) > 0
   metricName: nodeStatus
 
 - query: cluster_version{type="completed"}
