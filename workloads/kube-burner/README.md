@@ -13,6 +13,7 @@ In order to kick off one of these benchmarks you must use the run.sh script. The
 - **`pod-density-heavy`**: `WORKLOAD=pod-density-heavy ./run.sh`
 - **`custom`**: `WORKLOAD=custom ./run.sh`
 - **`concurrent-builds`**: `WORKLOAD=concurrent-builds ./run.sh`
+- **`cluster-density-ms`**: `WORKLOAD=cluster-density-ms ./run.sh`
 
 ## Environment variables
 
@@ -26,7 +27,7 @@ Workloads can be tweaked with the following environment variables:
 | **INDEXING**         | Enable/disable indexing         | true    |
 | **ES_SERVER**        | Elasticsearch endpoint          | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elasticsearch index             | ripsaw-kube-burner|
-| **PROM_URL**         | Prometheus endpoint             | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
+| **PROM_URL**         | Prometheus endpoint, it should be Thanos querier endpoint when running on `HYPERSHIFT` cluster             | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
 | **METADATA_COLLECTION**   | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
 | **JOB_TIMEOUT**      | Kube-burner's job timeout, in seconds      | 14400 (4 hours) |
 | **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 180 |
@@ -49,6 +50,10 @@ Workloads can be tweaked with the following environment variables:
 | **LOG_LEVEL**        | Kube-burner log level | error |
 | **PPROF_COLLECTION** | Collect and store pprof data locally | false |
 | **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5m | 
+| **HYPERSHIFT** | Boolean, to be set if its a hypershift hosted cluster | false |
+| **MGMT_CLUSTER_NAME**        | Management cluster name of the hosted cluster, used for metric collections when `INDEXING` is enabled | |
+| **HOSTED_CLUSTER_NS** | HostedControlPlane namespace of the cluster, used for metric collections when `INDEXING` is enabled | |
+| **THANOS_RECEIVER_URL** | Thanos receiver url endpoint for grafana remote-write agent |  | 
 | **POD_READY_THRESHOLD** | Pod ready latency threshold (only applies node-density and pod-density workloads). [More info](https://kube-burner.readthedocs.io/en/latest/measurements/#pod-latency-thresholds) | 5000ms |
 | **PLATFORM_ALERTS** | Platform alerting enables, kube-burner alerting based cluster's platform, either ALERT_PROFILE or this variable can be set | false |
 | **COMPARISON_CONFIG**        | Touchstone configs. Multiple config files can be passed here. Ex. COMPARISON_CONFIG="podCPU-avg.json clusterVersion.json". [Sample files](https://github.com/cloud-bulldozer/e2e-benchmarking/tree/master/workloads/kube-burner/touchstone-configs) |  |
@@ -156,6 +161,19 @@ To edit any of the build information edit the bash script correlating with the a
 **NOTE**: Do not edit parameters other than BUILD_LIST and APP_LIST in env variables file. They will be overwritten
  be the data in builds folder. If you need to make updates to application data, edit environment variables under
   builds/<application_name>.sh
+
+### Cluster-density-ms variables
+
+The `cluster-density-ms` workload is for managed service clusters and currently being used only on hypershift hosted cluster. It supports the environment variable **JOB_ITERATIONS**, this variable configures the number of jobs iterations to perform (1 namespace per iteration). By default 75. To index results, set **PROM_URL**(to thanos querier endpoint), **HYPERSHIFT**, **MGMT_CLUSTER_NAME**, **HOSTED_CLUSTER_NS**
+
+Each iteration creates the following objects: 
+
+- 1 imagestream
+- 2 deployments with pod 2 replicas (sleep) mounting 4 secrets, 4 configmaps and 1 downwardAPI volume each
+- 2 services, each one pointing to the TCP/8080 and TCP/8443 ports of one of the previous deployments
+- 1 route pointing to the to first service
+- 20 secrets containing 2048 character random string
+- 10 configMaps containing a 2048 character random string
 
 ### Snappy integration configurations
 
