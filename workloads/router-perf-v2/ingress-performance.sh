@@ -48,23 +48,7 @@ done
 tune_workload_node delete
 cleanup_infra
 reschedule_monitoring_stack infra
-
-if [[ -n ${ES_SERVER} ]]; then
-  log "Installing touchstone"
-  install_touchstone
-  if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
-    log "Comparing with baseline"
-    compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" ${COMPARISON_CONFIG} ${COMPARISON_FORMAT}
-  else
-    log "Querying results"
-    compare ${ES_SERVER} ${UUID} ${COMPARISON_CONFIG} ${COMPARISON_FORMAT}
-  fi
-  if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${COMPARISON_FORMAT} == "csv" ]]; then
-    gen_spreadsheet ingress-performance ${COMPARISON_OUTPUT} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
-  fi
-  log "Removing touchstone"
-  remove_touchstone
-fi
+run_benchmark_comparison
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  snappy_backup "csv json" "http-perf.yml" "router-perf-v2"
