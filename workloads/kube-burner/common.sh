@@ -184,21 +184,22 @@ run_benchmark_comparison() {
      res_output_dir="/tmp/${WORKLOAD}-${UUID}"
      mkdir -p ${res_output_dir}
      final_csv=${res_output_dir}/${UUID}.csv
-     for config in ${COMPARISON_CONFIG}
-     do
+     for config in ${COMPARISON_CONFIG}; do
        check_metric_to_modify
        envsubst < touchstone-configs/${config} > /tmp/${config}
        COMPARISON_OUTPUT="${res_output_dir}/${config}"
        if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
          log "Comparing with baseline"
-         compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "/tmp/${config}" "csv"
+         compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "/tmp/${config}" "${COMPARISON_FORMAT}"
        else
          log "Querying results"
-         compare ${ES_SERVER} ${UUID} "/tmp/${config}" "csv"
+         compare ${ES_SERVER} ${UUID} "/tmp/${config}" "${COMPARISON_FORMAT}"
        fi
-       python ../../utils/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_csv}
+       if [[ ${COMPARISON_FORMAT} == "csv" ]]; then
+         python ../../utils/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_csv}
+       fi
      done
-     if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
+     if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${COMPARISON_FORMAT} == "csv" ]]; then
        gen_spreadsheet ${WORKLOAD} ${final_csv} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
      fi
      log "Removing touchstone"

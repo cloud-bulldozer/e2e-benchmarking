@@ -76,8 +76,9 @@ The ingress-performance script is able to invoke benchmark-comparison to perform
 | **COMPARISON_CONFIG**   | Benchmark-comparison config file | `${PWD}/ingress-performance.csv` |
 | **COMPARISON_RC**       | Benchmark-comparison return code if tolerancy check fails | 0 |
 | **TOLERANCY_RULES_CFG** | Tolerancy rules configuration file | mb-tolerancy-rules.yaml |
-| **GSHEET_KEY_LOCATION** | Location of the Google Service Account Key | "" |
+| **GSHEET_KEY_LOCATION** | Location of the Google Service Account Key, used to import a resulting csv | "" |
 | **EMAIL_ID_FOR_RESULTS_SHEET**   | Email to push CSV results | "" |
+| **COMPARISON_FORMAT**   | Benchmark-comparison output format, only empty (default output) and csv outputs are supported) | "csv" |
 
 ## Metrics
 

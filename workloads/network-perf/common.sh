@@ -88,12 +88,12 @@ run_benchmark_comparison() {
     install_touchstone
     if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
       log "Comparing with baseline"
-      compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" ${COMPARISON_CONFIG} csv
+      compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" ${COMPARISON_CONFIG} ${COMPARISON_FORMAT}
     else
       log "Querying results"
-      compare ${ES_SERVER} ${UUID} ${COMPARISON_CONFIG} csv
+      compare ${ES_SERVER} ${UUID} ${COMPARISON_CONFIG} ${COMPARISON_FORMAT}
     fi
-    if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
+    if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${COMPARISON_FORMAT} == "csv" ]]; then
       gen_spreadsheet network-performance ${COMPARISON_OUTPUT} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
     fi
     log "Removing touchstone"
