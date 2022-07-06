@@ -47,7 +47,6 @@ collect_pprof() {
   sleep 50
   while [ $(oc get benchmark -n benchmark-operator kube-burner-${1}-${UUID} -o jsonpath="{.status.complete}") == "false" ]; do
     log "-----------------------checking for new pprof files--------------------------"
-  sleep 60
     oc rsync -n benchmark-operator $(oc get pod -n benchmark-operator -o name -l benchmark-uuid=${UUID}):/tmp/pprof-data $PWD/
     sleep 60
   done
