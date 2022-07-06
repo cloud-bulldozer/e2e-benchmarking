@@ -60,7 +60,7 @@ Workloads can be tweaked with the following environment variables:
 | **TOUCHSTONE_NAMESPACE**        | Namespace where we query for metrics specified in touchstone config files | openshift-sdn or openshift-ovn-kubernetes |
 | **GSHEET_KEY_LOCATION**        | Location of service account key to generate google sheets |  |
 | **EMAIL_ID_FOR_RESULTS_SHEET**        | Email id where the google sheets needs to be sent |  |
-| **GEN_CSV**             | Generate a benchmark-comparison csv, required to generate the spreadsheet | "true" |
+| **GEN_CSV**             | Generate a benchmark-comparison csv, required to generate the spreadsheet | "false" |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
