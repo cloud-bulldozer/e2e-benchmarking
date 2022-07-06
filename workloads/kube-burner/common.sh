@@ -190,16 +190,16 @@ run_benchmark_comparison() {
        COMPARISON_OUTPUT="${res_output_dir}/${config}"
        if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
          log "Comparing with baseline"
-         compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "/tmp/${config}" "${COMPARISON_FORMAT}"
+         compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "/tmp/${config}" "${GEN_CSV}"
        else
          log "Querying results"
-         compare ${ES_SERVER} ${UUID} "/tmp/${config}" "${COMPARISON_FORMAT}"
+         compare ${ES_SERVER} ${UUID} "/tmp/${config}" "${GEN_CSV}"
        fi
-       if [[ ${COMPARISON_FORMAT} == "csv" ]]; then
+       if [[ ${GEN_CSV} == "true" ]]; then
          python ../../utils/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_csv}
        fi
      done
-     if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${COMPARISON_FORMAT} == "csv" ]]; then
+     if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${GEN_CSV} == "true" ]]; then
        gen_spreadsheet ${WORKLOAD} ${final_csv} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
      fi
      log "Removing touchstone"
