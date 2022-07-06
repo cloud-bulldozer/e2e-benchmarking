@@ -20,9 +20,6 @@ spec:
       hostnetwork: ${HOSTNETWORK}
       serviceip: ${SERVICEIP}
       networkpolicy: ${NETWORK_POLICY}
-      pin: true
-      pin_server: "$server"
-      pin_client: "$client"
       multus:
         enabled: false
       samples: ${SAMPLES}

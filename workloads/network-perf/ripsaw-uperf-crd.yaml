@@ -30,9 +30,6 @@ spec:
         addresspool: "${ADDRESSPOOL}"
         service_etp: "${SERVICE_ETP}" 
       networkpolicy: ${NETWORK_POLICY}
-      pin: true
-      pin_server: "$server"
-      pin_client: "$client"
       multus:
         enabled: false
       samples: ${SAMPLES}
