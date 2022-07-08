@@ -11,10 +11,6 @@ else
   export UUID=$(uuidgen)
 fi
 
-# Benchark-operator
-OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
-OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
-
 # Workload
 export POLL_INTERVAL=${POLL_INTERVAL:=5}
 export POST_SLEEP=${POST_SLEEP:=0}

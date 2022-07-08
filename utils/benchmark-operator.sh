@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+OPERATOR_BRANCH=${OPERATOR_BRANCH:=v1.0.0}
+OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
+
 install_cli() {
   run_dir=/tmp/${UUID}
   ripsaw_tmp=${run_dir}/ripsaw-cli
@@ -13,7 +16,7 @@ install_cli() {
       fi
   fi
   source ${ripsaw_tmp}/bin/activate
-  pip3 install -qq -U "git+${1}@${2}#egg=ripsaw-cli&subdirectory=cli"
+  pip3 install -qq -U "git+${OPERATOR_REPO}@${OPERATOR_BRANCH}#egg=ripsaw-cli&subdirectory=cli"
 }
 
 remove_cli() {
@@ -25,28 +28,27 @@ remove_cli() {
 
 ############################################################################
 # Deploys benchmark-operator using ripsaw CLI
-# Arguments:
-#   Benchmark-operator repository
-#   Benchmark-operator branch
+# GLOBALS:
+#   OPERATOR_REPO
+#   OPERATOR_BRANCH
 ############################################################################
 deploy_benchmark_operator() {
-
-  install_cli ${1} ${2}
-  if ! ripsaw operator install --repo=${1} --branch=${2}; then
-     exit 1
+  install_cli
+  if ! ripsaw operator install --repo=${OPERATOR_REPO} --branch=${OPERATOR_BRANCH}; then
+    exit 1
   fi
   deactivate
 }
 
 ############################################################################
 # Removes benchmark-operator using ripsaw CLI
-# Arguments:
-#   Benchmark-operator repository
-#   Benchmark-operator branch
+# GLOBALS:
+#   OPERATOR_REPO
+#   OPERATOR_BRANCH
 ############################################################################
 remove_benchmark_operator() {
   source ${ripsaw_tmp}/bin/activate
-  ripsaw operator delete --repo=${1} --branch=${2}
+  ripsaw operator delete --repo=${OPERATOR_REPO} --branch=${OPERATOR_BRANCH}
   remove_cli
 }
 

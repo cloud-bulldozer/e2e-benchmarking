@@ -21,5 +21,5 @@ if [[ -z ${SCALE} ]]; then
 fi
 
 deploy_operator() {
-  deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+  deploy_benchmark_operator
 }

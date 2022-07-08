@@ -55,6 +55,6 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup "csv" "" "${WORKLOAD}"
 fi
 
-remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+remove_benchmark_operator
 
 log "Finished workload ${0}"

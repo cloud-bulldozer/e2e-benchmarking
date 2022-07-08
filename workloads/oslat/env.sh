@@ -1,7 +1,3 @@
-# Benchmark-operator
-export OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
-export OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
-
 # Benchmark comparison
 export COMPARE=${COMPARE:-false}
 export COMPARE_WITH_GOLD=${COMPARE_WITH_GOLD:-false}

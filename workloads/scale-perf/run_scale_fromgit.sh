@@ -44,4 +44,4 @@ done
 end_time=$(date +%s)
 duration=$(date -ud@$((${end_time} - ${start_time})) +%T)
 log "Duration of execution: ${duration} for number of scale runs: ${RUNS}"
-remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+remove_benchmark_operator
