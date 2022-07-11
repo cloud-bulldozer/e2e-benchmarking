@@ -13,6 +13,7 @@ export NUMBER_OF_HOSTED_CLUSTER=${NUMBER_OF_HOSTED_CLUSTER:-2}
 export COMPUTE_WORKERS_NUMBER=${COMPUTE_WORKERS_NUMBER:-24}
 
 # Hosted cluster spec
+export HYPERSHIFT_OPERATOR_VERSION="quay.io/hypershift/hypershift-operator:latest"
 export RELEASE_IMAGE=""
 export CPO_IMAGE=""
 export NETWORK_TYPE=${NETWORK_TYPE:-OpenShiftSDN}

@@ -46,7 +46,7 @@ install(){
     aws route53 create-hosted-zone --name $BASEDOMAIN --caller-reference perfscale-ci-$(date --iso-8601=seconds) || true
     echo "Wait till S3 bucket is ready.."
     aws s3api wait bucket-exists --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org 
-    hypershift install --oidc-storage-provider-s3-bucket-name $MGMT_CLUSTER_NAME-aws-rhperfscale-org --oidc-storage-provider-s3-credentials aws_credentials --oidc-storage-provider-s3-region $AWS_REGION  --enable-ocp-cluster-monitoring --metrics-set=All
+    hypershift install --hypershift-image $HYPERSHIFT_OPERATOR_VERSION --oidc-storage-provider-s3-bucket-name $MGMT_CLUSTER_NAME-aws-rhperfscale-org --oidc-storage-provider-s3-credentials aws_credentials --oidc-storage-provider-s3-region $AWS_REGION  --enable-ocp-cluster-monitoring --metrics-set=All
     echo "Wait till Operator is ready.."
     cm=""
     while [[ $cm != "oidc-storage-provider-s3-config" ]]
