@@ -7,6 +7,7 @@ export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 # Metadata collection can sometimes cause port collisions in uperf when running in targeted mode
 # It is recommended to run it with targeted set to false
 export METADATA_TARGETED=${METADATA_TARGETED:-false}
+export SYSTEM_METRICS_COLLECTION=${SYSTEM_METRICS_COLLECTION:-false}
 
 # Benchark-operator
 OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
