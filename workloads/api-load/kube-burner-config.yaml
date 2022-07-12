@@ -1,0 +1,8 @@
+global:
+  writeToFile: false
+  indexerConfig:
+    enabled: true
+    esServers: [{{.ES_SERVER}}]
+    insecureSkipVerify: true
+    defaultIndex: {{.KUBE_ES_INDEX}}
+    type: elastic

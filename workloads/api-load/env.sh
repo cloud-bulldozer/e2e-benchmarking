@@ -4,6 +4,11 @@ TEST_CLEANUP=${TEST_CLEANUP:-true}
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=ripsaw-api-load
 export ES_SKIP_VERIFY=${ES_SKIP_VERIFY:-true}
+export KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.16.1/kube-burner-0.16.1-Linux-x86_64.tar.gz}
+
+# OCM server prometheus URL and Token
+export PROM_URL=${PROM_URL:-https://prometheus.app-sre-stage-01.devshift.net}
+export PROM_TOKEN=${PROM_TOKEN}
 
 # ocm-api-load job
 export JOB_TIMEOUT=${JOB_TIMEOUT:-28800}

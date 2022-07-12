@@ -20,10 +20,13 @@ Workloads can be tweaked with the following environment variables:
 
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
+| **KUBE_BURNER_RELEASE_URL** | kube-burner tarball release location | `https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.16.1/kube-burner-0.16.1-Linux-x86_64.tar.gz` |
 | **OPERATOR_REPO**    | Benchmark-operator repo         | https://github.com/cloud-bulldozer/benchmark-operator.git      |
 | **OPERATOR_BRANCH**  | Benchmark-operator branch       | master  |
 | **ES_SERVER**        | Elasticsearch endpoint          | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elasticsearch index             | ripsaw-api-load|
+| **PROM_URL**         | OCM server Prometheus endpoint             | https://prometheus.app-sre-stage-01.devshift.net|
+| **PROM_TOKEN**       | OCM server Prometheus token             | |
 | **TEST_TIMEOUT**        | Benchmark timeout, in seconds | 28800 (8 hours) |
 | **JOB_TIMEOUT**        | api-load job timeout, in seconds | 28800 (8 hours) |
 | **TEST_CLEANUP**        | Remove benchmark CR at the end | true |

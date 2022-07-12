@@ -1,0 +1,405 @@
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics"}[5m]))'
+  metricName: apiOverallRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics"}[5m]))'
+  metricName: apiOverallErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",code!~"2..|404"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics"}[5m]))'
+  metricName: apiOverallErrorsNon404
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics"}[5m]))'
+  metricName: apiOverallErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",code!~"5..|0"}[1m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",code!~"5..|0"}[1m]))'
+  metricName: apiOverallDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/access_review"}[5m]))'
+  metricName: accessReview
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/access_review",code!~"2.."}[5m]))
+  /
+  sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/access_review"}[5m]))'
+  metricName: accessReviewErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/access_review",code=~"5..|0"}[5m]))
+  /
+  sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/access_review"}[5m]))'
+  metricName: accessReviewErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/access_review",code!~"5..|0"}[1m])) /
+  sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/access_review",code!~"5..|0"}[1m]))'
+  metricName: accessReviewDuration
+
+    
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_registrations"}[5m]))'
+  metricName: clusterRegistrationsRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_registrations",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_registrations"}[5m]))'
+  metricName: clusterRegistrationsErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_registrations",code="409"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_registrations"}[5m]))'
+  metricName: clusterRegistrationsErrorsTokenConf
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_registrations",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_registrations"}[5m]))'    
+  metricName: clusterRegistrationsErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_registrations",code!~"5..|0"}[1m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_registrations",code!~"5..|0"}[1m]))'    
+  metricName: clusterRegistrationsDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_authorizations"}[5m]))'
+  metricName: clusterAuthorizationsRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_authorizations",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_authorizations"}[5m]))'
+  metricName: clusterAuthorizationsErrosNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_authorizations",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_authorizations"}[5m]))'
+  metricName: clusterAuthorizationsErros5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_authorizations",code!~"5..|0"}[5m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_authorizations",code!~"5..|0"}[5m]))'
+  metricName: clusterAuthorizationsDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_transfers"}[5m]))'
+  metricName: clusterTransfersRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_transfers",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_transfers"}[5m]))'
+  metricName: clusterTransfersErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_transfers",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_transfers"}[5m]))'
+  metricName: clusterTransfersErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_transfers",code!~"5..|0"}[1m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/cluster_transfers",code!~"5..|0"}[1m]))'
+  metricName: clusterTransfersDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/(access_token|pull_secrets)",method="POST"}[5m]))'
+  metricName: pullSecretsRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/(access_token|pull_secrets)",method="POST",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/(access_token|pull_secrets)",method="POST"}[5m]))'
+  metricName: pullSecretsErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/(access_token|pull_secrets)",method="POST",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/(access_token|pull_secrets)",method="POST"}[5m]))'
+  metricName: pullSecretsErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/(access_token|pull_secrets)",method="POST",code!~"5..|0"}[1m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/(access_token|pull_secrets)",method="POST",code!~"5..|0"}[1m]))'
+  metricName: pullSecretsDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/certificates",method="POST"}[5m]))'
+  metricName: certificatesRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/certificates",method="POST",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/certificates",method="POST"}[5m]))'
+  metricName: certificatesErrosNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/certificates",method="POST",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/certificates",method="POST"}[5m]))'
+  metricName: certificatesErros5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/certificates",method="POST",code!~"5..|0"}[1m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path=~"/api/accounts_mgmt/v1/certificates",method="POST",code!~"5..|0"}[1m]))'
+  metricName: certificatesDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/resource_review"}[5m]))'
+  metricName: resourceReviewRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/resource_review",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/resource_review"}[5m]))'
+  metricName: resourceReviewErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/resource_review",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/resource_review"}[5m]))'
+  metricName: resourceReviewErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/resource_review",code!~"5..|0"}[1m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/authorizations/v1/resource_review",code!~"5..|0"}[1m]))'
+  metricName: resourceReviewDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="GET"}[5m]))'
+  metricName: subscriptionsRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="GET",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="GET"}[5m]))'
+  metricName: subscriptionsErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="GET",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="GET"}[5m]))'
+  metricName: subscriptionsErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="GET",code!~"5..|0"}[1m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="GET",code!~"5..|0"}[1m]))'
+  metricName: subscriptionsDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="GET"}[5m]))'
+  metricName: subscriptionsIDRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="GET",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="GET"}[5m]))'
+  metricName: subscriptionsIDErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="GET",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="GET"}[5m]))'
+  metricName: subscriptionsIDErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="GET",code!~"5..|0"}[1m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="GET",code!~"5..|0"}[1m]))'
+  metricName: subscriptionsIDDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="PATCH"}[5m]))'
+  metricName: subscriptionsUpdateRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="PATCH",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="PATCH"}[5m]))'
+  metricName: subscriptionsUpdateErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="PATCH",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="PATCH"}[5m]))'
+  metricName: subscriptionsUpdateErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="PATCH",code!~"5..|0"}[5m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions/-",method="PATCH",code!~"5..|0"}[5m]))'
+  metricName: subscriptionsUdateDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="POST"}[5m]))'
+  metricName: subscriptionsDisconnRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="POST",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="POST"}[5m]))'
+  metricName: subscriptionsDisconnErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="POST",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="POST"}[5m]))'
+  metricName: subscriptionsDisconnErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="POST",code!~"5..|0"}[5m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/subscriptions",method="POST",code!~"5..|0"}[5m]))'
+  metricName: subscriptionsDisconnDuration
+
+- query: 'sum by (code) (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/token_authorization",method="POST"}[5m]))'
+  metricName: tokenAuthorizationRequests
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/token_authorization",method="POST",code!~"2.."}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/token_authorization",method="POST"}[5m]))'
+  metricName: tokenAuthorizationErrorsNon2xx
+
+- query: 'sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/token_authorization",method="POST",code=~"5..|0"}[5m]))
+/
+sum (rate(api_inbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/token_authorization",method="POST"}[5m]))'
+  metricName: tokenAuthorizationErrors5xx
+
+- query: 'sum (increase(api_inbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/token_authorization",method="POST",code!~"5..|0"}[1m])) /
+sum (increase(api_inbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",path="/api/accounts_mgmt/v1/token_authorization",method="POST",code!~"5..|0"}[1m]))'
+  metricName: tokenAuthorizationDuration
+
+- query: 'sum by (type) (rate(advisory_lock_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics"}[5m]))'
+  metricName: advisoryLockRequests
+
+- query: 'sum (rate(advisory_lock_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics", status="lock error"}[5m]))
+/
+sum (rate(advisory_lock_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics"}[5m]))'
+  metricName: advisoryLockErrorsNon2xx
+
+- query: 'sum (rate(advisory_lock_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics", status="unlock error"}[5m]))
+/
+sum (rate(advisory_lock_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics"}[5m]))'
+  metricName: advisoryLockErrors5xx
+
+- query: 'sum (increase(advisory_lock_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",status="OK"}[1m])) /
+sum (increase(advisory_lock_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",status="OK"}[1m]))'
+  metricName: advisoryLockDuration
+
+- query: 'sum (reg_cred_pool_size{registry="quay.io"}) / scalar(count(count by (pod) (reg_cred_pool_size{registry="quay.io"})))'
+  metricName: RegCredPoolSizeQuay
+
+- query: 'sum (reg_cred_pool_size{registry=~"registry.redhat.io|registry.connect.redhat.com"}) / scalar(count(count by (pod) (reg_cred_pool_size{registry=~"registry.redhat.io|registry.connect.redhat.com"})))'
+  metricName: RegCredPoolSizeRedhat
+
+- query: 'sum by(registry) (reg_cred_pool_size) / scalar(count(count by (pod) (reg_cred_pool_size)))'
+  metricName: RegCredPoolSize
+
+- query: 'sum by (apiservice) (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics"}[5m]))'
+  metricName: DepOverallRequests
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",code!~"2.."}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics"}[5m]))'
+  metricName: DepOverallErrorsNon2xx
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",code=~"5..|0"}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics"}[5m]))'
+  metricName: DepOverallErrors5xx
+
+- query: 'sum (increase(api_outbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",code!~"5..|0"}[1m])) /
+sum (increase(api_outbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",code!~"5..|0"}[1m]))'
+  metricName: DepOverallDuration
+
+- query: 'sum by (code) (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="quay"}[5m]))'
+  metricName: DepQuayRequests
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="quay",code!~"2.."}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="quay"}[5m]))'
+  metricName: DepQuayErrorsNon2xx
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="quay",code=~"5..|0"}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="quay"}[5m]))'
+  metricName: DepQuayErrors5xx
+
+- query: 'sum (increase(api_outbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="quay",code!~"5..|0"}[5m])) /
+sum (increase(api_outbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="quay",code!~"5..|0"}[5m]))'
+  metricName: DepQuayDuration
+
+- query: 'sum by (code) (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit"}[5m]))'
+  metricName: DepRHITRequests
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit",code!~"2.."}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit"}[5m]))'
+  metricName: DepRHITErrorsNon2xx
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit",code=~"5..|0"}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit"}[5m]))'
+  metricName: DepRHITErrors5xx
+
+- query: 'sum (increase(api_outbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit",code!~"5..|0"}[1m])) /
+sum (increase(api_outbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit",code!~"5..|0"}[1m]))'
+  metricName: DepRHITDuration
+
+- query: 'sum by (code) (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit/terms"}[5m]))'
+  metricName: DepTermsConditionsRequests
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit/terms",code!~"2.."}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit/terms"}[5m]))'
+  metricName: DepTermsConditionsErrorsNon2xx
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit/terms",code=~"5..|0"}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit/terms"}[5m]))'
+  metricName: DepTermsConditionsErrors5xx
+
+- query: 'sum (increase(api_outbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit/terms",code!~"5..|0"}[1m])) /
+sum (increase(api_outbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="rhit/terms",code!~"5..|0"}[1m]))'
+  metricName: DepTermsConditionsDuration
+
+- query: 'sum by (code) (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-clusters-service"}[5m]))'
+  metricName: DepClustersServiceRequests
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-clusters-service",code!~"2.."}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-clusters-service"}[5m]))'
+  metricName: DepClustersServiceErrorsNon2xx
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-clusters-service",code=~"5..|0"}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-clusters-service"}[5m]))'
+  metricName: DepClustersServiceErrors5xx
+
+- query: 'sum (increase(api_outbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-clusters-service",code!~"5..|0"}[1m])) /
+sum (increase(api_outbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-clusters-service",code!~"5..|0"}[1m]))'
+  metricName: DepClustersServiceDuration
+
+- query: 'sum by (code) (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-logs-service"}[5m]))'
+  metricName: DepLogsServiceRequests
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-logs-service",code!~"2.."}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-logs-service"}[5m]))'
+  metricName: DepLogsServiceErrorsNon2xx
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-logs-service",code=~"5..|0"}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-logs-service"}[5m]))'
+  metricName: DepLogsServiceErrors5xx
+
+- query: 'sum (increase(api_outbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-logs-service",code!~"5..|0"}[1m])) /
+sum (increase(api_outbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="ocm-logs-service",code!~"5..|0"}[1m]))'
+  metricName: DepLogsServiceDuration
+
+- query: 'sum by (code) (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="pendo"}[5m]))'
+  metricName: DepPendoRequests
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="pendo",code!~"2.."}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="pendo"}[5m]))'
+  metricName: DepPendoErrorsNon2xx
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="pendo",code=~"5..|0"}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="pendo"}[5m]))'
+  metricName: DepPendoErrors5xx
+
+- query: 'sum (increase(api_outbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="pendo",code!~"5..|0"}[1m])) /
+sum (increase(api_outbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="pendo",code!~"5..|0"}[1m]))'
+  metricName: DepPendoDuration
+
+- query: 'sum by (code) (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="candlepin"}[5m]))'
+  metricName: DepCandlepinRequests
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="candlepin",code!~"2.."}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="candlepin"}[5m]))'
+  metricName: DepCandlepinErrorsNon2xx
+
+- query: 'sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="candlepin",code=~"5..|0"}[5m]))
+/
+sum (rate(api_outbound_request_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="candlepin"}[5m]))'
+  metricName: DepCandlepinErrors5xx
+
+- query: 'sum (increase(api_outbound_request_duration_sum{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="candlepin",code!~"5..|0"}[5m])) /
+sum (increase(api_outbound_request_duration_count{namespace="uhc-integration",service="uhc-acct-mngr-metrics",apiservice="candlepin",code!~"5..|0"}[5m]))'
+  metricName: DepCandlepinDuration
+
+- query: '1 - avg(avg_over_time(db_table_size{namespace="uhc-integration",service="uhc-acct-mngr-metrics",type="data",table="whole db"}[24h])) / (100 * 1024)'
+  metricName: DBDiskusageFreeSpace
+
+- query: 'avg(db_table_size{namespace="uhc-integration",service="uhc-acct-mngr-metrics",type="data",table="whole db"})'
+  metricName: DBDiskusageTotalSize
+
+- query: 'db_table_size{namespace="uhc-integration",service="uhc-acct-mngr-metrics",type="data",table!="whole db"}'
+  metricName: DBDiskusageTableSize
+
+- query: 'topk(1, db_table_size{namespace="uhc-integration",service="uhc-acct-mngr-metrics",type="index"}) by (table)'    
+  metricName: DBDiskusageIndexSize
