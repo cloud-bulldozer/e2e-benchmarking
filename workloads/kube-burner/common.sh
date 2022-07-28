@@ -212,13 +212,13 @@ label_node_with_label() {
   colon_param=$(echo $1 | tr "=" ":" | sed 's/:/: /g')
   export POD_NODE_SELECTOR="{$colon_param}"
   if [[ -z $NODE_COUNT ]]; then
-    NODE_COUNT=$(oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | wc -l )
+    NODE_COUNT=$(oc get node -o name --no-headers -l ${WORKER_NODE_LABEL},node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= | wc -l )
   fi
   if [[ ${NODE_COUNT} -le 0 ]]; then
     log "Node count <= 0: ${NODE_COUNT}"
     exit 1
   fi
-  WORKER_NODE_NAMES=$(oc get node -o custom-columns=name:.metadata.name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker= | head -n ${NODE_COUNT})
+  WORKER_NODE_NAMES=$(oc get node -o custom-columns=name:.metadata.name --no-headers -l ${WORKER_NODE_LABEL},node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= | head -n ${NODE_COUNT})
   if [[ $(echo "${WORKER_NODE_NAMES}" | wc -l) -lt ${NODE_COUNT} ]]; then
     log "Not enough worker nodes to label"
     exit 1

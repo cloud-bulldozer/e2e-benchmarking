@@ -6,6 +6,9 @@ metadata:
     name: {{.JobName}}
 spec:
   nodeSelector: {{.nodeSelector}}
+{{ if .tolerations }}
+  tolerations: {{.tolerations}}
+{{ end }}
   containers:
   - name: node-density
     image: {{.containerImage}}
