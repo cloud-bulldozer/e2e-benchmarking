@@ -2,7 +2,13 @@
 
 The purpose of the script is to install Hypershift Operator on an Openshift cluster and create HostedCluster workload on them.
 
-1. Install and create cluster: `./run.sh build`
+Prerequisites, 
+1. Install these OS packages - `make`, `jq`
+2. Set management cluster `$KUBECONFIG` environment variable
+3. Set other vars in `env.sh`
+
+Run the script,
+1. Install Operator and create cluster: `./run.sh build`
 2. Cleanup clusters: `./run.sh clean`
 
 
@@ -30,8 +36,8 @@ The run.sh script can be tweaked with the following environment variables
 | **REPLICA_TYPE**             | Hosted control plane availability, supported values are `HighlyAvailable`, `SingleReplica` | `HighlyAvailable` |
 | **COMPUTE_WORKERS_TYPE**            | AWS instance type of the workers to be used | `m5.4xlarge` |
 | **HYPERSHIFT_OPERATOR_IMAGE**    | The Hypershift operator version image | `quay.io/hypershift/hypershift-operator:latest` |
-| **RELEASE_IMAGE**    | The OCP release image for the hostedcluster, ex: `quay.io/openshift-release-dev/ocp-release:4.10.5-x86_64` |  |
-| **CPO_IMAGE** | Custom control plane operator image ex: `quay.io/hypershift/hypershift:latest` |  |
+| **RELEASE_IMAGE**    | The OCP release image for the hostedcluster, ex: `quay.io/openshift-release-dev/ocp-release:4.10.5-x86_64` | Operator default |
+| **CPO_IMAGE** | Custom control plane operator image ex: `quay.io/hypershift/hypershift:latest` | Operator default |
 | **HYPERSHIFT_CLI_INSTALL**         | Boolean: to install/re-install hypershift CLI  | `true` |
 | **HYPERSHIFT_CLI_VERSION**         | Version of hypershift CLI, branch name of the fork | `master` |
 | **HYPERSHIFT_CLI_FORK**         | Github source url of hypershift CLI | https://github.com/openshift/hypershift |

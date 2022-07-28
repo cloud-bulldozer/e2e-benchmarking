@@ -7,12 +7,6 @@ prep(){
         curl -L https://go.dev/dl/go1.18.2.linux-amd64.tar.gz -o go1.18.2.linux-amd64.tar.gz
         tar -C /usr/local -xzf go1.18.2.linux-amd64.tar.gz
         export PATH=$PATH:/usr/local/go/bin
-        curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output /usr/local/bin/rosa
-        curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output /usr/local/bin/ocm
-        chmod +x /usr/local/bin/rosa && chmod +x /usr/local/bin/ocm
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        ./aws/install
     fi
     if [[ ${HYPERSHIFT_CLI_INSTALL} != "false" ]]; then
         echo "Remove current Hypershift CLI directory.."
@@ -24,6 +18,22 @@ prep(){
         sudo cp bin/hypershift /usr/local/bin
         popd
     fi
+    if [[ -z $(rosa version)  ]]; then
+        sudo curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output /usr/local/bin/rosa
+        sudo curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output /usr/local/bin/ocm
+        sudo chmod +x /usr/local/bin/rosa && chmod +x /usr/local/bin/ocm
+    fi
+    if [[ -z $(oc help) ]]; then
+        rosa download openshift-client
+        tar xzvf openshift-client-linux.tar.gz
+        sudo mv oc kubectl /usr/local/bin/
+    fi
+    if [[ -z $(aws --version) ]]; then
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
+    fi
+
 }
 
 setup(){
