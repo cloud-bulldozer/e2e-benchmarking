@@ -20,7 +20,7 @@ export_defaults() {
 }
 
 deploy_operator() {
-  deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+  deploy_benchmark_operator
 }
 
 run_benchmark_comparison() {

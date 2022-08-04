@@ -148,7 +148,7 @@ deploy_perf_profile() {
 }
 
 deploy_operator() {
-  deploy_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+  deploy_benchmark_operator
 }
 
 check_logs_for_errors() {

@@ -150,7 +150,7 @@ fi
 run_benchmark_comparison
 
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
-  remove_benchmark_operator ${OPERATOR_REPO} ${OPERATOR_BRANCH}
+  remove_benchmark_operator
 else
   remove_cli
 fi

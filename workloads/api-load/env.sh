@@ -8,10 +8,6 @@ export ES_SKIP_VERIFY=${ES_SKIP_VERIFY:-true}
 # ocm-api-load job
 export JOB_TIMEOUT=${JOB_TIMEOUT:-28800}
 
-# Benchark-operator
-OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
-OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
-
 # Workload
 export TEST_TIMEOUT=${TEST_TIMEOUT:-28800}
 

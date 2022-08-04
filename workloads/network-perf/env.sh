@@ -9,10 +9,6 @@ export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 export METADATA_TARGETED=${METADATA_TARGETED:-false}
 export SYSTEM_METRICS_COLLECTION=${SYSTEM_METRICS_COLLECTION:-false}
 
-# Benchark-operator
-OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
-OPERATOR_BRANCH=${OPERATOR_BRANCH:-master}
-
 # Workload
 export WORKLOAD=${WORKLOAD:-smoke}
 export NETWORK_POLICY=${NETWORK_POLICY:=false}
