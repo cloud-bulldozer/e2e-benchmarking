@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-OPERATOR_BRANCH=${OPERATOR_BRANCH:=v1.0.0}
+OPERATOR_BRANCH=${OPERATOR_BRANCH:=v1.0.1}
 OPERATOR_REPO=${OPERATOR_REPO:-https://github.com/cloud-bulldozer/benchmark-operator.git}
 
 install_cli() {
