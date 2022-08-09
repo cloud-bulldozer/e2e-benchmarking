@@ -45,11 +45,11 @@ It's possible to tune the default configuration through environment variables. T
 | KUBE_BURNER_RELEASE_URL    | Kube-burner binary URL | `https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.16/kube-burner-0.16-Linux-x86_64.tar.gz` |
 | LARGE_SCALE_THRESHOLD | Number of worker nodes required to consider a large scale scenario | `24` |
 | SMALL_SCALE_ROUTES    | Number of routes of each termination to create in the small scale scenario | `100` |
-| SMALL_SCALE_CLIENTS   | Threads/route to use in the small scale scenario | `1 40 200` |
-| SMALL_SCALE_CLIENTS_MIX | Threads/route to use in the small scale scenario with mix termination | `1 20 80` |
+| SMALL_SCALE_CLIENTS   | Threads/route to use in the small scale scenario | `1 100` |
+| SMALL_SCALE_CLIENTS_MIX | Threads/route to use in the small scale scenario with mix termination | `1 50` |
 | LARGE_SCALE_ROUTES    | Number of routes of each termination to create in the large scale scenario | `500` |
-| LARGE_SCALE_CLIENTS   | Threads/route to use in the large scale scenario | `1 20 80` |
-| LARGE_SCALE_CLIENTS_MIX | Threads/route to use in the large scale scenario with mix termination | `1 10 20` |
+| LARGE_SCALE_CLIENTS   | Threads/route to use in the large scale scenario | `1 20` |
+| LARGE_SCALE_CLIENTS_MIX | Threads/route to use in the large scale scenario with mix termination | `1 10` |
 | DEPLOYMENT_REPLICAS   | Number of pod replicas per deployment | `1` |
 | TLS_REUSE             | Reuse TLS session | `true` |
 | SAMPLES               | Number of samples to perform of each test | `2` |

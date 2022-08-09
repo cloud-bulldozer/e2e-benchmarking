@@ -10,13 +10,13 @@ get_scenario(){
   if [[ ${NUM_NODES} -ge ${LARGE_SCALE_THRESHOLD} ]]; then
     log "Large scale scenario detected: #workers >= ${LARGE_SCALE_THRESHOLD}"
     export NUMBER_OF_ROUTES=${LARGE_SCALE_ROUTES:-500}
-    CLIENTS=${LARGE_SCALE_CLIENTS:-"1 20 80"}
-    CLIENTS_MIX=${LARGE_SCALE_CLIENTS_MIX:-"1 10 20"}
+    CLIENTS=${LARGE_SCALE_CLIENTS:-"1 20"}
+    CLIENTS_MIX=${LARGE_SCALE_CLIENTS_MIX:-"1 10"}
   else
     log "Small scale scenario detected: #workers < ${LARGE_SCALE_THRESHOLD}"
     export NUMBER_OF_ROUTES=${SMALL_SCALE_ROUTES:-100}
-    CLIENTS=${SMALL_SCALE_CLIENTS:-"1 40 200"}
-    CLIENTS_MIX=${SMALL_SCALE_CLIENTS_MIX:-"1 20 80"}
+    CLIENTS=${SMALL_SCALE_CLIENTS:-"1 100"}
+    CLIENTS_MIX=${SMALL_SCALE_CLIENTS_MIX:-"1 50"}
   fi
 }
 
