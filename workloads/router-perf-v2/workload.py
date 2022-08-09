@@ -63,7 +63,9 @@ def run_mb(mb_config, runtime, output):
         if hit[2] not in result_codes:
             result_codes[hit[2]] = 0
         result_codes[hit[2]] += 1
-        latency_list.append(int(hit[1]))
+        # Record latency of 'SUCCESS' 200 OK response only
+        if hit[2] == "200":
+            latency_list.append(int(hit[1]))
     if latency_list:
         p95_latency = numpy.percentile(latency_list, 95)
         p99_latency = numpy.percentile(latency_list, 99)
