@@ -61,7 +61,7 @@ install(){
     if [[ $HYPERSHIFT_OPERATOR_IMAGE != "" ]]; then
             HO_IMAGE_ARG="--hypershift-image $HYPERSHIFT_OPERATOR_IMAGE"
     fi    
-    hypershift install $HO_IMAGE_ARG --oidc-storage-provider-s3-bucket-name $MGMT_CLUSTER_NAME-aws-rhperfscale-org --oidc-storage-provider-s3-credentials aws_credentials --oidc-storage-provider-s3-region $AWS_REGION  --enable-ocp-cluster-monitoring --metrics-set=All
+    hypershift install $HO_IMAGE_ARG --oidc-storage-provider-s3-bucket-name $MGMT_CLUSTER_NAME-aws-rhperfscale-org --oidc-storage-provider-s3-credentials aws_credentials --oidc-storage-provider-s3-region $AWS_REGION  --platform-monitoring All --metrics-set All
     echo "Wait till Operator is ready.."
     kubectl wait --for=condition=available --timeout=600s deployments/operator -n hypershift
 }

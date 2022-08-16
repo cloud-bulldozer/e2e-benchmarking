@@ -22,7 +22,7 @@ export COMPUTE_WORKERS_TYPE=${COMPUTE_WORKERS_TYPE:-m5.4xlarge}
 
 # Environment specifics
 export HYPERSHIFT_CLI_INSTALL=${HYPERSHIFT_CLI_INSTALL:-"true"}
-export HYPERSHIFT_CLI_VERSION=${HYPERSHIFT_CLI_VERSION:-"master"}
+export HYPERSHIFT_CLI_VERSION=${HYPERSHIFT_CLI_VERSION:-"main"}
 export HYPERSHIFT_CLI_FORK=${HYPERSHIFT_CLI_FORK:-"https://github.com/openshift/hypershift"}
 
 # Indexing stats
