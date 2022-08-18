@@ -22,6 +22,7 @@ export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=${UUID:-$(uuidgen)}
 export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion') 
 export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}') 
+export INGRESS_DOMAIN=$(oc get IngressController default -n openshift-ingress-operator -o jsonpath='{.status.domain}' || oc get routes -A --no-headers | head -n 1 | awk {'print$3'} | cut -d "." -f 2-)
 
 platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
 

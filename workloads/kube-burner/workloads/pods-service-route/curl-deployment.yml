@@ -1,0 +1,43 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: curl-{{.Replica}}
+spec:
+  template:
+    metadata:
+      labels:
+        name: curl-{{.Replica}}
+    spec:
+      nodeSelector: {{.nodeSelector}}
+      containers:
+      - name: curlapp
+        image: quay.io/cloud-bulldozer/curl:latest
+        command: ["sleep", "inf"]
+        env:
+        - name: WEBSERVER_HOSTNAME
+          value: webserver-{{randInteger 1 10}}
+        - name: WEBSERVER_PORT
+          value: "8080"
+        - name: WEBSERVER_ROUTE
+          value: webserver-{{randInteger 1 10}}-{{.namespace}}-{{randInteger 1 .iterations}}.{{.ingressDomain}}
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: false
+        startupProbe:
+          exec:
+            command: 
+              - "/bin/sh"
+              - "-c"
+              - "curl ${WEBSERVER_HOSTNAME}:${WEBSERVER_PORT}; curl ${WEBSERVER_ROUTE}"
+          periodSeconds: 1
+          timeoutSeconds: 1
+          failureThreshold: 600
+      restartPolicy: Always
+  replicas: 1
+  selector:
+    matchLabels:
+      name: curl-{{.Replica}}
+  triggers:
+  - type: ConfigChange
+  strategy:
+    type: RollingUpdate
