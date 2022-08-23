@@ -12,7 +12,7 @@ if [[ ${INDEXING} == "false" ]]; then
   unset PROM_URL
 else
   if [[ ${HYPERSHIFT} == "false" ]]; then
-    export PROM_TOKEN=$(oc sa get-token -n openshift-monitoring prometheus-k8s || oc sa new-token -n openshift-monitoring prometheus-k8s)
+    export PROM_TOKEN=$(oc sa get-token -n openshift-monitoring prometheus-k8s || oc sa new-token -n openshift-monitoring prometheus-k8s || oc create token -n openshift-monitoring  prometheus-k8s)
   else
     export PROM_TOKEN="dummytokenforthanos"
     export HOSTED_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
@@ -234,4 +234,10 @@ unlabel_nodes_with_label() {
     oc label node ${WORKER_NODE_NAMES} $p- 1>/dev/null
     break
   done
+}
+
+prep_networkpolicy_workload() {
+  export ES_INDEX_NETPOL=${ES_INDEX_NETPOL:-networkpolicy-enforcement}
+  oc apply -f workloads/networkpolicy/clusterrole.yml
+  oc apply -f workloads/networkpolicy/clusterrolebinding.yml
 }

@@ -93,6 +93,18 @@ case ${WORKLOAD} in
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/hypershift-metrics.yaml}
     export TEST_JOB_ITERATIONS=${JOB_ITERATIONS:-75}
   ;; 
+  networkpolicy-case2)
+    WORKLOAD_TEMPLATE=workloads/networkpolicy/case2.yml
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-ovn.yaml}
+    export TEST_JOB_ITERATIONS=${JOB_ITERATIONS:-5}
+    prep_networkpolicy_workload
+  ;;
+  networkpolicy-case3)
+    WORKLOAD_TEMPLATE=workloads/networkpolicy/case3.yml
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-ovn.yaml}
+    export TEST_JOB_ITERATIONS=${JOB_ITERATIONS:-5}
+    prep_networkpolicy_workload
+  ;;
   custom)
   ;;
   *)

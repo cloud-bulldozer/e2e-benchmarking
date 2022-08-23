@@ -1,6 +1,6 @@
 # Kube-burner e2e benchmarks
 
-In order to kick off one of these benchmarks you must use the run.sh script. There are 8 different workloads at the moment, that could be launched as follows:
+In order to kick off one of these benchmarks you must use the run.sh script. There are 13 different workloads at the moment, that could be launched as follows:
 
 - **`cluster-density`**: `WORKLOAD=cluster-density ./run.sh`
 - **`node-density`**: `WORKLOAD=node-density ./run.sh`
@@ -14,6 +14,8 @@ In order to kick off one of these benchmarks you must use the run.sh script. The
 - **`custom`**: `WORKLOAD=custom ./run.sh`
 - **`concurrent-builds`**: `WORKLOAD=concurrent-builds ./run.sh`
 - **`cluster-density-ms`**: `WORKLOAD=cluster-density-ms ./run.sh`
+- **`networkpolicy-case2`**: `WORKLOAD=networkpolicy-case2 ./run.sh`
+- **`networkpolicy-case3`**: `WORKLOAD=networkpolicy-case3 ./run.sh`
 
 ## Environment variables
 
