@@ -43,6 +43,6 @@ run_test(){
   ./kube-burner init -c ${1} --uuid=${UUID} -u=${PROM_URL} --token=${PROM_TOKEN} -m=metrics.yaml
   if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
     log "Cleaning up benchmark stuff"
-    kube-burner destroy -u ${UUID}
+    kube-burner destroy --uuid ${UUID}
   fi
 }
