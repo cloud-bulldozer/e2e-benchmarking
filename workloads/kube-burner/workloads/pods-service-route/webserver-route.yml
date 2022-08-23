@@ -1,0 +1,12 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: webserver-{{.Replica}}
+spec:
+  host: webserver-{{.Replica}}-{{.JobName}}-{{.Iteration}}.{{.ingressDomain}}
+  port:
+    targetPort: 8080
+  to:
+    kind: Service
+    name: webserver-{{.Replica}}
+

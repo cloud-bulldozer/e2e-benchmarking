@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: webserver-{{.Replica}}
+spec:
+  selector:
+    name: webserver-{{.Replica}}
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP

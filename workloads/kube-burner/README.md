@@ -7,6 +7,7 @@ In order to kick off one of these benchmarks you must use the run.sh script. The
 - **`node-density-heavy`**: `WORKLOAD=node-density-heavy ./run.sh`
 - **`node-density-cni`**: `WORKLOAD=node-density-cni ./run.sh`
 - **`node-density-cni-networkpolicy`**: `WORKLOAD=node-density-cni-networkpolicy ./run.sh`
+- **`pods-service-route`**: `WORKLOAD=pods-service-route ./run.sh`
 - **`max-namespaces`**: `WORKLOAD=max-namespaces ./run.sh`
 - **`max-services`**: `WORKLOAD=max-services./run.sh`
 - **`pod-density`**: `WORKLOAD=pod-density ./run.sh`
@@ -114,6 +115,16 @@ Each iteration of this workload creates the following objects:
   - 1 service pointing to the webserver
 
     A NetworkPolicy to deny all connections is created in the namspace first and then NetworkPolicies specifically applying the connection of each client-webserver pair are applied. The startupProbe of the client pod depends on being able to reach the webserver so that the PodReady latencies collected by kube-burner reflect network connectivity.
+
+- **pods-service-route**. Creates `NAMESPACE_COUNT` namespaces, each with 10 webserver pods fronted by 10 services each exposed as a route. The routes and services are accessed by application pods that curl the webserver.
+Each iteration of this workload creates the following objects:
+  - 1 namespace
+  - 10 deployments, each consisting a node.js webserver pod
+  - 10 deployments, each consisting of a client application pod for curling the webserver
+  - 10 services each pointing to a unique webserver
+  - 10 routes, 1 for each service
+
+    The startupProbe of the client pod depends on being able to reach a random webserver service in the namespace and a a random route from all the namesapces, so that the PodReady latencies collected by kube-burner reflect network connectivity.
 
 ### Max-namespaces
 

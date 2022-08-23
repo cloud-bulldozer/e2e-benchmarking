@@ -59,6 +59,11 @@ case ${WORKLOAD} in
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     export TEST_JOB_ITERATIONS=${PODS:-1000}
   ;;
+  pods-service-route)
+    WORKLOAD_TEMPLATE=workloads/pods-service-route/pods-service-route.yml
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
+    export TEST_JOB_ITERATIONS=${NAMESPACE_COUNT:-1000}
+  ;;
   max-namespaces)
     WORKLOAD_TEMPLATE=workloads/max-namespaces/max-namespaces.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-aggregated.yaml}
