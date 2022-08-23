@@ -37,10 +37,10 @@ get_pods_per_namespace(){
 
 # Receives the kube-burner configuration file as parameter
 run_test(){
-  log "Running kube-burner using config ${1}"
+  log "Running kube-burner using config ${1} and metrics ${METRICS}"
   export POD_REPLICAS
   curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz
-  ./kube-burner init -c ${1} --uuid=${UUID} -u=${PROM_URL} --token=${PROM_TOKEN} -m=metrics.yaml
+  ./kube-burner init -c ${1} --uuid=${UUID} -u=${PROM_URL} --token=${PROM_TOKEN} -m="${METRICS}"
   if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
     log "Cleaning up benchmark stuff"
     kube-burner destroy --uuid ${UUID}

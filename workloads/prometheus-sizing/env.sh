@@ -7,6 +7,7 @@ export ENABLE_INDEXING=${ENABLE_INDEXING:-true}
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
 export WRITE_TO_FILE=${WRITE_TO_FILE:-false}
+export METRICS=${METRICS:-metrics.yaml}
 
 # prometheus-sizing-static specific
 export JOB_PAUSE=${JOB_PAUSE:-125m}
