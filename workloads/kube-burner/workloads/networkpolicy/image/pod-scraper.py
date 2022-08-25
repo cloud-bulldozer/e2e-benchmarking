@@ -20,7 +20,7 @@ def index_result(payload, retry_count=3):
             ssl_ctx = ssl.create_default_context()
             ssl_ctx.check_hostname = False
             ssl_ctx.verify_mode = ssl.CERT_NONE
-            es = elasticsearch6.Elasticsearch([es_server])
+            es = elasticsearch6.Elasticsearch([es_server], send_get_body_as="POST", ssl_context=ssl_ctx, use_ssl=True)
             es.index(index=es_index, body=payload, doc_type="json")
             retry_count = 0
         except Exception as e:
@@ -138,7 +138,7 @@ def main():
                     f"Time taken to connect {dest_pods.status.pod_ip} is {time_taken}s"
                 )
                 logging.info("                ***                 ")
-                payload = {"uuid": label[-3], "connection_time": time_taken}
+                payload = {"timestamp": datetime.datetime.utcnow(), "uuid": label[-3], "connection_time": time_taken}
                 index_result(payload)
 
     except ApiException as e:
