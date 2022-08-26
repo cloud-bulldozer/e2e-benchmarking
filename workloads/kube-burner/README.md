@@ -64,6 +64,10 @@ Workloads can be tweaked with the following environment variables:
 | **GSHEET_KEY_LOCATION**        | Location of service account key to generate google sheets |  |
 | **EMAIL_ID_FOR_RESULTS_SHEET**        | Email id where the google sheets needs to be sent |  |
 | **GEN_CSV**             | Generate a benchmark-comparison csv, required to generate the spreadsheet | "false" |
+| **CHURN**             | Enable "churning" of the workload after the benchmark completes | "false" |
+| **CHURN_DURATION**             | Time, in minutes, to churn for | 10 |
+| **CHURN_WAIT**             | Time, in seconds, to wait between each churn | 60 |
+| **CHURN_PERCENT**             | Percentage of JOB_ITERATIONS that we should churn each round | 10 |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
@@ -188,6 +192,17 @@ Each iteration creates the following objects:
 - 1 route pointing to the to first service
 - 20 secrets containing 2048 character random string
 - 10 configMaps containing a 2048 character random string
+
+### Churn
+
+Churning a workload allows you to scale down and then up a percentage of deployments **AFTER** the workload has run, but before cleanup (if enabled). It will only work with workloads that utilize deployments to create their pods (ex: cluster-density and cluster-density-ms). It takes in a percentage, **CHURN_PERCENT**, which is the percentage of JOB_ITERATIONS it will scale to 0 then back up during each churn cycle. After the appropriate number of deployments have been churned it will sleep for a duration of **CHURN_WAIT** seconds. This loop continues until the **CHURN_DURATION** is reached.
+
+To churn 75% of your **JOB_ITERATIONS** every 30 seconds for a total duration (the calculated time from when the first churn begins + the **CHURN_DURATION**) of 60 minutes you would utilize these variables:
+
+- **CHURN**=true
+- **CHURN_DURATION**=60
+- **CHURN_PERCENT**=75
+- **CHURN_WAIT**=30
 
 ### Snappy integration configurations
 
