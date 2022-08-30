@@ -10,21 +10,23 @@ prep(){
         export PATH=$PATH:/usr/local/go/bin
     fi
     if [[ ${HYPERSHIFT_CLI_INSTALL} != "false" ]]; then
-        echo "Remove current Hypershift CLI directory.."
-        sudo rm -rf hypershift || true
+        echo "Clean-up Hypershift binaries.."
         sudo rm /usr/local/bin/hypershift || true
-        git clone -q --depth=1 --single-branch --branch ${HYPERSHIFT_CLI_VERSION} ${HYPERSHIFT_CLI_FORK}    
-        pushd hypershift
+        export TEMP_DIR=$(mktemp -d)
+
+        git clone -q --depth=1 --single-branch --branch ${HYPERSHIFT_CLI_VERSION} ${HYPERSHIFT_CLI_FORK} -v $TEMP_DIR/hypershift
+        pushd $TEMP_DIR/hypershift
         make build
         sudo cp bin/hypershift /usr/local/bin
         popd
+        rm -rf $TEMP_DIR || true
     fi
     if [[ -z $(rosa version)  ]]; then
         sudo curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output /usr/local/bin/rosa
         sudo curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output /usr/local/bin/ocm
         sudo chmod +x /usr/local/bin/rosa && chmod +x /usr/local/bin/ocm
     fi
-    if [[ -z $(oc help) ]]; then
+    if [[ -z $(oc version) ]]; then
         rosa download openshift-client
         tar xzvf openshift-client-linux.tar.gz
         sudo mv oc kubectl /usr/local/bin/
@@ -49,6 +51,19 @@ setup(){
     rosa whoami
     rosa verify quota
     rosa verify permissions
+}
+
+pre_flight_checks(){
+    echo "Pre flight checks started"
+    export MULTI_AZ=$(rosa describe cluster -c $MGMT_CLUSTER_NAME -o json | jq -r [.multi_az] | jq -r .[])
+    export COMPUTE_NODE=$(rosa describe cluster -c $MGMT_CLUSTER_NAME -o json | jq -r [.nodes.compute] | jq -r .[])
+
+    if [ "${MULTI_AZ}" == "true" ] && [ "${COMPUTE_NODE}"%3 == 0]; then
+        echo "Pre flight checks passed"
+    else
+        echo "Pre flight checks failed, cluster should have 3 compute nodes and is multi-az enabled"
+        exit 1
+    fi
 }
 
 install(){
@@ -156,6 +171,11 @@ cleanup(){
     sleep 10
     ROUTE_ID=$(aws route53 list-hosted-zones --output text --query HostedZones | grep $BASEDOMAIN | grep -v terraform | awk '{print$2}' | awk -F/ '{print$3}')
     for id in $ROUTE_ID; do aws route53 delete-hosted-zone --id=$id || true ; done
+    rm -f *-admin-kubeconfig || true
+    rm -f pull-secret || true
+    rm -rf kube-burner.tar.gz|| true
+    rm -f hypershift-metrics.yaml baseconfig.yml || true
+    rm -f aws_credentials || true
 }
 
 index_mgmt_cluster_stat(){

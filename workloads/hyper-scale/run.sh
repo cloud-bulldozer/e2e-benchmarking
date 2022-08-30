@@ -19,6 +19,7 @@ elif [[ "$1" == "build" ]]; then
     echo "Set start time of prom scrape"
     export START_TIME=$(date +"%s")
     setup
+    pre_flight_checks
     install
 
     export NODEPOOL_SIZE=$COMPUTE_WORKERS_NUMBER
