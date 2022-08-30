@@ -263,7 +263,7 @@ churn() {
   namespace_arry=(`kubectl get namespaces -l kube-burner-uuid=${UUID} --no-headers | awk '{print $1}'`)
   namespace_count=${#namespace_arry[@]}
   
-# The number of iterations we need to modify per round of churn (min 1)
+  # The number of iterations we need to modify per round of churn (min 1)
   modify_count=$((JOB_ITERATIONS*CHURN_PERCENT/100))
   if [[ ${modify_count} -eq 0 ]]; then modify_count=1; fi
   
@@ -272,27 +272,21 @@ churn() {
     for ((i=0; i<${modify_count}; i++)); do
       #Pick random Namespace from the list
       rand_ns=$(($RANDOM%${namespace_count}))
-      deployments=(`kubectl get deployments -n ${namespace_arry[$rand_ns]} --no-headers | awk '{print $1}'`)
-      #Pick a random deployment from the namespace
-      rand_deploy=$(($RANDOM%${#deployments[@]}))
-      current_replicas=`kubectl get deployment ${deployments[$rand_deploy]} -n ${namespace_arry[$rand_ns]} -o json | jq '.spec.replicas'`
-      #set to 0 replicas
-      kubectl scale --replicas 0 deployment ${deployments[$rand_deploy]} -n ${namespace_arry[$rand_ns]} > /dev/null &
-      #set back to original number of replicas
-      kubectl scale --replicas ${current_replicas} deployment ${deployments[$rand_deploy]} -n ${namespace_arry[$rand_ns]} > /dev/null &
+      rep_sets=(`kubectl get replicasets -n ${namespace_arry[$rand_ns]} --no-headers | awk '{print $1}'`)
+      #Pick a random replicaset from the namespace
+      rand_rep=$(($RANDOM%${#rep_sets[@]}))
+      #set to 0 replicas; it will automatically get swapped back to the appropriate number of replicas
+      kubectl scale --replicas 0 replicaset ${rep_sets[$rand_rep]} -n ${namespace_arry[$rand_ns]} > /dev/null &
     done
     #Not sure we want this message as its probably just spam really
     log "Churned $modify_count deployments. Sleeping for ${CHURN_WAIT} secounds"
 
-    #Should we use actual time to determine how long to sleep or just do a flat sleep of the CHURN_WAIT after each round?
-    #This
+    # sleep for the wait time - time consumed by churning if > 0
     new_time=`date +%s`
     time_to_sleep=$((${CHURN_WAIT}-((${new_time}-${current_time}))))
     if [[ ${time_to_sleep} -gt 0 ]]; then
       sleep ${time_to_sleep}
     fi
-    #or this?
-    #sleep ${CHURN_WAIT}
     current_time=`date +%s` 
   done
 }
