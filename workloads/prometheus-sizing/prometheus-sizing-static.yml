@@ -17,6 +17,11 @@ jobs:
     namespace: prometheus-sizing-static
     waitWhenFinished: true
     jobPause: {{ .JOB_PAUSE }}
+    namespaceLabels:
+      security.openshift.io/scc.podSecurityLabelSync: false
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
     objects:
       - objectTemplate: templates/pod.yml
         replicas: {{ .POD_REPLICAS }}

@@ -9,6 +9,11 @@ jobs:
   namespace: http-scale-http
   cleanup: true
   waitWhenFinished: true
+  namespaceLabels:
+    security.openshift.io/scc.podSecurityLabelSync: false
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
   objects:
     - objectTemplate: templates/nginx-deploy.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
@@ -34,6 +39,11 @@ jobs:
   namespace: http-scale-edge
   cleanup: true
   waitWhenFinished: true
+  namespaceLabels:
+    security.openshift.io/scc.podSecurityLabelSync: false
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
   objects:
     - objectTemplate: templates/nginx-deploy.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
@@ -59,6 +69,11 @@ jobs:
   namespace: http-scale-passthrough
   cleanup: true
   waitWhenFinished: true
+  namespaceLabels:
+    security.openshift.io/scc.podSecurityLabelSync: false
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
   objects:
     - objectTemplate: templates/nginx-deploy.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
@@ -84,6 +99,11 @@ jobs:
   namespace: http-scale-reencrypt
   cleanup: true
   waitWhenFinished: true
+  namespaceLabels:
+    security.openshift.io/scc.podSecurityLabelSync: false
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
   objects:
     - objectTemplate: templates/nginx-deploy.yml
       replicas: {{ .NUMBER_OF_ROUTES }}
@@ -106,6 +126,11 @@ jobs:
   namespacedIterations: false
   cleanup: true
   waitWhenFinished: true
+  namespaceLabels:
+    security.openshift.io/scc.podSecurityLabelSync: false
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
   objects:
     - objectTemplate: templates/http-client-rolebinding.yml
       replicas: 1

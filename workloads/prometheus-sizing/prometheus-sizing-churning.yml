@@ -17,6 +17,11 @@ jobs:
     qps: {{ .QPS }}
     burst: {{ .BURST }}
     jobPause: {{ .POD_CHURNING_PERIOD }}
+    namespaceLabels:
+      security.openshift.io/scc.podSecurityLabelSync: false
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
     objects:
       - objectTemplate: templates/pod.yml
         replicas: {{ .PODS_PER_NS }}
@@ -38,6 +43,11 @@ jobs:
     qps: {{ $.QPS }}
     burst: {{ $.BURST }}
     jobPause: {{ $.POD_CHURNING_PERIOD }}
+    namespaceLabels:
+      security.openshift.io/scc.podSecurityLabelSync: false
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
     objects:
       - objectTemplate: templates/pod.yml
         replicas: {{ $.PODS_PER_NS }}
