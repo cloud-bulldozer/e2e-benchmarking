@@ -34,7 +34,7 @@ The run.sh script can be tweaked with the following environment variables
 | **ADDRESSPOOL**         | To provide MetalLB addresspool for a service, this will be used as LoadBalancer network. Mentioned addresspool should be pre-provisioned before execution of this script. | addresspool-l2 |
 | **SERVICE_ETP**         | To mention the type of `ExternalTrafficPolicy` of a service, supported option `Cluster` or `Local` | Cluster |
 | **SAMPLES**             | How many times to run the tests | 3 |
-| **PAIRS**               | List with the number of pairs the test will be triggered (hostnet variant is executed w/ 1 pair only) | 1 2 4 |
+| **PAIRS**               | List with the number of pairs the test will be triggered (hostnet variant is executed w/ 1 pair only) | 1 2 |
 | **TEST_TIMEOUT**        | Benchmark timeout, in seconds | 7200 (2 hours) |
 | **TEST_CLEANUP**        | Remove benchmark CR at the end | true |
 
