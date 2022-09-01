@@ -7,19 +7,16 @@ prep(){
     if [[ -z $(go version) ]]; then
         curl -L https://go.dev/dl/go1.18.2.linux-amd64.tar.gz -o go1.18.2.linux-amd64.tar.gz
         tar -C /usr/local -xzf go1.18.2.linux-amd64.tar.gz
-        export PATH=$PATH:/usr/local/go/bin
+        export PATH=/usr/local/go/bin:$PATH
     fi
     if [[ ${HYPERSHIFT_CLI_INSTALL} != "false" ]]; then
-        echo "Clean-up Hypershift binaries.."
-        sudo rm /usr/local/bin/hypershift || true
+        echo "Building Hypershift binaries locally.."
         export TEMP_DIR=$(mktemp -d)
-
         git clone -q --depth=1 --single-branch --branch ${HYPERSHIFT_CLI_VERSION} ${HYPERSHIFT_CLI_FORK} -v $TEMP_DIR/hypershift
         pushd $TEMP_DIR/hypershift
         make build
-        sudo cp bin/hypershift /usr/local/bin
+        export PATH=$TEMP_DIR/hypershift/bin:$PATH
         popd
-        rm -rf $TEMP_DIR || true
     fi
     if [[ -z $(rosa version)  ]]; then
         sudo curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output /usr/local/bin/rosa
@@ -62,6 +59,7 @@ pre_flight_checks(){
         echo "Pre flight checks passed"
     else
         echo "Pre flight checks failed, cluster should have 3 compute nodes and is multi-az enabled"
+        rm -rf $TEMP_DIR || true
         exit 1
     fi
 }
