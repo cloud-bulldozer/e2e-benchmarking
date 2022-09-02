@@ -53,12 +53,11 @@ setup(){
 pre_flight_checks(){
     echo "Pre flight checks started"
     export MULTI_AZ=$(rosa describe cluster -c $MGMT_CLUSTER_NAME -o json | jq -r [.multi_az] | jq -r .[])
-    export COMPUTE_NODE=$(rosa describe cluster -c $MGMT_CLUSTER_NAME -o json | jq -r [.nodes.compute] | jq -r .[])
 
-    if [ "${MULTI_AZ}" == "true" ] && [ "${COMPUTE_NODE}"%3 == 0]; then
+    if [[ "${MULTI_AZ}" == "true" ]]; then
         echo "Pre flight checks passed"
     else
-        echo "Pre flight checks failed, cluster should have 3 compute nodes and is multi-az enabled"
+        echo "Pre flight checks failed, cluster should be multi-az enabled"
         rm -rf $TEMP_DIR || true
         exit 1
     fi
