@@ -155,6 +155,15 @@ cleanup(){
     aws s3api wait bucket-not-exists --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org
     sleep 10
     ROUTE_ID=$(aws route53 list-hosted-zones --output text --query HostedZones | grep $BASEDOMAIN | grep -v terraform | awk '{print$2}' | awk -F/ '{print$3}')
+    aws route53 list-resource-record-sets --hosted-zone-id $ROUTE_ID --output json | jq -c '.ResourceRecordSets[]' |
+    while read -r resourcerecordset; do
+        read -r name type <<<$(echo $(jq -r '.Name,.Type' <<<"$resourcerecordset"))
+        if [ $type != "NS" -a $type != "SOA" ]; then
+            aws route53 change-resource-record-sets --hosted-zone-id $ROUTE_ID \
+            --change-batch '{"Changes":[{"Action":"DELETE","ResourceRecordSet":'"$resourcerecordset"'
+            }]}' --output text --query 'ChangeInfo.Id'
+        fi
+    done
     for id in $ROUTE_ID; do aws route53 delete-hosted-zone --id=$id || true ; done
 }
 
