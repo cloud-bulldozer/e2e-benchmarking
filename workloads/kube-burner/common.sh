@@ -24,9 +24,17 @@ export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
 export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}') 
 export INGRESS_DOMAIN=$(oc get IngressController default -n openshift-ingress-operator -o jsonpath='{.status.domain}' || oc get routes -A --no-headers | head -n 1 | awk {'print$3'} | cut -d "." -f 2-)
 
-platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
+PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
+if [[ ${PLATFORM} == "AWS" ]]; then
+  cluster_type=$(echo ${PLATFORM} | jq -r 'try .status.platformStatus.aws.resourceTags | map(select(.key == "red-hat-clustertype"))[0].value' | tr '[:lower:]' '[:upper:]')
+  if [[ -n ${cluster_type} ]]; then    # cluster_type is set when cluster is deployed by ROSA
+    PLATFORM=${cluster_type}
+  fi
+fi
 
-if [[ ${platform} == "BareMetal" ]]; then
+export PLATFORM
+
+if [[ ${PLATFORM} == "BareMetal" ]]; then
   # installing python3.8
   sudo dnf -y install python3.8
   #sudo alternatives --set python3 /usr/bin/python3.8
@@ -38,7 +46,6 @@ if [[ ${HYPERSHIFT} == "true" ]]; then
     log "Grafana agent is already installed"
   else
     export CLUSTER_NAME=${HOSTED_CLUSTER_NAME}
-    export PLATFORM=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
     export DAG_ID=$(oc version -o json | jq -r '.openshiftVersion')-$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}') # setting a dynamic value
     envsubst < ./grafana-agent.yaml | oc apply -f -
   fi
@@ -73,8 +80,8 @@ run_workload() {
     log "Alerting is enabled, fetching ${ALERTS_PROFILE}"
     cp ${ALERTS_PROFILE} ${tmpdir}/alerts.yml
   elif [[ ${PLATFORM_ALERTS} == "true" ]]; then
-    log "Platform alerting is enabled, fetching alerst-profiles/${WORKLOAD}-${platform}.yml"
-    cp alerts-profiles/${WORKLOAD}-${platform}.yml ${tmpdir}/alerts.yml
+    log "Platform alerting is enabled, fetching alerst-profiles/${WORKLOAD}-${PLATFORM}.yml"
+    cp alerts-profiles/${WORKLOAD}-${PLATFORM}.yml ${tmpdir}/alerts.yml
   fi
   log "Creating kube-burner configmap"
   kubectl create configmap -n benchmark-operator --from-file=${tmpdir} kube-burner-cfg-${UUID}
