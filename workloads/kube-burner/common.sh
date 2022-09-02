@@ -251,17 +251,15 @@ churn() {
   log "Starting to churn workload"
 
   churn_start=`date +%s`
-  CHURN_DURATION="${CHURN_DURATION:-10}"
   churn_end_time=$((${churn_start} + ${CHURN_DURATION}*60))
-  CHURN_WAIT="${CHURN_WAIT:-60}"
-  CHURN_PERCENT="${CHURN_PERCENT:-10}"
 
   log "Churn duration: ${CHURN_DURATION} minutes"
   log "Churn wait duration: ${CHURN_WAIT} seconds"
   log "Churn percentage: ${CHURN_PERCENT}%"
+  log "Churn type: ${CHURN_TYPE}"
 
-  namespace_arry=(`kubectl get namespaces -l kube-burner-uuid=${UUID} --no-headers | awk '{print $1}'`)
-  namespace_count=${#namespace_arry[@]}
+  namespace_array=(`kubectl get namespaces -l kube-burner-uuid=${UUID} --no-headers | awk '{print $1}'`)
+  namespace_count=${#namespace_array[@]}
   
   # The number of iterations we need to modify per round of churn (min 1)
   modify_count=$((JOB_ITERATIONS*CHURN_PERCENT/100))
@@ -272,14 +270,37 @@ churn() {
     for ((i=0; i<${modify_count}; i++)); do
       #Pick random Namespace from the list
       rand_ns=$(($RANDOM%${namespace_count}))
-      rep_sets=(`kubectl get replicasets -n ${namespace_arry[$rand_ns]} --no-headers | awk '{print $1}'`)
-      #Pick a random replicaset from the namespace
-      rand_rep=$(($RANDOM%${#rep_sets[@]}))
-      #set to 0 replicas; it will automatically get swapped back to the appropriate number of replicas
-      kubectl scale --replicas 0 replicaset ${rep_sets[$rand_rep]} -n ${namespace_arry[$rand_ns]} > /dev/null &
+
+      if [[ ${CHURN_TYPE} == "pod" ]]; then
+	# Churn type is pod
+	# Delete all the pods in the namespace. The deployment set will recreate them automatically
+	kubectl delete pod --all -n ${namespace_array[$rand_ns]} > /dev/null &
+      elif [[ ${CHURN_TYPE} == "namespace" ]]; then
+	# Churn type is namespace
+	# Get all relevent configs
+	kubectl get -o yaml namespace ${namespace_array[$rand_ns]} > churn_namespace.yaml
+	kubectl get -o yaml configmaps -l kube-burner-uuid=${UUID} -n ${namespace_array[$rand_ns]} > churn_configmaps.yaml
+	kubectl get -o yaml secrets -l kube-burner-uuid=${UUID} -n ${namespace_array[$rand_ns]} > churn_secrets.yaml
+	kubectl get -o yaml all -l kube-burner-uuid=${UUID} -n ${namespace_array[$rand_ns]} > churn_all.yaml
+
+	# Delete namespace
+        kubectl delete namespace ${namespace_array[$rand_ns]} > /dev/null
+
+	# Re-create objects
+	kubectl apply -f churn_namespace.yaml > /dev/null 2>&1
+	kubectl apply -f churn_configmaps.yaml > /dev/null 2>&1
+	kubectl apply -f churn_secrets.yaml > /dev/null 2>&1
+	kubectl apply -f churn_all.yaml > /dev/null 2>&1
+
+	rm -f churn_namespace.yaml churn_configmaps.yaml churn_secrets.yaml churn_all.yaml
+      fi
     done
-    #Not sure we want this message as its probably just spam really
-    log "Churned $modify_count deployments. Sleeping for ${CHURN_WAIT} secounds"
+    
+    if [[ ${CHURN_TYPE} == "pod" ]]; then
+      log "Churned the pods in $modify_count namespaces. Sleeping for ${CHURN_WAIT} secounds"
+    elif [[ ${CHURN_TYPE} == "namespace" ]]; then
+      log "Churned all resources in $modify_count namespaces. Sleeping for ${CHURN_WAIT} secounds"
+    fi
 
     # sleep for the wait time - time consumed by churning if > 0
     new_time=`date +%s`

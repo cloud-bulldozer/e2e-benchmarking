@@ -68,6 +68,7 @@ Workloads can be tweaked with the following environment variables:
 | **CHURN_DURATION**             | Time, in minutes, to churn for | 10 |
 | **CHURN_WAIT**             | Time, in seconds, to wait between each churn | 60 |
 | **CHURN_PERCENT**             | Percentage of JOB_ITERATIONS that we should churn each round | 10 |
+| **CHURN_TYPE**             | Type of object to churn. pod or namespace. Namespace will delete/recreate everything in the namespace | pod |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
@@ -195,14 +196,17 @@ Each iteration creates the following objects:
 
 ### Churn
 
-Churning a workload allows you to scale down and then up a percentage of deployments **AFTER** the workload has run, but before cleanup (if enabled). It will only work with workloads that utilize deployments to create their pods (ex: cluster-density and cluster-density-ms). It takes in a percentage, **CHURN_PERCENT**, which is the percentage of JOB_ITERATIONS it will scale to 0 then back up during each churn cycle. After the appropriate number of deployments have been churned it will sleep for a duration of **CHURN_WAIT** seconds. This loop continues until the **CHURN_DURATION** is reached.
+Churning a workload allows you to scale down and then up a percentage of pods or namespaces **AFTER** the workload has run, but before cleanup (if enabled). It takes in a percentage, **CHURN_PERCENT**, which is the percentage of JOB_ITERATIONS it churns during each churn cycle. If the **pod** CHURN_TYPE is used then it will delete and recreate all the pods in a namespace. If the **namespace** CHURN_TYPE is used then it will delete and recreate **ALL** the resources in the namespace. After each churn cycle it will sleep for the remainder of **CHURN_WAIT** seconds if the time it took to churn was less than the **CHURN_WAIT** otherwise it continues immediately. This loop continues until the **CHURN_DURATION** has elapsed.
 
-To churn 75% of your **JOB_ITERATIONS** every 30 seconds for a total duration (the calculated time from when the first churn begins + the **CHURN_DURATION**) of 60 minutes you would utilize these variables:
+To churn 20% of your **JOB_ITERATIONS** using the namespace method every 30 seconds for a total duration (the calculated time from when the first churn begins + the **CHURN_DURATION**) of 60 minutes you would utilize these variables:
 
 - **CHURN**=true
 - **CHURN_DURATION**=60
 - **CHURN_PERCENT**=75
 - **CHURN_WAIT**=30
+- **CHURN_TYPE**=namespace
+
+**NOTE: The churn functionality is only designed to work with current cluster-density type tests**
 
 ### Snappy integration configurations
 

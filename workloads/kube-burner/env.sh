@@ -74,6 +74,7 @@ export CHURN=${CHURN:-false}
 export CHURN_DURATION=${CHURN_DURATION:-10}
 export CHURN_WAIT=${CHURN_WAIT:-30}
 export CHURN_PERCENT=${CHURN_PERCENT:-10}
+export CHURN_TYPE=${CHURN_TYPE:-pod}
 
 # Output and Comparisons
 export COMPARISON_CONFIG=${COMPARISON_CONFIG:-""}
