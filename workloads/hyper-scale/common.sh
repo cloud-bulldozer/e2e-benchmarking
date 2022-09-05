@@ -2,12 +2,13 @@
 set -x
 
 source env.sh
+TEMP_DIR=`mktemp -d`
 
 prep(){
     if [[ -z $(go version) ]]; then
         curl -L https://go.dev/dl/go1.18.2.linux-amd64.tar.gz -o go1.18.2.linux-amd64.tar.gz
-        tar -C /usr/local -xzf go1.18.2.linux-amd64.tar.gz
-        export PATH=$PATH:/usr/local/go/bin
+        tar -C ${TEMP_DIR}/ -xzf go1.18.2.linux-amd64.tar.gz
+        export PATH=${TEMP_DIR}/go/bin/:$PATH
     fi
     if [[ ${HYPERSHIFT_CLI_INSTALL} != "false" ]]; then
         echo "Remove current Hypershift CLI directory.."
@@ -20,14 +21,16 @@ prep(){
         popd
     fi
     if [[ -z $(rosa version)  ]]; then
-        sudo curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output /usr/local/bin/rosa
-        sudo curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output /usr/local/bin/ocm
-        sudo chmod +x /usr/local/bin/rosa && chmod +x /usr/local/bin/ocm
+        mkdir -p ${TEMP_DIR}/bin/
+        sudo curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output ${TEMP_DIR}/bin/rosa
+        sudo curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output ${TEMP_DIR}/bin/ocm
+        sudo chmod +x ${TEMP_DIR}/bin/rosa && chmod +x ${TEMP_DIR}/bin/ocm
+        export PATH=${TEMP_DIR}/bin/:$PATH
     fi
     if [[ -z $(oc help) ]]; then
         rosa download openshift-client
         tar xzvf openshift-client-linux.tar.gz
-        sudo mv oc kubectl /usr/local/bin/
+        sudo mv oc kubectl ${TEMP_DIR}/bin/
     fi
     if [[ -z $(aws --version) ]]; then
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
