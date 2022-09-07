@@ -83,4 +83,3 @@ jobs:
         inputVars:
           containerImage: ${NODE_POD_DENSITY_IMAGE}
           nodeSelector: "${POD_NODE_SELECTOR}"
-          tolerations: "${POD_TOLERATIONS}"
