@@ -13,6 +13,12 @@ import os
 import elasticsearch6
 
 
+def namespaced_name(namespace, name):
+    if namespace:
+        return "/".join([namespace, name])
+    return name
+
+
 def index_result(payload, retry_count=3):
     print(f"Indexing documents in {es_index}")
     while retry_count > 0:
@@ -29,17 +35,19 @@ def index_result(payload, retry_count=3):
             retry_count -= 1
 
 
-def check_pods_are_running():
-    logging.info("Waiting for all pods to be in Running state")
+def check_pods_are_running(namespaces):
+    logging.info("Waiting for all pods to be in Running state in selected namespaces")
     timeout_start = time.time()
     while time.time() < timeout_start + timeout:
         statuses = set()
-        pod_status = v1.list_namespaced_pod(namespace=curr_namespace, pretty=True)
-        for pod in pod_status.items:
-            statuses.add(pod.status.phase)
+        for namespace in namespaces:
+            pod_status = v1.list_namespaced_pod(namespace=namespace, pretty=True)
+            for pod in pod_status.items:
+                statuses.add(pod.status.phase)
         if len(statuses) == 1 and "Running" in statuses:
             logging.info("All pods are in Running state")
             break
+        time.sleep(5)
 
 
 def main():
@@ -74,16 +82,39 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     
-    check_pods_are_running()
-    
     try:
+        logging.info("Inspecting policies to find target namespaces & pods")
         api_response = netv1.list_namespaced_network_policy(
             curr_namespace, pretty="true"
         )
-        mapping = []
+        mappings = []
+        namespaces = []
         for netpol in range(len(api_response.items)):
-            if api_response.items[netpol].spec.ingress is not None:
-                if os.environ.get("WORKLOAD") == "networkpolicy-case3":
+            if os.environ.get("WORKLOAD") == "networkpolicy-case1":
+                # for this case, we get the namespaces from the policies egress rules
+                if api_response.items[netpol].spec.egress:
+                    namespace = api_response.items[
+                        netpol
+                    ].spec.egress[0]._to[0].namespace_selector.match_labels[
+                        "kubernetes.io/metadata.name"
+                    ]
+                    namespaces.append(namespace)
+            elif os.environ.get("WORKLOAD") == "networkpolicy-case2":
+                if api_response.items[netpol].spec.ingress:
+                    source = (
+                        api_response.items[netpol]
+                        .spec.ingress[0]
+                        ._from[0]
+                        .pod_selector.match_labels
+                    )
+                    if label[-1] in source.values() or label[-2] in source.values():
+                        destination = api_response.items[
+                            netpol
+                        ].spec.pod_selector.match_labels
+                        mappings.append(destination)
+                        namespaces = [curr_namespace]
+            elif os.environ.get("WORKLOAD") == "networkpolicy-case3":
+                if api_response.items[netpol].spec.ingress:
                     source = (
                         api_response.items[netpol]
                         .spec.ingress[0]
@@ -95,51 +126,67 @@ def main():
                         destination = api_response.items[
                             netpol
                         ].spec.pod_selector.match_labels
-                        mapping.append(destination)
-                else:
-                    source = (
-                        api_response.items[netpol]
-                        .spec.ingress[0]
-                        ._from[0]
-                        .pod_selector.match_labels
+                        mappings.append(destination)
+                        namespaces = [curr_namespace]
+
+        if not namespaces:
+            logging.info("No target namespaces where selected, exiting")
+            return
+
+        logging.info(f"Selected namespaces: {namespaces}")
+        check_pods_are_running(namespaces)
+
+        label_selectors = []
+        if mappings:
+            for destination_label in mappings:
+                label_selector = "\n".join(f"{k}={v}" for k, v in destination_label.items())
+                label_selectors.append(label_selector)
+            logging.info(f"Selecting pods in target namespaces with each of label selectors: {label_selectors}")
+        else:
+            logging.info("Selecting all pods in target namespaces")
+            label_selectors.append(None)
+        
+        dest_pods = {}
+        for namespace in namespaces:
+            for label_selector in label_selectors:
+                ret = v1.list_namespaced_pod(
+                        namespace, label_selector=label_selector, watch=False
                     )
-                    if label[-1] in source.values() or label[-2] in source.values():
-                        destination = api_response.items[
-                            netpol
-                        ].spec.pod_selector.match_labels
-                        mapping.append(destination)
-        for destination_label in mapping:
-            label_selector = "\n".join(f"{k}={v}" for k, v in destination_label.items())
-            ret = v1.list_namespaced_pod(
-                curr_namespace, label_selector=label_selector, watch=False
+                for pod in ret.items:
+                    k = namespaced_name(pod.metadata.namespace, pod.metadata.name)
+                    dest_pods[k] = pod
+
+        logging.info("Attempting connectivity with all selected pods")
+
+        for pod in dest_pods.values():
+            count = 0.0
+            start = timeit.default_timer()
+            timeout_start = time.time()
+            while time.time() < timeout_start + timeout:
+                try:
+                    logging.info(f"Trying to connect {pod.status.pod_ip}")
+                    response = s.get(f"http://{pod.status.pod_ip}:8000", timeout=0.1)
+                    logging.info(f"Connected to {pod.status.pod_ip}")
+                    if response.status_code == 200:
+                        break
+                except requests.exceptions.HTTPError as errh:
+                    logging.exception("Http Error")
+                except requests.exceptions.ConnectionError as errc:
+                    logging.exception("Connection Error")
+                except requests.exceptions.Timeout as errt:
+                    logging.exception("Timeout Error")
+                except requests.exceptions.RequestException as err:
+                    logging.exception("Request Error")
+            end = timeit.default_timer()
+            time_taken = end - start
+            logging.info(
+                f"Time taken to connect {pod.status.pod_ip} is {time_taken}s"
             )
-            for dest_pods in ret.items:
-                count = 0.0
-                start = timeit.default_timer()
-                timeout_start = time.time()
-                while time.time() < timeout_start + timeout:
-                    try:
-                        logging.info(f"Trying to connect {dest_pods.status.pod_ip}")
-                        response = s.get(f"http://{dest_pods.status.pod_ip}:8000", timeout=0.1)
-                        logging.info(f"Connected to {dest_pods.status.pod_ip}")
-                        if response.status_code == 200:
-                            break
-                    except requests.exceptions.HTTPError as errh:
-                        print("Http Error:", errh)
-                    except requests.exceptions.ConnectionError as errc:
-                        logging.warning("Trying again")
-                    except requests.exceptions.Timeout as errt:
-                        print("Timeout Error:", errt)
-                    except requests.exceptions.RequestException as err:
-                        print("Something Else", err)
-                end = timeit.default_timer()
-                time_taken = end - start
-                logging.info(
-                    f"Time taken to connect {dest_pods.status.pod_ip} is {time_taken}s"
-                )
-                logging.info("                ***                 ")
-                payload = {"timestamp": datetime.datetime.utcnow(), "uuid": label[-3], "connection_time": time_taken}
-                index_result(payload)
+            logging.info("                ***                 ")
+            payload = {"timestamp": datetime.datetime.utcnow(), "uuid": label[-3], "connection_time": time_taken}
+            index_result(payload)
+
+        logging.info("Done connecting with all selected pods")
 
     except ApiException as e:
         print(
