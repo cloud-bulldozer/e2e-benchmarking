@@ -12,6 +12,13 @@ The environmental variables and steps to kick off this test can be found [here](
 A networkpolicy can come in various shapes and sizes. Allow traffic from a specific namespace, Deny traffic from a specific pod IP, Deny all traffic, ...
 Hence we have come up with a few test cases which try to cover most of them. They are as follows.
 
+### Case 1
+
+- 500 namespaces
+- 20 pods in each namespace. Each pod acts as a server and a client
+- Default deny networkpolicy is applied first that blocks traffic to any test namespace
+- 3 network policies in each namespace that allows traffic from the same namespace and two other namespaces using namespace selectors
+
 ### Case 2
 
 - 5 namespaces
