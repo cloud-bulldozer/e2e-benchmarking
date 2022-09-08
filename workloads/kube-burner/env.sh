@@ -17,6 +17,7 @@ export BURST=${BURST:-20}
 export MAX_WAIT_TIMEOUT=${MAX_WAIT_TIMEOUT:-1h}
 export CLEANUP=${CLEANUP:-true}
 export POD_NODE_SELECTOR=${POD_NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
+export WORKER_NODE_LABEL=${WORKER_NODE_LABEL:-"node-role.kubernetes.io/worker"}
 export WAIT_WHEN_FINISHED=true
 export POD_WAIT=${POD_WAIT:-false}
 export WAIT_FOR=${WAIT_FOR:-[]}
@@ -31,6 +32,9 @@ export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
 export LOG_STREAMING=${LOG_STREAMING:-true}
 export METRICS_PROFILE=${METRICS_PROFILE}
+
+# kube-burner workload defaults
+export NODE_POD_DENSITY_IMAGE=${NODE_POD_DENSITY_IMAGE:-gcr.io/google_containers/pause:3.1}
 
 # Misc
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
