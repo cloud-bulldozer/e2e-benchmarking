@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 set -m
 source ../../utils/common.sh
-source ../../utils/benchmark-operator.sh
 source env.sh
 source ../../utils/compare.sh
 
 openshift_login
 
-# If INDEXING is disabled we disable metadata collection
-if [[ ${INDEXING} == "false" ]]; then
-  export METADATA_COLLECTION=false
-  unset PROM_URL
-else
+# If INDEXING is enabled we retrive the prometheus oauth token
+if [[ ${INDEXING} == "true" ]]; then
   if [[ ${HYPERSHIFT} == "false" ]]; then
     export PROM_TOKEN=$(oc create token -n openshift-monitoring prometheus-k8s || oc sa get-token -n openshift-monitoring prometheus-k8s || oc sa new-token -n openshift-monitoring prometheus-k8s)
   else
@@ -26,12 +22,6 @@ export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networ
 export INGRESS_DOMAIN=$(oc get IngressController default -n openshift-ingress-operator -o jsonpath='{.status.domain}' || oc get routes -A --no-headers | head -n 1 | awk {'print$3'} | cut -d "." -f 2-)
 
 platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}')
-
-if [[ ${platform} == "BareMetal" ]]; then
-  # installing python3.8
-  sudo dnf -y install python3.8
-  #sudo alternatives --set python3 /usr/bin/python3.8
-fi
 
 if [[ ${HYPERSHIFT} == "true" ]]; then
   # shellcheck disable=SC2143
@@ -54,41 +44,33 @@ collect_pprof() {
   done
 }
 
-deploy_operator() {
-  deploy_benchmark_operator
-}
-
 run_workload() {
-  set -e
+  local CMD
+  curl -L ${KUBE_BURNER_URL} | tar -xzC /tmp/ kube-burner
+  CMD="timeout ${JOB_TIMEOUT} /tmp/kube-burner init --uuid=${UUID} -c $(basename ${WORKLOAD_TEMPLATE}) --log-level=${LOG_LEVEL}"
   local tmpdir=$(mktemp -d)
-  if [[ -z ${WORKLOAD_TEMPLATE} ]]; then
-    log "WORKLOAD_TEMPLATE not defined or null!"
-    exit 1
+  # When metrics or alerting are enabled we have to pass the prometheus URL to the cmd
+  if [[ ${INDEXING} == "true" ]] || [[ ${PLATFORM_ALERTS} == "true" ]] ; then
+    CMD+=" -u=${PROM_URL} -t ${PROM_TOKEN}"
   fi
-  cp -pR $(dirname ${WORKLOAD_TEMPLATE})/* ${tmpdir}
-  envsubst < ${WORKLOAD_TEMPLATE} > ${tmpdir}/config.yml
   if [[ -n ${METRICS_PROFILE} ]]; then
+    log "Indexing enabled, using metrics from ${METRICS_PROFILE}"
     envsubst < ${METRICS_PROFILE} > ${tmpdir}/metrics.yml || envsubst <  ${METRICS_PROFILE} > ${tmpdir}/metrics.yml
+    CMD+=" -m ${tmpdir}/metrics.yml"
   fi
-  if [[ -n ${ALERTS_PROFILE} ]]; then
-    log "Alerting is enabled, fetching ${ALERTS_PROFILE}"
-    cp ${ALERTS_PROFILE} ${tmpdir}/alerts.yml
-  elif [[ ${PLATFORM_ALERTS} == "true" ]]; then
-    log "Platform alerting is enabled, fetching alerst-profiles/${WORKLOAD}-${platform}.yml"
-    cp alerts-profiles/${WORKLOAD}-${platform}.yml ${tmpdir}/alerts.yml
+  if [[ ${PLATFORM_ALERTS} == "true" ]]; then
+    log "Platform alerting enabled, using ${PWD}/alert-profiles/${WORKLOAD}-${platform}.yml"
+    CMD+=" -a ${PWD}/alert-profiles/${WORKLOAD}-${platform}.yml"
   fi
-  log "Creating kube-burner configmap"
-  kubectl create configmap -n benchmark-operator --from-file=${tmpdir} kube-burner-cfg-${UUID}
-  rm -rf ${tmpdir}
-  log "Deploying benchmark"
-  set +e
-  TMPCR=$(mktemp)
-  envsubst < $1 > ${TMPCR}
-  run_benchmark ${TMPCR} $((JOB_TIMEOUT + 600))
+  pushd $(dirname ${WORKLOAD_TEMPLATE})
+  local start_date=$(date +%s%3N)
+  ${CMD}
   rc=$?
   if [[ ${CHURN:-"false"} == "true" ]]; then
     churn
   fi
+  popd
+  gen_metadata ${WORKLOAD} ${start_date} $(date +%s%3N)
 }
 
 find_running_pods_num() {
@@ -136,8 +118,6 @@ check_running_benchmarks() {
 
 cleanup() {
   log "Cleaning up benchmark assets"
-  kubectl delete -f ${TMPCR} 1>/dev/null
-  kubectl delete configmap -n benchmark-operator kube-burner-cfg-${UUID} 1>/dev/null
   if ! oc delete ns -l kube-burner-uuid=${UUID} --grace-period=600 --timeout=${CLEANUP_TIMEOUT} 1>/dev/null; then
     log "Namespaces cleanup failure"
     rc=1

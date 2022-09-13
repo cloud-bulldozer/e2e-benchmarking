@@ -25,16 +25,11 @@ Workloads can be tweaked with the following environment variables:
 
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
-| **OPERATOR_REPO**    | Benchmark-operator repo         | https://github.com/cloud-bulldozer/benchmark-operator.git      |
-| **OPERATOR_BRANCH**  | Benchmark-operator branch       | master  |
 | **INDEXING**         | Enable/disable indexing         | true    |
 | **ES_SERVER**        | Elasticsearch endpoint          | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elasticsearch index             | ripsaw-kube-burner|
-| **PROM_URL**         | Prometheus endpoint, it should be Thanos querier endpoint when running on `HYPERSHIFT` cluster             | https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091|
-| **METADATA_COLLECTION**   | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
-| **JOB_TIMEOUT**      | Kube-burner's job timeout, in seconds      | 14400 (4 hours) |
-| **POD_READY_TIMEOUT**| Timeout for kube-burner and benchmark-operator pods to be running | 180 |
-| **NODE_SELECTOR**    | The kube-burner pod deployed by benchmark-operator will use this node selector          | {node-role.kubernetes.io/worker: } |
+| **PROM_URL**         | Prometheus endpoint, it should be Thanos querier endpoint when running on `HYPERSHIFT` cluster | Prometheus endpoint is automatically discovered |
+| **JOB_TIMEOUT**      | Kube-burner's timeout, in seconds | 4h (4 hours) |
 | **QPS**              | Queries/sec                     | 20      |
 | **BURST**            | Maximum number of simultaneous queries | 20      |
 | **POD_NODE_SELECTOR**| nodeSelector for pods created by the kube-burner workloads | {node-role.kubernetes.io/worker: } |
@@ -50,8 +45,8 @@ Workloads can be tweaked with the following environment variables:
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | true |
 | **CLEANUP_WHEN_FINISH** | Delete benchmark objects and workload's namespaces after running it | false |
 | **CLEANUP_TIMEOUT**  | Timeout value used in resource deletion | 30m |
-| **KUBE_BURNER_IMAGE** | Kube-burner container image | quay.io/cloud-bulldozer/kube-burner:v0.16 |
-| **LOG_LEVEL**        | Kube-burner log level | error |
+| **KUBE_BURNER_URL** | Kube-burner tarball URL | https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.16.2/kube-burner-0.16.2-Linux-x86_64.tar.gz |
+| **LOG_LEVEL**        | Kube-burner log level | info |
 | **PPROF_COLLECTION** | Collect and store pprof data locally | false |
 | **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5m | 
 | **HYPERSHIFT** | Boolean, to be set if its a hypershift hosted cluster | false |

@@ -2,14 +2,14 @@
 global:
   writeToFile: false
   indexerConfig:
-    enabled: ${INDEXING}
-    esServers: ["${ES_SERVER}"]
+    enabled: {{.INDEXING}}
+    esServers: ["{{.ES_SERVER}}"]
     insecureSkipVerify: true
-    defaultIndex: ${ES_INDEX}
+    defaultIndex: {{.ES_INDEX}}
     type: elastic
   measurements:
     - name: podLatency
-      esIndex: ${ES_INDEX}
+      esIndex: {{.ES_INDEX}
 {{ if eq .PPROF_COLLECTION "True" }}
     - name: pprof
       pprofInterval: {{ .PPROF_COLLECTION_INTERVAL }}
@@ -56,20 +56,20 @@ global:
 {{ end }}
 jobs:
   - name: node-density-heavy
-    jobIterations: ${TEST_JOB_ITERATIONS}
-    qps: ${QPS}
-    burst: ${BURST}
+    jobIterations: {{.TEST_JOB_ITERATIONS}}
+    qps: {{.QPS}}
+    burst: {{.BURST}}
     namespacedIterations: false
-    namespace: ${UUID}
-    podWait: ${POD_WAIT}
-    cleanup: ${CLEANUP}
-    waitFor: ${WAIT_FOR}
-    waitWhenFinished: ${WAIT_WHEN_FINISHED}
-    verifyObjects: ${VERIFY_OBJECTS}
-    errorOnVerify: ${ERROR_ON_VERIFY}
-    maxWaitTimeout: ${MAX_WAIT_TIMEOUT}
-    preLoadImages: ${PRELOAD_IMAGES}
-    preLoadPeriod: ${PRELOAD_PERIOD}
+    namespace: {{.UUID}}
+    podWait: {{.POD_WAIT}}
+    cleanup: {{.CLEANUP}}
+    waitFor: {{.WAIT_FOR}}
+    waitWhenFinished: {{.WAIT_WHEN_FINISHED}}
+    verifyObjects: {{.VERIFY_OBJECTS}}
+    errorOnVerify: {{.ERROR_ON_VERIFY}}
+    maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
+    preLoadImages: {{.PRELOAD_IMAGES}}
+    preLoadPeriod: {{.PRELOAD_PERIOD}}
     namespaceLabels:
       security.openshift.io/scc.podSecurityLabelSync: false
       pod-security.kubernetes.io/enforce: privileged
@@ -80,14 +80,14 @@ jobs:
       - objectTemplate: postgres-deployment.yml
         replicas: 1
         inputVars:
-          nodeSelector: "${POD_NODE_SELECTOR}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: app-deployment.yml
         replicas: 1
         inputVars:
           readinessPeriod: 10
           livenessPeriod: 10
-          nodeSelector: "${POD_NODE_SELECTOR}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: postgres-service.yml
         replicas: 1
