@@ -1,12 +1,12 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: postgres-{{.Replica}}-{{.Iteration}}
+  name: postgres-{{.Iteration}}
 spec:
   template:
     metadata:
       labels:
-        name: postgres-{{.Replica}}-{{.Iteration}}
+        name: postgres-{{.Iteration}}
     spec:
       nodeSelector: {{.nodeSelector}}
       containers:
@@ -33,7 +33,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: postgres-{{.Replica}}-{{.Iteration}}
+      name: postgres-{{.Iteration}}
   triggers:
   - type: ConfigChange
   strategy:

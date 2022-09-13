@@ -116,7 +116,7 @@ find_running_pods_num() {
   fi
   log "Number of pods to deploy on nodes: ${total_pod_count}"
   if [[ ${1} == "heavy" ]] || [[ ${1} == *cni* ]]; then
-    total_pod_count=$((total_pod_count / 2))
+    total_pod_count=$((total_pod_count / 5))
   fi
   export TEST_JOB_ITERATIONS=${total_pod_count}
 }

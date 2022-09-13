@@ -2,10 +2,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: postgres-{{.Iteration}}
+  name: postgres-{{.Replica}}-{{.Iteration}}
 spec:
   selector:
-    name: postgres-{{.Replica}}-{{.Iteration}}
+    name: postgres-{{.Iteration}}
   ports:
   - protocol: TCP
     port: 5432
