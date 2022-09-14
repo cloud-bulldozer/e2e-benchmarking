@@ -15,7 +15,6 @@ if [[ ${INDEXING} == "true" ]]; then
     export HOSTED_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
   fi
 fi
-export TOLERATIONS="[{key: role, value: workload, effect: NoSchedule}]"
 export UUID=${UUID:-$(uuidgen)}
 export OPENSHIFT_VERSION=$(oc version -o json | jq -r '.openshiftVersion') 
 export NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.status.networkType}') 
@@ -105,15 +104,6 @@ find_running_pods_num() {
     total_pod_count=$((total_pod_count / 2))
   fi
   export TEST_JOB_ITERATIONS=${total_pod_count}
-}
-
-check_running_benchmarks() {
-  benchmarks=$(oc get benchmark -n benchmark-operator | awk '{ if ($2 == "kube-burner")print}'| grep -vE "Failed|Complete" | wc -l)
-  if [[ ${benchmarks} -gt 1 ]]; then
-    log "Another kube-burner benchmark is running at the moment"
-    oc get benchmark -n benchmark-operator
-    exit 1
-  fi
 }
 
 cleanup() {

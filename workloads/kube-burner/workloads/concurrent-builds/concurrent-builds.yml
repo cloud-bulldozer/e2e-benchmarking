@@ -2,14 +2,14 @@
 global:
   writeToFile: false
   indexerConfig:
-    enabled: ${INDEXING}
-    esServers: ["${ES_SERVER}"]
+    enabled: {{.INDEXING}}
+    esServers: ["{{.ES_SERVER}}"]
     insecureSkipVerify: true
-    defaultIndex: ${ES_INDEX}
+    defaultIndex: {{.ES_INDEX}}
     type: elastic
   measurements:
     - name: podLatency
-      esIndex: ${ES_INDEX}
+      esIndex: {{.ES_INDEX}}
 {{ if eq .PPROF_COLLECTION "True" }}
     - name: pprof
       pprofInterval: {{ .PPROF_COLLECTION_INTERVAL }}
@@ -56,18 +56,18 @@ global:
 {{ end }}
 jobs:
   - name: concurrent-builds
-    jobIterations: ${TEST_JOB_ITERATIONS}
-    qps: ${QPS}
-    burst: ${BURST}
+    jobIterations: {{.TEST_JOB_ITERATIONS}}
+    qps: {{.QPS}}
+    burst: {{.BURST}}
     namespacedIterations: true
-    namespace: conc-b-${UUID}
-    podWait: ${POD_WAIT}
-    cleanup: ${CLEANUP}
-    waitFor: ${WAIT_FOR}
-    waitWhenFinished: ${WAIT_WHEN_FINISHED}
-    verifyObjects: ${VERIFY_OBJECTS}
-    errorOnVerify: ${ERROR_ON_VERIFY}
-    maxWaitTimeout: ${MAX_WAIT_TIMEOUT}
+    namespace: conc-b-{{.UUID}}
+    podWait: {{.POD_WAIT}}
+    cleanup: {{.CLEANUP}}
+    waitFor: {{.WAIT_FOR}}
+    waitWhenFinished: {{.WAIT_WHEN_FINISHED}}
+    verifyObjects: {{.VERIFY_OBJECTS}}
+    errorOnVerify: {{.ERROR_ON_VERIFY}}
+    maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
     namespaceLabels:
       security.openshift.io/scc.podSecurityLabelSync: false
       pod-security.kubernetes.io/enforce: privileged
@@ -77,15 +77,15 @@ jobs:
       - objectTemplate: imagestream.yml
         replicas: 1
         inputVars:
-          prefix: ${BUILD_IMAGE_STREAM}
-          image: ${BUILD_IMAGE}
+          prefix: {{.BUILD_IMAGE_STREAM}}
+          image: {{.BUILD_IMAGE}}
       - objectTemplate: buildconfig_trigger.yml
         replicas: 1
         inputVars:
-          imageStream: ${BUILD_IMAGE_STREAM}
-          gitUri: ${GIT_URL}
-          sourceStratEnv: ${SOURCE_STRAT_ENV}
-          fromSource: ${SOURCE_STRAT_FROM}
-          fromSourceVersion: ${SOURCE_STRAT_FROM_VERSION}
-          postCommitScript: ${POST_COMMIT_SCRIPT}
-          nodeSelector: "${POD_NODE_SELECTOR}"
+          imageStream: {{.BUILD_IMAGE_STREAM}}
+          gitUri: {{.GIT_URL}}
+          sourceStratEnv: {{.SOURCE_STRAT_ENV}}
+          fromSource: {{.SOURCE_STRAT_FROM}}
+          fromSourceVersion: {{.SOURCE_STRAT_FROM_VERSION}}
+          postCommitScript: {{.POST_COMMIT_SCRIPT}}
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
