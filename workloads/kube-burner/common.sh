@@ -45,7 +45,7 @@ collect_pprof() {
 
 run_workload() {
   local CMD
-  curl -L ${KUBE_BURNER_URL} | tar -xzC /tmp/ kube-burner
+  curl -sS -L ${KUBE_BURNER_URL} | tar -xzC /tmp/ kube-burner
   CMD="timeout ${JOB_TIMEOUT} /tmp/kube-burner init --uuid=${UUID} -c $(basename ${WORKLOAD_TEMPLATE}) --log-level=${LOG_LEVEL}"
   local tmpdir=$(mktemp -d)
   # When metrics or alerting are enabled we have to pass the prometheus URL to the cmd
