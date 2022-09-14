@@ -38,7 +38,7 @@ export NODE_POD_DENSITY_IMAGE=${NODE_POD_DENSITY_IMAGE:-gcr.io/google_containers
 # Misc
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
 export CLEANUP_TIMEOUT=${CLEANUP_TIMEOUT:-30m}
-export LOG_LEVEL=${LOG_LEVEL:-error}
+export LOG_LEVEL=${LOG_LEVEL:-info}
 
 # Pprof
 export PPROF_COLLECTION=${PPROF_COLLECTION:-false}
