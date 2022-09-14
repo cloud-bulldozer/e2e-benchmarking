@@ -9,7 +9,7 @@ global:
     type: elastic
   measurements:
     - name: podLatency
-      esIndex: {{.ES_INDEX}
+      esIndex: {{.ES_INDEX}}
 {{ if eq .PPROF_COLLECTION "True" }}
     - name: pprof
       pprofInterval: {{ .PPROF_COLLECTION_INTERVAL }}
