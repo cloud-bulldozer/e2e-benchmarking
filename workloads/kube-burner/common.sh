@@ -69,6 +69,11 @@ run_workload() {
     churn
   fi
   popd
+  if [[ ${rc} == 0 ]]; then
+    RESULT=Complete
+  else
+    RESULT=Failed
+  fi
   gen_metadata ${WORKLOAD} ${start_date} $(date +%s%3N)
 }
 
