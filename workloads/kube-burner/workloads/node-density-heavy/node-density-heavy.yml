@@ -87,7 +87,6 @@ jobs:
         inputVars:
           readinessPeriod: 10
           livenessPeriod: 10
-          postgresPrefix: second
           nodeSelector: "${POD_NODE_SELECTOR}"
 
       - objectTemplate: postgres-service.yml

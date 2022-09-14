@@ -96,11 +96,11 @@ These workloads create different objects each:
 Each iteration of this workload creates the following object:
   - 1 pod. (sleep)
 
-- **node-density-heavy**. Creates a **single namespace with a number of applications proportional to the calculated number of pods / 2**. This application consists on two deployments (a postgresql database and a simple client that generates some CPU load) and a service that is used by the client to reach the database.
+- **node-density-heavy**. Creates a **single namespace with a number of pods equals to the calculated number of pods**. This application consists on two deployments (a postgresql database and a simple client that generates some CPU load) and a service that is used by the client to reach the database.
 Each iteration of this workload can be broken down in:
-  - 1 deployment holding a postgresql database
-  - 1 deployment holding a client application for the previous database
-  - 1 service pointing to the postgresl database
+  - 1 deployment of a postgresql database
+  - 2 service pointing to the postgresl database
+  - 4 deployments with client application for the previous database using one of the previous services. Each one of these pods have readiness and liveness probes
 
 - **node-density-cni**. Creates a **single namespace with a number of applications equals to job_iterations**. This application consists on two deployments (a node.js webserver and a simple client that curls the webserver) and a service that is used by the client to reach the webserver.
 Each iteration of this workload creates the following objects:
