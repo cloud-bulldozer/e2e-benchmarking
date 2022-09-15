@@ -45,6 +45,8 @@ setup(){
     echo aws_secret_access_key=$AWS_SECRET_ACCESS_KEY >> aws_credentials
     rosa login --env=${ROSA_ENVIRONMENT}
     ocm login --url=https://api.stage.openshift.com --token="${ROSA_TOKEN}"
+    hypershift --version
+    oc version --client
     rosa whoami
     rosa verify quota
     rosa verify permissions
