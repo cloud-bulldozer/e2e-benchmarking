@@ -152,12 +152,12 @@ if [[ ${WORKLOAD} == "concurrent-builds" ]]; then
 else
   run_workload kube-burner-crd.yaml
 fi
-if [[ ${WORKLOAD} == node-density* ]]; then
-  unlabel_nodes_with_label $label
-fi
 
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
+  if [[ ${WORKLOAD} == node-density* ]]; then
+    unlabel_nodes_with_label $label
+  fi
 fi
 delete_pprof_secrets
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
