@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+set -e
+
 . common.sh
 . build_helper.sh
 
