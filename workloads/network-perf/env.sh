@@ -20,7 +20,7 @@ export ADDRESSPOOL=${ADDRESSPOOL:-addresspool-l2}
 export SERVICE_ETP=${SERVICE_ETP:-Cluster}
 export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
 export SAMPLES=${SAMPLES:-3}
-export PAIRS=${PAIRS:-1 2 4}
+export PAIRS=${PAIRS:-1 2}
 
 # Comparison and csv generation
 

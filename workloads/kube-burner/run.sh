@@ -16,7 +16,7 @@ case ${WORKLOAD} in
   node-density)
     WORKLOAD_TEMPLATE=workloads/node-pod-density/node-pod-density.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
-    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
+    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l ${WORKER_NODE_LABEL},node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-245}
     label="node-density=enabled"
     label_node_with_label $label
@@ -25,7 +25,7 @@ case ${WORKLOAD} in
   node-density-heavy)
     WORKLOAD_TEMPLATE=workloads/node-density-heavy/node-density-heavy.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
-    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
+    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l ${WORKER_NODE_LABEL},node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-245}
     label="node-density=enabled"
     label_node_with_label $label
@@ -34,7 +34,7 @@ case ${WORKLOAD} in
   node-density-cni)
     WORKLOAD_TEMPLATE=workloads/node-density-cni/node-density-cni.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
-    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
+    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l ${WORKER_NODE_LABEL},node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-245}
     label="node-density=enabled"
     label_node_with_label $label
@@ -43,7 +43,7 @@ case ${WORKLOAD} in
   node-density-cni-networkpolicy)
     WORKLOAD_TEMPLATE=workloads/node-density-cni-networkpolicy/node-density-cni-networkpolicy.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
-    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
+    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l ${WORKER_NODE_LABEL},node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-245}
     label="node-density=enabled"
     label_node_with_label $label
@@ -152,12 +152,12 @@ if [[ ${WORKLOAD} == "concurrent-builds" ]]; then
 else
   run_workload kube-burner-crd.yaml
 fi
-if [[ ${WORKLOAD} == node-density* ]]; then
-  unlabel_nodes_with_label $label
-fi
 
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
+  if [[ ${WORKLOAD} == node-density* ]]; then
+    unlabel_nodes_with_label $label
+  fi
 fi
 delete_pprof_secrets
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then

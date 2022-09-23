@@ -6,6 +6,10 @@ metadata:
     name: {{.JobName}}
 spec:
   nodeSelector: {{.nodeSelector}}
+  tolerations:
+  - key: os
+    value: Windows
+    Effect: NoSchedule
   containers:
   - name: node-density
     image: {{.containerImage}}

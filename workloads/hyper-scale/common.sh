@@ -11,13 +11,12 @@ prep(){
         export PATH=${TEMP_DIR}/go/bin/:$PATH
     fi
     if [[ ${HYPERSHIFT_CLI_INSTALL} != "false" ]]; then
-        echo "Remove current Hypershift CLI directory.."
-        sudo rm -rf hypershift || true
-        sudo rm /usr/local/bin/hypershift || true
-        git clone -q --depth=1 --single-branch --branch ${HYPERSHIFT_CLI_VERSION} ${HYPERSHIFT_CLI_FORK}    
-        pushd hypershift
+        echo "Building Hypershift binaries locally.."
+        export TEMP_DIR=$(mktemp -d)
+        git clone -q --depth=1 --single-branch --branch ${HYPERSHIFT_CLI_VERSION} ${HYPERSHIFT_CLI_FORK} -v $TEMP_DIR/hypershift
+        pushd $TEMP_DIR/hypershift
         make build
-        sudo cp bin/hypershift /usr/local/bin
+        export PATH=$TEMP_DIR/hypershift/bin:$PATH
         popd
     fi
     if [[ -z $(rosa version)  ]]; then
@@ -27,7 +26,7 @@ prep(){
         sudo chmod +x ${TEMP_DIR}/bin/rosa && chmod +x ${TEMP_DIR}/bin/ocm
         export PATH=${TEMP_DIR}/bin/:$PATH
     fi
-    if [[ -z $(oc help) ]]; then
+    if [[ -z $(oc version) ]]; then
         rosa download openshift-client
         tar xzvf openshift-client-linux.tar.gz
         sudo mv oc kubectl ${TEMP_DIR}/bin/
@@ -49,9 +48,24 @@ setup(){
     echo aws_secret_access_key=$AWS_SECRET_ACCESS_KEY >> aws_credentials
     rosa login --env=${ROSA_ENVIRONMENT}
     ocm login --url=https://api.stage.openshift.com --token="${ROSA_TOKEN}"
+    hypershift --version
+    oc version --client
     rosa whoami
     rosa verify quota
     rosa verify permissions
+}
+
+pre_flight_checks(){
+    echo "Pre flight checks started"
+    export MULTI_AZ=$(rosa describe cluster -c $MGMT_CLUSTER_NAME -o json | jq -r [.multi_az] | jq -r .[])
+
+    if [[ "${MULTI_AZ}" == "true" ]]; then
+        echo "Pre flight checks passed"
+    else
+        echo "Pre flight checks failed, cluster should be multi-az enabled"
+        rm -rf $TEMP_DIR || true
+        exit 1
+    fi
 }
 
 install(){
@@ -159,6 +173,11 @@ cleanup(){
     sleep 10
     ROUTE_ID=$(aws route53 list-hosted-zones --output text --query HostedZones | grep $BASEDOMAIN | grep -v terraform | awk '{print$2}' | awk -F/ '{print$3}')
     for id in $ROUTE_ID; do aws route53 delete-hosted-zone --id=$id || true ; done
+    rm -f *-admin-kubeconfig || true
+    rm -f pull-secret || true
+    rm -rf kube-burner.tar.gz|| true
+    rm -f hypershift-metrics.yaml baseconfig.yml || true
+    rm -f aws_credentials || true
 }
 
 index_mgmt_cluster_stat(){

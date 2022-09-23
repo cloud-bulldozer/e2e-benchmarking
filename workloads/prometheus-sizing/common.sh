@@ -5,7 +5,7 @@ openshift_login
 
 export UUID=${UUID:-$(uuidgen)}
 export PROM_URL=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
-export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)
+export PROM_TOKEN=$(oc create token -n openshift-monitoring prometheus-k8s || oc sa get-token -n openshift-monitoring prometheus-k8s || oc sa new-token -n openshift-monitoring prometheus-k8s)
 
 log(){
   echo -e "\033[1m$(date -u) ${@}\033[0m"
@@ -37,12 +37,12 @@ get_pods_per_namespace(){
 
 # Receives the kube-burner configuration file as parameter
 run_test(){
-  log "Running kube-burner using config ${1}"
+  log "Running kube-burner using config ${1} and metrics ${METRICS}"
   export POD_REPLICAS
   curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz
-  ./kube-burner init -c ${1} --uuid=${UUID} -u=${PROM_URL} --token=${PROM_TOKEN} -m=metrics.yaml
+  ./kube-burner init -c ${1} --uuid=${UUID} -u=${PROM_URL} --token=${PROM_TOKEN} -m="${METRICS}"
   if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
     log "Cleaning up benchmark stuff"
-    kube-burner destroy -u ${UUID}
+    kube-burner destroy --uuid ${UUID}
   fi
 }

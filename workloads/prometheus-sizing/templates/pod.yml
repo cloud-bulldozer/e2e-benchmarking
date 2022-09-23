@@ -16,3 +16,11 @@ spec:
     imagePullPolicy: IfNotPresent
     securityContext:
       privileged: false
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      runAsNonRoot: true
+      runAsUser: 1001
+      seccompProfile:
+        type: RuntimeDefault
