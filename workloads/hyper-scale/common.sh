@@ -22,13 +22,13 @@ prep(){
         mkdir -p ${TEMP_DIR}/bin/
         sudo curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output ${TEMP_DIR}/bin/rosa
         sudo curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output ${TEMP_DIR}/bin/ocm
-        sudo chmod +x ${TEMP_DIR}/bin/rosa && chmod +x ${TEMP_DIR}/bin/ocm
+        chmod +x ${TEMP_DIR}/bin/rosa && chmod +x ${TEMP_DIR}/bin/ocm
         export PATH=${TEMP_DIR}/bin:$PATH
     fi
     if [[ -z $(oc version) ]]; then
         rosa download openshift-client
         tar xzvf openshift-client-linux.tar.gz
-        sudo mv oc kubectl ${TEMP_DIR}/bin/
+        mv oc kubectl ${TEMP_DIR}/bin/
     fi
     if [[ -z $(aws --version) ]]; then
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
