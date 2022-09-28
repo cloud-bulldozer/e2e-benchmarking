@@ -126,6 +126,7 @@ gen_metadata() {
   local END_DATE=$3
 
   # construct all the required information
+  local MGMT_CLUSTER="" # set only for Hypershift cluster
   local VERSION_INFO=$(oc version -o json)
   local INFRA_INFO=$(oc get infrastructure.config.openshift.io cluster -o json)
   local PLATFORM=$(echo ${INFRA_INFO} | jq -r .status.platformStatus.type)
@@ -144,14 +145,17 @@ gen_metadata() {
   local INFRA_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/infra= --no-headers --ignore-not-found | wc -l)
   local SDN_TYPE=$(oc get networks.operator.openshift.io cluster -o jsonpath="{.spec.defaultNetwork.type}")
   if [[ ${PLATFORM} != "BareMetal" ]]; then
-    local MASTER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/master= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
-    local WORKER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/worker= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+    local MASTER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/master= --no-headers --ignore-not-found -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+    local WORKER_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/worker= --no-headers --ignore-not-found -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
     if [[ ${WORKLOAD_NODES_COUNT} -gt 0 ]]; then
-      local WORKLOAD_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/workload= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+      local WORKLOAD_NODES_TYPE=$(oc get node -l node-role.kubernetes.io/workload= --no-headers --ignore-not-found -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
     fi
     if [[ ${INFRA_NODES_COUNT} -gt 0 ]]; then
-      local INFRA_NODES_TYPE=$(oc get node --ignore-not-found -l node-role.kubernetes.io/infra= --no-headers -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
+      local INFRA_NODES_TYPE=$(oc get node --ignore-not-found -l node-role.kubernetes.io/infra= --no-headers --ignore-not-found -o go-template='{{index (index .items 0).metadata.labels "beta.kubernetes.io/instance-type"}}')
     fi
+  fi
+  if [[ ${HYPERSHIFT} == "true" ]]; then
+    local MGMT_CLUSTER=${MGMT_CLUSTER_NAME}
   fi
   if [[ ${BENCHMARK} =~ "cyclictest" ]]; then
     local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/cyclictest= --no-headers --ignore-not-found | wc -l)
@@ -189,6 +193,7 @@ local METADATA=$(cat << EOF
 "end_date":"${END_DATE}",
 "workload": "${WORKLOAD}",
 "cluster_name": "${CLUSTER_NAME}",
+"mgmt_cluster_name": "${MGMT_CLUSTER}",
 "result":"${RESULT}"
 }
 EOF
