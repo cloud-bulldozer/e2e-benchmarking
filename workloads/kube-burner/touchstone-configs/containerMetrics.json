@@ -1,0 +1,40 @@
+{
+  "elasticsearch": {
+    "ripsaw-kube-burner": [
+      {
+        "filter": {
+          "metricName.keyword": "containerCPU",
+          "labels.namespace.keyword": "${TOUCHSTONE_NAMESPACE}"
+        },
+        "buckets": [
+          "labels.pod.keyword",
+          "labels.node.keyword",
+          "labels.container.keyword"
+        ],
+        "aggregations": {
+          "value": [
+            "avg",
+            "max"
+          ]
+        }
+      },
+      {
+        "filter": {
+          "metricName.keyword": "containerMemory",
+          "labels.namespace.keyword": "${TOUCHSTONE_NAMESPACE}"
+        },
+        "buckets": [
+          "labels.pod.keyword",
+          "labels.node.keyword",
+          "labels.container.keyword"
+        ],
+        "aggregations": {
+          "value": [
+            "avg",
+            "max"
+          ]
+        }
+      }
+    ]
+  }
+}
