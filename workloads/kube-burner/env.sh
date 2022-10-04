@@ -35,6 +35,12 @@ export METRICS_PROFILE=${METRICS_PROFILE}
 # kube-burner workload defaults
 export NODE_POD_DENSITY_IMAGE=${NODE_POD_DENSITY_IMAGE:-gcr.io/google_containers/pause:3.1}
 
+# kube-burner churn enablement
+export CHURN=${CHURN:-false}
+export CHURN_DURATION=${CHURN_DURATION:-10m}
+export CHURN_DELAY=${CHURN_DELAY:-60s}
+export CHURN_PERCENT=${CHURN_PERCENT:-10}
+
 # Misc
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
 export CLEANUP_TIMEOUT=${CLEANUP_TIMEOUT:-30m}
@@ -71,13 +77,6 @@ export POD_READY_THRESHOLD=${POD_READY_THRESHOLD:-5000ms}
 
 # Alerting
 export PLATFORM_ALERTS=${PLATFORM_ALERTS:-false}
-
-# Churn
-export CHURN=${CHURN:-false}
-export CHURN_DURATION=${CHURN_DURATION:-10}
-export CHURN_WAIT=${CHURN_WAIT:-30}
-export CHURN_PERCENT=${CHURN_PERCENT:-10}
-export CHURN_TYPE=${CHURN_TYPE:-pod}
 
 # Output and Comparisons
 export COMPARISON_CONFIG=${COMPARISON_CONFIG:-""}
