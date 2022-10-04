@@ -9,7 +9,7 @@ spec:
   tolerations:
   - key: os
     value: Windows
-    Effect: NoSchedule
+    effect: NoSchedule
   containers:
   - name: node-density
     image: {{.containerImage}}
