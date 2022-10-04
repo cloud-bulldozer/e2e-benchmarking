@@ -3,9 +3,6 @@
 . common.sh
 . build_helper.sh
 
-deploy_operator
-check_running_benchmarks
-
 label=""
 case ${WORKLOAD} in
   cluster-density)
@@ -150,7 +147,7 @@ if [[ ${WORKLOAD} == "concurrent-builds" ]]; then
   unlabel_nodes_with_label $label
   cat conc_builds_results.out
 else
-  run_workload kube-burner-crd.yaml
+  run_workload
 fi
 
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
@@ -165,11 +162,5 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
   snappy_backup "" "pprof.tar.gz" ${WORKLOAD}
 fi
 run_benchmark_comparison
-
-if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
-  remove_benchmark_operator
-else
-  remove_cli
-fi
 
 exit ${rc}

@@ -9,7 +9,7 @@ export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4b
 export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
 export STEP_SIZE=${STEP_SIZE:-30s}
 export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
-export PROM_URL=${PROM_URL:-https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091}
+export PROM_URL=${PROM_URL:-https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")}
 
 # Kube-burner vars
 export QPS=${QPS:-20}
@@ -26,11 +26,10 @@ export ERROR_ON_VERIFY=${ERROR_ON_VERIFY:-true}
 export PRELOAD_IMAGES=${PRELOAD_IMAGES:-true}
 export PRELOAD_PERIOD=${PRELOAD_PERIOD:-2m}
 
-# Kube-burner job
-export KUBE_BURNER_IMAGE=${KUBE_BURNER_IMAGE:-quay.io/cloud-bulldozer/kube-burner:v0.16.2}
+# Kube-burner benchmark
+export KUBE_BURNER_URL=${KUBE_BURNER_URL:-"https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.17.0/kube-burner-0.17.0-Linux-x86_64.tar.gz"}
+export JOB_TIMEOUT=${JOB_TIMEOUT:-4h}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
-export JOB_TIMEOUT=${JOB_TIMEOUT:-14400}
-export LOG_STREAMING=${LOG_STREAMING:-true}
 export METRICS_PROFILE=${METRICS_PROFILE}
 
 # kube-burner workload defaults
@@ -39,7 +38,7 @@ export NODE_POD_DENSITY_IMAGE=${NODE_POD_DENSITY_IMAGE:-gcr.io/google_containers
 # Misc
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-false}
 export CLEANUP_TIMEOUT=${CLEANUP_TIMEOUT:-30m}
-export LOG_LEVEL=${LOG_LEVEL:-error}
+export LOG_LEVEL=${LOG_LEVEL:-info}
 
 # Pprof
 export PPROF_COLLECTION=${PPROF_COLLECTION:-false}
