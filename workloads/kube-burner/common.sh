@@ -9,7 +9,7 @@ openshift_login
 # If INDEXING is enabled we retrive the prometheus oauth token
 if [[ ${INDEXING} == "true" ]]; then
   if [[ ${HYPERSHIFT} == "false" ]]; then
-    export PROM_TOKEN=$(oc create token -n openshift-monitoring prometheus-k8s || oc sa get-token -n openshift-monitoring prometheus-k8s || oc sa new-token -n openshift-monitoring prometheus-k8s)
+    export PROM_TOKEN=$(oc create token -n openshift-monitoring prometheus-k8s --duration=6h || oc sa get-token -n openshift-monitoring prometheus-k8s || oc sa new-token -n openshift-monitoring prometheus-k8s)
   else
     export PROM_TOKEN="dummytokenforthanos"
     export HOSTED_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
@@ -121,7 +121,7 @@ get_pprof_secrets() {
  oc extract -n openshift-etcd secret/$certkey
  export CERTIFICATE=`base64 -w0 tls.crt`
  export PRIVATE_KEY=`base64 -w0 tls.key`
- export BEARER_TOKEN=$(oc create token -n benchmark-operator kube-burner || oc sa get-token kube-burner -n benchmark-operator)
+ export BEARER_TOKEN=$(oc create token -n benchmark-operator kube-burner --duration=6h || oc sa get-token kube-burner -n benchmark-operator)
 }
 
 delete_pprof_secrets() {
