@@ -156,6 +156,18 @@
 - query: histogram_quantile(0.99,sum(rate(etcd_request_duration_seconds_bucket{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}"}[2m])) by (le,operation,apiserver)) > 0
   metricName: P99APIEtcdRequestLatency
 
+- query: sum(rate(etcd_server_leader_changes_seen_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"openshift-etcd"}[2m]))
+  metricName: mgmt-etcdLeaderChangesRate
+
+- query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"openshift-etcd"}[2m]))
+  metricName: mgmt-99thEtcdDiskBackendCommitDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"openshift-etcd"}[2m]))
+  metricName: mgmt-99thEtcdDiskWalFsyncDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"openshift-etcd"}[5m]))
+  metricName: mgmt-99thEtcdRoundTripTimeSeconds
+
 # Cluster metrics
 
 - query: sum(kube_namespace_status_phase{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}) by (phase,openshift_cluster_name) > 0
