@@ -192,7 +192,7 @@ Each iteration creates the following objects:
 
 ### Churn
 
-Churning a workload allows you to scale down and then up a percentage of **JOB_ITERATIONS** after the objects have been created. It takes in a percentage, **CHURN_PERCENT**, which is the percentage of JOB_ITERATIONS it churns during each cycle. It will delete and recreate **ALL** the objects specified in the job definition. After each churn cycle it will sleep for the **CHURN_DELAT**. This loop continues until the **CHURN_DURATION** has elapsed.
+Churning a workload allows you to scale down and then up a percentage of **JOB_ITERATIONS** after the objects have been created. It takes in a percentage, **CHURN_PERCENT**, which is the percentage of JOB_ITERATIONS it churns during each cycle. It will delete and recreate **ALL** the objects specified in the job definition. After each churn cycle it will sleep for the **CHURN_DELAY**. This loop continues until the **CHURN_DURATION** has elapsed.
 
 To churn 20% of your **JOB_ITERATIONS** every 30 seconds for a total duration (the calculated time from when the first churn begins + the **CHURN_DURATION**) of 60 minutes you would utilize these variables:
 
