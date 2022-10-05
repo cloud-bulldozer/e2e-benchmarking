@@ -69,6 +69,10 @@ jobs:
     maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
     preLoadImages: {{.PRELOAD_IMAGES}}
     preLoadPeriod: {{.PRELOAD_PERIOD}}
+    churn: {{.CHURN}}
+    churnDuration: {{.CHURN_DURATION}}
+    churnPercent: {{.CHURN_PERCENT}}
+    churnDelay: {{.CHURN_DELAY}}
     namespaceLabels:
       security.openshift.io/scc.podSecurityLabelSync: false
       pod-security.kubernetes.io/enforce: privileged

@@ -2,10 +2,10 @@
 global:
   writeToFile: false
   indexerConfig:
-    enabled: {{.INDEXING}
+    enabled: {{.INDEXING}}
     esServers: ["{{.ES_SERVER}}"]
     insecureSkipVerify: true
-    defaultIndex: {{.ES_INDEX}
+    defaultIndex: {{.ES_INDEX}}
     type: elastic
   measurements:
     - name: podLatency
@@ -70,6 +70,10 @@ jobs:
     maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
     preLoadImages: {{.PRELOAD_IMAGES}}
     preLoadPeriod: {{.PRELOAD_PERIOD}}
+    churn: {{.CHURN}}
+    churnDuration: {{.CHURN_DURATION}}
+    churnPercent: {{.CHURN_PERCENT}}
+    churnDelay: {{.CHURN_DELAY}}
     namespaceLabels:
       security.openshift.io/scc.podSecurityLabelSync: false
       pod-security.kubernetes.io/enforce: privileged
