@@ -3,7 +3,7 @@
 import argparse
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
-
+import os
 
 def push_to_gsheet(sheetname, csv_file_name, google_svc_acc_key, email_id):
     scope = [
@@ -16,6 +16,9 @@ def push_to_gsheet(sheetname, csv_file_name, google_svc_acc_key, email_id):
     sh.share(email_id, perm_type="user", role="writer")
     spreadsheet_id = sh.id
     spreadsheet_url = f"https://docs.google.com/spreadsheets/d/{sh.id}"
+    if not os.path.exists(csv_file_name):
+      print(f"CSV File doesn't exist {csv_file_name}")
+      return 
     with open(csv_file_name, "r") as f:
         gc.import_csv(spreadsheet_id, f.read())
     worksheet = sh.get_worksheet(0)
