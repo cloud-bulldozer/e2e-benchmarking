@@ -90,7 +90,7 @@
 
 # Node metrics: CPU & Memory
 
-- query: (sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")) > 0
+- query: (sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(bottomk(1,irate(node_cpu_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",mode="idle"}[1m])), "instance", "$1", "node", "(.+)")) > 0
   metricName: nodeCPU-Workers
 
 - query: node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
@@ -125,10 +125,10 @@
 - query: node_memory_MemTotal_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
   metricName: nodeMemoryTotal-Workers
 
-- query: (avg((sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))) by (mode)) > 0
+- query: (max((sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(bottomk(1,irate(node_cpu_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",mode="idle"}[1m])), "instance", "$1", "node", "(.+)"))) by (mode)) > 0
   metricName: nodeCPU-AggregatedWorkers
 
-- query: avg(node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
+- query: min(node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
   metricName: nodeMemoryAvailable-AggregatedWorkers
 
 - query: avg(node_memory_MemTotal_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
