@@ -100,7 +100,7 @@
 - query: (max((sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(bottomk(1,irate(node_cpu_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",mode="idle",instance!~"${MGMT_WORKER_ONLY_NODES}"}[1m])), "instance", "$1", "instance", "(.+)"))) by (mode, instance)) > 0
   metricName: mgmtNodeCPU-AggregatedWorkers
 
-- query: (min((sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",instance!~"${MGMT_WORKER_ONLY_NODES}"}[2m])) by (mode,instance))) by (mode, instance)) > 0
+- query: bottomk(1,min(node_memory_MemAvailable_bytes{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",instance!~"${MGMT_WORKER_ONLY_NODES}"}))
   metricName: mgmtNodeMemoryAvailable-AggregatedWorkers
 
 - query: (avg(node_memory_MemTotal_bytes{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",instance!~"${MGMT_WORKER_ONLY_NODES}"}) by (instance))
@@ -128,7 +128,7 @@
 - query: (max((sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(bottomk(1,irate(node_cpu_seconds_total{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}",mode="idle"}[1m])), "instance", "$1", "node", "(.+)"))) by (mode)) > 0
   metricName: nodeCPU-AggregatedWorkers
 
-- query: avg(node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
+- query: bottomk(1,min(node_memory_MemAvailable_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"}))
   metricName: nodeMemoryAvailable-AggregatedWorkers
 
 - query: avg(node_memory_MemTotal_bytes{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
