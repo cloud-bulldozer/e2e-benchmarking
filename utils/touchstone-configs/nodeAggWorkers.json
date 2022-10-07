@@ -1,0 +1,33 @@
+{
+  "elasticsearch": {
+    "ripsaw-kube-burner": [
+        {
+          "filter": {
+            "metricName.keyword": "nodeCPU-AggregatedWorkers"
+          },
+          "buckets": [
+            "labels.mode.keyword"
+          ],
+          "aggregations": {
+            "value": [
+              "avg",
+              "max"
+            ]
+          }
+        },
+        {
+          "filter": {
+            "metricName.keyword": "nodeMemoryAvailable-AggregatedWorkers"
+          },
+          "buckets": [
+            "jobName.keyword"
+          ],
+          "aggregations": {
+            "value": [
+              "avg"
+            ]
+          }
+        }
+    ]
+  }
+}

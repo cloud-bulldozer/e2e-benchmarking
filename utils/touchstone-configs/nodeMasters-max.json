@@ -1,0 +1,33 @@
+{
+  "elasticsearch": {
+    "ripsaw-kube-burner": [
+        {
+          "filter": {
+            "metricName.keyword": "nodeCPU-Masters"
+          },
+          "buckets": [
+            "labels.mode.keyword",
+            "labels.instance.keyword"
+          ],
+          "aggregations": {
+            "value": [
+              "max"
+            ]
+          }
+        },
+        {
+          "filter": {
+            "metricName.keyword": "nodeMemoryUtilization-Masters"
+          },
+          "buckets": [
+            "labels.instance.keyword"
+          ],
+          "aggregations": {
+            "value": [
+              "max"
+            ]
+          }
+        }
+    ]
+  }
+}
