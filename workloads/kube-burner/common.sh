@@ -50,6 +50,8 @@ if [[ ${HYPERSHIFT} == "true" ]]; then
     Q_NODES=${n}"|"${Q_NODES};
   done
   export MGMT_WORKER_ONLY_NODES=${Q_NODES}
+  # set time for modifier queries 
+  export Q_TIME=$(($Q_TIME+600))
 fi
 
 collect_pprof() {
