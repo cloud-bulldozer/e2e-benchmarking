@@ -65,12 +65,6 @@ pre_flight_checks(){
     fi
 }
 
-get_me_ids(){
-    ORIGIN_URL=$( git config --get remote.origin.url | sed -e 's,git@github.com:,https://github.com/,g' )
-    GITHUB_USER=$( echo $_remote_origin_url | cut -d'/' -f4 | tr '[:upper:]' '[:lower:]')
-    echo -e "Remote User is: \t ${GITHUB_USER}"
-}
-
 install(){
     echo "Create S3 bucket and route53 doamin.."
     aws s3api create-bucket --acl public-read --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org --create-bucket-configuration LocationConstraint=$AWS_REGION --region $AWS_REGION || true
@@ -96,8 +90,7 @@ create_cluster(){
     if [[ $RELEASE_IMAGE != "" ]]; then
         RELEASE="--release-image=$RELEASE_IMAGE"
     fi
-    get_me_ids
-    hypershift create cluster aws --name $HOSTED_CLUSTER_NAME --node-pool-replicas=$COMPUTE_WORKERS_NUMBER --base-domain $BASEDOMAIN --pull-secret pull-secret --aws-creds aws_credentials --region $AWS_REGION --control-plane-availability-policy $REPLICA_TYPE --network-type $NETWORK_TYPE --instance-type $COMPUTE_WORKERS_TYPE  ${RELEASE} ${CPO_IMAGE_ARG} --additional-tags User:${GITHUB_USER}, ${MGMT_CLUSTER_NAME}:${HOSTED_CLUSTER_NAME}
+    hypershift create cluster aws --name $HOSTED_CLUSTER_NAME --node-pool-replicas=$COMPUTE_WORKERS_NUMBER --base-domain $BASEDOMAIN --pull-secret pull-secret --aws-creds aws_credentials --region $AWS_REGION --control-plane-availability-policy $REPLICA_TYPE --network-type $NETWORK_TYPE --instance-type $COMPUTE_WORKERS_TYPE  ${RELEASE} ${CPO_IMAGE_ARG} --additional-tags mgmt-cluster:${MGMT_CLUSTER_NAME}
     echo "Wait till hosted cluster got created and in progress.."
     oc wait --for=condition=available=false --timeout=60s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
     oc get hostedcluster -n clusters $HOSTED_CLUSTER_NAME
