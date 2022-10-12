@@ -48,10 +48,10 @@
   metricName: podMemoryReq
   instant: true
 
-- query: (sum(irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}[2m]) * 100) by (container, pod, namespace, node, openshift_cluster_name)) > 0
+- query: (sum(irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|user-workload-monitoring)"}[2m]) * 100) by (container, pod, namespace, node, openshift_cluster_name)) > 0
   metricName: mgmt-containerCPU
 
-- query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}) by (container, pod, namespace, node, openshift_cluster_name)
+- query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|user-workload-monitoring)"}) by (container, pod, namespace, node, openshift_cluster_name)
   metricName: mgmt-containerMemory
 
 # Containers & pod metrics
