@@ -2,16 +2,16 @@
 set -x
 
 source env.sh
+TEMP_DIR=`mktemp -d`
 
 prep(){
     if [[ -z $(go version) ]]; then
         curl -L https://go.dev/dl/go1.18.2.linux-amd64.tar.gz -o go1.18.2.linux-amd64.tar.gz
-        tar -C /usr/local -xzf go1.18.2.linux-amd64.tar.gz
-        export PATH=/usr/local/go/bin:$PATH
+        tar -C ${TEMP_DIR}/ -xzf go1.18.2.linux-amd64.tar.gz
+        export PATH=${TEMP_DIR}/go/bin:$PATH
     fi
     if [[ ${HYPERSHIFT_CLI_INSTALL} != "false" ]]; then
         echo "Building Hypershift binaries locally.."
-        export TEMP_DIR=$(mktemp -d)
         git clone -q --depth=1 --single-branch --branch ${HYPERSHIFT_CLI_VERSION} ${HYPERSHIFT_CLI_FORK} -v $TEMP_DIR/hypershift
         pushd $TEMP_DIR/hypershift
         make build
@@ -19,14 +19,16 @@ prep(){
         popd
     fi
     if [[ -z $(rosa version)  ]]; then
-        sudo curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output /usr/local/bin/rosa
-        sudo curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output /usr/local/bin/ocm
-        sudo chmod +x /usr/local/bin/rosa && chmod +x /usr/local/bin/ocm
+        mkdir -p ${TEMP_DIR}/bin/
+        sudo curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output ${TEMP_DIR}/bin/rosa
+        sudo curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output ${TEMP_DIR}/bin/ocm
+        chmod +x ${TEMP_DIR}/bin/rosa && chmod +x ${TEMP_DIR}/bin/ocm
+        export PATH=${TEMP_DIR}/bin:$PATH
     fi
     if [[ -z $(oc version) ]]; then
         rosa download openshift-client
         tar xzvf openshift-client-linux.tar.gz
-        sudo mv oc kubectl /usr/local/bin/
+        mv oc kubectl ${TEMP_DIR}/bin/
     fi
     if [[ -z $(aws --version) ]]; then
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -187,7 +189,7 @@ index_mgmt_cluster_stat(){
     if [ $? -ne 0 ]; then
         export KUBE_BURNER_RELEASE=${KUBE_BURNER_RELEASE:-0.16}
         curl -L https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_RELEASE}/kube-burner-${KUBE_BURNER_RELEASE}-Linux-x86_64.tar.gz -o kube-burner.tar.gz
-        sudo tar -xvzf kube-burner.tar.gz -C /usr/local/bin/
+        sudo tar -xvzf kube-burner.tar.gz -C ${TEMP_DIR}/bin/
     fi
     export MGMT_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
     export HOSTED_CLUSTER_NS="clusters-$HOSTED_CLUSTER_NAME"
