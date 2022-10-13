@@ -46,6 +46,7 @@ Workloads can be tweaked with the following environment variables:
 | **CLEANUP_WHEN_FINISH** | Delete benchmark objects and workload's namespaces after running it | false |
 | **CLEANUP_TIMEOUT**  | Timeout value used in resource deletion | 30m |
 | **KUBE_BURNER_URL** | Kube-burner tarball URL | https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.17.0/kube-burner-0.17.0-Linux-x86_64.tar.gz |
+| **BUILD_FROM_REPO** | Rather than downloading the previous tarball, build the kube-burner binary using a specific git repository.  Ex. https://github.com/rsevilla87/kube-burner | "" (Disabled) |
 | **LOG_LEVEL**        | Kube-burner log level | info |
 | **PPROF_COLLECTION** | Collect and store pprof data locally | false |
 | **PPROF_COLLECTION_INTERVAL** | Intervals for which pprof data will be collected | 5m | 
