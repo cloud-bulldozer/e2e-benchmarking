@@ -54,24 +54,25 @@ collect_pprof() {
 
 run_workload() {
   local CMD
+  local KUBE_BURNER_DIR 
+  KUBE_BURNER_DIR=$(mktemp -d)
   if [[ -n ${BUILD_FROM_REPO} ]]; then
-    git clone --depth=1 ${BUILD_FROM_REPO} kube-burner
-    make -C kube-burner build
-    mv kube-burner/bin/amd64/kube-burner /tmp/kube-burner
-    rm -rf kube-burner
+    git clone --depth=1 ${BUILD_FROM_REPO} ${KUBE_BURNER_DIR}
+    make -C ${KUBE_BURNER_DIR} build
+    mv ${KUBE_BURNER_DIR}/bin/amd64/kube-burner /tmp/kube-burner
+    rm -rf ${KUBE_BURNER_DIR}
   else
     curl -sS -L ${KUBE_BURNER_URL} | tar -xzC /tmp/ kube-burner
   fi
   CMD="timeout ${JOB_TIMEOUT} /tmp/kube-burner init --uuid=${UUID} -c $(basename ${WORKLOAD_TEMPLATE}) --log-level=${LOG_LEVEL}"
-  local tmpdir=$(mktemp -d)
   # When metrics or alerting are enabled we have to pass the prometheus URL to the cmd
   if [[ ${INDEXING} == "true" ]] || [[ ${PLATFORM_ALERTS} == "true" ]] ; then
     CMD+=" -u=${PROM_URL} -t ${PROM_TOKEN}"
   fi
   if [[ -n ${METRICS_PROFILE} ]]; then
     log "Indexing enabled, using metrics from ${METRICS_PROFILE}"
-    envsubst < ${METRICS_PROFILE} > ${tmpdir}/metrics.yml || envsubst <  ${METRICS_PROFILE} > ${tmpdir}/metrics.yml
-    CMD+=" -m ${tmpdir}/metrics.yml"
+    envsubst < ${METRICS_PROFILE} > /tmp/metrics.yml || envsubst < ${METRICS_PROFILE} > /tmp/metrics.yml
+    CMD+=" -m /tmp/metrics.yml"
   fi
   if [[ ${PLATFORM_ALERTS} == "true" ]]; then
     log "Platform alerting enabled, using ${PWD}/alert-profiles/${WORKLOAD}-${platform}.yml"
