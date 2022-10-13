@@ -54,7 +54,14 @@ collect_pprof() {
 
 run_workload() {
   local CMD
-  curl -sS -L ${KUBE_BURNER_URL} | tar -xzC /tmp/ kube-burner
+  if [[ -n ${BUILD_FROM_REPO} ]]; then
+    git clone --depth=1 ${BUILD_FROM_REPO} kube-burner
+    make -C kube-burner build
+    mv kube-burner/bin/amd64/kube-burner /tmp/kube-burner
+    rm -rf kube-burner
+  else
+    curl -sS -L ${KUBE_BURNER_URL} | tar -xzC /tmp/ kube-burner
+  fi
   CMD="timeout ${JOB_TIMEOUT} /tmp/kube-burner init --uuid=${UUID} -c $(basename ${WORKLOAD_TEMPLATE}) --log-level=${LOG_LEVEL}"
   local tmpdir=$(mktemp -d)
   # When metrics or alerting are enabled we have to pass the prometheus URL to the cmd
