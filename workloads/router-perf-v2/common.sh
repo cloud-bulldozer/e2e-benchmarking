@@ -4,6 +4,21 @@ source ../../utils/common.sh
 openshift_login
 source env.sh
 
+check_hypershift(){
+  if [[ "$(oc get infrastructure/cluster -o jsonpath='{.status.controlPlaneTopology}')" == "External" ]]; then
+    log "Detected that script is running on HyperShift Hosted Cluster"
+    HYPERSHIFT=true
+    export CLUSTER_NAME=$(oc get infrastructure/cluster -o json | jq -r '.status.etcdDiscoveryDomain' | awk -F. {'print$1'})
+    export HYPERSHIFT_HOSTED_KUBECONFIG="${KUBECONFIG}"
+    if [[ -z "${HYPERSHIFT_MANAGEMENT_KUBECONFIG}" ]]; then
+      log "Path of Management Cluster kubeconfig required in the case of HyperShift"
+      exit 1
+    fi
+  else
+    HYPERSHIFT=false
+  fi
+}
+    
 get_scenario(){
   # We consider a large scale scenario any cluster with more than the given threshold
   if [[ ${NUM_NODES} -ge ${LARGE_SCALE_THRESHOLD} ]]; then
@@ -43,14 +58,26 @@ deploy_infra(){
 }
 
 configure_ingress_images() {
+  if [[ ${HYPERSHIFT} ]]; then
+    export KUBECONFIG=${HYPERSHIFT_MANAGEMENT_KUBECONFIG}
+    NAMESPACE="clusters-${CLUSTER_NAME}"
+    if [[ "$(oc get -n clusters hostedclusters/${CLUSTER_NAME} -o jsonpath='{.spec.infrastructureAvailabilityPolicy}')" == "SingleReplica" ]]; then
+      export NUMBER_OF_ROUTERS=1
+    fi
+  else
+    NAMESPACE="openshift-cluster-version"
+  fi
   log "Disabling cluster version operator"
-  oc scale --replicas=0 -n openshift-cluster-version deploy/cluster-version-operator
+  oc scale --replicas=0 -n ${NAMESPACE} deploy/cluster-version-operator
 
   # Scale the ingress-operator if you are changing any images (it needs to reconcile inorder to propagate new image)
+  if [[ !${HYPERSHIFT} ]]; then
+    NAMESPACE="openshift-ingress-operator"
+  fi
   if [[ ! -z "${INGRESS_OPERATOR_IMAGE}" ]] || [[ ! -z "${HAPROXY_IMAGE}" ]]; then
     log "Scaling ingress-operator up to 1"
-    oc scale --replicas=1 -n openshift-ingress-operator deploy/ingress-operator
-    oc rollout status -n openshift-ingress-operator deploy/ingress-operator --timeout 120s
+    oc scale --replicas=1 -n ${NAMESPACE} deploy/ingress-operator
+    oc rollout status -n ${NAMESPACE} deploy/ingress-operator --timeout 120s
   fi
 
   # Configure the ingress operator image
@@ -58,8 +85,8 @@ configure_ingress_images() {
   # So it's important we update the ingress-operator image before the router image
   if [[ ! -z "${INGRESS_OPERATOR_IMAGE}" ]]; then
     log "Replacing ingress-operator image with ${INGRESS_OPERATOR_IMAGE}"
-    oc -n openshift-ingress-operator patch deploy/ingress-operator --type=strategic --patch='{"spec":{"template":{"spec":{"containers":[{"name":"ingress-operator","image":"'${INGRESS_OPERATOR_IMAGE}'"}]}}}}'
-    oc rollout status -n openshift-ingress-operator deploy/ingress-operator --timeout 120s
+    oc -n ${NAMESPACE} patch deploy/ingress-operator --type=strategic --patch='{"spec":{"template":{"spec":{"containers":[{"name":"ingress-operator","image":"'${INGRESS_OPERATOR_IMAGE}'"}]}}}}'
+    oc rollout status -n ${NAMESPACE} deploy/ingress-operator --timeout 120s
     if [[ $? -ne 0 ]]; then
       log "ERROR: Ingress Operator failed to rollout image ${INGRESS_OPERATOR_IMAGE}"
       exit 1
@@ -71,9 +98,10 @@ configure_ingress_images() {
   # Set router image and wait for all pods in the deployment to be the correct image
   if [[ ! -z "${HAPROXY_IMAGE}" ]]; then
     log "Replacing router with ${HAPROXY_IMAGE}"
-    oc -n openshift-ingress-operator patch deploy/ingress-operator --type=strategic --patch='{"spec":{"template":{"spec":{"containers":[{"name":"ingress-operator","env":[{"name":"IMAGE","value":"'${HAPROXY_IMAGE}'"}]}]}}}}'
+    oc -n ${NAMESPACE} patch deploy/ingress-operator --type=strategic --patch='{"spec":{"template":{"spec":{"containers":[{"name":"ingress-operator","env":[{"name":"IMAGE","value":"'${HAPROXY_IMAGE}'"}]}]}}}}'
     TIMEOUT=240
     # Monitor pod image is easier/safer than doing a rollout because the operator starts the rollout asynchronously 
+    if "${HYPERSHIFT}"; then export KUBECONFIG="${HYPERSHIFT_HOSTED_KUBECONFIG}"; fi
     while [[ "$(oc get pods -n openshift-ingress -o jsonpath='{.items[*].spec.containers[*].image}' | tr -s '[[:space:]]' '\n' | uniq)" != "${HAPROXY_IMAGE}" ]]; do
       log "Waiting for all router images to become ${HAPROXY_IMAGE}..."
       sleep 1
@@ -86,10 +114,11 @@ configure_ingress_images() {
   else
     log "Using the default router image"
   fi
-
   log "Scaling ingress-operator down to 0"
-  oc scale --replicas=0 -n openshift-ingress-operator deploy/ingress-operator
+  if "${HYPERSHIFT}"; then export KUBECONFIG="${HYPERSHIFT_MANAGEMENT_KUBECONFIG}"; fi
+  oc scale --replicas=0 -n ${NAMESPACE} deploy/ingress-operator
   log "Scaling number of routers to ${NUMBER_OF_ROUTERS}"
+  if "${HYPERSHIFT}"; then export KUBECONFIG="${HYPERSHIFT_HOSTED_KUBECONFIG}"; fi
   oc scale --replicas=${NUMBER_OF_ROUTERS} -n openshift-ingress deploy/router-default
 }
 
@@ -149,8 +178,15 @@ run_mb(){
 
 enable_ingress_operator(){
   log "Enabling cluster version and ingress operators"
-  oc scale --replicas=1 -n openshift-cluster-version deploy/cluster-version-operator
-  oc scale --replicas=1 -n openshift-ingress-operator deploy/ingress-operator
+  if [[ ${HYPERSHIFT} ]]; then
+    export KUBECONFIG="${HYPERSHIFT_MANAGEMENT_KUBECONFIG}"
+    oc scale --replicas=1 -n "${NAMESPACE}" deploy/cluster-version-operator
+    oc scale --replicas=1 -n "${NAMESPACE}" deploy/ingress-operator
+    export KUBECONFIG="${HYPERSHIFT_HOSTED_KUBECONFIG}"
+  else
+    oc scale --replicas=1 -n openshift-cluster-version deploy/cluster-version-operator
+    oc scale --replicas=1 -n openshift-ingress-operator deploy/ingress-operator
+  fi
 }
 
 cleanup_infra(){
