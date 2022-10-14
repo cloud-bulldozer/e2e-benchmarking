@@ -62,6 +62,7 @@ Workloads can be tweaked with the following environment variables:
 | **GSHEET_KEY_LOCATION**        | Location of service account key to generate google sheets |  |
 | **EMAIL_ID_FOR_RESULTS_SHEET**        | Email id where the google sheets needs to be sent |  |
 | **GEN_CSV**             | Generate a benchmark-comparison csv, required to generate the spreadsheet | "false" |
+| **KUBE_DIR**             | The directory where to place the kube-burner executable | /tmp |
 | **CHURN**             | Enable "churning" of the workload after the objects are created | "false" |
 | **CHURN_DURATION**             | Time, in time type (ex: 1h10m11s), to churn for | 10m |
 | **CHURN_DELAY**             | Time, in time type (ex: 1m30s), to wait between each churn | 60s |
