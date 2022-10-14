@@ -56,15 +56,18 @@ run_workload() {
   local CMD
   local KUBE_BURNER_DIR 
   KUBE_BURNER_DIR=$(mktemp -d)
+  if [[ ! -d ${KUBE_DIR} ]]; then
+    mkdir -p ${KUBE_DIR}
+  fi
   if [[ -n ${BUILD_FROM_REPO} ]]; then
     git clone --depth=1 ${BUILD_FROM_REPO} ${KUBE_BURNER_DIR}
     make -C ${KUBE_BURNER_DIR} build
-    mv ${KUBE_BURNER_DIR}/bin/amd64/kube-burner /tmp/kube-burner
+    mv ${KUBE_BURNER_DIR}/bin/amd64/kube-burner ${KUBE_DIR}/kube-burner
     rm -rf ${KUBE_BURNER_DIR}
   else
-    curl -sS -L ${KUBE_BURNER_URL} | tar -xzC /tmp/ kube-burner
+    curl -sS -L ${KUBE_BURNER_URL} | tar -xzC ${KUBE_DIR}/ kube-burner
   fi
-  CMD="timeout ${JOB_TIMEOUT} /tmp/kube-burner init --uuid=${UUID} -c $(basename ${WORKLOAD_TEMPLATE}) --log-level=${LOG_LEVEL}"
+  CMD="timeout ${JOB_TIMEOUT} ${KUBE_DIR}/kube-burner init --uuid=${UUID} -c $(basename ${WORKLOAD_TEMPLATE}) --log-level=${LOG_LEVEL}"
   # When metrics or alerting are enabled we have to pass the prometheus URL to the cmd
   if [[ ${INDEXING} == "true" ]] || [[ ${PLATFORM_ALERTS} == "true" ]] ; then
     CMD+=" -u=${PROM_URL} -t ${PROM_TOKEN}"
