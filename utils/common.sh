@@ -129,7 +129,7 @@ gen_metadata() {
   local PLATFORM=$(echo ${INFRA_INFO} | jq -r .status.platformStatus.type)
   if [[ ${PLATFORM} == "AWS" ]] ; then
     local CLUSTERTYPE=$(echo ${INFRA_INFO} | jq -r 'try .status.platformStatus.aws.resourceTags | map(select(.key == "red-hat-clustertype"))[0].value' | tr '[:lower:]' '[:upper:]')
-    if [[ ! -z ${CLUSTERTYPE} ]] ; then
+    if [[ ! -z ${CLUSTERTYPE} ]] || [[ ${CLUSTERTYPE} == "NULL" ]] ; then
       PLATFORM=${CLUSTERTYPE}
     fi
   fi
