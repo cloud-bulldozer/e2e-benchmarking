@@ -74,8 +74,8 @@ run_workload() {
   fi
   if [[ -n ${METRICS_PROFILE} ]]; then
     log "Indexing enabled, using metrics from ${METRICS_PROFILE}"
-    envsubst < ${METRICS_PROFILE} > /tmp/metrics.yml || envsubst < ${METRICS_PROFILE} > /tmp/metrics.yml
-    CMD+=" -m /tmp/metrics.yml"
+    envsubst < ${METRICS_PROFILE} > ${KUBE_DIR}/metrics.yml || envsubst < ${METRICS_PROFILE} > ${KUBE_DIR}/metrics.yml
+    CMD+=" -m ${KUBE_DIR}/metrics.yml"
   fi
   if [[ ${PLATFORM_ALERTS} == "true" ]]; then
     log "Platform alerting enabled, using ${PWD}/alert-profiles/${WORKLOAD}-${platform}.yml"
