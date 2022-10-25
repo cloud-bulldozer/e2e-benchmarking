@@ -12,6 +12,7 @@ log "Service type: ${SERVICE_TYPE}"
 log "Terminations: ${TERMINATIONS}"
 log "Deployment replicas: ${DEPLOYMENT_REPLICAS}"
 log "###############################################"
+check_hypershift
 deploy_infra
 tune_workload_node apply
 client_pod=$(oc get pod -l app=http-scale-client -n http-scale-client | awk '/Running/{print $1}')
