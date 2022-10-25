@@ -74,6 +74,7 @@ jobs:
     churnDuration: {{.CHURN_DURATION}}
     churnPercent: {{.CHURN_PERCENT}}
     churnDelay: {{.CHURN_DELAY}}
+    jobPause: {{.JOB_PAUSE}}
     namespaceLabels:
       security.openshift.io/scc.podSecurityLabelSync: false
       pod-security.kubernetes.io/enforce: privileged
