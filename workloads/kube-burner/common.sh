@@ -38,7 +38,7 @@ if [[ ${HYPERSHIFT} == "true" ]]; then
   for n in $(curl -k --silent --globoff  ${PROM_URL}/api/v1/query?query='sum(kube_node_role{openshift_cluster_name=~"'${MGMT_CLUSTER_NAME}'",role=~"master|infra|workload"})by(node)&time='$(($Q_TIME-300))'' | jq -r '.data.result[].metric.node'); do
     Q_NODES=${n}"|"${Q_NODES};
   done
-  export MGMT_WORKER_ONLY_NODES=${Q_NODES}
+  export MGMT_NON_WORKER_NODES=${Q_NODES}
   # set time for modifier queries 
   export Q_TIME=$(($Q_TIME+600))
 fi
