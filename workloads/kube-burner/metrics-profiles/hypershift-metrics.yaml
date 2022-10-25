@@ -31,20 +31,20 @@
 - query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (container, pod, namespace, node, openshift_cluster_name)
   metricName: containerMemory-Controlplane
 
-- query: (sum(irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]) * 100) by (pod, namespace, node, openshift_cluster_name)) > 0
+- query: (sum(irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}[2m]) * 100) by (pod, container, namespace, node, openshift_cluster_name)) > 0
   metricName: podCPU-Controlplane
 
-- query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod, namespace, node, openshift_cluster_name)
+- query: sum(container_memory_rss{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod, container, namespace, node, openshift_cluster_name)
   metricName: podMemory-Controlplane
 
-- query: sum(container_memory_cache{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod, namespace, node, openshift_cluster_name)
+- query: sum(container_memory_cache{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",name!="",container!="POD",namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod, container, namespace, node, openshift_cluster_name)
   metricName: podMemoryCache-Controlplane
 
-- query: sum(cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod,namespace,openshift_cluster_name)
+- query: sum(cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod,container,namespace,openshift_cluster_name)
   metricName: podCPUReq
   instant: true
 
-- query: sum(cluster:namespace:pod_memory:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod,namespace,openshift_cluster_name)
+- query: sum(cluster:namespace:pod_memory:active:kube_pod_container_resource_requests{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}", namespace=~"${HOSTED_CLUSTER_NS}"}) by (pod,container,namespace,openshift_cluster_name)
   metricName: podMemoryReq
   instant: true
 
