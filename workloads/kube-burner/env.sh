@@ -31,6 +31,7 @@ export KUBE_BURNER_URL=${KUBE_BURNER_URL:-"https://github.com/cloud-bulldozer/ku
 export JOB_TIMEOUT=${JOB_TIMEOUT:-4h}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export METRICS_PROFILE=${METRICS_PROFILE}
+export JOB_PAUSE=${JOB_PAUSE:-1m}
 
 # kube-burner workload defaults
 export NODE_POD_DENSITY_IMAGE=${NODE_POD_DENSITY_IMAGE:-gcr.io/google_containers/pause:3.1}
