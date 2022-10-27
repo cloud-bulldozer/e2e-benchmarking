@@ -58,7 +58,7 @@ deploy_infra(){
 }
 
 configure_ingress_images() {
-  if [[ ${HYPERSHIFT} ]]; then
+  if ${HYPERSHIFT}; then
     export KUBECONFIG=${HYPERSHIFT_MANAGEMENT_KUBECONFIG}
     NAMESPACE="clusters-${CLUSTER_NAME}"
     if [[ "$(oc get -n clusters hostedclusters/${CLUSTER_NAME} -o jsonpath='{.spec.infrastructureAvailabilityPolicy}')" == "SingleReplica" ]]; then
@@ -71,7 +71,7 @@ configure_ingress_images() {
   oc scale --replicas=0 -n ${NAMESPACE} deploy/cluster-version-operator
 
   # Scale the ingress-operator if you are changing any images (it needs to reconcile inorder to propagate new image)
-  if [[ !${HYPERSHIFT} ]]; then
+  if !${HYPERSHIFT}; then
     NAMESPACE="openshift-ingress-operator"
   fi
   if [[ ! -z "${INGRESS_OPERATOR_IMAGE}" ]] || [[ ! -z "${HAPROXY_IMAGE}" ]]; then
