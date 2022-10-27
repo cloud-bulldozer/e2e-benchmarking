@@ -71,7 +71,7 @@ configure_ingress_images() {
   oc scale --replicas=0 -n ${NAMESPACE} deploy/cluster-version-operator
 
   # Scale the ingress-operator if you are changing any images (it needs to reconcile inorder to propagate new image)
-  if !${HYPERSHIFT}; then
+  if [[ ${HYPERSHIFT} == false ]]; then
     NAMESPACE="openshift-ingress-operator"
   fi
   if [[ ! -z "${INGRESS_OPERATOR_IMAGE}" ]] || [[ ! -z "${HAPROXY_IMAGE}" ]]; then
