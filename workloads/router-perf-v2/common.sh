@@ -178,7 +178,7 @@ run_mb(){
 
 enable_ingress_operator(){
   log "Enabling cluster version and ingress operators"
-  if [[ ${HYPERSHIFT} ]]; then
+  if ${HYPERSHIFT}; then
     export KUBECONFIG="${HYPERSHIFT_MANAGEMENT_KUBECONFIG}"
     oc scale --replicas=1 -n "${NAMESPACE}" deploy/cluster-version-operator
     oc scale --replicas=1 -n "${NAMESPACE}" deploy/ingress-operator
