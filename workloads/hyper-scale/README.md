@@ -33,7 +33,8 @@ The run.sh script can be tweaked with the following environment variables
 | **NUMBER_OF_HOSTED_CLUSTER**         | Integer: number of hosted cluster to be deployed on given management cluster | `2` |
 | **COMPUTE_WORKERS_NUMBER**         | Integer: number of workers nodes to be created on each hosted cluster | `24` |
 | **NETWORK_TYPE**         | Network type of the hosted cluster, only supported value is OpenShiftSDN | `OpenShiftSDN` |
-| **REPLICA_TYPE**             | Hosted control plane availability, supported values are `HighlyAvailable`, `SingleReplica` | `HighlyAvailable` |
+| **CONTROLPLANE_REPLICA_TYPE**             | Hosted controlplane availability, supported values are `HighlyAvailable`, `SingleReplica` | `HighlyAvailable` |
+| **INFRA_REPLICA_TYPE**             | Infra component  availability, supported values are `HighlyAvailable`, `SingleReplica` | `HighlyAvailable`
 | **COMPUTE_WORKERS_TYPE**            | AWS instance type of the workers to be used | `m5.4xlarge` |
 | **HYPERSHIFT_OPERATOR_IMAGE**    | The Hypershift operator version image | `quay.io/hypershift/hypershift-operator:latest` |
 | **RELEASE_IMAGE**    | The OCP release image for the hostedcluster, ex: `quay.io/openshift-release-dev/ocp-release:4.10.5-x86_64` | Operator default |
