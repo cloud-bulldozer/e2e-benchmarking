@@ -25,15 +25,16 @@ function prepare_builds_file()
 function install_svt_repo() {
   rm -rf svt
   git clone --single-branch --branch ${build_test_branch} ${build_test_repo} --depth 1
+  pip3 install future pytimeparse
 }
 
 function run_builds() {
+  
   for i in "${build_array[@]}"
   do
     log "running $i $1 concurrent builds"
     fileName="conc_builds_$1.out"
-    pip install future pytimeparse
-    python svt/openshift_performance/ose3_perf/scripts/build_test.py -z -a -n 2 -r $i -f running-builds.json >> $fileName 2>&1
+    python3 svt/openshift_performance/ose3_perf/scripts/build_test.py -z -a -n 2 -r $i -f running-builds.json >> $fileName 2>&1
     sleep 10
   done
 }
