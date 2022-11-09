@@ -25,20 +25,16 @@ function prepare_builds_file()
 function install_svt_repo() {
   rm -rf svt
   git clone --single-branch --branch ${build_test_branch} ${build_test_repo} --depth 1
-  curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
-  python2 --version
-
-  python2 get-pip.py
-  python2 -m pip install futures pytimeparse logging
-  python2 -m pip install futures pytimeparse logging
+  pip3 install future pytimeparse
 }
 
 function run_builds() {
+  
   for i in "${build_array[@]}"
   do
     log "running $i $1 concurrent builds"
     fileName="conc_builds_$1.out"
-    python2 svt/openshift_performance/ose3_perf/scripts/build_test.py -z -a -n 2 -r $i -f running-builds.json >> $fileName 2>&1
+    python3 svt/openshift_performance/ose3_perf/scripts/build_test.py -z -a -n 2 -r $i -f running-builds.json >> $fileName 2>&1
     sleep 10
   done
 }
@@ -74,6 +70,8 @@ function run_build_workload() {
   grep "Good builds included in stats" conc_builds_$proj.out >> conc_builds_results.out
   echo "==============================================================" >> conc_builds_results.out
   # have to clean up to be able to run with new configmap/kube-burner with same uuid
+
+  cat conc_builds_$proj.out
   cleanup
 
 }
