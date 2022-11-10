@@ -181,6 +181,8 @@ cleanup(){
         fi
     done
     for id in $ROUTE_ID; do aws route53 delete-hosted-zone --id=$id || true ; done
+    oc delete project clusters || true
+    oc delete project hypershift || true
     rm -f *-admin-kubeconfig || true
     rm -f pull-secret || true
     rm -rf kube-burner.tar.gz|| true
