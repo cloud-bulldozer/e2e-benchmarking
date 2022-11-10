@@ -27,7 +27,5 @@ spec:
   selector:
     matchLabels:
       name: webserver-{{.Replica}}-{{.Iteration}}
-  triggers:
-  - type: ConfigChange
   strategy:
     type: RollingUpdate

@@ -10,6 +10,5 @@ spec:
   - protocol: TCP
     port: 5432
     targetPort: 5432
-  portalIP: ''
   type: ClusterIP
   sessionAffinity: None
