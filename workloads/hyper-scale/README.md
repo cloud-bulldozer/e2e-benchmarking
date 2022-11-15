@@ -31,7 +31,7 @@ The run.sh script can be tweaked with the following environment variables
 | **ROSA_TOKEN** | ROSA token for access, only staging account token is valid currently | **REQUIRED** |
 | **PULL_SECRET**   | Cloud pull secret for Openshift installation  | **REQUIRED** |
 | **NUMBER_OF_HOSTED_CLUSTER**         | Integer: number of hosted cluster to be deployed on given management cluster | `2` |
-| **COMPUTE_WORKERS_NUMBER**         | Integer: number of workers nodes to be created on each hosted cluster | `24` |
+| **COMPUTE_WORKERS_NUMBER**         | Integer: number of workers nodes to be created on each hosted cluster. This value will be consider as per zone number when `HC_MULTI_AZ` is set, so this default value creates 3 nodes totally | `1` |
 | **NETWORK_TYPE**         | Network type of the hosted cluster, only supported value is OpenShiftSDN | `OpenShiftSDN` |
 | **CONTROLPLANE_REPLICA_TYPE**             | Hosted controlplane availability, supported values are `HighlyAvailable`, `SingleReplica` | `HighlyAvailable` |
 | **INFRA_REPLICA_TYPE**             | Infra component  availability, supported values are `HighlyAvailable`, `SingleReplica` | `HighlyAvailable`
@@ -46,3 +46,6 @@ The run.sh script can be tweaked with the following environment variables
 | **ES_SERVER**            | ElasticSearch server url | |
 | **ES_INDEX**    | ElasticSearch Index to be used | `ripsaw-kube-burner` |
 | **THANOS_QUERIER_URL** | Thanos querier url endpoint or management cluster prometheus public endpoint  |  |
+| **HCP_PLATFORM_MONITORING** | Boolean to enable hypershift platform monitoring flag  | `false` |
+| **HC_EXTERNAL_DNS** | Boolean to enable external-dns option, script takes care of setting up in AWS and it can be used only when HC release >= 4.12 | `true` |
+| **HC_MULTI_AZ** | Boolean to enable multi availability zone for cluster nodepool, uses a,b,c of `AWS_REGION`  | `true` |
