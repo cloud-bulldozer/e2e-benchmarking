@@ -33,7 +33,7 @@ export KUBERNETES_VERSION=${KUBERNETES_MAJOR_VERSION}.${KUBERNETES_MINOR_VERSION
 export CLUSTER_NETWORK_TYPE=$(oc get network.config/cluster -o jsonpath='{.spec.networkType}')
 export NETWORK_TYPE=$CLUSTER_NETWORK_TYPE
 export PLATFORM_STATUS=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus}')
-export HYPERSHIFT_MANAGEMENT_KUBECONFIG=""
+export HYPERSHIFT_MANAGEMENT_KUBECONFIG=${HYPERSHIFT_MANAGEMENT_KUBECONFIG:-""}
 
 # Benchmark configuration
 RUNTIME=${RUNTIME:-60}
