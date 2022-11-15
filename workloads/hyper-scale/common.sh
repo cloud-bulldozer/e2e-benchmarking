@@ -10,7 +10,7 @@ prep(){
         tar -C ${TEMP_DIR}/ -xzf go1.18.2.linux-amd64.tar.gz
         export PATH=${TEMP_DIR}/go/bin:$PATH
     fi
-    if [[ ${HYPERSHIFT_CLI_INSTALL} != "false" ]]; then
+    if [[ ${HYPERSHIFT_CLI_INSTALL} == "true" ]]; then
         echo "Building Hypershift binaries locally.."
         git clone -q --depth=1 --single-branch --branch ${HYPERSHIFT_CLI_VERSION} ${HYPERSHIFT_CLI_FORK} -v $TEMP_DIR/hypershift
         pushd $TEMP_DIR/hypershift
@@ -42,7 +42,7 @@ setup(){
     export MGMT_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}'| cut -c 1-13)
     export MGMT_BASEDOMAIN=$(oc get dns cluster -o jsonpath='{.spec.baseDomain}')
     export MGMT_AWS_HZ_ID=$(aws route53 list-hosted-zones | jq -r '.HostedZones[] | select(.Name=="'${MGMT_BASEDOMAIN}'.")' | jq -r '.Id')
-    if [[ $HC_EXTERNAL_DNS != "false" ]]; then
+    if [[ $HC_EXTERNAL_DNS == "true" ]]; then
         echo "Create external DNS for this iteration.."
         export BASEDOMAIN=hyp.${MGMT_BASEDOMAIN}
         AWS_HZ=$(aws route53 list-hosted-zones | jq -r '.HostedZones[] | select(.Name=="'${BASEDOMAIN}'.")')
@@ -93,10 +93,10 @@ install(){
     if [[ $HYPERSHIFT_OPERATOR_IMAGE != "" ]]; then
             HO_IMAGE_ARG="--hypershift-image $HYPERSHIFT_OPERATOR_IMAGE"
     fi
-    if [[ $HCP_PLATFORM_MONITORING != "false" ]]; then
+    if [[ $HCP_PLATFORM_MONITORING == "true" ]]; then
         HCP_P_MONITOR="--platform-monitoring $HCP_PLATFORM_MONITORING"
     fi
-    if [[ $HC_EXTERNAL_DNS != "false" ]]; then
+    if [[ $HC_EXTERNAL_DNS == "true" ]]; then
         EXT_DNS_ARG="--external-dns-provider=aws --external-dns-credentials=aws_credentials --external-dns-domain-filter=$BASEDOMAIN"
     fi
     hypershift install  \
@@ -120,11 +120,11 @@ create_cluster(){
         RELEASE="--release-image=$RELEASE_IMAGE"
     fi
     ZONES=""
-    if [[ $HC_MULTI_AZ != "false" ]]; then
+    if [[ $HC_MULTI_AZ == "true" ]]; then
         ZONES="--zones ${AWS_REGION}a,${AWS_REGION}b,${AWS_REGION}c"
     fi
     EXT_DNS_ARG=""
-    if [[ $HC_EXTERNAL_DNS != "false" ]]; then
+    if [[ $HC_EXTERNAL_DNS == "true" ]]; then
         EXT_DNS_ARG="--external-dns-domain=$BASEDOMAIN"
     fi    
     hypershift create cluster aws \
@@ -149,7 +149,7 @@ create_cluster(){
 create_empty_cluster(){
     echo $PULL_SECRET > pull-secret
     EXT_DNS_ARG=""
-    if [[ $HC_EXTERNAL_DNS != "false" ]]; then
+    if [[ $HC_EXTERNAL_DNS == "true" ]]; then
         EXT_DNS_ARG="--external-dns-domain=$BASEDOMAIN"
     fi   
     hypershift create cluster none --name $HOSTED_CLUSTER_NAME \
@@ -171,6 +171,9 @@ postinstall(){
     if [ "${NODEPOOL_SIZE}" != "0" ] ; then
         kubectl get secret -n clusters $HOSTED_CLUSTER_NAME-admin-kubeconfig -o json | jq -r '.data.kubeconfig' | base64 -d > ./$HOSTED_CLUSTER_NAME-admin-kubeconfig
         itr=0
+        if [[ $HC_MULTI_AZ == "true" ]]; then
+            NODEPOOL_SIZE=$((3*$NODEPOOL_SIZE))
+        fi
         while [ $itr -lt 12 ]
         do
             node=$(oc get nodes --kubeconfig $HOSTED_CLUSTER_NAME-admin-kubeconfig | grep worker | grep -i ready | grep -iv notready | wc -l)
@@ -244,7 +247,7 @@ cleanup(){
         done
         aws route53 delete-hosted-zone --id=$_ID || true
     done
-    if [[ $HC_EXTERNAL_DNS != "false" ]]; then
+    if [[ $HC_EXTERNAL_DNS == "true" ]]; then
         echo "Delete recordset in mgmt hostedzone"
         RS_VALUE=$(aws route53 list-resource-record-sets --hosted-zone-id $MGMT_AWS_HZ_ID | jq -c '.ResourceRecordSets[] | select(.Name=="'"$BASEDOMAIN"'.") | select(.Type=="NS")')
         aws route53 change-resource-record-sets --hosted-zone-id $MGMT_AWS_HZ_ID \
