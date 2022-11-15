@@ -101,9 +101,9 @@ jobs:
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
           label1: "foo"
           label2: "bar"
-          workload: ${WORKLOAD}
-          es_server: ${ES_SERVER}
-          es_index: ${ES_INDEX_NETPOL}
+          workload: "{{.WORKLOAD}}"
+          es_server: "{{.ES_SERVER}}"
+          es_index: "{{.ES_INDEX_NETPOL}}"
           set: "1"
 
       - objectTemplate: nginx.yml
@@ -112,9 +112,9 @@ jobs:
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
           label1: "foo"
           label2: "bar"
-          workload: ${WORKLOAD}
-          es_server: ${ES_SERVER}
-          es_index: ${ES_INDEX_NETPOL}
+          workload: "{{.WORKLOAD}}"
+          es_server: "{{.ES_SERVER}}"
+          es_index: "{{.ES_INDEX_NETPOL}}"
           set: "2"
 
       - objectTemplate: nginx.yml
@@ -123,9 +123,9 @@ jobs:
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
           label1: "foo"
           label2: "bar"
-          workload: ${WORKLOAD}
-          es_server: ${ES_SERVER}
-          es_index: ${ES_INDEX_NETPOL}
+          workload: "{{.WORKLOAD}}"
+          es_server: "{{.ES_SERVER}}"
+          es_index: "{{.ES_INDEX_NETPOL}}"
           set: "3"
 
       - objectTemplate: nginx.yml
@@ -134,9 +134,9 @@ jobs:
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
           label1: "foo"
           label2: "bar"
-          workload: ${WORKLOAD}
-          es_server: ${ES_SERVER}
-          es_index: ${ES_INDEX_NETPOL}
+          workload: "{{.WORKLOAD}}"
+          es_server: "{{.ES_SERVER}}"
+          es_index: "{{.ES_INDEX_NETPOL}}"
           set: "4"
 
       - objectTemplate: nginx.yml
@@ -145,8 +145,8 @@ jobs:
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
           label1: "foo"
           label2: "bar"
-          workload: ${WORKLOAD}
-          es_server: ${ES_SERVER}
-          es_index: ${ES_INDEX_NETPOL}
+          workload: "{{.WORKLOAD}}"
+          es_server: "{{.ES_SERVER}}"
+          es_index: "{{.ES_INDEX_NETPOL}}"
           set: "5"
 
