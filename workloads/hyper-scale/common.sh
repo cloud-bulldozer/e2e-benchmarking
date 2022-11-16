@@ -43,14 +43,23 @@ setup(){
     export MGMT_BASEDOMAIN=$(oc get dns cluster -o jsonpath='{.spec.baseDomain}')
     export MGMT_AWS_HZ_ID=$(aws route53 list-hosted-zones | jq -r '.HostedZones[] | select(.Name=="'${MGMT_BASEDOMAIN}'.")' | jq -r '.Id')
     if [[ $HC_EXTERNAL_DNS == "true" ]]; then
-        echo "Create external DNS for this iteration.."
-        export BASEDOMAIN=hyp.${MGMT_BASEDOMAIN}
-        AWS_HZ=$(aws route53 list-hosted-zones | jq -r '.HostedZones[] | select(.Name=="'${BASEDOMAIN}'.")')
-        if [[ ${AWS_HZ} == "" ]]; then
-            AWS_HZ_ID=$(aws route53 create-hosted-zone --name $BASEDOMAIN --caller-reference ${HOSTED_CLUSTER_NAME}-$(echo $(uuidgen) | cut -c 1-5) | jq -r '.HostedZone.Id')
-            DS_VALUE=$(aws route53 list-resource-record-sets --hosted-zone-id $AWS_HZ_ID  | jq -r '.ResourceRecordSets[] | select(.Name=="'"$BASEDOMAIN"'.") | select(.Type=="NS")' | jq -c '.ResourceRecords')
-            aws route53 change-resource-record-sets --hosted-zone-id  $MGMT_AWS_HZ_ID \
-                --change-batch '{ "Comment": "Creating a record set" , "Changes": [{"Action": "CREATE", "ResourceRecordSet": {"Name": "'"$BASEDOMAIN"'", "Type": "NS", "TTL": 300, "ResourceRecords" : '"$DS_VALUE"'}}]}'
+        # check given Hypershift operator version is >= 4.12
+        OP_REL_CHECK=$(echo "$(echo $HYPERSHIFT_OPERATOR_IMAGE | awk -F: '{print$2}' | cut -c 1-4) >= 4.12" |bc -l)
+        # check given HostedCluster release is >= 4.12
+        REL_CHECK=$(echo "$(echo $RELEASE_IMAGE | awk -F: '{print$2}' | cut -c 1-4) >= 4.12" |bc -l)
+        if [[ $REL_CHECK == 1 ]] || [[ "$RELEASE_IMAGE" == "" && $(echo $HYPERSHIFT_OPERATOR_IMAGE | awk -F: '{print$2}' | cut -c 1-4) == "late" || $OP_REL_CHECK == 1 ]]; then
+            echo "Create external DNS for this iteration.."
+            export BASEDOMAIN=hyp.${MGMT_BASEDOMAIN}
+            AWS_HZ=$(aws route53 list-hosted-zones | jq -r '.HostedZones[] | select(.Name=="'${BASEDOMAIN}'.")')
+            if [[ ${AWS_HZ} == "" ]]; then
+                AWS_HZ_ID=$(aws route53 create-hosted-zone --name $BASEDOMAIN --caller-reference ${HOSTED_CLUSTER_NAME}-$(echo $(uuidgen) | cut -c 1-5) | jq -r '.HostedZone.Id')
+                DS_VALUE=$(aws route53 list-resource-record-sets --hosted-zone-id $AWS_HZ_ID  | jq -r '.ResourceRecordSets[] | select(.Name=="'"$BASEDOMAIN"'.") | select(.Type=="NS")' | jq -c '.ResourceRecords')
+                aws route53 change-resource-record-sets --hosted-zone-id  $MGMT_AWS_HZ_ID \
+                    --change-batch '{ "Comment": "Creating a record set" , "Changes": [{"Action": "CREATE", "ResourceRecordSet": {"Name": "'"$BASEDOMAIN"'", "Type": "NS", "TTL": 300, "ResourceRecords" : '"$DS_VALUE"'}}]}'
+            fi
+        else
+            echo "external-dns options can be set only when hypershift cluster release is >= 4.12"
+            exit 1
         fi
     else
         export BASEDOMAIN=${MGMT_BASEDOMAIN}
