@@ -53,9 +53,13 @@ case ${WORKLOAD} in
     export TEST_JOB_ITERATIONS=${PODS:-1000}
   ;;
   pod-density-heavy)
-    WORKLOAD_TEMPLATE=workloads/node-density-heavy/node-density-heavy.yml
+    WORKLOAD_TEMPLATE=workloads/pod-density-heavy/pod-density-heavy.yml
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
-    export TEST_JOB_ITERATIONS=${PODS:-1000}
+    NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l ${WORKER_NODE_LABEL},node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
+    PODS_PER_NODE=${PODS_PER_NODE:-245}
+    label="pod-density-heavy=enabled"
+    label_node_with_label $label
+    find_running_pods_num regular
   ;;
   pods-service-route)
     WORKLOAD_TEMPLATE=workloads/pods-service-route/pods-service-route.yml
@@ -132,7 +136,7 @@ QPS: ${QPS}
 Burst: ${BURST}
 UUID: ${UUID}
 EOF
-if [[ ${WORKLOAD} == node-density* ]]; then
+if [[ ${WORKLOAD} == node-density* || ${WORKLOAD} == pod-density-heavy ]]; then
   echo "Node count: ${NODE_COUNT}"
   echo "Pods per node: ${PODS_PER_NODE}"
 else
@@ -159,7 +163,7 @@ fi
 
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
-  if [[ ${WORKLOAD} == node-density* ]]; then
+  if [[ ${WORKLOAD} == node-density* || ${WORKLOAD} == pod-density-heavy ]]; then
     unlabel_nodes_with_label $label
   fi
 fi
