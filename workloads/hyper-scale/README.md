@@ -31,7 +31,7 @@ The run.sh script can be tweaked with the following environment variables
 | **ROSA_TOKEN** | ROSA token for access, only staging account token is valid currently | **REQUIRED** |
 | **PULL_SECRET**   | Cloud pull secret for Openshift installation  | **REQUIRED** |
 | **NUMBER_OF_HOSTED_CLUSTER**         | Integer: number of hosted cluster to be deployed on given management cluster | `2` |
-| **COMPUTE_WORKERS_NUMBER**         | Integer: number of workers nodes to be created on each hosted cluster. This value will be consider as per zone number when `HC_MULTI_AZ` is set, so this default value creates 3 nodes totally | `1` |
+| **COMPUTE_WORKERS_NUMBER**         | Integer: number of workers per Availability Zone to be created, when `HC_MULTI_AZ` is set to `true` this values get multiplied in to 3 | `1` |
 | **NETWORK_TYPE**         | Network type of the hosted cluster, only supported value is OpenShiftSDN | `OpenShiftSDN` |
 | **CONTROLPLANE_REPLICA_TYPE**             | Hosted controlplane availability, supported values are `HighlyAvailable`, `SingleReplica` | `HighlyAvailable` |
 | **INFRA_REPLICA_TYPE**             | Infra component  availability, supported values are `HighlyAvailable`, `SingleReplica` | `HighlyAvailable`
