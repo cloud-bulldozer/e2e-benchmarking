@@ -153,7 +153,7 @@ tune_workload_node(){
     if [[ "${1}" == "delete" ]]; then TUNING_CONFIG=''; fi
     for np in $(oc get nodepool -n clusters | grep ${CLUSTER_NAME} | awk '{print$1}');
     do
-      oc patch -n clusters nodepool/$np --type=merge --patch='{"spec":{"tuningConfig":["'${TUNING_CONFIG}'"]}}'
+      oc patch -n clusters nodepool/$np --type=merge --patch='{"spec":{"tuningConfig":['${TUNING_CONFIG}']}}'
     done
     export KUBECONFIG="${HYPERSHIFT_HOSTED_KUBECONFIG}"
   else
