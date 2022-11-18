@@ -149,9 +149,11 @@ tune_workload_node(){
     export KUBECONFIG="${HYPERSHIFT_MANAGEMENT_KUBECONFIG}"
     sed "s#TUNED_NODE_SELECTOR#${TUNED_NODE_SELECTOR}#g" tuned-profile.yml > /tmp/tuning
     oc create configmap tuned-node --from-file=/tmp/tuning -n clusters --dry-run=client -o yaml | oc ${1} -f -
+    TUNING_CONFIG='{"name":"tuned-node"}'
+    if [[ "${1}" == "delete" ]]; then TUNING_CONFIG=''; fi
     for np in $(oc get nodepool -n clusters | grep ${CLUSTER_NAME} | awk '{print$1}');
     do
-      oc patch -n clusters nodepool/$np --type=merge --patch='{"spec":{"tuningConfig":[{"name":"tuned-node"}]}}'
+      oc patch -n clusters nodepool/$np --type=merge --patch='{"spec":{"tuningConfig":["'${TUNING_CONFIG}'"]}}'
     done
     export KUBECONFIG="${HYPERSHIFT_HOSTED_KUBECONFIG}"
   else
