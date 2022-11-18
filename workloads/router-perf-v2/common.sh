@@ -145,7 +145,18 @@ reschedule_monitoring_stack(){
 tune_workload_node(){
   TUNED_NODE_SELECTOR=$(echo ${NODE_SELECTOR} | sed 's/^{\(.*\)\:.*$/\1/')
   log "${1^} tuned profile for node labeled with ${TUNED_NODE_SELECTOR}"
-  sed "s#TUNED_NODE_SELECTOR#${TUNED_NODE_SELECTOR}#g" tuned-profile.yml | oc ${1} -f -
+  if "${HYPERSHIFT}"; then 
+    export KUBECONFIG="${HYPERSHIFT_MANAGEMENT_KUBECONFIG}"
+    sed "s#TUNED_NODE_SELECTOR#${TUNED_NODE_SELECTOR}#g" tuned-profile.yml > /tmp/tuning
+    oc create configmap tuned-node --from-file=/tmp/tuning -n clusters --dry-run=client -o yaml | oc ${1} -f -
+    for np in $(oc get nodepool -n clusters | grep ${CLUSTER_NAME} | awk '{print$1}');
+    do
+      oc patch -n clusters nodepool/$np --type=merge --patch='{"spec":{"tuningConfig":[{"name":"tuned-node"}]}}'
+    done
+    export KUBECONFIG="${HYPERSHIFT_HOSTED_KUBECONFIG}"
+  else
+    sed "s#TUNED_NODE_SELECTOR#${TUNED_NODE_SELECTOR}#g" tuned-profile.yml | oc ${1} -f -    
+  fi
 }
 
 collect_metadata(){
