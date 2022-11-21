@@ -52,7 +52,7 @@ setup(){
             export BASEDOMAIN=hyp.${MGMT_BASEDOMAIN}
             AWS_HZ=$(aws route53 list-hosted-zones | jq -r '.HostedZones[] | select(.Name=="'${BASEDOMAIN}'.")')
             if [[ ${AWS_HZ} == "" ]]; then
-                AWS_HZ_ID=$(aws route53 create-hosted-zone --name $BASEDOMAIN --caller-reference ${HOSTED_CLUSTER_NAME}-$(echo $(uuidgen) | cut -c 1-5) | jq -r '.HostedZone.Id')
+                AWS_HZ_ID=$(aws route53 create-hosted-zone --name $BASEDOMAIN --caller-reference ${MGMT_CLUSTER_NAME}-$(echo $(uuidgen) | cut -c 1-5) | jq -r '.HostedZone.Id')
                 DS_VALUE=$(aws route53 list-resource-record-sets --hosted-zone-id $AWS_HZ_ID  | jq -r '.ResourceRecordSets[] | select(.Name=="'"$BASEDOMAIN"'.") | select(.Type=="NS")' | jq -c '.ResourceRecords')
                 aws route53 change-resource-record-sets --hosted-zone-id  $MGMT_AWS_HZ_ID \
                     --change-batch '{ "Comment": "Creating a record set" , "Changes": [{"Action": "CREATE", "ResourceRecordSet": {"Name": "'"$BASEDOMAIN"'", "Type": "NS", "TTL": 300, "ResourceRecords" : '"$DS_VALUE"'}}]}'
