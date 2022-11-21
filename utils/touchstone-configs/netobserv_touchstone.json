@@ -32,7 +32,7 @@
         "prod-netobserv-datapoints": [
             {
                 "filter": {
-                    "metric_name.keyword": "nFlowsProcessedPerMinute"
+                    "metric_name.keyword": "nFlowsProcessedPerMinuteTotals"
                 },
                 "buckets": [
                     "metadata.pod.keyword"
@@ -99,7 +99,7 @@
                 ],
                 "aggregations": {
                     "value": [
-                        "avg"
+                        "max"
                     ]
                 }
             },
@@ -217,6 +217,219 @@
                 "aggregations": {
                     "value": [
                         "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "nFlowsProcessedPerMinuteTotals"
+                },
+                "buckets": [
+                    "metric_name.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        {
+                            "percentiles": {
+                                "percents": [
+                                    95
+                                ]
+                            }
+                        },
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "cpuFLPTotals"
+                },
+                "buckets": [
+                    "metric_name.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        {
+                            "percentiles": {
+                                "percents": [
+                                    95
+                                ]
+                            }
+                        },
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "cpuEBPFTotals"
+                },
+                "buckets": [
+                    "metric_name.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        {
+                            "percentiles": {
+                                "percents": [
+                                    95
+                                ]
+                            }
+                        },
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "cpuEBPFTotals"
+                },
+                "buckets": [
+                    "metric_name.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        {
+                            "percentiles": {
+                                "percents": [
+                                    95
+                                ]
+                            }
+                        },
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "cpuKafkaTotals"
+                },
+                "buckets": [
+                    "metric_name.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        {
+                            "percentiles": {
+                                "percents": [
+                                    95
+                                ]
+                            }
+                        },
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "cpuLokiTotals"
+                },
+                "buckets": [
+                    "metric_name.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        {
+                            "percentiles": {
+                                "percents": [
+                                    95
+                                ]
+                            }
+                        },
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "rssFLPTotals"
+                },
+                "buckets": [
+                    "metric_name.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        {
+                            "percentiles": {
+                                "percents": [
+                                    95
+                                ]
+                            }
+                        },
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "rssEBPFTotals"
+                },
+                "buckets": [
+                    "metric_name.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        {
+                            "percentiles": {
+                                "percents": [
+                                    95
+                                ]
+                            }
+                        },
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "rssKafkaTotals"
+                },
+                "buckets": [
+                    "metric_name.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        {
+                            "percentiles": {
+                                "percents": [
+                                    95
+                                ]
+                            }
+                        },
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "rssLokiTotals"
+                },
+                "buckets": [
+                    "metric_name.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        {
+                            "percentiles": {
+                                "percents": [
+                                    95
+                                ]
+                            }
+                        },
+                        "avg"
+                    ]
+                }
+            },
+            {
+                "filter": {
+                    "metric_name.keyword": "kafkaStorageUsage"
+                },
+                "buckets": [
+                    "metadata.persistentvolumeclaim.keyword"
+                ],
+                "aggregations": {
+                    "value": [
+                        "max"
                     ]
                 }
             }
