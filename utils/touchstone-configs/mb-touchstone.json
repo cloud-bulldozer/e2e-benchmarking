@@ -14,7 +14,14 @@
           "requests_per_second": [
             "avg"
           ],
+          "avg_latency": ["avg"],
           "latency_95pctl": [
+            "avg"
+          ],
+          "200": [
+            "avg"
+          ],
+          "0": [
             "avg"
           ]
         }
@@ -32,7 +39,14 @@
           "requests_per_second": [
             "avg"
           ],
+          "avg_latency": ["avg"],
           "latency_95pctl": [
+            "avg"
+          ],
+          "200": [
+            "avg"
+          ],
+          "0": [
             "avg"
           ]
         }
@@ -50,7 +64,14 @@
           "requests_per_second": [
             "avg"
           ],
+          "avg_latency": ["avg"],
           "latency_95pctl": [
+            "avg"
+          ],
+          "200": [
+            "avg"
+          ],
+          "0": [
             "avg"
           ]
         }
@@ -68,7 +89,14 @@
           "requests_per_second": [
             "avg"
           ],
+          "avg_latency": ["avg"],
           "latency_95pctl": [
+            "avg"
+          ],
+          "200": [
+            "avg"
+          ],
+          "0": [
             "avg"
           ]
         }
@@ -86,7 +114,14 @@
           "requests_per_second": [
             "avg"
           ],
+          "avg_latency": ["avg"],
           "latency_95pctl": [
+            "avg"
+          ],
+          "200": [
+            "avg"
+          ],
+          "0": [
             "avg"
           ]
         }
