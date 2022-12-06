@@ -157,18 +157,13 @@ create_cluster(){
 
 create_empty_cluster(){
     echo $PULL_SECRET > pull-secret
-    EXT_DNS_ARG=""
-    if [[ $HC_EXTERNAL_DNS == "true" ]]; then
-        EXT_DNS_ARG="--external-dns-domain=$BASEDOMAIN"
-    fi   
     hypershift create cluster none --name $HOSTED_CLUSTER_NAME \
         --node-pool-replicas=0 \
         --base-domain $BASEDOMAIN \
         --pull-secret pull-secret \
         --control-plane-availability-policy $CONTROLPLANE_REPLICA_TYPE \
         --infra-availability-policy $INFRA_REPLICA_TYPE \
-        --network-type $NETWORK_TYPE \
-        --endpoint-access=Public ${EXT_DNS_ARG}
+        --network-type $NETWORK_TYPE 
     echo "Wait till hosted cluster got created and in progress.."
     oc wait --for=condition=available=false --timeout=60s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
     oc get hostedcluster -n clusters $HOSTED_CLUSTER_NAME
