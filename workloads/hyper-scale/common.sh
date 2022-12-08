@@ -79,7 +79,7 @@ setup(){
 
 pre_flight_checks(){
     echo "Pre flight checks started"
-    export MULTI_AZ=$(rosa describe cluster -c $MGMT_CLUSTER_NAME -o json | jq -r [.multi_az] | jq -r .[])
+    export MULTI_AZ=$(ocm describe cluster $MGMT_CLUSTER_NAME --json | jq -r [.multi_az] | jq -r .[])
 
     if [[ "${MULTI_AZ}" == "true" ]]; then
         echo "Pre flight checks passed"
