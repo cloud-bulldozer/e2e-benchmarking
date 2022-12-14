@@ -10,7 +10,7 @@ prep(){
         tar -C ${TEMP_DIR}/ -xzf go1.18.2.linux-amd64.tar.gz
         export PATH=${TEMP_DIR}/go/bin:$PATH
     fi
-    if [[ ${HYPERSHIFT_CLI_INSTALL} != "false" ]]; then
+    if [[ ${HYPERSHIFT_CLI_INSTALL} == "true" ]]; then
         echo "Building Hypershift binaries locally.."
         git clone -q --depth=1 --single-branch --branch ${HYPERSHIFT_CLI_VERSION} ${HYPERSHIFT_CLI_FORK} -v $TEMP_DIR/hypershift
         pushd $TEMP_DIR/hypershift
@@ -40,7 +40,30 @@ prep(){
 
 setup(){
     export MGMT_CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}'| cut -c 1-13)
-    export BASEDOMAIN=$(oc get dns cluster -o jsonpath='{.spec.baseDomain}')
+    export MGMT_BASEDOMAIN=$(oc get dns cluster -o jsonpath='{.spec.baseDomain}')
+    export MGMT_AWS_HZ_ID=$(aws route53 list-hosted-zones --output json | jq -r '.HostedZones[] | select(.Name=="'${MGMT_BASEDOMAIN}'.")' | jq -r '.Id')
+    if [[ $HC_EXTERNAL_DNS == "true" ]]; then
+        # check given Hypershift operator version is >= 4.12
+        OP_REL_CHECK=$(echo "$(echo $HYPERSHIFT_OPERATOR_IMAGE | awk -F: '{print$2}' | cut -c 1-4) >= 4.12" |bc -l)
+        # check given HostedCluster release is >= 4.12
+        REL_CHECK=$(echo "$(echo $RELEASE_IMAGE | awk -F: '{print$2}' | cut -c 1-4) >= 4.12" |bc -l)
+        if [[ $REL_CHECK == 1 ]] || [[ "$RELEASE_IMAGE" == "" && $(echo $HYPERSHIFT_OPERATOR_IMAGE | awk -F: '{print$2}' | cut -c 1-4) == "late" || $OP_REL_CHECK == 1 ]]; then
+            echo "Create external DNS for this iteration.."
+            export BASEDOMAIN=hyp.${MGMT_BASEDOMAIN}
+            AWS_HZ=$(aws route53 list-hosted-zones --output json | jq -r '.HostedZones[] | select(.Name=="'${BASEDOMAIN}'.")')
+            if [[ ${AWS_HZ} == "" ]]; then
+                AWS_HZ_ID=$(aws route53 create-hosted-zone --name $BASEDOMAIN --caller-reference ${MGMT_CLUSTER_NAME}-$(echo $(uuidgen) | cut -c 1-5) | jq -r '.HostedZone.Id')
+                DS_VALUE=$(aws route53 list-resource-record-sets --hosted-zone-id $AWS_HZ_ID --output json  | jq -r '.ResourceRecordSets[] | select(.Name=="'"$BASEDOMAIN"'.") | select(.Type=="NS")' | jq -c '.ResourceRecords')
+                aws route53 change-resource-record-sets --hosted-zone-id  $MGMT_AWS_HZ_ID \
+                    --change-batch '{ "Comment": "Creating a record set" , "Changes": [{"Action": "CREATE", "ResourceRecordSet": {"Name": "'"$BASEDOMAIN"'", "Type": "NS", "TTL": 300, "ResourceRecords" : '"$DS_VALUE"'}}]}'
+            fi
+        else
+            echo "external-dns options can be set only when hypershift cluster release is >= 4.12"
+            exit 1
+        fi
+    else
+        export BASEDOMAIN=${MGMT_BASEDOMAIN}
+    fi
     export AWS_REGION=us-west-2
     echo [default] > aws_credentials
     echo aws_access_key_id=$AWS_ACCESS_KEY_ID >> aws_credentials
@@ -56,7 +79,7 @@ setup(){
 
 pre_flight_checks(){
     echo "Pre flight checks started"
-    export MULTI_AZ=$(rosa describe cluster -c $MGMT_CLUSTER_NAME -o json | jq -r [.multi_az] | jq -r .[])
+    export MULTI_AZ=$(ocm describe cluster $MGMT_CLUSTER_NAME --json | jq -r [.multi_az] | jq -r .[])
 
     if [[ "${MULTI_AZ}" == "true" ]]; then
         echo "Pre flight checks passed"
@@ -74,10 +97,23 @@ install(){
     echo "Wait till S3 bucket is ready.."
     aws s3api wait bucket-exists --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org 
     HO_IMAGE_ARG=""
+    HCP_P_MONITOR=""
+    EXT_DNS_ARG=""    
     if [[ $HYPERSHIFT_OPERATOR_IMAGE != "" ]]; then
             HO_IMAGE_ARG="--hypershift-image $HYPERSHIFT_OPERATOR_IMAGE"
-    fi    
-    hypershift install $HO_IMAGE_ARG --oidc-storage-provider-s3-bucket-name $MGMT_CLUSTER_NAME-aws-rhperfscale-org --oidc-storage-provider-s3-credentials aws_credentials --oidc-storage-provider-s3-region $AWS_REGION  --platform-monitoring All --metrics-set All
+    fi
+    if [[ $HCP_PLATFORM_MONITORING == "true" ]]; then
+        HCP_P_MONITOR="--platform-monitoring $HCP_PLATFORM_MONITORING"
+    fi
+    if [[ $HC_EXTERNAL_DNS == "true" ]]; then
+        EXT_DNS_ARG="--external-dns-provider=aws --external-dns-credentials=aws_credentials --external-dns-domain-filter=$BASEDOMAIN"
+    fi
+    hypershift install  \
+        --oidc-storage-provider-s3-bucket-name $MGMT_CLUSTER_NAME-aws-rhperfscale-org \
+        --oidc-storage-provider-s3-credentials aws_credentials \
+        --oidc-storage-provider-s3-region $AWS_REGION \
+        --metrics-set All $EXT_DNS_ARG $HCP_P_MONITOR $HO_IMAGE_ARG
+
     echo "Wait till Operator is ready.."
     kubectl wait --for=condition=available --timeout=600s deployments/operator -n hypershift
 }
@@ -92,7 +128,28 @@ create_cluster(){
     if [[ $RELEASE_IMAGE != "" ]]; then
         RELEASE="--release-image=$RELEASE_IMAGE"
     fi
-    hypershift create cluster aws --name $HOSTED_CLUSTER_NAME --node-pool-replicas=$COMPUTE_WORKERS_NUMBER --base-domain $BASEDOMAIN --pull-secret pull-secret --aws-creds aws_credentials --region $AWS_REGION --control-plane-availability-policy $CONTROLPLANE_REPLICA_TYPE  --infra-availability-policy $INFRA_REPLICA_TYPE --network-type $NETWORK_TYPE --instance-type $COMPUTE_WORKERS_TYPE  ${RELEASE} ${CPO_IMAGE_ARG} --additional-tags mgmt-cluster:${MGMT_CLUSTER_NAME}
+    ZONES=""
+    if [[ $HC_MULTI_AZ == "true" ]]; then
+        ZONES="--zones ${AWS_REGION}a,${AWS_REGION}b,${AWS_REGION}c"
+    fi
+    EXT_DNS_ARG=""
+    if [[ $HC_EXTERNAL_DNS == "true" ]]; then
+        EXT_DNS_ARG="--external-dns-domain=$BASEDOMAIN"
+    fi    
+    hypershift create cluster aws \
+        --name $HOSTED_CLUSTER_NAME \
+        --additional-tags "mgmt-cluster=${MGMT_CLUSTER_NAME}" \
+        --node-pool-replicas=$COMPUTE_WORKERS_NUMBER \
+        --base-domain $BASEDOMAIN \
+        --pull-secret pull-secret \
+        --aws-creds aws_credentials \
+        --region $AWS_REGION \
+        --control-plane-availability-policy $CONTROLPLANE_REPLICA_TYPE \
+        --infra-availability-policy $INFRA_REPLICA_TYPE \
+        --network-type $NETWORK_TYPE \
+        --instance-type $COMPUTE_WORKERS_TYPE \
+        --endpoint-access=Public ${EXT_DNS_ARG} ${RELEASE} ${CPO_IMAGE_ARG} ${ZONES}
+
     echo "Wait till hosted cluster got created and in progress.."
     oc wait --for=condition=available=false --timeout=60s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
     oc get hostedcluster -n clusters $HOSTED_CLUSTER_NAME
@@ -100,7 +157,13 @@ create_cluster(){
 
 create_empty_cluster(){
     echo $PULL_SECRET > pull-secret
-    hypershift create cluster none --name $HOSTED_CLUSTER_NAME --node-pool-replicas=0 --base-domain $BASEDOMAIN --pull-secret pull-secret --control-plane-availability-policy $CONTROLPLANE_REPLICA_TYPE --infra-availability-policy $INFRA_REPLICA_TYPE --network-type $NETWORK_TYPE
+    hypershift create cluster none --name $HOSTED_CLUSTER_NAME \
+        --node-pool-replicas=0 \
+        --base-domain $BASEDOMAIN \
+        --pull-secret pull-secret \
+        --control-plane-availability-policy $CONTROLPLANE_REPLICA_TYPE \
+        --infra-availability-policy $INFRA_REPLICA_TYPE \
+        --network-type $NETWORK_TYPE 
     echo "Wait till hosted cluster got created and in progress.."
     oc wait --for=condition=available=false --timeout=60s hostedcluster -n clusters $HOSTED_CLUSTER_NAME
     oc get hostedcluster -n clusters $HOSTED_CLUSTER_NAME
@@ -112,6 +175,9 @@ postinstall(){
     if [ "${NODEPOOL_SIZE}" != "0" ] ; then
         kubectl get secret -n clusters $HOSTED_CLUSTER_NAME-admin-kubeconfig -o json | jq -r '.data.kubeconfig' | base64 -d > ./$HOSTED_CLUSTER_NAME-admin-kubeconfig
         itr=0
+        if [[ $HC_MULTI_AZ == "true" ]]; then
+            NODEPOOL_SIZE=$((3*$NODEPOOL_SIZE))
+        fi
         while [ $itr -lt 12 ]
         do
             node=$(oc get nodes --kubeconfig $HOSTED_CLUSTER_NAME-admin-kubeconfig | grep worker | grep -i ready | grep -iv notready | wc -l)
@@ -163,24 +229,35 @@ cleanup(){
         sleep 5 # pause a few secs before destroying next...
     done
     echo "Delete AWS s3 bucket..."
-    for o in $(aws s3api list-objects --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org | jq -r '.Contents[].Key' | uniq)
+    for o in $(aws s3api list-objects --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org --output json | jq -r '.Contents[].Key' | uniq)
     do 
         aws s3api delete-object --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org --key=$o
     done    
     aws s3api delete-bucket --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org
     aws s3api wait bucket-not-exists --bucket $MGMT_CLUSTER_NAME-aws-rhperfscale-org
     sleep 10
-    ROUTE_ID=$(aws route53 list-hosted-zones --output text --query HostedZones | grep $BASEDOMAIN | grep -v terraform | awk '{print$2}' | awk -F/ '{print$3}')
-    aws route53 list-resource-record-sets --hosted-zone-id $ROUTE_ID --output json | jq -c '.ResourceRecordSets[]' |
-    while read -r resourcerecordset; do
-        read -r name type <<<$(echo $(jq -r '.Name,.Type' <<<"$resourcerecordset"))
-        if [ $type != "NS" -a $type != "SOA" ]; then
-            aws route53 change-resource-record-sets --hosted-zone-id $ROUTE_ID \
-            --change-batch '{"Changes":[{"Action":"DELETE","ResourceRecordSet":'"$resourcerecordset"'
-            }]}' --output text --query 'ChangeInfo.Id'
-        fi
+    echo "Delete external dns records and hostedzone"
+    ROUTE_ID=$(aws route53 list-hosted-zones --output text --query HostedZones | grep $BASEDOMAIN | grep hyp | grep -v terraform | awk '{print$2}')
+    for _ID in $ROUTE_ID; 
+    do
+        aws route53 list-resource-record-sets --hosted-zone-id $_ID --output json | jq -c '.ResourceRecordSets[]' |
+        while read -r resourcerecordset; do
+            read -r name type <<<$(echo $(jq -r '.Name,.Type' <<<"$resourcerecordset"))
+            if [ $type != "NS" -a $type != "SOA" ]; then
+                aws route53 change-resource-record-sets --hosted-zone-id $_ID \
+                    --change-batch '{"Changes":[{"Action":"DELETE","ResourceRecordSet":'"$resourcerecordset"'}]}' \
+                    --output text --query 'ChangeInfo.Id'
+            fi
+        done
+        aws route53 delete-hosted-zone --id=$_ID || true
     done
-    for id in $ROUTE_ID; do aws route53 delete-hosted-zone --id=$id || true ; done
+    if [[ $HC_EXTERNAL_DNS == "true" ]]; then
+        echo "Delete recordset in mgmt hostedzone"
+        RS_VALUE=$(aws route53 list-resource-record-sets --hosted-zone-id $MGMT_AWS_HZ_ID --output json | jq -c '.ResourceRecordSets[] | select(.Name=="'"$BASEDOMAIN"'.") | select(.Type=="NS")')
+        aws route53 change-resource-record-sets --hosted-zone-id $MGMT_AWS_HZ_ID \
+            --change-batch '{"Changes":[{"Action":"DELETE","ResourceRecordSet": '"$RS_VALUE"'}]}' \
+            --output text --query 'ChangeInfo.Id'
+    fi
     rm -f *-admin-kubeconfig || true
     rm -f pull-secret || true
     rm -rf kube-burner.tar.gz|| true
