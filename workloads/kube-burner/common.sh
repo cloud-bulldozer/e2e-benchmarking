@@ -137,11 +137,18 @@ cleanup() {
 }
 
 get_pprof_secrets() {
- local certkey=`oc get secret -n openshift-etcd | grep "etcd-serving-ip" | head -1 | awk '{print $1}'`
- oc extract -n openshift-etcd secret/$certkey
- export CERTIFICATE=`base64 -w0 tls.crt`
- export PRIVATE_KEY=`base64 -w0 tls.key`
- export BEARER_TOKEN=$(oc create token -n benchmark-operator kube-burner --duration=6h || oc sa get-token kube-burner -n benchmark-operator)
+  if [[ ${HYPERSHIFT} == "true" ]]; then
+    log "Control Plane not available in HyperShift"
+    exit 1
+  else
+    oc create ns benchmark-operator
+    oc create serviceaccount kube-burner -n benchmark-operator
+    local certkey=`oc get secret -n openshift-etcd | grep "etcd-serving-ip" | head -1 | awk '{print $1}'`
+    oc extract -n openshift-etcd secret/$certkey
+    export CERTIFICATE=`base64 -w0 tls.crt`
+    export PRIVATE_KEY=`base64 -w0 tls.key`
+    export BEARER_TOKEN=$(oc create token -n benchmark-operator kube-burner --duration=6h || oc sa get-token kube-burner -n benchmark-operator)
+  fi
 }
 
 delete_pprof_secrets() {
