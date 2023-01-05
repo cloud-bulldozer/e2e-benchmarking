@@ -143,6 +143,7 @@ get_pprof_secrets() {
   else
     oc create ns benchmark-operator
     oc create serviceaccount kube-burner -n benchmark-operator
+    oc create clusterrolebinding kube-burner-crb --clusterrole=cluster-admin --serviceaccount=benchmark-operator:kube-burner
     local certkey=`oc get secret -n openshift-etcd | grep "etcd-serving-ip" | head -1 | awk '{print $1}'`
     oc extract -n openshift-etcd secret/$certkey
     export CERTIFICATE=`base64 -w0 tls.crt`
