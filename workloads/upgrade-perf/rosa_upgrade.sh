@@ -40,7 +40,12 @@ rosa_upgrade(){
     echo "INFO: Upgrading cluster to ${VERSION} version..."
   fi
   CURRENT_VERSION=$(oc get clusterversion | grep ^version | awk '{print $2}')
-  rosa upgrade cluster -c ${ROSA_CLUSTER_NAME} --version=${VERSION} -y --schedule-date $(date +%Y-%m-%d) --schedule-time $(date -u --date="+7 minutes" +%H:%M)
+  # Add -m auto flag when cluster is sts
+  if [[ $(rosa describe cluster -c ${ROSA_CLUSTER_NAME} -o json | jq -r '.aws | select(.sts != "null")') != "" ]]; then
+    rosa upgrade cluster -c ${ROSA_CLUSTER_NAME} --version=${VERSION} -y --schedule-date $(date +%Y-%m-%d) --schedule-time $(date -u --date="+7 minutes" +%H:%M) -m auto
+  else
+    rosa upgrade cluster -c ${ROSA_CLUSTER_NAME} --version=${VERSION} -y --schedule-date $(date +%Y-%m-%d) --schedule-time $(date -u --date="+7 minutes" +%H:%M)
+  fi
   # Sleep 7 minutes, rosa upgrade dont let to schedule an upgrade in less than 5 minutes from now
   sleep 420
   oc delete pods -n openshift-insights --all
