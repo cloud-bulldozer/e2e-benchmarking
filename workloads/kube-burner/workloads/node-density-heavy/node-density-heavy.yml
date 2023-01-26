@@ -59,7 +59,7 @@ jobs:
     jobIterations: {{.TEST_JOB_ITERATIONS}}
     qps: {{.QPS}}
     burst: {{.BURST}}
-    namespacedIterations: false
+    namespacedIterations: {{.NAMESPACED_ITERATIONS}}
     namespace: {{.UUID}}
     podWait: {{.POD_WAIT}}
     cleanup: {{.CLEANUP}}
@@ -80,6 +80,7 @@ jobs:
       - objectTemplate: postgres-deployment.yml
         replicas: 1
         inputVars:
+          readinessPeriod: 1
           nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: app-deployment.yml

@@ -25,6 +25,7 @@ case ${WORKLOAD} in
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l ${WORKER_NODE_LABEL},node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-245}
+    export NAMESPACED_ITERATIONS=${NAMESPACED_ITERATIONS:-false}
     label="node-density=enabled"
     label_node_with_label $label
     find_running_pods_num heavy
@@ -34,6 +35,7 @@ case ${WORKLOAD} in
     METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics.yaml}
     NODE_COUNT=${NODE_COUNT:-$(kubectl get node -l ${WORKER_NODE_LABEL},node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= -o name | wc -l)}
     PODS_PER_NODE=${PODS_PER_NODE:-245}
+    export NAMESPACED_ITERATIONS=${NAMESPACED_ITERATIONS:-false}
     label="node-density=enabled"
     label_node_with_label $label
     find_running_pods_num cni
