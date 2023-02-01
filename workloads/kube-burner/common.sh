@@ -78,8 +78,8 @@ run_workload() {
     CMD+=" -m ${KUBE_DIR}/metrics.yml"
   fi
   if [[ ${PLATFORM_ALERTS} == "true" ]]; then
-    log "Platform alerting enabled, using ${PWD}/alert-profiles/${WORKLOAD}-${platform}.yml"
-    CMD+=" -a ${PWD}/alert-profiles/${WORKLOAD}-${platform}.yml"
+    log "Platform alerting enabled, using ${PWD}/alerts-profiles/${WORKLOAD}-${platform}.yml"
+    CMD+=" -a ${PWD}/alerts-profiles/${WORKLOAD}-${platform}.yml"
   fi
   pushd $(dirname ${WORKLOAD_TEMPLATE})
   local start_date=$(date +%s%3N)
