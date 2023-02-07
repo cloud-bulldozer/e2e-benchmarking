@@ -153,6 +153,7 @@ gen_metadata() {
   fi
   if [[ ${HYPERSHIFT} == "true" ]]; then
     local MGMT_CLUSTER=${MGMT_CLUSTER_NAME}
+    local SVC_CLUSTER=${SVC_CLUSTER_NAME}    
   fi
   if [[ ${BENCHMARK} =~ "cyclictest" ]]; then
     local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/cyclictest= --no-headers --ignore-not-found | wc -l)
@@ -192,6 +193,7 @@ local METADATA=$(cat << EOF
 "workload": "${WORKLOAD}",
 "cluster_name": "${CLUSTER_NAME}",
 "mgmt_cluster_name": "${MGMT_CLUSTER}",
+"svc_cluster_name": "${SVC_CLUSTER}",
 "result":"${RESULT}"
 }
 EOF
