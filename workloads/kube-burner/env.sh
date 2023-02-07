@@ -57,6 +57,7 @@ export HYPERSHIFT=${HYPERSHIFT:-false}
 export MGMT_CLUSTER_NAME=${MGMT_CLUSTER_NAME:-perf-management-cluster}
 export HOSTED_CLUSTER_NS=${HOSTED_CLUSTER_NS:-clusters-perf-hosted-1}
 export THANOS_RECEIVER_URL=${THANOS_RECEIVER_URL:-http://thanos.apps.cluster.devcluster/api/v1/receive}
+export SVC_CLUSTER_NAME=${SVC_CLUSTER_NAME:-""}
 
 # # Concurrent Builds variables
 # Space seperated list of build numbers and build app types

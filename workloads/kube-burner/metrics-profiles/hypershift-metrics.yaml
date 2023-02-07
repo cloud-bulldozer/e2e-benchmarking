@@ -207,3 +207,54 @@
 - query: cluster_version{openshift_cluster_name=~"${MGMT_CLUSTER_NAME}",namespace=~"${HOSTED_CLUSTER_NS}",type="completed"}
   metricName: clusterVersion
   instant: true
+
+# Hypershift Service Cluster metris 
+
+- query: (sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: svcNodeCPU-Workers
+
+- query: (sum(irate(node_cpu_seconds_total{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"}[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: svcNodeCPU-Masters
+
+- query: node_memory_MemAvailable_bytes{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")
+  metricName: svcNodeMemoryAvailable-Masters
+
+- query: node_memory_MemAvailable_bytes{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: svcNodeMemoryAvailable-Workers
+
+- query: (node_memory_MemTotal_bytes{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"} - node_memory_MemAvailable_bytes{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"}) and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")
+  metricName: svcNodeMemoryUtilization-Masters
+
+- query: (node_memory_MemTotal_bytes{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"} - node_memory_MemAvailable_bytes{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"}) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: svcNodeMemoryUtilization-Workers
+
+- query: node_memory_MemTotal_bytes{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")
+  metricName: svcNodeMemoryTotal-Masters
+
+- query: node_memory_MemTotal_bytes{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: svcNodeMemoryTotal-Workers
+
+- query: sum(rate(etcd_server_leader_changes_seen_total{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"}[2m]))
+  metricName: svcEtcdLeaderChangesRate
+
+- query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"}[2m]))
+  metricName: svc99thEtcdDiskBackendCommitDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"}[2m]))
+  metricName: svc99thEtcdDiskWalFsyncDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"}[5m]))
+  metricName: svc99thEtcdRoundTripTimeSeconds
+
+- query: sum by (cluster_version)(etcd_cluster_version{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"})
+  metricName: svcEtcdVersion
+  instant: true
+
+- query: sum(kube_namespace_status_phase{openshift_cluster_name=~"${SVC_CLUSTER_NAME}"}) by (phase) > 0
+  metricName: svcNamespaceCount
+
+- query: (sum(irate(container_cpu_usage_seconds_total{openshift_cluster_name=~"${SVC_CLUSTER_NAME}", name!="",container!~"POD|"}[2m]) * 100) by (container, pod, namespace, node)) > 0
+  metricName: svcContainerCPU
+
+- query: sum(container_memory_rss{openshift_cluster_name=~"${SVC_CLUSTER_NAME}", name!="",container!~"POD|"}) by (container, pod, namespace, node)
+  metricName: svcContainerMemory
