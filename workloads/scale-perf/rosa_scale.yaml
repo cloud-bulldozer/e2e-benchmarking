@@ -17,13 +17,6 @@ spec:
   workload:
     name: scale_openshift
     args:
-      label:
-        key: node-role.kubernetes.io/${WORKLOAD_NODE_ROLE}
-        value: ""
-      tolerations:
-        key: role
-        value: workload
-        effect: NoSchedule
       scale: ${size}
       serviceaccount: scaler
       poll_interval: ${POLL_INTERVAL}
