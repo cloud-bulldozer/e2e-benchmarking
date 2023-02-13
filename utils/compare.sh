@@ -28,45 +28,51 @@ check_metric_to_modify() {
 }
 
 run_benchmark_comparison() {
-   log "benchmark"
-   if [[ -n ${ES_SERVER} ]] && [[ -n ${COMPARISON_CONFIG} ]]; then
-    
-     log "Installing touchstone"
-     install_touchstone
-     network_ns=openshift-ovn-kubernetes
-     get_network_type
-     export TOUCHSTONE_NAMESPACE=${TOUCHSTONE_NAMESPACE:-"$network_ns"}
-     res_output_dir="/tmp/${WORKLOAD}-${UUID}"
-     mkdir -p ${res_output_dir}
-     export COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
-     final_csv=${res_output_dir}/${UUID}.csv
-     echo "final csv $final_csv"
-     for config in ${COMPARISON_CONFIG}
-     do
-       config_loc=$(dirname $(realpath ${BASH_SOURCE[0]}))/touchstone-configs/${config}
-       echo "config ${config_loc}"
-       check_metric_to_modify $config_loc
-       COMPARISON_FILE="${res_output_dir}/${config}"
-       envsubst < $config_loc > $COMPARISON_FILE
-       echo "comparison output"
-       if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
-         log "Comparing with baseline"
-         compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "${COMPARISON_FILE}" "${GEN_CSV}"
-       else
-         log "Querying results"
-         compare ${ES_SERVER} ${UUID} "${COMPARISON_FILE}" "${GEN_CSV}"
-       fi
-        log "python csv modifier"
-        python $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_csv}
-     done
-     if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${GEN_CSV} == true ]] ; then
-       gen_spreadsheet ${WORKLOAD} ${final_csv} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
-     fi
-     log "Removing touchstone"
-     remove_touchstone
+  log "benchmark"
+  compare_result=0
+  if [[ -n ${ES_SERVER} ]] && [[ -n ${COMPARISON_CONFIG} ]]; then
+  
+    log "Installing touchstone"
+    install_touchstone
+    network_ns=openshift-ovn-kubernetes
+    get_network_type
+    export TOUCHSTONE_NAMESPACE=${TOUCHSTONE_NAMESPACE:-"$network_ns"}
+    res_output_dir="/tmp/${WORKLOAD}-${UUID}"
+    mkdir -p ${res_output_dir}
+    export COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
+    final_csv=${res_output_dir}/${UUID}.csv
+    echo "final csv $final_csv"
+    for config in ${COMPARISON_CONFIG}
+    do
+      config_loc=$(dirname $(realpath ${BASH_SOURCE[0]}))/touchstone-configs/${config}
+      echo "config ${config_loc}"
+      check_metric_to_modify $config_loc
+      COMPARISON_FILE="${res_output_dir}/${config}"
+      envsubst < $config_loc > $COMPARISON_FILE
+      echo "comparison output"
+      if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
+        log "Comparing with baseline"
+        if ! compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "${COMPARISON_FILE}" "${GEN_CSV}"; then
+          compare_result=$((${compare_result} + 1))
+          log "Comparing with baseline for config file $config failed"
+        fi
+      else
+        log "Querying results"
+        compare ${ES_SERVER} ${UUID} "${COMPARISON_FILE}" "${GEN_CSV}"
+      fi
+      log "python csv modifier"
+      python $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_csv}
+    done
+    if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${GEN_CSV} == true ]] ; then
+      gen_spreadsheet ${WORKLOAD} ${final_csv} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
+    fi
+    log "Removing touchstone"
+    remove_touchstone
   fi
- }
-
+  if [[ ${compare_result} -gt 0 ]]; then
+    return 1
+  fi
+}
 
 install_touchstone() {
   touchstone_tmp=$(mktemp -d)
@@ -108,4 +114,7 @@ compare() {
   fi
   log "Running: ${cmd}"
   ${cmd}
+  result=$?
+  log "comare result: ${result}"
+  return ${result}
 }
