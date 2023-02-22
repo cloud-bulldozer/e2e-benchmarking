@@ -52,8 +52,19 @@ cleanup_infra
 reschedule_monitoring_stack infra
 
 export WORKLOAD="router-perf"
-run_benchmark_comparison
+
+# Do not exit when compare function has any non 0 return code when COMPARISON_RC=1
+set +e
+if ! run_benchmark_comparison; then
+  log "Benchmark comparison failed"
+  result="failed"
+fi
+set -e
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  snappy_backup "csv json" "http-perf.yml" "router-perf-v2"
+fi
+
+if [[ ${result} == "failed" ]] ; then
+ exit 1
 fi
