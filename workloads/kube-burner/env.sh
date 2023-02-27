@@ -27,10 +27,11 @@ export PRELOAD_IMAGES=${PRELOAD_IMAGES:-true}
 export PRELOAD_PERIOD=${PRELOAD_PERIOD:-2m}
 
 # Kube-burner benchmark
-export KUBE_BURNER_URL=${KUBE_BURNER_URL:-"https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.17.2/kube-burner-0.17.2-Linux-x86_64.tar.gz"}
+#export KUBE_BURNER_URL=${KUBE_BURNER_URL:-"https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.17.2/kube-burner-0.17.2-Linux-x86_64.tar.gz"}
 export JOB_TIMEOUT=${JOB_TIMEOUT:-4h}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export METRICS_PROFILE=${METRICS_PROFILE}
+export METRICS_ENDPOINT=${METRICS_ENDPOINT}
 export JOB_PAUSE=${JOB_PAUSE:-1m}
 
 # kube-burner workload defaults
