@@ -115,21 +115,15 @@ find_running_pods_num() {
     done
   done
   log "Total running pods across nodes: ${pod_count}"
-  if [[ ${NODE_SELECTOR} =~ node-role.kubernetes.io/worker ]]; then
-    # Number of pods to deploy per node * number of labeled nodes - pods running - kube-burner pod
-    log "kube-burner will run on a worker node, decreasing by one the number of pods to deploy"
-    total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count - 1))
-  else
-    # Number of pods to deploy per node * number of labeled nodes - pods running
-    total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count))
+  # Number of pods to deploy per node * number of labeled nodes - pods running
+  total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count))
+  log "Number of pods to deploy on nodes: ${total_pod_count}"
+  if [[ ${1} == "heavy" ]] || [[ ${1} == *cni* ]]; then
+    total_pod_count=$((total_pod_count / 2))
   fi
   if [[ ${total_pod_count} -le 0 ]]; then
     log "Number of pods to deploy <= 0"
     exit 1
-  fi
-  log "Number of pods to deploy on nodes: ${total_pod_count}"
-  if [[ ${1} == "heavy" ]] || [[ ${1} == *cni* ]]; then
-    total_pod_count=$((total_pod_count / 2))
   fi
   export TEST_JOB_ITERATIONS=${total_pod_count}
 }
