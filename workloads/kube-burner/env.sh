@@ -18,7 +18,7 @@ export MAX_WAIT_TIMEOUT=${MAX_WAIT_TIMEOUT:-1h}
 export CLEANUP=${CLEANUP:-true}
 export POD_NODE_SELECTOR=${POD_NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export WORKER_NODE_LABEL=${WORKER_NODE_LABEL:-"node-role.kubernetes.io/worker"}
-export WAIT_WHEN_FINISHED=true
+export WAIT_WHEN_FINISHED=${WAIT_WHEN_FINISHED:-true}
 export POD_WAIT=${POD_WAIT:-false}
 export WAIT_FOR=${WAIT_FOR:-[]}
 export VERIFY_OBJECTS=${VERIFY_OBJECTS:-true}
@@ -27,7 +27,7 @@ export PRELOAD_IMAGES=${PRELOAD_IMAGES:-true}
 export PRELOAD_PERIOD=${PRELOAD_PERIOD:-2m}
 
 # Kube-burner benchmark
-export KUBE_BURNER_URL=${KUBE_BURNER_URL:-"https://github.com/cloud-bulldozer/kube-burner/releases/download/v1.4.1/kube-burner-1.4.1-Linux-x86_64.tar.gz"}
+export KUBE_BURNER_URL=${KUBE_BURNER_URL:-"https://github.com/cloud-bulldozer/kube-burner/releases/download/v1.4.2/kube-burner-1.4.2-Linux-x86_64.tar.gz"}
 export JOB_TIMEOUT=${JOB_TIMEOUT:-4h}
 export NODE_SELECTOR=${NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
 export METRICS_PROFILE=${METRICS_PROFILE}
