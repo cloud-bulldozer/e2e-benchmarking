@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: hypershift-monitoring-stack                                                           
+  name: prometheus-hypershift-monitoring-stack
+  namespace: openshift-observability-operator
+spec:
+  ports:
+  - port: 9090
+    protocol: TCP
+    targetPort: web
+  selector:
+    app.kubernetes.io/instance: hypershift-monitoring-stack
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: prometheus-hypershift
+  namespace: openshift-observability-operator
+spec:
+  port:
+    targetPort: 9090
+  to:
+    name: prometheus-hypershift-monitoring-stack

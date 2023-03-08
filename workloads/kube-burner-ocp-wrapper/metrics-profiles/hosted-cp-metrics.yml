@@ -1,0 +1,46 @@
+# Hosted control-plane metrics
+# All these metrics should use the namespace=~".+{{.HCP_NAMESPACE}}" filter
+# Collected metrics about API, OVN, etcd and cluster_version provided by the CVO
+
+# API server
+
+- query: irate(apiserver_request_total{namespace=~".+{{.HCP_NAMESPACE}}", verb="POST", resource="pods", subresource="binding",code="201"}[2m]) > 0
+  metricName: schedulingThroughput
+
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}", apiserver="kube-apiserver", verb=~"LIST|GET", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope)) > 0
+  metricName: readOnlyAPICallsLatency
+
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}", apiserver="kube-apiserver", verb=~"POST|PUT|DELETE|PATCH", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope)) > 0
+  metricName: mutatingAPICallsLatency
+
+- query: sum(irate(apiserver_request_total{namespace=~".+{{.HCP_NAMESPACE}}", job="kube-apiserver",verb!="WATCH"}[2m])) by (verb,resource,instance) > 0
+  metricName: APIRequestRate
+
+# OVN service sync latency
+
+- query: histogram_quantile(0.99, sum(rate(ovnkube_master_network_programming_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}", kind="service"}[2m])) by (le))
+  metricName: serviceSyncLatency
+
+# Etcd metrics
+
+- query: sum(rate(etcd_server_leader_changes_seen_total{namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
+  metricName: etcdLeaderChangesRate
+
+- query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
+  metricName: 99thEtcdDiskBackendCommitDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
+  metricName: 99thEtcdDiskWalFsyncDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}"}[5m]))
+  metricName: 99thEtcdRoundTripTimeSeconds
+
+- query: sum by (cluster_version)(etcd_cluster_version)
+  metricName: etcdVersion
+  instant: true
+
+# Cluster version
+
+- query: cluster_version{type="completed", namespace=~".+{{.HCP_NAMESPACE}}"}
+  metricName: clusterVersion
+  instant: true
