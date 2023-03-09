@@ -132,6 +132,8 @@ cat << EOF
 ###############################################
 Workload: ${WORKLOAD}
 Workload template: ${WORKLOAD_TEMPLATE}
+Prometheus Url: ${PROM_URL}
+Metrics Endpoint: ${METRICS_ENDPOINT}
 Metrics profile: ${METRICS_PROFILE}
 Alerts profile: ${ALERTS_PROFILE}
 QPS: ${QPS}
