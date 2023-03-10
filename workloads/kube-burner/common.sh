@@ -70,13 +70,7 @@ run_workload() {
   CMD="timeout ${JOB_TIMEOUT} ${KUBE_DIR}/kube-burner init --uuid=${UUID} -c $(basename ${WORKLOAD_TEMPLATE}) --log-level=${LOG_LEVEL}"
   # When metrics or alerting are enabled we have to pass the prometheus URL to the cmd
   if [[ ${INDEXING} == "true" ]] || [[ ${PLATFORM_ALERTS} == "true" ]] ; then
-      if [[ -n ${METRICS_ENDPOINT} ]]; then
-        log "Using endpoints from ${METRICS_ENDPOINT}"
-        CMD+=" -e ${METRICS_ENDPOINT}"
-      else
-        log "Using prometheus from ${PROM_URL}"
-        CMD+=" -u=${PROM_URL} -t ${PROM_TOKEN}"
-      fi
+    CMD+=" -u=${PROM_URL} -t ${PROM_TOKEN}"
   fi
   if [[ -n ${METRICS_PROFILE} ]]; then
     log "Indexing enabled, using metrics from ${METRICS_PROFILE}"

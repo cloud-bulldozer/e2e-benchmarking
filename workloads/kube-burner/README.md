@@ -30,7 +30,6 @@ Workloads can be tweaked with the following environment variables:
 | **ES_SERVER**        | Elasticsearch endpoint          | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
 | **ES_INDEX**         | Elasticsearch index             | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint, it should be Thanos querier endpoint when running on `HYPERSHIFT` cluster | Prometheus endpoint is automatically discovered |
-| **METRICS_ENDPOINT** | A yaml file with list of prometheus endpoints to scrape. It will take precedence over PROM_URL option | Empty string ("")
 | **JOB_TIMEOUT**      | Kube-burner's timeout, in seconds | 4h (4 hours) |
 | **QPS**              | Queries/sec                     | 20      |
 | **BURST**            | Maximum number of simultaneous queries | 20      |
