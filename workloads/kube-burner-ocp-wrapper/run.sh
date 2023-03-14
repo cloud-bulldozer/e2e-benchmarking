@@ -16,7 +16,8 @@ download_binary(){
 }
 
 hypershift(){
-  MC_KUBECONFIG=${MC_KUBECONFIG:?}
+  echo "HyperShift detected"
+  # Get hosted cluster ID and name
   HC_ID=$(oc get infrastructure cluster -o go-template --template='{{.status.infrastructureName}}')
   HC_NAME=$(oc get infrastructure cluster -o go-template --template='{{range .status.platformStatus.aws.resourceTags}}{{if eq .key "api.openshift.com/name" }}{{.value}}{{end}}{{end}}')
   
@@ -52,11 +53,11 @@ EOF
 
 download_binary
 cmd="/tmp/kube-burner ocp ${WORKLOAD} --log-level=${LOG_LEVEL}"
-if [[ ${WORKLOAD} == "cluster-density" ]]; then
+if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
-if [[ ${HYPERSHIFT} == "true" ]]; then
+if [[ -n ${MC_KUBECONFIG} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
 fi

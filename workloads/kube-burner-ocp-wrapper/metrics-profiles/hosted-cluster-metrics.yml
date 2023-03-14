@@ -5,13 +5,13 @@
 # Containers & pod metrics
 
 - query: (avg(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|ingress)"}[2m]) * 100 and on (node) kube_node_role{role="worker"}) by (namespace, pod, container)) > 0
-  metricName: containerCPU-AggregatedWorkers
+  metricName: containerCPU-Workers
 
 - query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(monitoring|sdn|ovn-kubernetes|ingress|image-registry)"}[2m]) * 100) by (container, pod, namespace, node) and on (node) kube_node_role{role="infra"}) > 0
   metricName: containerCPU-Infra
 
 - query: avg(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|ingress)"} and on (node) kube_node_role{role="worker"}) by (pod, container, namespace)
-  metricName: containerMemory-AggregatedWorkers
+  metricName: containerMemory-Workers
 
 - query: (sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|ingress|monitoring|image-registry)"}) by (container, pod, namespace, node) and on (node) kube_node_role{role="infra"}) > 0
   metricName: containerMemory-Infra
@@ -21,11 +21,15 @@
 - query: (avg((sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))) by (mode)) > 0
   metricName: nodeCPU-AggregatedWorkers
 
-- query: avg(node_memory_MemAvailable_bytes and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
-  metricName: nodeMemoryAvailable-AggregatedWorkers
+# Management Node metrics: CPU & Memory
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: nodeCPU-Infra
 
-- query: node_memory_MemAvailable_bytes and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")
-  metricName: nodeMemoryAvailable-Infra
+- query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryUtilization-Workers
+
+- query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryUtilization-Infra
 
 # Cluster metrics
 
