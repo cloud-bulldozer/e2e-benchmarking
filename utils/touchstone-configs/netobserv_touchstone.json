@@ -252,46 +252,6 @@
             },
             {
                 "filter": {
-                    "metric_name.keyword": "nBytesProcessedPerMinute"
-                },
-                "buckets": [
-                    "data_type.keyword"
-                ],
-                "aggregations": {
-                    "value": [
-                        {
-                            "percentiles": {
-                                "percents": [
-                                    90
-                                ]
-                            }
-                        },
-                        "avg"
-                    ]
-                }
-            },
-            {
-                "filter": {
-                    "metric_name.keyword": "nPacketsProcessedPerMinute"
-                },
-                "buckets": [
-                    "metadata.pod.keyword"
-                ],
-                "aggregations": {
-                    "value": [
-                        {
-                            "percentiles": {
-                                "percents": [
-                                    90
-                                ]
-                            }
-                        },
-                        "avg"
-                    ]
-                }
-            },
-            {
-                "filter": {
                     "metric_name.keyword": "lokiStorageUsage"
                 },
                 "buckets": [
