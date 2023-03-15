@@ -58,16 +58,18 @@ run_benchmark_comparison() {
     if [[ -z $CONFIG_LOC ]]; then
       git clone https://github.com/cloud-bulldozer/benchmark-comparison.git
     fi
-
-    # iterate through all COMPARISON_CONFIG files
-    for config in ${COMPARISON_CONFIG}
-    do
-      # config_loc can be custom but will be under benchmark-comparison by default
+    TOLERANCY_RULES_LIST=($TOLERANCY_RULES)
+    COMPARISON_CONFIG_LIST=($COMPARISON_CONFIG)
+    for i in "${!COMPARISON_CONFIG_LIST[@]}"; do
+      config=${COMPARISON_CONFIG_LIST[i]}
+       # config_loc can be custom but will be under benchmark-comparison by default
       if [[ -z $CONFIG_LOC ]]; then
         config_loc=benchmark-comparison/config/${config}
       else
         config_loc=$CONFIG_LOC/${config}
       fi
+
+
       echo "config ${config_loc}"
       check_metric_to_modify $config_loc
       COMPARISON_FILE="${res_output_dir}/${config}"
@@ -77,7 +79,16 @@ run_benchmark_comparison() {
       # run baseline comparison if ES_SERVER_BASELINE and BASELINE_UUID are set
       if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
         log "Comparing with baseline"
-        if ! compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "${COMPARISON_FILE}"; then
+
+        if [[ -n ${TOLERANCY_RULES_LIST} ]]; then
+
+          if [[ -z $CONFIG_LOC ]]; then
+            SUB_TOLERANCY_RULES=benchmark-comparison/tolerancy-configs/${TOLERANCY_RULES_LIST[i]}
+          else
+            SUB_TOLERANCY_RULES=$TOLERANCE_LOC/${TOLERANCY_RULES_LIST[i]}
+          fi
+        fi
+        if ! compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "${COMPARISON_FILE}" "${SUB_TOLERANCY_RULES}"; then
           compare_result=$((${compare_result} + 1))
           log "Comparing with baseline for config file $config failed"
         fi
@@ -147,8 +158,8 @@ compare() {
   cmd="touchstone_compare --database elasticsearch -url ${1} -u ${2} --config ${3}"
 
   # add arguments to base command based on function args and env globals
-  if [[ ( -n ${TOLERANCY_RULES} ) && ( ${#2} > 40 ) ]]; then
-    cmd+=" --tolerancy-rules ${TOLERANCY_RULES}"
+  if [[ ( $# -gt 3 ) && ( -n ${4} ) && ( ${#2} > 40 ) ]]; then
+    cmd+=" --tolerancy-rules ${4}"
   fi
   if [[ -n ${COMPARISON_ALIASES} ]]; then
     cmd+=" --alias ${COMPARISON_ALIASES}"
