@@ -4,14 +4,18 @@
             "prod-netobserv-operator-metadata": {
                 "fields": [
                     "agent",
-                    "cache_active_time",
-                    "cache_max_flows",
-                    "flp_kind",
-                    "release",
-                    "sampling",
                     "aws_s3_bucket_name",
                     "aws_s3_bucket_objects",
-                    "aws_s3_bucket_size"
+                    "aws_s3_bucket_size",
+                    "cache_active_time",
+                    "cache_max_flows",
+                    "deploymentModel",
+                    "flp_kind",
+                    "kafka_brokers",
+                    "kafka_replicas",
+                    "loki",
+                    "release",
+                    "sampling"
                 ],
                 "additional_fields": [
                     "metric_name"
@@ -21,8 +25,8 @@
                 "fields": [
                     "jenkins_build_num",
                     "jenkins_job_name",
-                    "workload",
-                    "variable"
+                    "variable",
+                    "workload"
                 ],
                 "additional_fields": [
                     "metric_name"
@@ -233,46 +237,6 @@
             {
                 "filter": {
                     "metric_name.keyword": "nFlowsProcessedPerMinute"
-                },
-                "buckets": [
-                    "metadata.pod.keyword"
-                ],
-                "aggregations": {
-                    "value": [
-                        {
-                            "percentiles": {
-                                "percents": [
-                                    90
-                                ]
-                            }
-                        },
-                        "avg"
-                    ]
-                }
-            },
-            {
-                "filter": {
-                    "metric_name.keyword": "nBytesProcessedPerMinute"
-                },
-                "buckets": [
-                    "data_type.keyword"
-                ],
-                "aggregations": {
-                    "value": [
-                        {
-                            "percentiles": {
-                                "percents": [
-                                    90
-                                ]
-                            }
-                        },
-                        "avg"
-                    ]
-                }
-            },
-            {
-                "filter": {
-                    "metric_name.keyword": "nPacketsProcessedPerMinute"
                 },
                 "buckets": [
                     "metadata.pod.keyword"
