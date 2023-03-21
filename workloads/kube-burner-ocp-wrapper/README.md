@@ -25,7 +25,9 @@ INFO[2023-03-13 16:40:00] Job cluster-density-v2: 5 iterations with 2 Deployment
 This wrapper supports some variables to tweak some basic parameters of the workloads:
 
 - **ES_SERVER**: Defines the ElasticSearch/OpenSearch endpoint. By default it points the development instance.
+- **ES_INDEX**: Defines the ElasticSearch/OpenSearch index name. By default `ripsaw-kube-burner`
 - **QPS** and **BURST**: Defines client-go QPS and BURST parameters for kube-burner. 20 by default
+- **GC**: Garbage collect created namespaces. true by default
 
 ### Cluster-density and cluster-density-v2
 

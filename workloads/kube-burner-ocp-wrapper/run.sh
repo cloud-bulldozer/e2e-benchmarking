@@ -9,6 +9,7 @@ CHURN=${CHURN:-true}
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
 BURST=${BURST:-20}
+GC=${GC:-true}
 
 download_binary(){
   KUBE_BURNER_URL=https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-${KUBE_BURNER_VERSION}-Linux-x86_64.tar.gz
@@ -52,7 +53,7 @@ EOF
 }
 
 download_binary
-cmd="/tmp/kube-burner ocp ${WORKLOAD} --log-level=${LOG_LEVEL}"
+cmd="/tmp/kube-burner ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC}"
 if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
@@ -63,7 +64,7 @@ if [[ -n ${MC_KUBECONFIG} ]]; then
 fi
 # If ES_SERVER is specified
 if [[ -n ${ES_SERVER} ]]; then
-  cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner --qps=${QPS} --burst=${BURST}"
+  cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
 echo $cmd
 exec $cmd
