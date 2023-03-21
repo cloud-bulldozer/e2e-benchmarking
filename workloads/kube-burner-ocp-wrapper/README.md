@@ -28,6 +28,7 @@ This wrapper supports some variables to tweak some basic parameters of the workl
 - **ES_INDEX**: Defines the ElasticSearch/OpenSearch index name. By default `ripsaw-kube-burner`
 - **QPS** and **BURST**: Defines client-go QPS and BURST parameters for kube-burner. 20 by default
 - **GC**: Garbage collect created namespaces. true by default
+- **EXTRA_FLAGS**: Extra flags that will be appended to the underlying kube-burner ocp command, by default empty.
 
 ### Cluster-density and cluster-density-v2
 

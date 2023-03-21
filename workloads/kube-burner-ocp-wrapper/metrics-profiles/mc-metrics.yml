@@ -7,7 +7,7 @@
 - query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}[2m]) * 100) by (container, pod, namespace, node)) > 0
   metricName: mgmt-containerCPU
 
-- query: sum(container_memory_rss{container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}) by (container, pod, namespace, node)
+- query: sum(container_memory_rss{name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}) by (container, pod, namespace, node)
   metricName: mgmt-containerMemory
 
 # Management Node metrics: CPU & Memory

@@ -4,12 +4,13 @@ set -e
 
 ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
 LOG_LEVEL=${LOG_LEVEL:-info}
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.4.3}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.4.4}
 CHURN=${CHURN:-true}
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
 BURST=${BURST:-20}
 GC=${GC:-true}
+EXTRA_FLAGS=${EXTRA_FLAGS:-}
 
 download_binary(){
   KUBE_BURNER_URL=https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-${KUBE_BURNER_VERSION}-Linux-x86_64.tar.gz
@@ -66,5 +67,6 @@ fi
 if [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
+cmd+=" ${EXTRA_FLAGS}"
 echo $cmd
 exec $cmd

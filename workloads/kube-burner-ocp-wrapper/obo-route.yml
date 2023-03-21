@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app.kubernetes.io/instance: hypershift-monitoring-stack                                                           
+    app.kubernetes.io/instance: hypershift-monitoring-stack
   name: prometheus-hypershift-monitoring-stack
   namespace: openshift-observability-operator
 spec:
