@@ -3,18 +3,24 @@
 The purpose of this script is to deploy the logging stack which includes Elasticsearch, Fluentd and Kibana on an OpenShift cluster.
 
 
-## Run
+## Cluster Logging Stack Installation
 ```
 $ ./deploy_logging_stack.sh
 ```
 This deploys the cluster-logging-operator which creates and manages the Elasticsearch cluster, Fluentd DaemonSet - pod on each of the nodes and Kibana in openshift-logging namespace.
+
+## Test Run
+```
+$ ./run_logging_test.sh
+```
+This runs the logging test based on env.sh parameters. If **DEPLOY_LOGGING** is set to `True`, it will also install Cluster Logging Stack using `deploy_logging_stack.sh` script
 
 
 ## Environment variables
 Ensure to have `KUBECONFIG` set to the proper path to your desired cluster.
 
 ### CHANNEL
-Default: `4.6`
+Default: `stable-5.5`
 Update channel for the Elasticsearch and Cluster logging operators.
 
 ### CUSTOM_ES_URL
@@ -27,15 +33,19 @@ Default: 3
 Number of Elasticsearch nodes.
 
 ### ES_STORAGE_CLASS
-Default: 'gp2'
+Default: 'gp3-csi'
 Storage class to use for the persistent storage. The faster the storage, better the Elasticsearch performance.
 
 ### ES_STORAGE_SIZE
 Default: `100G`
 Each data node in the cluster is bound to a Persistent Volume Claim that requests the size specified using this variable from the cloud storage.
 
+### ES_MEMORY_LIMITS
+Default: `16Gi`
+Memory limits for the Elasticsearch as needed.
+
 ### ES_MEMORY_REQUESTS
-Default: `8Gi`
+Default: `16Gi`
 Memory requests for the Elasticsearch as needed.
 
 ### ES_PROXY_MEMORY_LIMITS
@@ -69,7 +79,11 @@ Logs to forward to the Elasticsearch backend. Only application logs are forwarde
 
 ### TIMEOUT
 Default: 180
-Time to wait for resources created to be up before exiting
+Time to wait for resources created before exiting
+
+### DEBUG
+Default: true
+Enable debug logging on snafu execution
 
 ### TEST_CLEANUP
 Default: true
@@ -83,7 +97,7 @@ Benchmark timeout in seconds
 
 
 ## Suggested configuration
-[Log store guide](https://docs.openshift.com/container-platform/4.6/logging/config/) can be used to configure the stack depending on the scale, performance and redundancy we need. The following variables can be exported as the environment variables to tweak the supported parameters:
+[Log store guide](https://docs.openshift.com/container-platform/4.12/logging/cluster-logging-deploying.html#cluster-logging-deploy-cli_cluster-logging-deploying) can be used to configure the stack depending on the scale, performance and redundancy we need. The following variables can be exported as the environment variables to tweak the supported parameters:
 
 ```sh
 export CHANNEL=

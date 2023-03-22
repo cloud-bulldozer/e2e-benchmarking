@@ -4,6 +4,7 @@ metadata:
   name: log-generator
   namespace: benchmark-operator
 spec:
+  clustername: ${CLUSTER_ID}
   uuid: ${UUID}
   elasticsearch:
     url: ${ES_SERVER}
@@ -13,6 +14,7 @@ spec:
   workload:
     name: log_generator
     args:
+      debug: ${DEBUG}
       pod_count: ${POD_COUNT}
       size: ${MESSAGE_SIZE}
       messages_per_second: ${MESSAGES_PER_SECOND}
