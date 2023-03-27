@@ -16,7 +16,9 @@ check_hypershift
 deploy_infra
 tune_workload_node apply
 client_pod=$(oc get pod -l app=http-scale-client -n http-scale-client | awk '/Running/{print $1}')
-reschedule_monitoring_stack worker
+if [[ ${RESCHEDULE_MONITORING_STACK} == "true" ]]; then
+  reschedule_monitoring_stack worker
+fi
 configure_ingress_images
 tune_liveness_probe
 if [[ ${METADATA_COLLECTION} == "true" ]]; then
@@ -49,7 +51,9 @@ done
 
 tune_workload_node delete
 cleanup_infra
-reschedule_monitoring_stack infra
+if [[ ${RESCHEDULE_MONITORING_STACK} == "true" ]]; then
+  reschedule_monitoring_stack infra
+fi
 
 export WORKLOAD="router-perf"
 
