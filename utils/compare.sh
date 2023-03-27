@@ -31,7 +31,7 @@ run_benchmark_comparison() {
   log "benchmark"
   compare_result=0
   if [[ -n ${ES_SERVER} ]] && [[ -n ${COMPARISON_CONFIG} ]]; then
-  
+
     log "Installing touchstone"
     install_touchstone
     network_ns=openshift-ovn-kubernetes
@@ -42,9 +42,16 @@ run_benchmark_comparison() {
     export COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
     final_csv=${res_output_dir}/${UUID}.csv
     echo "final csv $final_csv"
+    if [[ -z $CONFIG_LOC ]]; then
+      git clone https://github.com/cloud-bulldozer/benchmark-comparison.git
+    fi
     for config in ${COMPARISON_CONFIG}
     do
-      config_loc=$(dirname $(realpath ${BASH_SOURCE[0]}))/touchstone-configs/${config}
+      if [[ -z $CONFIG_LOC ]]; then
+        config_loc=benchmark-comparison/config/${config}
+      else
+        config_loc=$CONFIG_LOC/${config}
+      fi
       echo "config ${config_loc}"
       check_metric_to_modify $config_loc
       COMPARISON_FILE="${res_output_dir}/${config}"
