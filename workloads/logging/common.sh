@@ -57,9 +57,6 @@ run_workload() {
   if [[ ${ES_BACKEND_INDEX} != "" ]]; then
     echo "    es_index: "$ES_BACKEND_INDEX >> log_generator_$timestamp.yaml
   fi
-  if [[ ${ES_BACKEND_INDEX} != "" ]]; then
-    echo "    es_index: "$ES_BACKEND_INDEX >> log_generator_$timestamp.yaml
-  fi
   if [[ ${CLOUDWATCH_LOG_GROUP} != "" ]]; then
     echo "    cloudwatch_log_group: "$CLOUDWATCH_LOG_GROUP >> log_generator_$timestamp.yaml
   fi
