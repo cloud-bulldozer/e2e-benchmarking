@@ -15,7 +15,15 @@ spec:
       labels:
         app: nginx-{{.Replica}}
     spec:
-      nodeSelector: {{.nodeSelector}}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/workload
+                operator: DoesNotExist
+              - key: node-role.kubernetes.io/infra
+                operator: DoesNotExist
       containers:
       - name: nginx
         image: quay.io/cloud-bulldozer/nginx:latest
