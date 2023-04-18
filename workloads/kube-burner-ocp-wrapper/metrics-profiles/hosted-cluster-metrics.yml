@@ -16,6 +16,12 @@
 - query: (sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|ingress|monitoring|image-registry)"}) by (container, pod, namespace, node) and on (node) kube_node_role{role="infra"}) > 0
   metricName: containerMemory-Infra
 
+- query: (avg(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}[2m]) * 100) by (namespace, pod, container)) > 0
+  metricName: containerCPU-AggregatedWorkers
+
+- query: avg(container_memory_rss{container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}) by (pod, container, namespace)
+  metricName: containerMemory-AggregatedWorkers
+
 # Node metrics: CPU & Memory
 
 - query: sum(irate(node_cpu_seconds_total{}[2m])) by (mode,instance) and on (instance) bottomk(5,avg_over_time((sum(irate(node_cpu_seconds_total{mode="idle"}[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))[{{ .elapsed }}:]))
@@ -30,6 +36,22 @@
 
 - query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")
   metricName: nodeMemoryUtilization-Infra
+
+- query: node_memory_MemAvailable_bytes{} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryAvailable-Workers
+
+- query: node_memory_MemTotal_bytes{} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryTotal-Workers
+
+- query: (max(sum(irate(node_cpu_seconds_total{}[2m])) by (mode,instance) and on (instance) label_replace(bottomk(1, min_over_time(sum(irate(node_cpu_seconds_total{mode=~"idle"}[2m])) by (mode,instance)[5m:2m] @ {{.Q_TIME}})), "instance", "$1", "instance", "(.+)")) by (mode)) > 0
+  metricName: nodeCPU-AggregatedWorkers
+  
+- query: bottomk(1,min_over_time(node_memory_MemAvailable_bytes{}[5m:2m] @ {{.Q_TIME}}))
+  metricName: nodeMemoryAvailable-AggregatedWorkers
+
+- query: avg(node_memory_MemTotal_bytes{} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
+  metricName: nodeMemoryTotal-AggregatedWorkers
+  instant: true  
 
 # Cluster metrics
 

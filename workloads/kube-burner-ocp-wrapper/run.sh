@@ -11,10 +11,12 @@ QPS=${QPS:-20}
 BURST=${BURST:-20}
 GC=${GC:-true}
 EXTRA_FLAGS=${EXTRA_FLAGS:-}
+UUID=$(uuidgen)
+KUBE_DIR="/tmp"
 
 download_binary(){
   KUBE_BURNER_URL=https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-${KUBE_BURNER_VERSION}-Linux-x86_64.tar.gz
-  curl -sS -L ${KUBE_BURNER_URL} | tar -xzC /tmp/ kube-burner
+  curl -sS -L ${KUBE_BURNER_URL} | tar -xzC ${KUBE_DIR}/ kube-burner
 }
 
 hypershift(){
@@ -40,6 +42,22 @@ hypershift(){
   MC_PROMETHEUS_TOKEN=$(oc --kubeconfig=${MC_KUBECONFIG} sa new-token -n openshift-monitoring prometheus-k8s)
   HOSTED_PROMETHEUS=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
   HOSTED_PROMETHEUS_TOKEN=$(oc sa new-token -n openshift-monitoring prometheus-k8s)
+
+  echo "Get all management worker nodes, excludes infra, obo, workload"
+  Q_TIME=$(date +"%s")
+  Q_NODES=""
+  for n in $(curl -H "Authorization: Bearer ${MC_PROMETHEUS_TOKEN}" -k --silent --globoff  ${MC_PROMETHEUS}/api/v1/query?query='sum(kube_node_role{role=~"master|infra|workload|obo"})by(node)&time='$(($Q_TIME-300))'' | jq -r '.data.result[].metric.node'); do
+    if [[ ${Q_NODES} == "" ]]; then
+      Q_NODES=${n}
+    else
+      Q_NODES=${Q_NODES}"|"${n};
+    fi
+  done
+  MGMT_NON_WORKER_NODES=${Q_NODES}
+  # set time for modifier queries 
+  Q_TIME=$(($Q_TIME+600))
+
+    
   echo "Exporting required vars"
   cat << EOF
 MC_OBO: ${MC_OBO}
@@ -48,13 +66,15 @@ MC_PROMETHEUS_TOKEN: <truncated>
 HOSTED_PROMETHEUS: ${HOSTED_PROMETHEUS}
 HOSTED_PROMETHEUS_TOKEN: <truncated>
 HCP_NAMESPACE: ${HCP_NAMESPACE}
+MGMT_NON_WORKER_NODES: ${MGMT_NON_WORKER_NODES}
+Q_TIME: ${Q_TIME}
 
 EOF
-  export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE
+  export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE Q_TIME MGMT_NON_WORKER_NODES
 }
 
 download_binary
-cmd="/tmp/kube-burner ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC}"
+cmd="${KUBE_DIR}/kube-burner ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
 if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
@@ -68,5 +88,18 @@ if [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
 cmd+=" ${EXTRA_FLAGS}"
+
+echo "Indexing Management cluster stats before executing"
+METADATA=$(cat << EOF
+{
+"uuid" : "${UUID}",
+"mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
+"hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
+"timestamp": "$(date +%s%3N)"
+}
+EOF
+)
+curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
+
 echo $cmd
 exec $cmd
