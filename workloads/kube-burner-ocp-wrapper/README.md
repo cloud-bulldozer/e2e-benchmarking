@@ -30,10 +30,27 @@ This wrapper supports some variables to tweak some basic parameters of the workl
 - **GC**: Garbage collect created namespaces. true by default
 - **EXTRA_FLAGS**: Extra flags that will be appended to the underlying kube-burner ocp command, by default empty.
 
+### Using the EXTRA_FLAGS variable
+
+All the flags that can be appeneded through the `EXTRA_FLAGS` variable can be found in the [kube-burner docs](https://kube-burner.readthedocs.io/en/latest/ocp/)
+For example, we can tweak the churning behaviour of the cluster-density workload with:
+
+```shell
+$ export EXTRA_FLAGS="--churn-duration=1d --churn-percent=5 --churn-delay=5m"
+$ ITERATIONS=500 WORKLOAD=cluster-density-v2 ./run.sh
+```
+
+Or disable the namespace garbage collection:
+
+```
+$ EXTRA_FLAGS="--gc=false" ITERATIONS=500 WORKLOAD=cluster-density-v2 ./run.sh
+```
+
+
 ### Cluster-density and cluster-density-v2
 
 - **ITERATIONS**: Defines the number of iterations of the workload to run. No default value
-- **CHURN**: Enables workload churning. By default is true
+- **CHURN**: Enables workload churning. Workload churning is enabled by default with `churn-duration=1h`, `churn-delay=2m` and `churn-percent=10`. These parameters can be tuned through the `EXTRA_FLAGS` variable as noted previously.
 
 ## HyperShift
 
