@@ -1,0 +1,18 @@
+# Management cluster metrics
+# They should be preffixed with mgmt- to distinguish from the hosted cluster ones
+# Only collecting container and worker nodes CPU/Memory metrics
+
+# ControlPlane Containers & pod metrics
+
+- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}[2m]) * 100) by (container, pod, namespace, node)) > 0
+  metricName: mgmt-containerCPU
+
+- query: sum(container_memory_rss{name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}) by (container, pod, namespace, node)
+  metricName: mgmt-containerMemory
+
+# Management Node metrics: CPU & Memory
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: mgmt-nodeCPU-Workers
+
+- query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: mgmt-nodeMemoryUtilization-Workers
