@@ -16,12 +16,6 @@
 - query: (sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|ingress|monitoring|image-registry)"}) by (container, pod, namespace, node) and on (node) kube_node_role{role="infra"}) > 0
   metricName: containerMemory-Infra
 
-- query: (avg(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}[2m]) * 100) by (namespace, pod, container)) > 0
-  metricName: containerCPU-AggregatedWorkers
-
-- query: avg(container_memory_rss{container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry)"}) by (pod, container, namespace)
-  metricName: containerMemory-AggregatedWorkers
-
 # Node metrics: CPU & Memory
 
 - query: sum(irate(node_cpu_seconds_total{}[2m])) by (mode,instance) and on (instance) bottomk(5,avg_over_time((sum(irate(node_cpu_seconds_total{mode="idle"}[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))[{{ .elapsed }}:]))
