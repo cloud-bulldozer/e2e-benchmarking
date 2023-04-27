@@ -41,7 +41,7 @@
   metricName: nodeCPU-AggregatedWorkers
   
 - query: bottomk(1,min_over_time(node_memory_MemAvailable_bytes{}[{{ .elapsed }}:]))
-  metricName: nodeMemoryAvailable-AggregatedWorkers
+  metricName: nodeMemoryAvailable-MostUtilizedWorker
 
 - query: avg(node_memory_MemTotal_bytes{} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
   metricName: nodeMemoryTotal-AggregatedWorkers
