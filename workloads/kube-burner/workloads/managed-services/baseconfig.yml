@@ -1,7 +1,6 @@
 # PLEASE DON"T DELETE THIS FILE, IT'S BEING USED BY AIRFLOW FOR BASELINE CLUSTER STAT
 ---
 global:
-  writeToFile: false
   indexerConfig:
     enabled: true
     esServers: ["${ES_SERVER}"]
