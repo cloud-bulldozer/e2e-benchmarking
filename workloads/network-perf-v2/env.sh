@@ -10,3 +10,6 @@ export NETPERF_URL=${NETPERF_URL:-https://github.com/jtaleric/k8s-netperf/releas
 # Workload
 export WORKLOAD=${WORKLOAD:-smoke.yaml}
 export TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
+
+# Tolerance of delta from hostNetwork to podNetwork
+export TOLERANCE=${TOLERANCE:-20}

@@ -14,7 +14,7 @@ log "###############################################"
 log "Workload: ${WORKLOAD}"
 log "###############################################"
 
-timeout $TEST_TIMEOUT ./k8s-netperf --debug --metrics --all --config ${WORKLOAD} --search $ES_SERVER --clean=true
+timeout $TEST_TIMEOUT time ./k8s-netperf --debug --metrics --all --config ${WORKLOAD} --search $ES_SERVER --tcp-tolerance ${TOLERANCE} --clean=true
 run=$?
 
 # Add debugging info (will be captured in each execution output)
