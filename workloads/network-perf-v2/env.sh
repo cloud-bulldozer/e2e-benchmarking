@@ -5,7 +5,7 @@ export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4b
 export NETPERF_VERSION=${VERSION:-v0.1.6}
 export OS=${OS:-Linux}
 export ARCH=$(arch)
-export NETPERF_URL=${NETPERF_URL:-https://github.com/jtaleric/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz}
+export NETPERF_URL=${NETPERF_URL:-https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz}
 
 # Workload
 export WORKLOAD=${WORKLOAD:-smoke.yaml}
