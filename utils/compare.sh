@@ -125,3 +125,4 @@ compare() {
   log "comare result: ${result}"
   return ${result}
 }
+
