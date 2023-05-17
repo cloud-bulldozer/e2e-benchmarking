@@ -40,10 +40,10 @@ $ export EXTRA_FLAGS="--churn-duration=1d --churn-percent=5 --churn-delay=5m"
 $ ITERATIONS=500 WORKLOAD=cluster-density-v2 ./run.sh
 ```
 
-Or disable the namespace garbage collection:
+Or increase the benchmark timeout (by default 3h):
 
-```
-$ EXTRA_FLAGS="--gc=false" ITERATIONS=500 WORKLOAD=cluster-density-v2 ./run.sh
+```shell
+$ EXTRA_FLAGS="--timeout=5h" ITERATIONS=500 WORKLOAD=cluster-density-v2 ./run.sh
 ```
 
 
