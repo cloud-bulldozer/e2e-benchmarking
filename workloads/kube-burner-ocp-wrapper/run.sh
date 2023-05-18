@@ -14,10 +14,31 @@ EXTRA_FLAGS=${EXTRA_FLAGS:-}
 UUID=$(uuidgen)
 KUBE_DIR=${KUBE_DIR:-/tmp}
 
+check_managed_cluster() {
+   status=$(oc get infrastructure/cluster -o=jsonpath='{.status.platformStatus.*.resourceTags[0]}')
+   if [[ $status =~ managed ]]; then
+      echo "Detected a Managed Cluster"
+      managed=true
+   fi
+}
+
+remove_managed_webhook_validation() {
+   echo "Disabling validation-webhook for Managed cluster"
+   oc patch -n openshift-validation-webhook daemonset validation-webhook -p '{"spec": {"template": {"spec": {"nodeSelector": {"non-existing": "true"}}}}}'
+   
+}
+
+add_managed_webhook_validation() {
+    echo "Enabling validation-webhook for Managed cluster"
+    oc patch -n openshift-validation-webhook daemonset validation-webhook --type json -p '[{ "op": "remove", "path": "/spec/template/spec/nodeSelector" }]'
+}
+
 download_binary(){
   KUBE_BURNER_URL=https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-${KUBE_BURNER_VERSION}-Linux-x86_64.tar.gz
   curl -sS -L ${KUBE_BURNER_URL} | tar -xzC ${KUBE_DIR}/ kube-burner
 }
+
+check_managed_cluster
 
 hypershift(){
   echo "HyperShift detected"
@@ -96,5 +117,13 @@ EOF
 )
 curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
 
+if [[ $managed == true ]]; then
+   remove_managed_webhook_validation
+fi
+
 echo $cmd
-exec $cmd
+$cmd
+
+if [[ $managed == true ]]; then
+   add_managed_webhook_validation
+fi
