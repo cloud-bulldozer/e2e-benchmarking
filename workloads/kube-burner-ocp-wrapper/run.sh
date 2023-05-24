@@ -19,6 +19,22 @@ download_binary(){
   curl -sS -L ${KUBE_BURNER_URL} | tar -xzC ${KUBE_DIR}/ kube-burner
 }
 
+get_worker_nodes() {
+  local PROMETHEUS_ENDPOINT="$1"
+  local PROMETHEUS_TOKEN="$2"
+  
+  # Retrieve worker nodes
+  response=$(curl -H "Authorization: Bearer ${PROMETHEUS_TOKEN}" -k --silent --globoff "${PROMETHEUS_ENDPOINT}/api/v1/query?query=sum(kube_node_role{role!~\"master|infra|workload|obo\"}) by (node)&time=$(date +%s)")
+  
+  # Extract the worker names
+  nodes=$(echo "${response}" | jq -r '.data.result[].metric.node')
+  
+  # Concatenate the node names
+  if [[ -n ${nodes} ]]; then
+    echo "${nodes}" | tr '\n' '|'
+  fi
+}
+
 hypershift(){
   echo "HyperShift detected"
   # Get hosted cluster ID and name
@@ -40,19 +56,16 @@ hypershift(){
   MC_OBO=http://$(oc --kubeconfig=${MC_KUBECONFIG} get route -n openshift-observability-operator prometheus-hypershift -o jsonpath="{.spec.host}")
   MC_PROMETHEUS=https://$(oc --kubeconfig=${MC_KUBECONFIG} get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
   MC_PROMETHEUS_TOKEN=$(oc --kubeconfig=${MC_KUBECONFIG} sa new-token -n openshift-monitoring prometheus-k8s)
+  SC_PROMETHEUS=https://$(oc --kubeconfig=${SC_KUBECONFIG} get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
+  SC_PROMETHEUS_TOKEN=$(oc --kubeconfig=${SC_KUBECONFIG} sa new-token -n openshift-monitoring prometheus-k8s)
   HOSTED_PROMETHEUS=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
   HOSTED_PROMETHEUS_TOKEN=$(oc sa new-token -n openshift-monitoring prometheus-k8s)
 
-  echo "Get all management worker nodes, excludes infra, obo, workload"
-  Q_NODES=""
-  for n in $(curl -H "Authorization: Bearer ${MC_PROMETHEUS_TOKEN}" -k --silent --globoff  ${MC_PROMETHEUS}/api/v1/query?query='sum(kube_node_role{role!~"master|infra|workload|obo"})by(node)&time='$(date +"%s")'' | jq -r '.data.result[].metric.node'); do
-    if [[ ${Q_NODES} == "" ]]; then
-      Q_NODES=${n}
-    else
-      Q_NODES=${Q_NODES}"|"${n};
-    fi
-  done
-  MGMT_WORKER_NODES=${Q_NODES}
+  echo "Get all the management worker nodes, excludes infra, obo, workload"
+  MGMT_WORKER_NODES=$(get_worker_nodes "${MC_PROMETHEUS}" "${MC_PROMETHEUS_TOKEN}")
+
+  echo "Get all the service worker nodes, excludes infra, obo, workload"
+  SVC_WORKER_NODES=$(get_worker_nodes "${SC_PROMETHEUS}" "${SC_PROMETHEUS_TOKEN}")
     
   echo "Exporting required vars"
   cat << EOF
@@ -63,9 +76,12 @@ HOSTED_PROMETHEUS: ${HOSTED_PROMETHEUS}
 HOSTED_PROMETHEUS_TOKEN: <truncated>
 HCP_NAMESPACE: ${HCP_NAMESPACE}
 MGMT_WORKER_NODES: ${MGMT_WORKER_NODES}
+SC_PROMETHEUS: ${SC_PROMETHEUS}
+SC_PROMETHEUS_TOKEN: <truncated>
+SVC_WORKER_NODES: ${SVC_WORKER_NODES}
 
 EOF
-  export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES
+  export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES SC_PROMETHEUS SC_PROMETHEUS_TOKEN SVC_WORKER_NODES
 }
 
 download_binary
@@ -74,7 +90,7 @@ if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
-if [[ -n ${MC_KUBECONFIG} ]]; then
+if [[ -n "${MC_KUBECONFIG}" && -n "${SC_KUBECONFIG}" ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
 fi
@@ -90,6 +106,7 @@ METADATA=$(cat << EOF
 "uuid" : "${UUID}",
 "mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
 "hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
+"svcClusterName": "$(oc get --kubeconfig=${SC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)", 
 "timestamp": "$(date +%s%3N)"
 }
 EOF

@@ -1,5 +1,5 @@
 # Management cluster metrics
-# They should be preffixed with mgmt- to distinguish from the hosted cluster ones
+# They should be prefixed with mgmt- to distinguish from the hosted cluster ones
 # Only collecting container and worker nodes CPU/Memory metrics
 
 # Management Node metrics: CPU & Memory

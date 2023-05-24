@@ -1,0 +1,58 @@
+# Service cluster metrics
+# They should be prefixed with svc- to distinguish from the hosted cluster & management cluster
+# Only collecting container and worker nodes CPU/Memory metrics
+
+# Service Node metrics: CPU & Memory
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: svc-nodeCPU-Workers
+
+- query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: svc-nodeMemoryUtilization-Workers
+
+- query: (max((sum(irate(node_cpu_seconds_total{}[2m])) by (mode,instance) and on (instance) label_replace(bottomk(1, min_over_time(sum(irate(node_cpu_seconds_total{mode=~"idle",instance=~"{{.SVC_WORKER_NODES}}"}[2m])) by (mode,instance)[{{ .elapsed }}:])), "instance", "$1", "instance", "(.+)"))) by (mode, instance)) > 0
+  metricName: svcNodeCPU-MostUtilizedWorker
+
+- query: bottomk(1,min_over_time(node_memory_MemAvailable_bytes{instance=~"{{.SVC_WORKER_NODES}}"}[{{ .elapsed }}:]))
+  metricName: svcNodeMemoryAvailable-MostUtilizedWorker
+
+- query: (avg(node_memory_MemTotal_bytes{instance=~"{{.SVC_WORKER_NODES}}"}) by (instance))
+  metricName: svcNodeMemoryTotal
+
+- query: (avg((sum(irate(node_cpu_seconds_total{}[2m])) by (mode,instance) and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master!=""}, "instance", "$1", "node", "(.+)"))) by (mode, instance)) > 0
+  metricName: svcMasterCPU-Aggregated
+
+- query: (avg(node_memory_MemAvailable_bytes{} and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master!=""}, "instance", "$1", "node", "(.+)")) by (instance))
+  metricName: svcMasterMemoryAvailable-Aggregated
+
+- query: (avg(node_memory_MemTotal_bytes{} and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master!=""}, "instance", "$1", "node", "(.+)")) by (instance))
+  metricName: svcMasterMemoryTotal
+
+
+# ControlPlane Containers metrics
+- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring)"}[2m]) * 100)  by (container, pod, namespace, node)) > 0
+  metricName: svc-containerCPU
+
+- query: sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring)"}) by (container, pod, namespace, node)
+  metricName: svc-containerMemory
+
+# SC Etcd metrics
+- query: sum(rate(etcd_server_leader_changes_seen_total{namespace=~"openshift-etcd"}[2m]))
+  metricName: svc-etcdLeaderChangesRate
+
+- query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{namespace=~"openshift-etcd"}[2m]))
+  metricName: svc-99thEtcdDiskBackendCommitDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{namespace=~"openshift-etcd"}[2m]))
+  metricName: svc-99thEtcdDiskWalFsyncDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{namespace=~"openshift-etcd"}[5m]))
+  metricName: svc-99thEtcdRoundTripTimeSeconds
+
+# Check the output
+- query: sum by (cluster_version)(etcd_cluster_version)
+  metricName: svc-EtcdVersion
+  instant: true
+
+- query: cluster_version{}
+  metricName: svc-ClusterVersion
+  instant: true
