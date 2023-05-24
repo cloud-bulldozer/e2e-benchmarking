@@ -1,0 +1,95 @@
+# vim: expandtab shiftwidth=2 softtabstop=2
+
+# First sample is set as warmup and also will tune the default ingress-controller to place the routers on infra nodes
+- termination: http
+  connections: 20
+  samples: 1
+  duration: 1m
+  path: /1024.html
+  concurrency: 1
+  tool: wrk
+  serverReplicas: 90
+  tuningPatch: '{"spec":{"nodePlacement": {"nodeSelector": {"matchLabels": {"node-role.kubernetes.io/infra": ""}}}, "replicas": 2}}'
+  warmup: true
+
+- termination: http
+  connections: 200
+  samples: 2
+  duration: 2m
+  path: /1024.html
+  concurrency: 1
+  tool: wrk
+  serverReplicas: 90
+  delay: 10s
+
+- termination: edge
+  connections: 200
+  samples: 2
+  duration: 2m
+  path: /1024.html
+  concurrency: 1
+  tool: wrk
+  serverReplicas: 90
+  delay: 10s
+
+- termination: reencrypt
+  connections: 200
+  samples: 2
+  duration: 2m
+  path: /1024.html
+  concurrency: 1
+  tool: wrk
+  serverReplicas: 90
+  delay: 10s
+
+- termination: passthrough
+  connections: 200
+  samples: 2
+  duration: 2m
+  path: /1024.html
+  concurrency: 1
+  tool: wrk
+  serverReplicas: 90
+  delay: 10s
+
+- termination: http
+  connections: 200
+  samples: 2
+  duration: 2m
+  path: /1024.html
+  concurrency: 20
+  tool: wrk
+  serverReplicas: 90
+  delay: 10s
+
+- termination: edge
+  connections: 200
+  samples: 2
+  duration: 2m
+  path: /1024.html
+  concurrency: 20
+  tool: wrk
+  serverReplicas: 90
+  delay: 10s
+
+- termination: reencrypt
+  connections: 200
+  samples: 2
+  duration: 2m
+  path: /1024.html
+  concurrency: 20
+  tool: wrk
+  serverReplicas: 90
+  delay: 10s
+
+- termination: passthrough
+  connections: 200
+  samples: 2
+  duration: 2m
+  path: /1024.html
+  concurrency: 20
+  tool: wrk
+  serverReplicas: 90
+  delay: 10s
+
+
