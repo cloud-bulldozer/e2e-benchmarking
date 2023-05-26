@@ -37,7 +37,7 @@
 
 # SC Etcd metrics
 - query: sum(rate(etcd_server_leader_changes_seen_total{namespace=~"openshift-etcd"}[2m]))
-  metricName: svc-etcdLeaderChangesRate
+  metricName: svc-EtcdLeaderChangesRate
 
 - query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{namespace=~"openshift-etcd"}[2m]))
   metricName: svc-99thEtcdDiskBackendCommitDurationSeconds
