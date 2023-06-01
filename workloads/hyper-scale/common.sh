@@ -251,7 +251,6 @@ cleanup(){
         done
         aws route53 delete-hosted-zone --id=$_ID || true
     done
-
     if [[ $HC_EXTERNAL_DNS == "true" ]]; then
         echo "Delete recordset in mgmt hostedzone"
         RS_VALUE=$(aws route53 list-resource-record-sets --hosted-zone-id $MGMT_AWS_HZ_ID --output json | jq -c '.ResourceRecordSets[] | select(.Name=="'"$BASEDOMAIN"'.") | select(.Type=="NS")')
