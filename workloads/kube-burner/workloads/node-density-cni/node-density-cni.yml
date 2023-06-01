@@ -59,7 +59,7 @@ jobs:
     jobIterations: {{.TEST_JOB_ITERATIONS}}
     qps: {{.QPS}}
     burst: {{.BURST}}
-    namespacedIterations: false
+    namespacedIterations: {{.NAMESPACED_ITERATIONS}}
     namespace: {{.UUID}}
     podWait: {{.POD_WAIT}}
     cleanup: {{.CLEANUP}}

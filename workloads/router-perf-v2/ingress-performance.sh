@@ -16,7 +16,9 @@ check_hypershift
 deploy_infra
 tune_workload_node apply
 client_pod=$(oc get pod -l app=http-scale-client -n http-scale-client | awk '/Running/{print $1}')
-reschedule_monitoring_stack worker
+if [[ ${RESCHEDULE_MONITORING_STACK} == "true" ]]; then
+  reschedule_monitoring_stack worker
+fi
 configure_ingress_images
 tune_liveness_probe
 if [[ ${METADATA_COLLECTION} == "true" ]]; then
@@ -49,11 +51,24 @@ done
 
 tune_workload_node delete
 cleanup_infra
-reschedule_monitoring_stack infra
+if [[ ${RESCHEDULE_MONITORING_STACK} == "true" ]]; then
+  reschedule_monitoring_stack infra
+fi
 
 export WORKLOAD="router-perf"
-run_benchmark_comparison
+
+# Do not exit when compare function has any non 0 return code when COMPARISON_RC=1
+set +e
+if ! run_benchmark_comparison; then
+  log "Benchmark comparison failed"
+  result="failed"
+fi
+set -e
 
 if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  snappy_backup "csv json" "http-perf.yml" "router-perf-v2"
+fi
+
+if [[ ${result} == "failed" ]] ; then
+ exit 1
 fi

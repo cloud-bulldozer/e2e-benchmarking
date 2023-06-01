@@ -25,7 +25,7 @@ elif [[ "$1" == "build" ]]; then
     export NODEPOOL_SIZE=$COMPUTE_WORKERS_NUMBER
     for itr in $(seq 1 $NUMBER_OF_HOSTED_CLUSTER);
     do
-        export HOSTED_CLUSTER_NAME=hypershift-$MGMT_CLUSTER_NAME-hosted-$itr
+        export HOSTED_CLUSTER_NAME=hcp-$MGMT_CLUSTER_NAME-hosted-$itr
         if [ "${NODEPOOL_SIZE}" == "0" ] ; then
             echo "Create None type Hosted cluster..$HOSTED_CLUSTER_NAME"    
             create_empty_cluster
@@ -38,7 +38,7 @@ elif [[ "$1" == "build" ]]; then
     export MGMT_CLUSTER_PREFIX=$MGMT_CLUSTER_NAME
     for itr in $(seq 1 $NUMBER_OF_HOSTED_CLUSTER);
     do
-        export HOSTED_CLUSTER_NAME=hypershift-$MGMT_CLUSTER_PREFIX-hosted-$itr
+        export HOSTED_CLUSTER_NAME=hcp-$MGMT_CLUSTER_PREFIX-hosted-$itr
         echo "Check Hosted cluster progress..$HOSTED_CLUSTER_NAME"
         postinstall
         if [[ $ENABLE_INDEX == "true" ]]; then

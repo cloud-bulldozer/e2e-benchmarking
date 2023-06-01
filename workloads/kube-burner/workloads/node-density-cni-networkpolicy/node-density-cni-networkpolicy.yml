@@ -93,7 +93,7 @@ jobs:
       - objectTemplate: webserver-deployment.yml
         replicas: 1
         inputVars:
-          nodeSelector: "{{.POD_NODE_SELECTOR}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
 
       - objectTemplate: webserver-service.yml
         replicas: 1
@@ -104,5 +104,5 @@ jobs:
       - objectTemplate: curl-deployment.yml
         replicas: 1
         inputVars:
-          nodeSelector: "{{.POD_NODE_SELECTOR}"
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
 

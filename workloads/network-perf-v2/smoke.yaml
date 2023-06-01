@@ -1,0 +1,36 @@
+---
+TCPStream:
+   parallelism: 1
+   profile: "TCP_STREAM"
+   duration: 10
+   samples: 1
+   messagesize: 4096
+
+StreamService:
+   parallelism: 1
+   profile: "TCP_STREAM"
+   duration: 10
+   samples: 1
+   messagesize: 4096
+   service: True
+
+UDPStream:
+   parallelism: 1
+   profile: "UDP_STREAM"
+   duration: 10
+   samples: 1
+   messagesize: 4096
+
+CRR:
+   parallelism: 1
+   profile: "TCP_CRR"
+   duration: 10
+   samples: 1
+   messagesize: 4096
+
+RR:
+   parallelism: 1
+   profile: "TCP_RR"
+   duration: 10
+   samples: 1
+   messagesize: 4096

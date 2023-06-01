@@ -12,6 +12,13 @@ spec:
       containers:
       - name: postgresql
         image: registry.redhat.io/rhel8/postgresql-10@sha256:4b912c80085b88a03309aeb7907efcc29dd3342fa3952b6ea067afb1914bfe53
+        readinessProbe:
+          tcpSocket:
+            port: 5432
+          periodSeconds: {{ .readinessPeriod }}
+          failureThreshold: 1
+          timeoutSeconds: 10
+          initialDelaySeconds: 3
         ports:
         - containerPort: 5432
           protocol: TCP
@@ -34,7 +41,5 @@ spec:
   selector:
     matchLabels:
       name: postgres-{{.Replica}}-{{.Iteration}}
-  triggers:
-  - type: ConfigChange
   strategy:
     type: RollingUpdate

@@ -46,7 +46,7 @@ Workloads can be tweaked with the following environment variables:
 | **CLEANUP**          | Delete old namespaces for the selected workload before starting benchmark | true |
 | **CLEANUP_WHEN_FINISH** | Delete benchmark objects and workload's namespaces after running it | false |
 | **CLEANUP_TIMEOUT**  | Timeout value used in resource deletion | 30m |
-| **KUBE_BURNER_URL** | Kube-burner tarball URL | https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.17.0/kube-burner-0.17.0-Linux-x86_64.tar.gz |
+| **KUBE_BURNER_URL** | Kube-burner tarball URL | https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.17.3/kube-burner-0.17.3-Linux-x86_64.tar.gz |
 | **BUILD_FROM_REPO** | Rather than downloading the previous tarball, build the kube-burner binary using a specific git repository.  Ex. https://github.com/rsevilla87/kube-burner | "" (Disabled) |
 | **LOG_LEVEL**        | Kube-burner log level | info |
 | **PPROF_COLLECTION** | Collect and store pprof data locally | false |
@@ -67,6 +67,7 @@ Workloads can be tweaked with the following environment variables:
 | **CHURN_DURATION**             | Time, in time type (ex: 1h10m11s), to churn for | 10m |
 | **CHURN_DELAY**             | Time, in time type (ex: 1m30s), to wait between each churn | 60s |
 | **CHURN_PERCENT**             | Percentage of JOB_ITERATIONS that we should churn each round | 10 |
+| **NAMESPACED_ITERATIONS**             | Run each JOB_ITERATIONS in a distinct namespace.  Configurable on node-density-heavy and node-density-cni only | false |
 
 **Note**: You can use basic authentication for ES indexing using the notation `http(s)://[username]:[password]@[host]:[port]` in **ES_SERVER**.
 
@@ -99,12 +100,14 @@ Each iteration of this workload creates the following object:
   - 1 pod. (sleep)
 
 - **node-density-heavy**. Creates a **single namespace with a number of applications proportional to the calculated number of pods / 2**. This application consists on two deployments (a postgresql database and a simple client that generates some CPU load) and a service that is used by the client to reach the database.
+Single namespace behavior can be changed by using `NAMESPACED_ITERATIONS`.
 Each iteration of this workload can be broken down in:
   - 1 deployment holding a postgresql database
   - 1 deployment holding a client application for the previous database
   - 1 service pointing to the postgresl database
 
 - **node-density-cni**. Creates a **single namespace with a number of applications equals to job_iterations**. This application consists on two deployments (a node.js webserver and a simple client that curls the webserver) and a service that is used by the client to reach the webserver.
+Single namespace behavior can be changed by using `NAMESPACED_ITERATIONS`.
 Each iteration of this workload creates the following objects:
   - 1 deployment holding a node.js webserver
   - 1 deployment holding a client application for curling the webserver
@@ -112,7 +115,7 @@ Each iteration of this workload creates the following objects:
 
     The startupProbe of the client pod depends on being able to reach the webserver so that the PodReady latencies collected by kube-burner reflect network connectivity.
 
-- **node-density-cni-policy**. Creates a **single namespace with a number of applications equals to job_iterations**. This application consists on two deployments (a node.js webserver and a simple client that curls the webserver) and a service that is used by the client to reach the webserver.
+- **node-density-cni-networkpolicy**. Creates a **single namespace with a number of applications equals to job_iterations**. This application consists on two deployments (a node.js webserver and a simple client that curls the webserver) and a service that is used by the client to reach the webserver.
 Each iteration of this workload creates the following objects:
   - 1 deployment holding a node.js webserver
   - 1 deployment holding a client application for curling the webserver

@@ -78,8 +78,8 @@ run_workload() {
     CMD+=" -m ${KUBE_DIR}/metrics.yml"
   fi
   if [[ ${PLATFORM_ALERTS} == "true" ]]; then
-    log "Platform alerting enabled, using ${PWD}/alert-profiles/${WORKLOAD}-${platform}.yml"
-    CMD+=" -a ${PWD}/alert-profiles/${WORKLOAD}-${platform}.yml"
+    log "Platform alerting enabled, using ${PWD}/alerts-profiles/${WORKLOAD}-${platform}.yml"
+    CMD+=" -a ${PWD}/alerts-profiles/${WORKLOAD}-${platform}.yml"
   fi
   pushd $(dirname ${WORKLOAD_TEMPLATE})
   local start_date=$(date +%s%3N)
@@ -109,21 +109,15 @@ find_running_pods_num() {
     done
   done
   log "Total running pods across nodes: ${pod_count}"
-  if [[ ${NODE_SELECTOR} =~ node-role.kubernetes.io/worker ]]; then
-    # Number of pods to deploy per node * number of labeled nodes - pods running - kube-burner pod
-    log "kube-burner will run on a worker node, decreasing by one the number of pods to deploy"
-    total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count - 1))
-  else
-    # Number of pods to deploy per node * number of labeled nodes - pods running
-    total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count))
+  # Number of pods to deploy per node * number of labeled nodes - pods running
+  total_pod_count=$((PODS_PER_NODE * NODE_COUNT - pod_count))
+  log "Number of pods to deploy on nodes: ${total_pod_count}"
+  if [[ ${1} == "heavy" ]] || [[ ${1} == *cni* ]]; then
+    total_pod_count=$((total_pod_count / 2))
   fi
   if [[ ${total_pod_count} -le 0 ]]; then
     log "Number of pods to deploy <= 0"
     exit 1
-  fi
-  log "Number of pods to deploy on nodes: ${total_pod_count}"
-  if [[ ${1} == "heavy" ]] || [[ ${1} == *cni* ]]; then
-    total_pod_count=$((total_pod_count / 2))
   fi
   export TEST_JOB_ITERATIONS=${total_pod_count}
 }
@@ -137,11 +131,19 @@ cleanup() {
 }
 
 get_pprof_secrets() {
- local certkey=`oc get secret -n openshift-etcd | grep "etcd-serving-ip" | head -1 | awk '{print $1}'`
- oc extract -n openshift-etcd secret/$certkey
- export CERTIFICATE=`base64 -w0 tls.crt`
- export PRIVATE_KEY=`base64 -w0 tls.key`
- export BEARER_TOKEN=$(oc create token -n benchmark-operator kube-burner --duration=6h || oc sa get-token kube-burner -n benchmark-operator)
+  if [[ ${HYPERSHIFT} == "true" ]]; then
+    log "Control Plane not available in HyperShift"
+    exit 1
+  else
+    oc create ns benchmark-operator
+    oc create serviceaccount kube-burner -n benchmark-operator
+    oc create clusterrolebinding kube-burner-crb --clusterrole=cluster-admin --serviceaccount=benchmark-operator:kube-burner
+    local certkey=`oc get secret -n openshift-etcd | grep "etcd-serving-ip" | head -1 | awk '{print $1}'`
+    oc extract -n openshift-etcd secret/$certkey
+    export CERTIFICATE=`base64 -w0 tls.crt`
+    export PRIVATE_KEY=`base64 -w0 tls.key`
+    export BEARER_TOKEN=$(oc create token -n benchmark-operator kube-burner --duration=6h || oc sa get-token kube-burner -n benchmark-operator)
+  fi
 }
 
 delete_pprof_secrets() {

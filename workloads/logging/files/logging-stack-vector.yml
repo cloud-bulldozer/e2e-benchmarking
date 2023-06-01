@@ -107,12 +107,8 @@ metadata:
   name: instance
   labels: {}
 spec:
-  outputs:
-    - name: elasticsearch-external
-      type: "elasticsearch"
-      url: ${CUSTOM_ES_URL}
   pipelines:
     - name: forward-logs
       inputRefs: ${FORWARD_LOGS}
       outputRefs:
-      - elasticsearch-external
+      - default
