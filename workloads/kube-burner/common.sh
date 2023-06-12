@@ -94,6 +94,25 @@ run_workload() {
   gen_metadata ${WORKLOAD} ${start_date} $(date +%s%3N)
 }
 
+check_managed_cluster() {
+   status=$(oc get infrastructure/cluster -o=jsonpath='{.status.platformStatus.*.resourceTags[0]}')
+   if [[ $status =~ managed ]]; then
+      log "Detected a Managed Cluster"
+      managed=true
+   fi
+}
+
+remove_managed_webhook_validation() {
+   log "Disabling validation-webhook for Managed cluster"
+   oc patch -n openshift-validation-webhook daemonset validation-webhook -p '{"spec": {"template": {"spec": {"nodeSelector": {"non-existing": "true"}}}}}'
+   
+}
+
+add_managed_webhook_validation() {
+    log "Enabling validation-webhook for Managed cluster"
+    oc patch -n openshift-validation-webhook daemonset validation-webhook --type json -p '[{ "op": "remove", "path": "/spec/template/spec/nodeSelector" }]'
+}
+
 find_running_pods_num() {
   pod_count=0
   # The next statement outputs something similar to:

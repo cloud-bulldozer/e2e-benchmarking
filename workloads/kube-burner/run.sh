@@ -5,6 +5,12 @@
 . ../../utils/compare.sh
 
 label=""
+
+check_managed_cluster
+if [[ $managed == true ]]; then
+   remove_managed_webhook_validation
+fi
+
 case ${WORKLOAD} in
   cluster-density)
     WORKLOAD_TEMPLATE=workloads/cluster-density/cluster-density.yml
@@ -161,6 +167,10 @@ if [[ ${WORKLOAD} == "concurrent-builds" ]]; then
   cat conc_builds_results.out
 else
   run_workload
+fi
+
+if [[ $managed == true ]]; then
+   add_managed_webhook_validation
 fi
 
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
