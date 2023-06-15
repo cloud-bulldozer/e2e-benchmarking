@@ -1,6 +1,6 @@
 # Kube-burner
 
-The `./run.sh` script is just a small wrapper on top of kube-burner to be used as entrypoint of some of its flags. The supported workloads are described in the [OpenShift OCP wrapper section](https://cloud-bulldozer.github.io/kube-burner/ocp/) of the kube-burner docs.
+The `./run.sh` script is just a small wrapper on top of kube-burner to be used as entrypoint of some of its flags. The supported workloads are described in the [OpenShift OCP wrapper section](https://cloud-bulldozer.github.io/kube-burner/latest/ocp/) of the kube-burner docs.
 
 In order to run a workload you have to set the `WORKLOAD` environment variable to one of the workloads supported by kube-burner. Example
 
@@ -32,7 +32,7 @@ This wrapper supports some variables to tweak some basic parameters of the workl
 
 ### Using the EXTRA_FLAGS variable
 
-All the flags that can be appeneded through the `EXTRA_FLAGS` variable can be found in the [kube-burner docs](https://cloud-bulldozer.github.io/kube-burner/ocp/)
+All the flags that can be appeneded through the `EXTRA_FLAGS` variable can be found in the [kube-burner docs](https://cloud-bulldozer.github.io/kube-burner/latest/ocp/)
 For example, we can tweak the churning behaviour of the cluster-density workload with:
 
 ```shell
