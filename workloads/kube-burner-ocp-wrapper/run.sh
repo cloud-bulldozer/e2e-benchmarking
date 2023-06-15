@@ -63,8 +63,18 @@ HOSTED_PROMETHEUS: ${HOSTED_PROMETHEUS}
 HOSTED_PROMETHEUS_TOKEN: <truncated>
 HCP_NAMESPACE: ${HCP_NAMESPACE}
 MGMT_WORKER_NODES: ${MGMT_WORKER_NODES}
-
 EOF
+  echo "Indexing Management cluster stats before executing"
+  METADATA=$(cat << EOF
+{
+"uuid": "${UUID}",
+"mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
+"hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
+"timestamp": "$(date +%s%3N)"
+}
+EOF
+  )
+  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
   export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES
 }
 
@@ -74,7 +84,7 @@ if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
-if [[ -n ${MC_KUBECONFIG} ]]; then
+if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
 fi
@@ -84,17 +94,6 @@ if [[ -n ${ES_SERVER} ]]; then
 fi
 cmd+=" ${EXTRA_FLAGS}"
 
-echo "Indexing Management cluster stats before executing"
-METADATA=$(cat << EOF
-{
-"uuid" : "${UUID}",
-"mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
-"hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
-"timestamp": "$(date +%s%3N)"
-}
-EOF
-)
-curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
 
 echo $cmd
 exec $cmd
