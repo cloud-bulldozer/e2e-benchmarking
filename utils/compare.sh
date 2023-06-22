@@ -41,12 +41,18 @@ run_benchmark_comparison() {
     get_network_type
     export TOUCHSTONE_NAMESPACE=${TOUCHSTONE_NAMESPACE:-"$network_ns"}
 
-    # create output directory and variables for working and final CSV files
+    # create output directory and variables for working and final output files
+    # file type defaults to CSV but can be overriden to JSON via global env var
     res_output_dir="/tmp/${WORKLOAD}-${UUID}"
     mkdir -p ${res_output_dir}
-    export COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
-    final_csv=${res_output_dir}/${UUID}.csv
-    echo "final csv $final_csv"
+    if [[ ${GEN_JSON} == true ]]; then
+      file_type='json'
+    else
+      file_type='csv'
+    fi
+    export COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.${file_type}
+    final_file=${res_output_dir}/${UUID}.${file_type}
+    echo "final $file_type $final_file"
 
     # if CONFIG_LOC is not set, clone the benchmark comparison repo to be used be default
     if [[ -z $CONFIG_LOC ]]; then
@@ -71,7 +77,7 @@ run_benchmark_comparison() {
       # run baseline comparison if ES_SERVER_BASELINE and BASELINE_UUID are set
       if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
         log "Comparing with baseline"
-        if ! compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "${COMPARISON_FILE}" "${GEN_CSV}"; then
+        if ! compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "${COMPARISON_FILE}"; then
           compare_result=$((${compare_result} + 1))
           log "Comparing with baseline for config file $config failed"
         fi
@@ -79,18 +85,25 @@ run_benchmark_comparison() {
       # otherwise just run for current UUID
       else
         log "Querying results"
-        compare ${ES_SERVER} ${UUID} "${COMPARISON_FILE}" "${GEN_CSV}"
+        compare ${ES_SERVER} ${UUID} "${COMPARISON_FILE}"
       fi
 
-      # use python script to process working CSV into final CSV
-      log "python csv modifier"
-      python $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_csv}
-    done
+      # if file type is CSV, use python script to process working CSV into final CSV
+      if [[ ${file_type} == 'csv' ]]; then
+        log "python csv modifier"
+        python $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_file}
 
-    # generate a GSheet for the results if GSHEET_KEY_LOCATION and GEN_CSV are set
-    if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${GEN_CSV} == true ]] ; then
-      gen_spreadsheet ${WORKLOAD} ${final_csv} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
-    fi
+        # generate a GSheet for the results if GSHEET_KEY_LOCATION and GEN_CSV are set
+        if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${GEN_CSV} == true ]]; then
+          gen_spreadsheet ${WORKLOAD} ${final_file} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
+        fi
+
+      # otherwise simply copy the working JSON to the final JSON, as no modification is needed
+      else
+        log "copying over working JSON to final JSON"
+        cp ${COMPARISON_OUTPUT} ${final_file}
+      fi
+    done
 
     # remove touchstone
     log "Removing touchstone"
@@ -121,8 +134,9 @@ remove_touchstone() {
 #   Dataset URL, in case of passing more than one, they must be quoted.
 #   Dataset UUIDs, in case of passing more than one, they must be quoted.
 #   Benchmark-comparison configuration file path.
-#   Generate csv and write output to COMPARISON_OUTPUT, boolean.
 # Globals:
+#   GEN_CSV Boolean for generating a CSV. Optional.
+#   GEN_JSON Boolean for generating a JSON. Optional.
 #   TOLERANCY_RULES Tolerancy config file path. Optional.
 #   COMPARISON_ALIASES Benchmark-comparison aliases. Optional.
 #   COMPARISON_OUTPUT Benchmark-comparison output file. Optional.
@@ -139,8 +153,10 @@ compare() {
   if [[ -n ${COMPARISON_ALIASES} ]]; then
     cmd+=" --alias ${COMPARISON_ALIASES}"
   fi
-  if [[ ${4} == true ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
+  if [[ ${GEN_CSV} == true ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
     cmd+=" -o csv --output-file ${COMPARISON_OUTPUT}"
+  elif [[ ${GEN_JSON} == true ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
+    cmd+=" -o json --output-file ${COMPARISON_OUTPUT}"
   fi
   if [[ -n ${COMPARISON_RC} ]]; then
     cmd+=" --rc ${COMPARISON_RC}"
