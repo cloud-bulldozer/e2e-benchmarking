@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 set -e
+set +o histexpand
 
 ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
 LOG_LEVEL=${LOG_LEVEL:-info}
@@ -24,7 +25,7 @@ get_worker_nodes() {
   local PROMETHEUS_TOKEN="$2"
   
   # Retrieve worker nodes
-  response=$(curl -H "Authorization: Bearer ${PROMETHEUS_TOKEN}" -k --silent --globoff "${PROMETHEUS_ENDPOINT}/api/v1/query?query=sum(kube_node_role{role!~\"master|infra|workload|obo\"}) by (node)&time=$(date +%s)")
+  response=$(curl -H "Authorization: Bearer ${PROMETHEUS_TOKEN}" -k --silent --globoff "${PROMETHEUS_ENDPOINT}/api/v1/query?query=sum(kube_node_role{role!~'master|infra|obo|control-plane|workload'})by(node)&time=$(date +%s)")
   
   # Extract the worker names
   nodes=$(echo "${response}" | jq -r '.data.result[].metric.node')
