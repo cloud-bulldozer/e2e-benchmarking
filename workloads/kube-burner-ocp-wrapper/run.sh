@@ -104,7 +104,7 @@ if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
 
-if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]] && -n ${SC_KUBECONFIG}; then
+if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]] && [[ -n ${SC_KUBECONFIG} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
 fi
