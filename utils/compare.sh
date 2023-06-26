@@ -5,12 +5,12 @@
 source common.sh
 
 get_network_type() {
-if [[ $NETWORK_TYPE == "OVNKubernetes" ]]; then
-  network_ns=openshift-ovn-kubernetes
-else
-  network_ns=openshift-sdn
-fi
-echo $network_ns
+  if [[ $NETWORK_TYPE == "OVNKubernetes" ]]; then
+    network_ns=openshift-ovn-kubernetes
+  else
+    network_ns=openshift-sdn
+  fi
+  echo $network_ns
 }
 
 check_metric_to_modify() {
@@ -30,23 +30,33 @@ check_metric_to_modify() {
 run_benchmark_comparison() {
   log "benchmark"
   compare_result=0
+
+  # need ES_SERVER and COMPARISON_CONFIG env vars to be set
   if [[ -n ${ES_SERVER} ]] && [[ -n ${COMPARISON_CONFIG} ]]; then
 
+    # install touchstone and set namespace based on network type
     log "Installing touchstone"
     install_touchstone
     network_ns=openshift-ovn-kubernetes
     get_network_type
     export TOUCHSTONE_NAMESPACE=${TOUCHSTONE_NAMESPACE:-"$network_ns"}
+
+    # create output directory and variables for working and final CSV files
     res_output_dir="/tmp/${WORKLOAD}-${UUID}"
     mkdir -p ${res_output_dir}
     export COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
     final_csv=${res_output_dir}/${UUID}.csv
     echo "final csv $final_csv"
+
+    # if CONFIG_LOC is not set, clone the benchmark comparison repo to be used be default
     if [[ -z $CONFIG_LOC ]]; then
       git clone https://github.com/cloud-bulldozer/benchmark-comparison.git
     fi
+
+    # iterate through all COMPARISON_CONFIG files
     for config in ${COMPARISON_CONFIG}
     do
+      # config_loc can be custom but will be under benchmark-comparison by default
       if [[ -z $CONFIG_LOC ]]; then
         config_loc=benchmark-comparison/config/${config}
       else
@@ -57,25 +67,37 @@ run_benchmark_comparison() {
       COMPARISON_FILE="${res_output_dir}/${config}"
       envsubst < $config_loc > $COMPARISON_FILE
       echo "comparison output"
+
+      # run baseline comparison if ES_SERVER_BASELINE and BASELINE_UUID are set
       if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
         log "Comparing with baseline"
         if ! compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "${COMPARISON_FILE}" "${GEN_CSV}"; then
           compare_result=$((${compare_result} + 1))
           log "Comparing with baseline for config file $config failed"
         fi
+
+      # otherwise just run for current UUID
       else
         log "Querying results"
         compare ${ES_SERVER} ${UUID} "${COMPARISON_FILE}" "${GEN_CSV}"
       fi
+
+      # use python script to process working CSV into final CSV
       log "python csv modifier"
       python $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_csv}
     done
+
+    # generate a GSheet for the results if GSHEET_KEY_LOCATION and GEN_CSV are set
     if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${GEN_CSV} == true ]] ; then
       gen_spreadsheet ${WORKLOAD} ${final_csv} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
     fi
+
+    # remove touchstone
     log "Removing touchstone"
     remove_touchstone
   fi
+
+  # return an exit code of 1 if the comparison failed
   if [[ ${compare_result} -gt 0 ]]; then
     return 1
   fi
@@ -100,13 +122,17 @@ remove_touchstone() {
 #   Dataset UUIDs, in case of passing more than one, they must be quoted.
 #   Benchmark-comparison configuration file path.
 #   Generate csv and write output to COMPARISON_OUTPUT, boolean.
-# Globals
-#   TOLERANCY_RULES Tolerancy config file path. Optional
-#   COMPARISON_ALIASES Benchmark-comparison aliases. Optional
-#   COMPARISON_OUTPUT Benchmark-comparison output file. Optional
+# Globals:
+#   TOLERANCY_RULES Tolerancy config file path. Optional.
+#   COMPARISON_ALIASES Benchmark-comparison aliases. Optional.
+#   COMPARISON_OUTPUT Benchmark-comparison output file. Optional.
 ##############################################################################
 compare() { 
+
+  # base command
   cmd="touchstone_compare --database elasticsearch -url ${1} -u ${2} --config ${3}"
+
+  # add arguments to base command based on function args and env globals
   if [[ ( -n ${TOLERANCY_RULES} ) && ( ${#2} > 40 ) ]]; then
     cmd+=" --tolerancy-rules ${TOLERANCY_RULES}"
   fi
@@ -119,9 +145,11 @@ compare() {
   if [[ -n ${COMPARISON_RC} ]]; then
     cmd+=" --rc ${COMPARISON_RC}"
   fi
+
+  # run command and return result
   log "Running: ${cmd}"
   ${cmd}
   result=$?
-  log "comare result: ${result}"
+  log "compare result: ${result}"
   return ${result}
 }

@@ -82,6 +82,18 @@ SC_PROMETHEUS_TOKEN: <truncated>
 SVC_WORKER_NODES: ${SVC_WORKER_NODES}
 
 EOF
+  echo "Indexing Management & Service cluster stats before executing"
+  METADATA=$(cat << EOF
+{
+"uuid": "${UUID}",
+"mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
+"hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
+"timestamp": "$(date +%s%3N)"
+}
+EOF
+  )
+  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
+  export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES
   export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES SC_PROMETHEUS SC_PROMETHEUS_TOKEN SVC_WORKER_NODES
 }
 
@@ -91,7 +103,8 @@ if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
-if [[ -n "${MC_KUBECONFIG}" && -n "${SC_KUBECONFIG}" ]]; then
+
+if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]] && -n ${SC_KUBECONFIG}; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
 fi
@@ -100,19 +113,6 @@ if [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
 cmd+=" ${EXTRA_FLAGS}"
-
-echo "Indexing Management cluster stats before executing"
-METADATA=$(cat << EOF
-{
-"uuid" : "${UUID}",
-"mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
-"hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
-"svcClusterName": "$(oc get --kubeconfig=${SC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)", 
-"timestamp": "$(date +%s%3N)"
-}
-EOF
-)
-curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
 
 echo $cmd
 exec $cmd
