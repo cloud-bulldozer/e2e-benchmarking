@@ -21,6 +21,7 @@ download_binary(){
 
 hypershift(){
   echo "HyperShift detected"
+  echo "Indexing Management cluster stats before executing"
   METADATA=$(cat << EOF
 {
 "uuid" : "${UUID}",
@@ -94,7 +95,6 @@ if [[ -n ${ES_SERVER} ]]; then
 fi
 cmd+=" ${EXTRA_FLAGS}"
 
-echo "Indexing Management cluster stats before executing"
 
 echo $cmd
 exec $cmd
