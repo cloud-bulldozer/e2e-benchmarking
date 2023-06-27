@@ -21,6 +21,17 @@ download_binary(){
 
 hypershift(){
   echo "HyperShift detected"
+  echo "Indexing Management cluster stats before executing"
+  METADATA=$(cat << EOF
+{
+"uuid" : "${UUID}",
+"mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
+"hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
+"timestamp": "$(date +%s%3N)"
+}
+EOF
+)
+  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
   # Get hosted cluster ID and name
   HC_ID=$(oc get infrastructure cluster -o go-template --template='{{.status.infrastructureName}}')
   HC_NAME=$(oc get infrastructure cluster -o go-template --template='{{range .status.platformStatus.aws.resourceTags}}{{if eq .key "api.openshift.com/name" }}{{.value}}{{end}}{{end}}')
