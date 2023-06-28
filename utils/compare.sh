@@ -93,17 +93,17 @@ run_benchmark_comparison() {
         log "python csv modifier"
         python $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_file}
 
-        # generate a GSheet for the results if GSHEET_KEY_LOCATION and GEN_CSV are set
-        if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${GEN_CSV} == true ]]; then
-          gen_spreadsheet ${WORKLOAD} ${final_file} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
-        fi
-
       # otherwise simply copy the working JSON to the final JSON, as no modification is needed
       else
         log "copying over working JSON to final JSON"
         cp ${COMPARISON_OUTPUT} ${final_file}
       fi
     done
+
+    # generate a GSheet for the results if GSHEET_KEY_LOCATION and GEN_CSV are set
+    if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${GEN_CSV} == true ]]; then
+      gen_spreadsheet ${WORKLOAD} ${final_file} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
+    fi
 
     # remove touchstone
     log "Removing touchstone"
