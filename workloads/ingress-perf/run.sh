@@ -10,9 +10,11 @@ CONFIG=${CONFIG:?}
 BASELINE_UUID=${BASELINE_UUID:-}
 BASELINE_INDEX=${BASELINE_INDEX:-ingress-performance-baseline}
 TOLERANCY=${TOLERANCY:-20}
+OS=$(uname -s)
+HARDWARE=$(uname -m)
 
 download_binary(){
-  INGRESS_PERF_URL=https://github.com/cloud-bulldozer/ingress-perf/releases/download/v${VERSION}/ingress-perf-Linux-v${VERSION}-x86_64.tar.gz
+  INGRESS_PERF_URL=https://github.com/cloud-bulldozer/ingress-perf/releases/download/v${VERSION}/ingress-perf-${OS}-v${VERSION}-${HARDWARE}.tar.gz
   curl -sS -L ${INGRESS_PERF_URL} | tar xz ingress-perf
 }
 

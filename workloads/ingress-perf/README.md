@@ -5,7 +5,7 @@ The `./run.sh` script is just a small wrapper on top of [ingress-perf](https://g
 In order to run a test you have to set the `CONFIG` environment variable pointing to one of the configuration files available in the [config directory](config/) and just issue `./run.sh`. i.e:
 
 ```shell
-$ CONFIG=config/aws-standard.yml ./run.sh  ITERATIONS=5 WORKLOAD=cluster-density-v2 ./run.sh 
+$ CONFIG=config/aws-standard.yml ./run.sh  ITERATIONS=5
 time="2023-05-23 12:17:54" level=info msg="Running ingress performance adbddaf1-2a9e-4c53-a410-f98749fd901e" file="ingress-perf.go:41"
 time="2023-05-23 12:17:54" level=info msg="Creating elastic indexer" file="ingress-perf.go:49"
 time="2023-05-23 12:17:56" level=info msg="Starting ingress-perf" file="runner.go:42"
