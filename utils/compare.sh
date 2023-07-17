@@ -82,7 +82,7 @@ run_benchmark_comparison() {
 
         if [[ -n ${TOLERANCY_RULES_LIST} ]]; then
 
-          if [[ -z $CONFIG_LOC ]]; then
+          if [[ -z $TOLERANCE_LOC ]]; then
             SUB_TOLERANCY_RULES=benchmark-comparison/tolerancy-configs/${TOLERANCY_RULES_LIST[i]}
           else
             SUB_TOLERANCY_RULES=$TOLERANCE_LOC/${TOLERANCY_RULES_LIST[i]}
