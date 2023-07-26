@@ -5,7 +5,7 @@ set -e
 ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
 ES_INDEX=${ES_INDEX:-ingress-performance}
 LOG_LEVEL=${LOG_LEVEL:-info}
-VERSION=${VERSION:-0.2.4}
+VERSION=${VERSION:-0.2.5}
 CONFIG=${CONFIG:?}
 BASELINE_UUID=${BASELINE_UUID:-}
 BASELINE_INDEX=${BASELINE_INDEX:-ingress-performance-baseline}
