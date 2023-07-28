@@ -11,7 +11,7 @@ QPS=${QPS:-20}
 BURST=${BURST:-20}
 GC=${GC:-true}
 EXTRA_FLAGS=${EXTRA_FLAGS:-}
-UUID=$(uuidgen)
+UUID=${UUID:-$(uuidgen)}
 KUBE_DIR=${KUBE_DIR:-/tmp}
 
 download_binary(){
