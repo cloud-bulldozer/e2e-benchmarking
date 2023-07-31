@@ -1,8 +1,9 @@
 # Common
 export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+export UUID=${UUID:-$(uuidgen)}
 
 # k8s-netperf version
-export NETPERF_VERSION=${VERSION:-v0.1.12}
+export NETPERF_VERSION=${VERSION:-v0.1.13}
 export OS=${OS:-Linux}
 export ARCH=$(arch)
 export NETPERF_URL=${NETPERF_URL:-https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz}
