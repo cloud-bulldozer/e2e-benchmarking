@@ -13,9 +13,10 @@ oc adm policy add-scc-to-user hostnetwork -z netperf -n netperf
 
 log "###############################################"
 log "Workload: ${WORKLOAD}"
+log "UUID: ${UUID}"
 log "###############################################"
 
-timeout $TEST_TIMEOUT ./k8s-netperf --debug --metrics --all --config ${WORKLOAD} --search $ES_SERVER --tcp-tolerance ${TOLERANCE} --clean=true
+timeout $TEST_TIMEOUT ./k8s-netperf --debug --metrics --all --config ${WORKLOAD} --search $ES_SERVER --tcp-tolerance ${TOLERANCE} --clean=true --uuid $UUID
 run=$?
 
 # Add debugging info (will be captured in each execution output)

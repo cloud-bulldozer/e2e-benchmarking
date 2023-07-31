@@ -33,7 +33,8 @@ This will orchestrate multiple netwok performance tests.
 | Variable                | Description              | Default |
 |-------------------------|--------------------------|---------|
 | ES_SERVER | Server to send results | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 |
-| VERSION | k8s-netperf tag/version | v0.1.9 |
+| UUID | UUID which will be used for the workload | uuidgen |
+| VERSION | k8s-netperf tag/version | v0.1.13 |
 | OS | System to run k8s-netperf | Linux |
 | NETPERF_URL | URL to download k8s-netperf | https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz |
 | WORKLOAD | Config definition for k8s-netperf | smoke.yaml |
