@@ -177,9 +177,11 @@ label_node_with_label() {
 unlabel_nodes_with_label() {
   split_param=$(echo $1 | tr "=" " ")
   log "Removing $1 label from worker nodes"
-  for p in ${split_param}; do
-    oc label node ${WORKER_NODE_NAMES} $p- 1>/dev/null
-    break
+  for worker_node in ${WORKER_NODE_NAMES}; do
+    for p in ${split_param}; do
+      oc label node $worker_node $p- 1>/dev/null
+      break
+    done
   done
 }
 

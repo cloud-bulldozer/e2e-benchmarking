@@ -1,6 +1,6 @@
 # Kube-burner
 
-The `./run.sh` script is just a small wrapper on top of kube-burner to be used as entrypoint of some of its flags. The supported workloads are described in the [OpenShift OCP wrapper section](https://cloud-bulldozer.github.io/kube-burner/ocp/) of the kube-burner docs.
+The `./run.sh` script is just a small wrapper on top of kube-burner to be used as entrypoint of some of its flags. The supported workloads are described in the [OpenShift OCP wrapper section](https://cloud-bulldozer.github.io/kube-burner/latest/ocp/) of the kube-burner docs.
 
 In order to run a workload you have to set the `WORKLOAD` environment variable to one of the workloads supported by kube-burner. Example
 
@@ -24,7 +24,7 @@ INFO[2023-03-13 16:40:00] Job cluster-density-v2: 5 iterations with 2 Deployment
 
 This wrapper supports some variables to tweak some basic parameters of the workloads:
 
-- **ES_SERVER**: Defines the ElasticSearch/OpenSearch endpoint. By default it points the development instance.
+- **ES_SERVER**: Defines the ElasticSearch/OpenSearch endpoint. By default it points the development instance. Indexing can be disabled with `export ES_SERVER=""`.
 - **ES_INDEX**: Defines the ElasticSearch/OpenSearch index name. By default `ripsaw-kube-burner`
 - **QPS** and **BURST**: Defines client-go QPS and BURST parameters for kube-burner. 20 by default
 - **GC**: Garbage collect created namespaces. true by default
@@ -32,7 +32,7 @@ This wrapper supports some variables to tweak some basic parameters of the workl
 
 ### Using the EXTRA_FLAGS variable
 
-All the flags that can be appeneded through the `EXTRA_FLAGS` variable can be found in the [kube-burner docs](https://cloud-bulldozer.github.io/kube-burner/ocp/)
+All the flags that can be appeneded through the `EXTRA_FLAGS` variable can be found in the [kube-burner docs](https://cloud-bulldozer.github.io/kube-burner/latest/ocp/)
 For example, we can tweak the churning behaviour of the cluster-density workload with:
 
 ```shell

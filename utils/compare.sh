@@ -5,12 +5,12 @@
 source common.sh
 
 get_network_type() {
-if [[ $NETWORK_TYPE == "OVNKubernetes" ]]; then
-  network_ns=openshift-ovn-kubernetes
-else
-  network_ns=openshift-sdn
-fi
-echo $network_ns
+  if [[ $NETWORK_TYPE == "OVNKubernetes" ]]; then
+    network_ns=openshift-ovn-kubernetes
+  else
+    network_ns=openshift-sdn
+  fi
+  echo $network_ns
 }
 
 check_metric_to_modify() {
@@ -30,52 +30,98 @@ check_metric_to_modify() {
 run_benchmark_comparison() {
   log "benchmark"
   compare_result=0
+
+  # need ES_SERVER and COMPARISON_CONFIG env vars to be set
   if [[ -n ${ES_SERVER} ]] && [[ -n ${COMPARISON_CONFIG} ]]; then
 
+    # install touchstone and set namespace based on network type
     log "Installing touchstone"
     install_touchstone
     network_ns=openshift-ovn-kubernetes
     get_network_type
     export TOUCHSTONE_NAMESPACE=${TOUCHSTONE_NAMESPACE:-"$network_ns"}
+
+    # create output directory and variables for working and final output files
+    # file type defaults to CSV but can be overriden to JSON via global env var
     res_output_dir="/tmp/${WORKLOAD}-${UUID}"
     mkdir -p ${res_output_dir}
-    export COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.csv
-    final_csv=${res_output_dir}/${UUID}.csv
-    echo "final csv $final_csv"
+    if [[ ${GEN_JSON} == true ]]; then
+      file_type='json'
+    else
+      file_type='csv'
+    fi
+    export COMPARISON_OUTPUT=${PWD}/${WORKLOAD}-${UUID}.${file_type}
+    final_file=${res_output_dir}/${UUID}.${file_type}
+    echo "final $file_type $final_file"
+
+    # if CONFIG_LOC is not set, clone the benchmark comparison repo to be used be default
     if [[ -z $CONFIG_LOC ]]; then
       git clone https://github.com/cloud-bulldozer/benchmark-comparison.git
     fi
-    for config in ${COMPARISON_CONFIG}
-    do
+    TOLERANCY_RULES_LIST=($TOLERANCY_RULES)
+    COMPARISON_CONFIG_LIST=($COMPARISON_CONFIG)
+    for i in "${!COMPARISON_CONFIG_LIST[@]}"; do
+      config=${COMPARISON_CONFIG_LIST[i]}
+       # config_loc can be custom but will be under benchmark-comparison by default
       if [[ -z $CONFIG_LOC ]]; then
         config_loc=benchmark-comparison/config/${config}
       else
         config_loc=$CONFIG_LOC/${config}
       fi
+
+
       echo "config ${config_loc}"
       check_metric_to_modify $config_loc
       COMPARISON_FILE="${res_output_dir}/${config}"
       envsubst < $config_loc > $COMPARISON_FILE
       echo "comparison output"
+
+      # run baseline comparison if ES_SERVER_BASELINE and BASELINE_UUID are set
       if [[ -n ${ES_SERVER_BASELINE} ]] && [[ -n ${BASELINE_UUID} ]]; then
         log "Comparing with baseline"
-        if ! compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "${COMPARISON_FILE}" "${GEN_CSV}"; then
+
+        if [[ -n ${TOLERANCY_RULES_LIST} ]]; then
+
+          if [[ -z $TOLERANCE_LOC ]]; then
+            SUB_TOLERANCY_RULES=benchmark-comparison/tolerancy-configs/${TOLERANCY_RULES_LIST[i]}
+          else
+            SUB_TOLERANCY_RULES=$TOLERANCE_LOC/${TOLERANCY_RULES_LIST[i]}
+          fi
+        fi
+        if ! compare "${ES_SERVER_BASELINE} ${ES_SERVER}" "${BASELINE_UUID} ${UUID}" "${COMPARISON_FILE}" "${SUB_TOLERANCY_RULES}"; then
           compare_result=$((${compare_result} + 1))
           log "Comparing with baseline for config file $config failed"
         fi
+
+      # otherwise just run for current UUID
       else
         log "Querying results"
-        compare ${ES_SERVER} ${UUID} "${COMPARISON_FILE}" "${GEN_CSV}"
+        compare ${ES_SERVER} ${UUID} "${COMPARISON_FILE}"
       fi
-      log "python csv modifier"
-      python $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_csv}
+
+      # if file type is CSV, use python script to process working CSV into final CSV
+      if [[ ${file_type} == 'csv' ]]; then
+        log "python csv modifier"
+        python $(dirname $(realpath ${BASH_SOURCE[0]}))/csv_modifier.py -c ${COMPARISON_OUTPUT} -o ${final_file}
+
+      # otherwise simply copy the working JSON to the final JSON, as no modification is needed
+      else
+        log "copying over working JSON to final JSON"
+        cp ${COMPARISON_OUTPUT} ${final_file}
+      fi
     done
-    if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${GEN_CSV} == true ]] ; then
-      gen_spreadsheet ${WORKLOAD} ${final_csv} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
+
+    # generate a GSheet for the results if GSHEET_KEY_LOCATION and GEN_CSV are set
+    if [[ -n ${GSHEET_KEY_LOCATION} ]] && [[ ${GEN_CSV} == true ]]; then
+      gen_spreadsheet ${WORKLOAD} ${final_file} ${EMAIL_ID_FOR_RESULTS_SHEET} ${GSHEET_KEY_LOCATION}
     fi
+
+    # remove touchstone
     log "Removing touchstone"
     remove_touchstone
   fi
+
+  # return an exit code of 1 if the comparison failed
   if [[ ${compare_result} -gt 0 ]]; then
     return 1
   fi
@@ -99,29 +145,38 @@ remove_touchstone() {
 #   Dataset URL, in case of passing more than one, they must be quoted.
 #   Dataset UUIDs, in case of passing more than one, they must be quoted.
 #   Benchmark-comparison configuration file path.
-#   Generate csv and write output to COMPARISON_OUTPUT, boolean.
-# Globals
-#   TOLERANCY_RULES Tolerancy config file path. Optional
-#   COMPARISON_ALIASES Benchmark-comparison aliases. Optional
-#   COMPARISON_OUTPUT Benchmark-comparison output file. Optional
+# Globals:
+#   GEN_CSV Boolean for generating a CSV. Optional.
+#   GEN_JSON Boolean for generating a JSON. Optional.
+#   TOLERANCY_RULES Tolerancy config file path. Optional.
+#   COMPARISON_ALIASES Benchmark-comparison aliases. Optional.
+#   COMPARISON_OUTPUT Benchmark-comparison output file. Optional.
 ##############################################################################
 compare() { 
+
+  # base command
   cmd="touchstone_compare --database elasticsearch -url ${1} -u ${2} --config ${3}"
-  if [[ ( -n ${TOLERANCY_RULES} ) && ( ${#2} > 40 ) ]]; then
-    cmd+=" --tolerancy-rules ${TOLERANCY_RULES}"
+
+  # add arguments to base command based on function args and env globals
+  if [[ ( $# -gt 3 ) && ( -n ${4} ) && ( ${#2} > 40 ) ]]; then
+    cmd+=" --tolerancy-rules ${4}"
   fi
   if [[ -n ${COMPARISON_ALIASES} ]]; then
     cmd+=" --alias ${COMPARISON_ALIASES}"
   fi
-  if [[ ${4} == true ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
+  if [[ ${GEN_CSV} == true ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
     cmd+=" -o csv --output-file ${COMPARISON_OUTPUT}"
+  elif [[ ${GEN_JSON} == true ]] && [[ -n ${COMPARISON_OUTPUT} ]]; then
+    cmd+=" -o json --output-file ${COMPARISON_OUTPUT}"
   fi
   if [[ -n ${COMPARISON_RC} ]]; then
     cmd+=" --rc ${COMPARISON_RC}"
   fi
+
+  # run command and return result
   log "Running: ${cmd}"
   ${cmd}
   result=$?
-  log "comare result: ${result}"
+  log "compare result: ${result}"
   return ${result}
 }

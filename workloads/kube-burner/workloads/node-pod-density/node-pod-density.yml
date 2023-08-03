@@ -14,7 +14,7 @@ global:
         - conditionType: Ready
           metric: P99
           threshold: {{.POD_READY_THRESHOLD}}
-{{ if eq .PPROF_COLLECTION "True" }}
+{{ if eq .PPROF_COLLECTION "true" }}
     - name: pprof
       pprofInterval: {{ .PPROF_COLLECTION_INTERVAL }}
       pprofDirectory: /tmp/pprof-data

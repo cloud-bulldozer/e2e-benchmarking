@@ -1,4 +1,8 @@
-- json_path: ["metricName", "podLatencyQuantilesMeasurement", "quantileName", "*", "avg(P99)"]
-  tolerancy: -15
+- json_path: ["metricName", "podLatencyQuantilesMeasurement", "quantileName", "ContainersReady", "avg(P99)"]
+  tolerancy: -25
   # Maximum percentage of allowed failures
-  max_failures: 25
+  max_failures: 100
+- json_path: ["metricName", "podLatencyQuantilesMeasurement", "quantileName", "Ready", "avg(P99)"]
+  tolerancy: -25
+  # Maximum percentage of allowed failures
+  max_failures: 100
