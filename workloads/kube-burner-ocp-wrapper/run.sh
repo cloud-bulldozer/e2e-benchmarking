@@ -105,6 +105,15 @@ if [[ -n ${ES_SERVER} ]]; then
 fi
 cmd+=" ${EXTRA_FLAGS}"
 
-
 echo $cmd
-exec $cmd
+JOB_START=$(date +"%Y-%m-%d %H:%M:%S")
+$cmd
+exit_code=$?
+JOB_END=$(date +"%Y-%m-%d %H:%M:%S")
+if [ $exit_code -eq 0 ]; then
+  JOB_STATUS="success"
+else
+  JOB_STATUS="failure"
+fi
+env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" ES_SERVER="$ES_SERVER" ../../utils/index.sh
+exit $exit_code

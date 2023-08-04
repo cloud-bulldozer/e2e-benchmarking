@@ -16,8 +16,11 @@ log "Workload: ${WORKLOAD}"
 log "UUID: ${UUID}"
 log "###############################################"
 
+
 timeout $TEST_TIMEOUT ./k8s-netperf --debug --metrics --all --config ${WORKLOAD} --search $ES_SERVER --tcp-tolerance ${TOLERANCE} --clean=true --uuid $UUID
+JOB_START=$(date +"%Y-%m-%d %H:%M:%S")
 run=$?
+JOB_END=$(date +"%Y-%m-%d %H:%M:%S")
 
 # Add debugging info (will be captured in each execution output)
 echo "============ Debug Info ============"
@@ -29,5 +32,10 @@ oc get machineset -A
 log "Finished workload ${0} ${WORKLOAD}, exit code ($run)"
 
 cat *.csv
-
+if [ $run -eq 0 ]; then
+  JOB_STATUS="success"
+else
+  JOB_STATUS="failure"
+fi
+env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" ES_SERVER="$ES_SERVER" ../../utils/index.sh
 exit $run

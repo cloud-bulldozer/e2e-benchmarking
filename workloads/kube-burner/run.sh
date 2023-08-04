@@ -138,6 +138,7 @@ QPS: ${QPS}
 Burst: ${BURST}
 UUID: ${UUID}
 EOF
+JOB_START=$(date +"%Y-%m-%d %H:%M:%S")
 if [[ ${WORKLOAD} == node-density* || ${WORKLOAD} == pod-density-heavy ]]; then
   echo "Node count: ${NODE_COUNT}"
   echo "Pods per node: ${PODS_PER_NODE}"
@@ -162,7 +163,7 @@ if [[ ${WORKLOAD} == "concurrent-builds" ]]; then
 else
   run_workload
 fi
-
+JOB_END=$(date +"%Y-%m-%d %H:%M:%S")
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
   if [[ ${WORKLOAD} == node-density* || ${WORKLOAD} == pod-density-heavy ]]; then
@@ -176,4 +177,10 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
 fi
 run_benchmark_comparison
 
+if [ $rc -eq 0 ]; then
+  JOB_STATUS="success"
+else
+  JOB_STATUS="failure"
+fi
+env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" ES_SERVER="$ES_SERVER" ../../utils/index.sh
 exit ${rc}
