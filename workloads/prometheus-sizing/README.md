@@ -14,7 +14,7 @@ These environment variables can be customized in both scenarios
 
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
-| **KUBE_BURNER_RELEASE_URL** | kube-burner tarball release location | `https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.9.1/kube-burner-0.9.1-Linux-x86_64.tar.gz` |
+| **KUBE_BURNER_RELEASE_URL** | kube-burner tarball release location, or **latest** to download last version available | latest |
 | **QPS**              | Kube-burner's QPS                     | 40 |
 | **BURST**              | Kube-burner's Burst rate            | 40 |
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |

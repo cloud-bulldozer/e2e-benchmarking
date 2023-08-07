@@ -9,7 +9,7 @@ These environment variables can be customized
 
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
-| **KUBE_BURNER_RELEASE_URL** | kube-burner tarball release location | `https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.9.1/kube-burner-0.9.1-Linux-x86_64.tar.gz` |
+| **KUBE_BURNER_RELEASE_URL** | kube-burner tarball release location, or **latest** to download last version available | latest |
 | **WATCH_TIME**              | Sleep duration for which metrics will be collected in minutes| 30 |
 | **ENABLE_INDEXING**  | Enable/disable ES indexing      | true |
 | **ES_SERVER**        | ElasticSearch endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|

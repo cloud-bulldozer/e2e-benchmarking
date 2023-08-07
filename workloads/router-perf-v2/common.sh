@@ -46,6 +46,9 @@ deploy_infra(){
   fi
 
   log "Downloading and extracting kube-burner binary"
+  if [ ${KUBE_BURNER_RELEASE_URL} == "latest" ] ; then
+    KUBE_BURNER_RELEASE_URL=$(curl -s https://api.github.com/repos/cloud-bulldozer/kube-burner/releases/latest | jq -r '.assets | map(select(.name | test("linux-x86_64"))) | .[0].browser_download_url')
+  fi
   curl -LsS ${KUBE_BURNER_RELEASE_URL} | tar xz kube-burner
   ./kube-burner init -c http-perf.yml --uuid=${UUID}
 
