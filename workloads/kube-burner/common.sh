@@ -65,7 +65,10 @@ run_workload() {
     mv ${KUBE_BURNER_DIR}/bin/amd64/kube-burner ${KUBE_DIR}/kube-burner
     rm -rf ${KUBE_BURNER_DIR}
   else
-    curl -sS -L ${KUBE_BURNER_URL} | tar -xzC ${KUBE_DIR}/ kube-burner
+    if [ ${KUBE_BURNER_URL} == "latest" ] ; then
+      KUBE_BURNER_URL=$(curl -s https://api.github.com/repos/cloud-bulldozer/kube-burner/releases/latest | jq -r '.assets | map(select(.name | test("linux-x86_64"))) | .[0].browser_download_url')
+    fi
+    curl -sS -L ${KUBE_BURNER_URL} | tar -xzC ${KUBE_DIR}/kube-burner
   fi
   CMD="timeout ${JOB_TIMEOUT} ${KUBE_DIR}/kube-burner init --uuid=${UUID} -c $(basename ${WORKLOAD_TEMPLATE}) --log-level=${LOG_LEVEL}"
   # When metrics or alerting are enabled we have to pass the prometheus URL to the cmd

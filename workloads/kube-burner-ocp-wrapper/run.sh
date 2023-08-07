@@ -4,7 +4,7 @@ set -e
 
 ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
 LOG_LEVEL=${LOG_LEVEL:-info}
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.7.3}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-latest}
 CHURN=${CHURN:-true}
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
@@ -15,7 +15,11 @@ UUID=${UUID:-$(uuidgen)}
 KUBE_DIR=${KUBE_DIR:-/tmp}
 
 download_binary(){
-  KUBE_BURNER_URL=https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-V${KUBE_BURNER_VERSION}-linux-x86_64.tar.gz
+  if [ ${KUBE_BURNER_VERSION} == "latest" ] ; then
+    KUBE_BURNER_URL=$(curl -s https://api.github.com/repos/cloud-bulldozer/kube-burner/releases/latest | jq -r '.assets | map(select(.name | test("linux-x86_64"))) | .[0].browser_download_url')
+  else
+    KUBE_BURNER_URL=https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-V${KUBE_BURNER_VERSION}-linux-x86_64.tar.gz
+  fi
   curl -sS -L ${KUBE_BURNER_URL} | tar -xzC ${KUBE_DIR}/ kube-burner
 }
 
