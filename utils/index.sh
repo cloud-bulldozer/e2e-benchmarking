@@ -133,9 +133,7 @@ if [[ -z $ES_SERVER ]]; then
   exit 1
 fi
 
-if [[ -z $ES_INDEX ]]; then
-  export ES_INDEX=perf_scale_ci
-fi
+ES_INDEX=perf_scale_ci
 
 setup
 index_tasks
