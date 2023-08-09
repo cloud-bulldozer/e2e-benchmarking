@@ -1,3 +1,9 @@
+# Deprecation notice
+
+### The workloads and scripts in this directory are not actively maintained or supported and shouldn't be used anymore, use [kube-burner-ocp-wrapper](../kube-burner-ocp-wrapper) instead.
+
+---
+
 # Kube-burner e2e benchmarks
 
 In order to kick off one of these benchmarks you must use the run.sh script. There are 13 different workloads at the moment, that could be launched as follows:
