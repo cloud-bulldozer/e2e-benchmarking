@@ -28,10 +28,10 @@ if [[ -n ${BASELINE_UUID} ]]; then
   cmd+=" --baseline-uuid=${BASELINE_UUID} --baseline-index=${BASELINE_INDEX} --tolerancy=${TOLERANCY} --uuid ${UUID}"
 fi
 
-JOB_START=$(date +"%Y-%m-%d %H:%M:%S")
+JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 $cmd
 exit_code=$?
-JOB_END=$(date +"%Y-%m-%d %H:%M:%S")
+JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 if [ $exit_code -eq 0 ]; then
   JOB_STATUS="success"
 else
