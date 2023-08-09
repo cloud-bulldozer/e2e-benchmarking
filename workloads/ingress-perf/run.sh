@@ -28,6 +28,9 @@ if [[ -n ${BASELINE_UUID} ]]; then
   cmd+=" --baseline-uuid=${BASELINE_UUID} --baseline-index=${BASELINE_INDEX} --tolerancy=${TOLERANCY} --uuid ${UUID}"
 fi
 
+# Do not exit if ingress-perf fails, we need to capture the exit code.
+set +e
+
 JOB_START=$(date +"%Y-%m-%d %H:%M:%S")
 $cmd
 exit_code=$?
