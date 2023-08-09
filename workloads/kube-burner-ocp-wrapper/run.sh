@@ -109,6 +109,9 @@ if [[ -n ${ES_SERVER} ]]; then
 fi
 cmd+=" ${EXTRA_FLAGS}"
 
+# Capture the exit code of the run, but don't exit the script if it fails.
+set +e
+
 echo $cmd
 JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 $cmd

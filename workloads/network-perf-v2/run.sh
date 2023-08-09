@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -x
+set -e
 
 source ./env.sh
 source ../../utils/common.sh
@@ -16,6 +16,8 @@ log "Workload: ${WORKLOAD}"
 log "UUID: ${UUID}"
 log "###############################################"
 
+# Capture exit code of k8s-netperf
+set +e
 
 timeout $TEST_TIMEOUT ./k8s-netperf --debug --metrics --all --config ${WORKLOAD} --search $ES_SERVER --tcp-tolerance ${TOLERANCE} --clean=true --uuid $UUID
 JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
