@@ -88,8 +88,8 @@ set_duration(){
     if [[ -z $start_date || -z $end_date ]]; then
         duration=0
     else
-        end_ts=$(date -d "$end_date" +%s)
-        start_ts=$(date -d "$start_date" +%s)
+        end_ts=$(date -u -d "$end_date" +"%s")
+        start_ts=$(date -u -d "$start_date" +"%s")
         duration=$(( $end_ts - $start_ts ))
     fi
 }
@@ -110,7 +110,7 @@ index_tasks(){
             set_duration "$start_date" "$end_date"
             encoded_execution_date=$(python3 -c "import urllib.parse; print(urllib.parse.quote(input()))" <<< "$execution_date")
             build_url="${airflow_base_url}/task?dag_id=${job_id}&task_id=${task_id}&execution_date=${encoded_execution_date}"
-            index_task "$ES_SERVER/$ES_INDEX/_doc/$job_id%2F$job_run_id%2F$task_id"
+            index_task "$ES_SERVER/$ES_INDEX/_doc/$job_id%2F$job_run_id%2F$task_id%2F$UUID"
         fi
     else
         task_id=$BUILD_ID
@@ -118,8 +118,9 @@ index_tasks(){
         job_run_id=$PROW_JOB_ID
         state=$JOB_STATUS
         build_url="${prow_base_url}/${job_id}/${task_id}"
+        execution_date=$JOB_START
         set_duration "$JOB_START" "$JOB_END"
-        index_task "$ES_SERVER/$ES_INDEX/_doc/$job_id%2F$job_run_id%2F$task_id"
+        index_task "$ES_SERVER/$ES_INDEX/_doc/$job_id%2F$job_run_id%2F$task_id%2F$UUID"
     fi
 }
 

@@ -138,7 +138,7 @@ QPS: ${QPS}
 Burst: ${BURST}
 UUID: ${UUID}
 EOF
-JOB_START=$(date +"%Y-%m-%d %H:%M:%S")
+JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 if [[ ${WORKLOAD} == node-density* || ${WORKLOAD} == pod-density-heavy ]]; then
   echo "Node count: ${NODE_COUNT}"
   echo "Pods per node: ${PODS_PER_NODE}"
@@ -163,7 +163,7 @@ if [[ ${WORKLOAD} == "concurrent-builds" ]]; then
 else
   run_workload
 fi
-JOB_END=$(date +"%Y-%m-%d %H:%M:%S")
+JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 if [[ ${CLEANUP_WHEN_FINISH} == "true" ]]; then
   cleanup
   if [[ ${WORKLOAD} == node-density* || ${WORKLOAD} == pod-density-heavy ]]; then

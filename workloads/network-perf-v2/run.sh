@@ -20,9 +20,9 @@ log "###############################################"
 set +e
 
 timeout $TEST_TIMEOUT ./k8s-netperf --debug --metrics --all --config ${WORKLOAD} --search $ES_SERVER --tcp-tolerance ${TOLERANCE} --clean=true --uuid $UUID
-JOB_START=$(date +"%Y-%m-%d %H:%M:%S")
+JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 run=$?
-JOB_END=$(date +"%Y-%m-%d %H:%M:%S")
+JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Add debugging info (will be captured in each execution output)
 echo "============ Debug Info ============"
