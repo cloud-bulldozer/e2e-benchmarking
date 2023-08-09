@@ -68,16 +68,17 @@ run_workload() {
     if [ ${KUBE_BURNER_URL} == "latest" ] ; then
       KUBE_BURNER_URL=$(curl -s https://api.github.com/repos/cloud-bulldozer/kube-burner/releases/latest | jq -r '.assets | map(select(.name | test("linux-x86_64"))) | .[0].browser_download_url')
     fi
-    curl -sS -L ${KUBE_BURNER_URL} | tar -xzC ${KUBE_DIR}/kube-burner
+    curl -sS -L ${KUBE_BURNER_URL} | tar -xzC ${KUBE_DIR}/ kube-burner
   fi
   CMD="timeout ${JOB_TIMEOUT} ${KUBE_DIR}/kube-burner init --uuid=${UUID} -c $(basename ${WORKLOAD_TEMPLATE}) --log-level=${LOG_LEVEL}"
+
   # When metrics or alerting are enabled we have to pass the prometheus URL to the cmd
   if [[ ${INDEXING} == "true" ]] || [[ ${PLATFORM_ALERTS} == "true" ]] ; then
     CMD+=" -u=${PROM_URL} -t ${PROM_TOKEN}"
   fi
   if [[ -n ${METRICS_PROFILE} ]]; then
     log "Indexing enabled, using metrics from ${METRICS_PROFILE}"
-    envsubst < ${METRICS_PROFILE} > ${KUBE_DIR}/metrics.yml || envsubst < ${METRICS_PROFILE} > ${KUBE_DIR}/metrics.yml
+    envsubst < ${METRICS_PROFILE} > ${KUBE_DIR}/metrics.yml
     CMD+=" -m ${KUBE_DIR}/metrics.yml"
   fi
   if [[ ${PLATFORM_ALERTS} == "true" ]]; then
