@@ -37,13 +37,13 @@ setup(){
         cluster_type="self-managed"
     fi
 
-    masters=$(oc get nodes -l node-role.kubernetes.io/master --no-headers=true | wc -l) || true
-    workers=$(oc get nodes -l node-role.kubernetes.io/worker --no-headers=true | wc -l) || true
-    infra=$(oc get nodes -l node-role.kubernetes.io/infra --no-headers=true | wc -l) || true
-    worker_type=$(oc get nodes -l node-role.kubernetes.io/worker -o jsonpath='{.items[].metadata.labels.beta\.kubernetes\.io/instance-type}') || true
-    infra_type=$(oc get nodes -l node-role.kubernetes.io/infra -o jsonpath='{.items[].metadata.labels.beta\.kubernetes\.io/instance-type}') || true
-    master_type=$(oc get nodes -l node-role.kubernetes.io/master -o jsonpath='{.items[].metadata.labels.beta\.kubernetes\.io/instance-type}') || true
-    all=$(oc get nodes  --no-headers=true | wc -l) || true
+    masters=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/master --no-headers=true | wc -l) || true
+    workers=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/worker --no-headers=true | wc -l) || true
+    infra=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/infra --no-headers=true | wc -l) || true
+    worker_type=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/worker -o jsonpath='{.items[].metadata.labels.beta\.kubernetes\.io/instance-type}') || true
+    infra_type=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/infra -o jsonpath='{.items[].metadata.labels.beta\.kubernetes\.io/instance-type}') || true
+    master_type=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/master -o jsonpath='{.items[].metadata.labels.beta\.kubernetes\.io/instance-type}') || true
+    all=$(oc get nodes  --ignore-not-found --no-headers=true | wc -l) || true
 }
 
 index_task(){
