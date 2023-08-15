@@ -5,6 +5,7 @@ set -e
 UUID=$(uuidgen)
 ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
 ES_INDEX=${ES_INDEX:-ingress-performance}
+WORKLOAD=${WORKLOAD:-ingress-perf}
 LOG_LEVEL=${LOG_LEVEL:-info}
 VERSION=${VERSION:-0.2.5}
 CONFIG=${CONFIG:?}
@@ -40,5 +41,5 @@ if [ $exit_code -eq 0 ]; then
 else
   JOB_STATUS="failure"
 fi
-env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" ES_SERVER="$ES_SERVER" ../../utils/index.sh
+env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" WORKLOAD="$WORKLOAD" ES_SERVER="$ES_SERVER" ../../utils/index.sh
 exit $exit_code
