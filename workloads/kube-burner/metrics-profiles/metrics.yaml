@@ -133,3 +133,6 @@
 - query: cluster_version{type="completed"}
   metricName: clusterVersion
   instant: true
+
+- query: count(kube_replicaset_labels{})
+  metricName: replicaSets
