@@ -18,11 +18,13 @@ setup(){
     else [[ -z $AIRFLOW_CTX_DAG_ID ]]
         export ci="PROW"
         export prow_base_url="https://prow.ci.openshift.org/view/gs/origin-ci-test/logs"
+        export RELEASE_STREAM=$(oc version -o json | jq -r '.openshiftVersion' | cut -d '-' -f1-2) || echo "Cluster Install Failed"
     fi
     # Generate a uuid
     export UUID=${UUID:-$(uuidgen)}
     # Elasticsearch Config
     export ES_SERVER=$ES_SERVER
+    export WORKLOAD=$WORKLOAD
     export ES_INDEX=$ES_INDEX
     # Get OpenShift cluster details
     cluster_name=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}') || echo "Cluster Install Failed"
@@ -54,6 +56,7 @@ index_task(){
         "releaseStream": "'$RELEASE_STREAM'",
         "platform": "'$platform'",
         "clusterType": "'$cluster_type'",
+        "benchmark": "'$WORKLOAD'",
         "masterNodesCount": '$masters',
         "workerNodesCount": '$workers',
         "infraNodesCount": '$infra',
@@ -65,7 +68,6 @@ index_task(){
         "ocpVersion": "'$cluster_version'",
         "networkType": "'$network_type'",
         "buildTag": "'$task_id'",
-        "nodeName": "'$HOSTNAME'",
         "jobStatus": "'$state'",
         "buildUrl": "'$build_url'",
         "upstreamJob": "'$job_id'",
