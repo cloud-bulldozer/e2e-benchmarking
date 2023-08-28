@@ -2,7 +2,7 @@
 
 set -e
 
-UUID=$(uuidgen)
+UUID=${UUID:-$(uuidgen)}
 ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
 ES_INDEX=${ES_INDEX:-ingress-performance}
 WORKLOAD=${WORKLOAD:-ingress-perf}
