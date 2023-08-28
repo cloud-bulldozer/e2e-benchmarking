@@ -136,7 +136,7 @@ gen_metadata() {
   local CLUSTER_NAME=$(echo ${INFRA_INFO} | jq -r .status.infrastructureName)
   local OCP_VERSION=$(echo ${VERSION_INFO} | jq -r .openshiftVersion)
   local K8S_VERSION=$(echo ${VERSION_INFO} | jq -r .serverVersion.gitVersion)
-  local MASTER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/master= --no-headers | wc -l)
+  local MASTER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/master= --no-headers --ignore-not-found | wc -l)
   local WORKER_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/worker= --no-headers | wc -l)
   local WORKLOAD_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/workload= --no-headers --ignore-not-found | wc -l)
   local INFRA_NODES_COUNT=$(oc get node -l node-role.kubernetes.io/infra= --no-headers --ignore-not-found | wc -l)

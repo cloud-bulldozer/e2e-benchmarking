@@ -7,8 +7,11 @@ source ../../utils/common.sh
 curl -sS -L $NETPERF_URL | tar -xz
 
 # Assuming kubeconfig is set
-oc create ns netperf
-oc create sa netperf -n netperf
+if [[ "$(oc get ns netperf --no-headers --ignore-not-found)" == ""  ]]; then
+  oc create ns netperf
+  oc create sa netperf -n netperf
+fi
+
 oc adm policy add-scc-to-user hostnetwork -z netperf -n netperf
 
 log "###############################################"
