@@ -20,8 +20,7 @@ setup(){
         export prow_base_url="https://prow.ci.openshift.org/view/gs/origin-ci-test/logs"
         export RELEASE_STREAM=$(oc version -o json | jq -r '.openshiftVersion' | cut -d '-' -f1-2) || echo "Cluster Install Failed"
     fi
-    # Generate a uuid
-    export UUID=${UUID:-$(uuidgen)}
+    export UUID=$UUID
     # Elasticsearch Config
     export ES_SERVER=$ES_SERVER
     export WORKLOAD=$WORKLOAD
@@ -133,7 +132,11 @@ if [[ -z $PROW_JOB_ID && -z $AIRFLOW_CTX_DAG_ID ]]; then
 fi
 if [[ -z $ES_SERVER ]]; then
   echo "Elastic server is not defined, please check"
-  exit 1
+  exit 0
+fi
+if [[ -z $UUID ]]; then
+  echo "UUID is not present. UUID is a must for the indexing step"
+  exit 0
 fi
 
 ES_INDEX=perf_scale_ci
