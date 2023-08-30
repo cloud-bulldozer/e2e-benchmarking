@@ -3,22 +3,23 @@
 set -exo pipefail
 
 setup(){
-    if [[ -z $PROW_JOB_ID ]]; then
+    if [[ -n $AIRFLOW_CTX_DAG_ID ]]; then
         export job_id=${AIRFLOW_CTX_DAG_ID}
         export execution_date=${AIRFLOW_CTX_EXECUTION_DATE}
         export job_run_id=${AIRFLOW_CTX_DAG_RUN_ID}
         export ci="AIRFLOW"
-        printenv
         # Get Airflow URL
         export airflow_base_url="http://$(kubectl get route/airflow -n airflow -o jsonpath='{.spec.host}')"
         # Setup Kubeconfig
         export KUBECONFIG=/home/airflow/auth/config
         curl -sS https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xz oc
         export PATH=$PATH:/home/airflow/.local/bin:$(pwd)
-    else [[ -z $AIRFLOW_CTX_DAG_ID ]]
+    elif [[ -n $PROW_JOB_ID ]]; then
         export ci="PROW"
         export prow_base_url="https://prow.ci.openshift.org/view/gs/origin-ci-test/logs"
-        export RELEASE_STREAM=$(oc version -o json | jq -r '.openshiftVersion' | cut -d '-' -f1-2) || echo "Cluster Install Failed"
+    elif [[ -n $BUILD_ID ]]; then
+        export ci="JENKINS"
+        export build_url=${BUILD_URL}
     fi
     export UUID=$UUID
     # Elasticsearch Config
@@ -28,6 +29,7 @@ setup(){
     # Get OpenShift cluster details
     cluster_name=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}') || echo "Cluster Install Failed"
     cluster_version=$(oc version -o json | jq -r '.openshiftVersion') || echo "Cluster Install Failed"
+    export RELEASE_STREAM=$(oc version -o json | jq -r '.openshiftVersion' | cut -d '-' -f1-2) || echo "Cluster Install Failed"
     network_type=$(oc get network.config/cluster -o jsonpath='{.status.networkType}') || echo "Cluster Install Failed"
     platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}') || echo "Cluster Install Failed"
     cluster_type=""
@@ -97,7 +99,7 @@ set_duration(){
 
 
 index_tasks(){
-    if [[ -z $PROW_JOB_ID ]]; then
+    if [[ -n $AIRFLOW_CTX_DAG_ID ]]; then
         task_states=$(AIRFLOW__LOGGING__LOGGING_LEVEL=ERROR  airflow tasks states-for-dag-run $job_id $execution_date -o json)
         task_json=$( echo $task_states | jq -c ".[] | select( .task_id == \"$TASK\")")
         state=$(echo $task_json | jq -r '.state')
@@ -113,7 +115,7 @@ index_tasks(){
             build_url="${airflow_base_url}/task?dag_id=${job_id}&task_id=${task_id}&execution_date=${encoded_execution_date}"
             index_task "$ES_SERVER/$ES_INDEX/_doc/$job_id%2F$job_run_id%2F$task_id%2F$UUID"
         fi
-    else
+     elif [[ -n $PROW_JOB_ID ]]; then
         task_id=$BUILD_ID
         job_id=$JOB_NAME
         job_run_id=$PROW_JOB_ID
@@ -122,11 +124,18 @@ index_tasks(){
         execution_date=$JOB_START
         set_duration "$JOB_START" "$JOB_END"
         index_task "$ES_SERVER/$ES_INDEX/_doc/$job_id%2F$job_run_id%2F$task_id%2F$UUID"
+    elif [[ -n $BUILD_ID ]]; then
+        task_id=$BUILD_ID
+        job_id=$JOB_BASE_NAME
+        state=$JOB_STATUS
+        execution_date=$JOB_START
+        set_duration "$JOB_START" "$JOB_END"
+        index_task "$ES_SERVER/$ES_INDEX/_doc/$job_id%2F$task_id%2F$UUID"
     fi
 }
 
 # Defaults
-if [[ -z $PROW_JOB_ID && -z $AIRFLOW_CTX_DAG_ID ]]; then
+if [[ -z $PROW_JOB_ID && -z $AIRFLOW_CTX_DAG_ID && -z $BUILD_ID ]]; then
     echo "Not a CI run. Skipping CI metrics to be indexed"
     exit 0
 fi
