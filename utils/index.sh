@@ -21,8 +21,7 @@ setup(){
         export ci="JENKINS"
         export build_url=${BUILD_URL}
     fi
-    # Generate a uuid
-    export UUID=${UUID:-$(uuidgen)}
+    export UUID=$UUID
     # Elasticsearch Config
     export ES_SERVER=$ES_SERVER
     export WORKLOAD=$WORKLOAD
@@ -142,6 +141,10 @@ if [[ -z $PROW_JOB_ID && -z $AIRFLOW_CTX_DAG_ID && -z $BUILD_ID ]]; then
 fi
 if [[ -z $ES_SERVER ]]; then
   echo "Elastic server is not defined, please check"
+  exit 0
+fi
+if [[ -z $UUID ]]; then
+  echo "UUID is not present. UUID is a must for the indexing step"
   exit 0
 fi
 
