@@ -1,5 +1,5 @@
 
-export KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-latest}
+export KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.9.1/kube-burner-0.9.1-Linux-x86_64.tar.gz}
 export QPS=${QPS:-40}
 export BURST=${BURSTS:-40}
 export CLEANUP_WHEN_FINISH=${CLEANUP_WHEN_FINISH:-true}
