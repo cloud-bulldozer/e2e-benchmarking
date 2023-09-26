@@ -21,6 +21,7 @@ setup(){
         export ci="JENKINS"
         export build_url=${BUILD_URL}
     fi
+
     export UUID=$UUID
     # Elasticsearch Config
     export ES_SERVER=$ES_SERVER
@@ -50,35 +51,42 @@ setup(){
 }
 
 index_task(){
+    
     url=$1
-    curl --insecure -X POST -H "Content-Type: application/json" -H "Cache-Control: no-cache" -d '{
-        "ciSystem" : "'$ci'",
-        "uuid" : "'$UUID'",
-        "releaseStream": "'$RELEASE_STREAM'",
-        "platform": "'$platform'",
-        "clusterType": "'$cluster_type'",
-        "benchmark": "'$WORKLOAD'",
-        "masterNodesCount": '$masters',
-        "workerNodesCount": '$workers',
-        "infraNodesCount": '$infra',
-        "masterNodesType": "'$master_type'",
-        "workerNodesType": "'$worker_type'",
-        "infraNodesType": "'$infra_type'",
-        "totalNodesCount": '$all',
-        "clusterName": "'$cluster_name'",
-        "ocpVersion": "'$cluster_version'",
-        "networkType": "'$network_type'",
-        "buildTag": "'$task_id'",
-        "jobStatus": "'$state'",
-        "buildUrl": "'$build_url'",
-        "upstreamJob": "'$job_id'",
-        "upstreamJobBuild": "'$job_run_id'",
-        "executionDate": "'$execution_date'",
-        "jobDuration": "'$duration'",
-        "startDate": "'"$start_date"'",
-        "endDate": "'"$end_date"'",
-        "timestamp": "'"$start_date"'"
-        }' "$url"
+    uuid_dir=/tmp/$UUID
+    mkdir $uuid_dir
+
+    json_data='{
+        "ciSystem":"'$ci'",
+        "uuid":"'$UUID'",
+        "releaseStream":"'$RELEASE_STREAM'",
+        "platform":"'$platform'",
+        "clusterType":"'$cluster_type'",
+        "benchmark":"'$WORKLOAD'",
+        "masterNodesCount":'$masters',
+        "workerNodesCount":'$workers',
+        "infraNodesCount":'$infra',
+        "masterNodesType":"'$master_type'",
+        "workerNodesType":"'$worker_type'",
+        "infraNodesType":"'$infra_type'",
+        "totalNodesCount":'$all',
+        "clusterName":"'$cluster_name'",
+        "ocpVersion":"'$cluster_version'",
+        "networkType":"'$network_type'",
+        "buildTag":"'$task_id'",
+        "jobStatus":"'$state'",
+        "buildUrl":"'$build_url'",
+        "upstreamJob":"'$job_id'",
+        "upstreamJobBuild":"'$job_run_id'",
+        "executionDate":"'$execution_date'",
+        "jobDuration":"'$duration'",
+        "startDate":"'"$start_date"'",
+        "endDate":"'"$end_date"'",
+        "timestamp":"'"$start_date"'"
+        }'
+    echo $json_data >> $uuid_dir/index_data.json
+    curl --insecure -X POST -H "Content-Type:application/json" -H "Cache-Control:no-cache" -d "$json_data" "$url"
+    
 }
 
 set_duration(){
