@@ -56,7 +56,7 @@ EOF
 
   echo "Get all management worker nodes, excludes infra, obo, workload"
   Q_NODES=""
-  for n in $(curl -H "Authorization: Bearer ${MC_PROMETHEUS_TOKEN}" -k --silent --globoff  ${MC_PROMETHEUS}/api/v1/query?query='sum(kube_node_role{role!~"master|infra|workload|obo"})by(node)&time='$(date +"%s")'' | jq -r '.data.result[].metric.node'); do
+  for n in $(curl -H "Authorization: Bearer ${MC_PROMETHEUS_TOKEN}" -k --silent --globoff  ${MC_PROMETHEUS}/api/v1/query?query='sum(cluster:nodes_roles{label_hypershift_openshift_io_control_plane="true"})by(node)&time='$(date +"%s")'' | jq -r '.data.result[].metric.node'); do
     if [[ ${Q_NODES} == "" ]]; then
       Q_NODES=${n}
     else
