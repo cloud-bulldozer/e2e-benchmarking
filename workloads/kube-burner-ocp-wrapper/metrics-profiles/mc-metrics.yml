@@ -3,17 +3,12 @@
 # Only collecting container and worker nodes CPU/Memory metrics
 
 # Management Node metrics: CPU & Memory
+# Non-serving nodes
 - query: (sum(irate(node_cpu_seconds_total[1m])) by (mode,instance) and on (instance) label_replace(cluster:nodes_roles{label_hypershift_openshift_io_control_plane="true"}, "instance", "$1", "node", "(.+)")) > 0
   metricName: mgmt-nodeCPU-Workers
 
 - query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(cluster:nodes_roles{label_hypershift_openshift_io_control_plane="true"}, "instance", "$1", "node", "(.+)")
   metricName: mgmt-nodeMemoryUtilization-Workers
-
-- query: (sum(irate(node_cpu_seconds_total[1m])) by (mode,instance) and on (instance) label_replace(cluster:nodes_roles{label_hypershift_openshift_io_cluster=~".+{{.HCP_NAMESPACE}}"}, "instance", "$1", "node", "(.+)")) > 0
-  metricName: mgmt-servingNodeCPU-Workers
-
-- query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(cluster:nodes_roles{label_hypershift_openshift_io_cluster=~".+{{.HCP_NAMESPACE}}"}, "instance", "$1", "node", "(.+)")
-  metricName: mgmt-servingNodeMemoryUtilization-Workers
 
 - query: (max((sum(irate(node_cpu_seconds_total{}[1m])) by (mode,instance) and on (instance) label_replace(bottomk(1, min_over_time(sum(irate(node_cpu_seconds_total{mode=~"idle",instance=~"{{.MGMT_WORKER_NODES}}"}[1m])) by (mode,instance)[{{ .elapsed }}:])), "instance", "$1", "instance", "(.+)"))) by (mode, instance)) > 0
   metricName: mgmtNodeCPU-MostUtilizedWorker
@@ -24,6 +19,14 @@
 - query: (avg(node_memory_MemTotal_bytes{instance=~"{{.MGMT_WORKER_NODES}}"}) by (instance))
   metricName: mgmtNodeMemoryTotal
 
+# Serving nodes utilization
+- query: (sum(irate(node_cpu_seconds_total[1m])) by (mode,instance) and on (instance) label_replace(cluster:nodes_roles{label_hypershift_openshift_io_cluster=~".+{{.HCP_NAMESPACE}}"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: mgmt-servingNodeCPU-Workers
+
+- query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(cluster:nodes_roles{label_hypershift_openshift_io_cluster=~".+{{.HCP_NAMESPACE}}"}, "instance", "$1", "node", "(.+)")
+  metricName: mgmt-servingNodeMemoryUtilization-Workers
+
+# Master nodes
 - query: (avg((sum(irate(node_cpu_seconds_total{}[1m])) by (mode,instance) and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master!=""}, "instance", "$1", "node", "(.+)"))) by (mode, instance)) > 0
   metricName: mgmtMasterCPU-Aggregated
 
@@ -42,10 +45,10 @@
 - query: irate(node_disk_writes_completed_total{instance=~"{{.MGMT_WORKER_NODES}}"}[2m])
   metricName: mgmtNodeDiskWrites
 # ControlPlane Containers metrics
-- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring)"}[1m]) * 100)  by (container, pod, namespace, node)) > 0
+- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|suricata)|dynatrace"}[1m]) * 100)  by (container, pod, namespace, node)) > 0
   metricName: mgmt-containerCPU
 
-- query: sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring)"}) by (container, pod, namespace, node)
+- query: sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|suricata)|dynatrace"}) by (container, pod, namespace, node)
   metricName: mgmt-containerMemory
 
 # MC Etcd metrics
