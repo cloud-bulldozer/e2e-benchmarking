@@ -26,6 +26,9 @@
 - query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(cluster:nodes_roles{label_hypershift_openshift_io_cluster=~".+{{.HCP_NAMESPACE}}"}, "instance", "$1", "node", "(.+)")
   metricName: mgmt-servingNodeMemoryUtilization-Workers
 
+- query: avg(node_memory_MemTotal_bytes) by (instance) and on (instance) label_replace(cluster:nodes_roles{label_hypershift_openshift_io_cluster=~".+{{.HCP_NAMESPACE}}"}, "instance", "$1", "node", "(.+)")
+  metricName: mgmtServingNodeMemoryTotal
+
 # Master nodes
 - query: (avg((sum(irate(node_cpu_seconds_total{}[1m])) by (mode,instance) and on (instance) label_replace(cluster:nodes_roles{label_node_role_kubernetes_io_master!=""}, "instance", "$1", "node", "(.+)"))) by (mode, instance)) > 0
   metricName: mgmtMasterCPU-Aggregated
@@ -38,6 +41,9 @@
 
 - query: kube_node_role{}
   metricName: mgmtNodeRoles
+
+- query: kube_node_labels{}
+  metricName: mgmtNodeLabels
 
 - query: irate(node_disk_reads_completed_total{instance=~"{{.MGMT_WORKER_NODES}}"}[2m])
   metricName: mgmtNodeDiskReads
