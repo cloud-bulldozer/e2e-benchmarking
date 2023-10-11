@@ -15,6 +15,24 @@ TOLERANCY=${TOLERANCY:-20}
 OS=$(uname -s)
 HARDWARE=$(uname -m)
 
+export TUNING_PATCH=${TUNING_PATCH:-"'{\"spec\":{\"nodePlacement\": {\"nodeSelector\": {\"matchLabels\": {\"node-role.kubernetes.io/infra\": \"\"}}}, \"replicas\": 2}}'"}
+export CONNECTIONS=${CONNECTIONS:-200}
+export SAMPLES=${SAMPLES:-2}
+export DURATION=${DURATION:-5m}
+export ENDPOINT_PATH=${ENDPOINT_PATH:-'/1024.html'}
+export CONCURRENCY=${CONCURRENCY:-18}
+export TOOL=${TOOL:-wrk}
+export SERVER_REPLICAS=${SERVER_REPLICAS:-45}
+export REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-10s}
+export DELAY=${DELAY:-10s}
+
+export CONFIG_TEMPLATE=${CONFIG_TEMPLATE}
+
+if [[ ! -z ${CONFIG_TEMPLATE}  ]]; then
+  envsubst < ${CONFIG_TEMPLATE} > ${CONFIG}
+fi
+cat ${CONFIG}
+
 download_binary(){
   INGRESS_PERF_URL=https://github.com/cloud-bulldozer/ingress-perf/releases/download/v${VERSION}/ingress-perf-${OS}-v${VERSION}-${HARDWARE}.tar.gz
   curl -sS -L ${INGRESS_PERF_URL} | tar xz ingress-perf
