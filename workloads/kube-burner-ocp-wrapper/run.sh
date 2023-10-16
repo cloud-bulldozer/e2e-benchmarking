@@ -100,7 +100,9 @@ if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
   hypershift
 fi
 # If ES_SERVER is specified
-if [[ -n ${ES_SERVER} ]]; then
+if [[ "none" -eq ${ES_SERVER} ]]; then
+  echo "ES_SERVER='none' ... Skipping indexing"
+elif [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
 cmd+=" ${EXTRA_FLAGS}"
