@@ -78,7 +78,7 @@ EOF
 
   if [[ ${WORKLOAD} =~ "index" ]]; then
     cat << EOF
-elapsed: "20m:"
+elapsed: "20m"
 EOF
   fi
   
