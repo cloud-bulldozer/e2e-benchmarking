@@ -98,7 +98,7 @@ EOF
 
 download_binary
 if [[ ${WORKLOAD} =~ "index" ]]; then
-  cmd="${KUBE_DIR}/kube-burner index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level debug"
+  cmd="${KUBE_DIR}/kube-burner index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
 else
   cmd="${KUBE_DIR}/kube-burner ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
   cmd+=" ${EXTRA_FLAGS}"
