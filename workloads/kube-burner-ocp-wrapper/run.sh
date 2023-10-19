@@ -77,9 +77,7 @@ MGMT_WORKER_NODES: ${MGMT_WORKER_NODES}
 EOF
 
   if [[ ${WORKLOAD} =~ "index" ]]; then
-    cat << EOF
-elapsed: "20m"
-EOF
+    export elapsed=20m
   fi
   
   echo "Indexing Management cluster stats before executing"
