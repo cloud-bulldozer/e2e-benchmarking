@@ -75,6 +75,11 @@ HOSTED_PROMETHEUS_TOKEN: <truncated>
 HCP_NAMESPACE: ${HCP_NAMESPACE}
 MGMT_WORKER_NODES: ${MGMT_WORKER_NODES}
 EOF
+
+  if [[ ${WORKLOAD} =~ "index" ]]; then
+    export elapsed=20m
+  fi
+  
   echo "Indexing Management cluster stats before executing"
   METADATA=$(cat << EOF
 {
@@ -90,7 +95,12 @@ EOF
 }
 
 download_binary
-cmd="${KUBE_DIR}/kube-burner ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
+if [[ ${WORKLOAD} =~ "index" ]]; then
+  cmd="${KUBE_DIR}/kube-burner index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
+else
+  cmd="${KUBE_DIR}/kube-burner ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
+  cmd+=" ${EXTRA_FLAGS}"
+fi
 if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
@@ -103,8 +113,6 @@ fi
 if [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
-cmd+=" ${EXTRA_FLAGS}"
-
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
