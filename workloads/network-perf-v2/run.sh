@@ -32,7 +32,7 @@ echo "============ Debug Info ============"
 echo k8s-netperf version $NETPERF_VERSION
 oc get pods -n netperf -o wide
 oc get nodes -o wide
-oc get machineset -A
+oc get machineset -A || true
 
 log "Finished workload ${0} ${WORKLOAD}, exit code ($run)"
 
