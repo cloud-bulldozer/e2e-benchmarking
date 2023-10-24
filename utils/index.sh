@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -exo pipefail
+set -eo pipefail
 
 setup(){
     if [[ -n $AIRFLOW_CTX_DAG_ID ]]; then
@@ -85,7 +85,8 @@ index_task(){
         "timestamp":"'"$start_date"'"
         }'
     echo $json_data >> $uuid_dir/index_data.json
-    curl --insecure -X POST -H "Content-Type:application/json" -H "Cache-Control:no-cache" -d "$json_data" "$url"
+    echo "${json_data}"
+    curl -sS --insecure -X POST -H "Content-Type:application/json" -H "Cache-Control:no-cache" -d "$json_data" "$url"
     
 }
 
