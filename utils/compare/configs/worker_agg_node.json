@@ -1,0 +1,15 @@
+{
+    "metrics": [
+        {
+            "metricName": "nodeCPU-AggregatedWorkers",
+            "labels.mode": "users"
+        },
+        {
+            "metricName": "nodeMemoryUtilization-AggregatedWorkers",
+            "jobConfig.name": "*"
+        }
+    ],
+    "metric_of_interest": "value",
+    "divider": 1,
+    "type": "avg"
+}

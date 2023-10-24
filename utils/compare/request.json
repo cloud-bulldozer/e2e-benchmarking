@@ -1,0 +1,14 @@
+{
+    "query": {
+        "query_string": {
+            "query": "benchmark: "node-density-heavy" AND workerNodesType: "m5.xlarge" AND masterNodesType: "" AND masterNodesCount: "0" AND workerNodesCount: "24" AND networkType: "OVNKubernetes" AND platform: "AWS" AND ocpVersion: 4.14* AND jobStatus: success"
+        },
+        "range": {
+            "timestamp": {
+                "lte": "2023-12-07T10: 31: 02.930Z",
+                "gte": "2023-12-05T10: 31: 02.930Z",
+                "format": "strict_date_optional_time"
+            }
+        }
+    }
+}

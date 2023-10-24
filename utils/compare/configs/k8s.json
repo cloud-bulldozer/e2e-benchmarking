@@ -1,0 +1,18 @@
+{
+    "metrics": [
+        {
+            "profile": "*",
+            "parallelism": 1,
+            "hostNetwork": "false",
+            "service": "false"
+        }
+    ],
+    "additionalColumns": [
+        "messageSize",
+        "samples",
+        "acrossAZ"
+    ],
+    "metric_of_interest": "throughput",
+    "divider": 1,
+    "type": "avg"
+}

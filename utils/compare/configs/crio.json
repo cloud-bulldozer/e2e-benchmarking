@@ -1,0 +1,15 @@
+{
+    "metrics": [
+        {
+            "metricName": "crioCPU",
+            "jobConfig.name": "*"
+        },
+        {
+            "metricName": "crioMemory",
+            "jobConfig.name": "*"
+        }
+    ],
+    "metric_of_interest": "value",
+    "divider": 1,
+    "type": "avg"
+}

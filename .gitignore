@@ -1,3 +1,5 @@
 results.markdown
 utils/*.csv
 utils/*.json
+__pycache__
+**/__pycache__

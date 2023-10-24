@@ -1,0 +1,16 @@
+{
+    "metrics": [
+        {
+            "config.termination": "*"
+        }
+    ],
+    "additionalColumns": [
+        "sample",
+        "config.serverReplicas",
+        "config.connections",
+        "config.concurrency"
+    ],
+    "metric_of_interest": "total_avg_rps",
+    "divider": 1,
+    "type": "avg"
+}

@@ -1,0 +1,11 @@
+{
+    "metrics": [
+        {
+            "metricName": "podLatencyQuantilesMeasurement",
+            "quantileName": "*"
+        }
+    ],
+    "metric_of_interest": "P99",
+    "divider": 1000,
+    "type": "avg"
+}

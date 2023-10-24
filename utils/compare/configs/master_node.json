@@ -1,0 +1,15 @@
+{
+    "metrics": [
+        {
+            "metricName": "nodeCPU-Masters",
+            "labels.mode": "user"
+        },
+        {
+            "metricName": "nodeMemoryUtilization-Masters",
+            "jobConfig.name": "*"
+        }
+    ],
+    "metric_of_interest": "value",
+    "divider": 1,
+    "type": "max"
+}

@@ -1,0 +1,16 @@
+{
+    "metrics": [
+        {
+            "metricName": "99thEtcdDiskBackendCommitDurationSeconds"
+        },
+        {
+            "metricName": "99thEtcdDiskWalFsyncDurationSeconds"
+        },
+        {
+            "metricName": "99thEtcdRoundTripTimeSeconds"
+        }
+    ],
+    "metric_of_interest": "value",
+    "divider": 1,
+    "type": "avg"
+}
