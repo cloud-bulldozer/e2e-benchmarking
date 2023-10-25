@@ -34,7 +34,16 @@
 - query: (sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|multus|ingress|monitoring|image-registry)"}) by (container, pod, namespace, node) and on (node) kube_node_role{role="infra"}) > 0
   metricName: containerMemory-Infra
 
+- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|multus)"}[2m]) * 100) by (container, pod, namespace, node) and on (node) kube_node_role{role="ovnic"}) > 0
+  metricName: containerCPU-Workers
+
+- query: (sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|multus)"}) by (container, pod, namespace, node) and on (node) kube_node_role{role="ovnic"}) > 0
+  metricName: containerMemory-Workers
+
 # Node metrics: CPU & Memory
+
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="ovnic"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: nodeCPU-Workers
 
 - query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")) > 0
   metricName: nodeCPU-Masters

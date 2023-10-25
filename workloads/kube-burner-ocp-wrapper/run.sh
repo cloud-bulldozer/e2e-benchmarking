@@ -116,6 +116,24 @@ fi
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
+# Label workers with ovnic. Metrics from only these workers are pulled.
+# node-desnity-cni on 500 nodes runs for 2 hours 15 minutes. Scraping metrics from 500 nodes for the duration of 2 hours 15 minutes is overkill.
+# So we scrape from only 10 worker nodes if the worker node count is more than 120.
+workers_to_label=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/worker --no-headers=true | wc -l) || true
+if [ "$workers_to_label" -gt 2 ]; then
+  workers_to_label=2
+fi
+
+count=0
+for node in $(oc get nodes --ignore-not-found -l node-role.kubernetes.io/worker --no-headers -o custom-columns=":.metadata.name"); do
+  if [ "$count" -eq "$workers_to_label" ]; then
+    break
+  fi
+  oc label nodes $node 'node-role.kubernetes.io/ovnic='
+  ((count++))
+done
+
+
 echo $cmd
 JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 $cmd
