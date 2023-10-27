@@ -24,7 +24,7 @@ time="2023-05-23 12:18:26" level=info msg="Running sample 3/3: 5s" file="exec.go
 This wrapper supports some variables to tweak some basic parameters of the workloads:
 
 - **CONFIG**: Defines the configuration file to use. Configuration files are available in the [config directory](config/).
-- **ES_SERVER**: Defines the ElasticSearch/OpenSearch endpoint. By default it points the development instance.
+- **ES_SERVER**: Defines the ElasticSearch/OpenSearch endpoint. By default it points the development instance. Indexing can be disabled with `export ES_SERVER=""`.
 - **ES_INDEX**: Defines the ElasticSearch/OpenSearch index. By default `ingress-performance`
 - **LOG_LEVEL**: Defines the loglevel, by default `info`
 
