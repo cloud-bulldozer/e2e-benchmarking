@@ -13,6 +13,10 @@ GC=${GC:-true}
 EXTRA_FLAGS=${EXTRA_FLAGS:-}
 UUID=${UUID:-$(uuidgen)}
 KUBE_DIR=${KUBE_DIR:-/tmp}
+US_WEST_2A=${US_WEST_2A:-}
+US_WEST_2B=${US_WEST_2B:-}
+US_WEST_2C=${US_WEST_2C:-}
+US_WEST_2D=${US_WEST_2D:-}
 
 download_binary(){
   KUBE_BURNER_URL=https://github.com/cloud-bulldozer/kube-burner/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-V${KUBE_BURNER_VERSION}-linux-x86_64.tar.gz
@@ -115,6 +119,42 @@ if [[ -n ${ES_SERVER} ]]; then
 fi
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
+
+# scale machineset
+for machineset_name in $(oc get -n openshift-machine-api machineset --no-headers -o custom-columns=":.metadata.name" | grep -i worker); do
+  region=$(oc get -n openshift-machine-api machineset --no-headers -o custom-columns=":.spec.template.spec.providerSpec.value.placement.availabilityZone" $machineset_name)
+  # region will be of the form us-west-2a. We need to match it to user provided var i.e replae "-" with '_' and then convert it to upper case.
+  # For example us-west-2a will be converted to US_WEST_2A.
+  region_var=$(echo "$region" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+  # desired_replicas will be the value stored in US_WEST_2A (if povided by user)
+  desired_replicas=${!region_var}
+  if [[ "${desired_replicas}" != "" ]]; then
+    echo "scale the ${machineset_name} to ${desired_replicas}"
+    current_replicas=$(oc get -n openshift-machine-api -o template machineset "$machineset_name" --template={{.status.replicas}})
+    # scale 50 at at time
+    while ((current_replicas < desired_replicas)); do
+      needed_replicas=$((desired_replicas - current_replicas))
+      scale_step=$((current_replicas + needed_replicas))
+
+      if ((needed_replicas > 50)); then
+        scale_step=$((current_replicas + 50))
+      fi
+      echo "Scaling from $current_replicas to $scale_step replicas."
+      oc scale -n openshift-machine-api machineset "$machineset_name" --replicas="${scale_step}"
+      # wait for 1 hour i.e 720 retries, each retry with 5 seconds sleep
+      for ((i = 1; i <= 720; i++)); do
+        available_replicas=$(oc get -n openshift-machine-api -o template machineset "$machineset_name" --template={{.status.availableReplicas}})
+        if [ "$available_replicas" -eq "$scale_step" ]; then
+          echo "Desired number of replicas ($scale_step) reached."
+          break
+        fi
+        sleep 5
+      done
+      current_replicas=$(oc get -n openshift-machine-api -o template machineset "$machineset_name" --template={{.status.replicas}})
+    done
+  fi
+done
+
 
 # Label workers with ovnic. Metrics from only these workers are pulled.
 # node-desnity-cni on 500 nodes runs for 2 hours 15 minutes. Scraping metrics from 500 nodes for the duration of 2 hours 15 minutes is overkill.
