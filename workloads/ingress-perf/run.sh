@@ -20,6 +20,7 @@ download_binary(){
   curl -sS -L ${INGRESS_PERF_URL} | tar xz ingress-perf
 }
 
+download_binary
 cmd="./ingress-perf run --cfg ${CONFIG} --loglevel=${LOG_LEVEL} --uuid ${UUID}"
 if [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=${ES_INDEX}"
