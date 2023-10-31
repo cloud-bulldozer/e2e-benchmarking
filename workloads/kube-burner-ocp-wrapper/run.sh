@@ -24,7 +24,7 @@ hypershift(){
   echo "Indexing Management cluster stats before executing"
   METADATA=$(cat << EOF
 {
-"uuid" : "${UUID}",
+"uuid": "${UUID}",
 "workload": "${WORKLOAD}",
 "mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
 "hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
