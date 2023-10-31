@@ -51,10 +51,10 @@
 - query: irate(node_disk_writes_completed_total{instance=~"{{.MGMT_WORKER_NODES}}"}[2m])
   metricName: mgmtNodeDiskWrites
 # ControlPlane Containers metrics
-- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|suricata)|dynatrace"}[1m]) * 100)  by (container, pod, namespace, node)) > 0
+- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|suricata|observability-operator)|dynatrace"}[1m]) * 100)  by (container, pod, namespace, node)) > 0
   metricName: mgmt-containerCPU
 
-- query: sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|suricata)|dynatrace"}) by (container, pod, namespace, node)
+- query: sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|suricata|observability-operator)|dynatrace"}) by (container, pod, namespace, node)
   metricName: mgmt-containerMemory
 
 # MC Etcd metrics
