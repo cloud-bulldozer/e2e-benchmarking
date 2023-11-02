@@ -24,7 +24,8 @@ hypershift(){
   echo "Indexing Management cluster stats before executing"
   METADATA=$(cat << EOF
 {
-"uuid" : "${UUID}",
+"uuid": "${UUID}",
+"workload": "${WORKLOAD}",
 "mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
 "hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
 "timestamp": "$(date +%s%3N)"
@@ -77,20 +78,9 @@ MGMT_WORKER_NODES: ${MGMT_WORKER_NODES}
 EOF
 
   if [[ ${WORKLOAD} =~ "index" ]]; then
-    export elapsed=20m
+    export elapsed=${ELAPSED:-20m}
   fi
   
-  echo "Indexing Management cluster stats before executing"
-  METADATA=$(cat << EOF
-{
-"uuid": "${UUID}",
-"mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
-"hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
-"timestamp": "$(date +%s%3N)"
-}
-EOF
-  )
-  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
   export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES
 }
 
