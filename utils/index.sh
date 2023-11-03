@@ -103,6 +103,18 @@ get_publish_config(){
     fi
 }
 
+get_architecture_config(){
+    compute_arch=""
+    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep -A1 compute | grep architecture | cut -d' ' -f3 ); then
+        compute_arch=$result
+    fi
+
+    control_plane_arch=""
+    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep -A1 controlPlane | grep architecture | cut -d' ' -f4 ); then
+        control_plane_arch=$result
+    fi
+}
+
 index_task(){
 
     url=$1
@@ -141,6 +153,8 @@ index_task(){
         "encrypted":"'"$encrypted"'",
         "encryptionType":"'"$encryption"'",
         "publish":"'"$publish"'",
+        "computeArch":"'"$compute_arch"'",
+        "controlPlaneArch":"'"$control_plane_arch"'",
         }'
     echo $json_data >> $uuid_dir/index_data.json
     echo "${json_data}"
@@ -222,4 +236,5 @@ get_ipsec_confg
 get_fips_config
 get_encryption_config
 get_publish_config
+get_architecture_config
 index_tasks
