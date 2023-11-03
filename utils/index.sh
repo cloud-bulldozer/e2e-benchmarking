@@ -41,13 +41,33 @@ setup(){
         cluster_type="self-managed"
     fi
 
-    masters=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/master --no-headers=true | wc -l) || true
-    workers=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/worker --no-headers=true | wc -l) || true
-    infra=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/infra --no-headers=true | wc -l) || true
-    worker_type=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/worker -o jsonpath='{.items[].metadata.labels.beta\.kubernetes\.io/instance-type}') || true
-    infra_type=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/infra -o jsonpath='{.items[].metadata.labels.beta\.kubernetes\.io/instance-type}') || true
-    master_type=$(oc get nodes --ignore-not-found -l node-role.kubernetes.io/master -o jsonpath='{.items[].metadata.labels.beta\.kubernetes\.io/instance-type}') || true
-    all=$(oc get nodes  --ignore-not-found --no-headers=true | wc -l) || true
+    masters=0
+    infra=0
+    workers=0
+    all=0
+    master_type=""
+    infra_type=""
+    worker_type=""
+
+    for node in $(oc get nodes --ignore-not-found --no-headers -o custom-columns=:.metadata.name || true); do
+        labels=$(oc get node "$node" --no-headers -o jsonpath='{.metadata.labels}')
+        if [[ $labels == *"node-role.kubernetes.io/master"* ]]; then
+            masters=$((masters + 1))
+            master_type=$(oc get node "$node" -o jsonpath='{.metadata.labels.beta\.kubernetes\.io/instance-type}')
+            taints=$(oc get node "$node" -o jsonpath='{.spec.taints}')
+
+            if [[ $labels == *"node-role.kubernetes.io/worker"* && $taints == "" ]]; then
+                workers=$((workers + 1))
+            fi
+        elif [[ $labels == *"node-role.kubernetes.io/infra"* ]]; then
+            infra=$((infra + 1))
+            infra_type=$(oc get node "$node" -o jsonpath='{.metadata.labels.beta\.kubernetes\.io/instance-type}')
+        elif [[ $labels == *"node-role.kubernetes.io/worker"* ]]; then
+            workers=$((workers + 1))
+            worker_type=$(oc get node "$node" -o jsonpath='{.metadata.labels.beta\.kubernetes\.io/instance-type}')
+        fi
+        all=$((all + 1))
+    done
 }
 
 index_task(){
