@@ -3,7 +3,7 @@ export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4b
 export UUID=${UUID:-$(uuidgen)}
 
 # k8s-netperf version
-export NETPERF_VERSION=${VERSION:-v0.1.17}
+export NETPERF_VERSION=${VERSION:-v0.1.18}
 export OS=${OS:-Linux}
 export ARCH=$(arch)
 export NETPERF_URL=${NETPERF_URL:-https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz}
