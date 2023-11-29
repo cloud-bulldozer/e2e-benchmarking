@@ -6,7 +6,7 @@
   samples: 5
   duration: 5m
   path: /1024.html
-  concurrency: 18
+  concurrency: 5
   tool: wrk
   serverReplicas: 45
   delay: 10s
@@ -17,7 +17,7 @@
   samples: 2
   duration: 5m
   path: /1024.html
-  concurrency: 18
+  concurrency: 5
   tool: wrk
   serverReplicas: 45
   delay: 10s
@@ -27,7 +27,7 @@
   samples: 2
   duration: 5m
   path: /1024.html
-  concurrency: 18
+  concurrency: 5
   tool: wrk
   serverReplicas: 45
   delay: 10s
@@ -37,7 +37,7 @@
   samples: 2
   duration: 5m
   path: /1024.html
-  concurrency: 18
+  concurrency: 5
   tool: wrk
   serverReplicas: 45
   delay: 10s
@@ -47,7 +47,7 @@
   samples: 2
   duration: 5m
   path: /1024.html
-  concurrency: 18
+  concurrency: 5
   tool: wrk
   serverReplicas: 45
   delay: 10s
