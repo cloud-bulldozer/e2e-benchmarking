@@ -4,7 +4,23 @@ set -e
 source ./env.sh
 source ../../utils/common.sh
 
-curl -sS -L $NETPERF_URL | tar -xz
+# Download k8s-netperf function
+download_netperf() {
+  echo $1
+  curl -sS -L ${NETPERF_URL} | tar -xz
+}
+
+# Download and extract k8s-netperf if we haven't already
+if [ -f "${NETPERF_FILENAME}" ]; then
+  cmd_version=$(./${NETPERF_FILENAME} --version | awk '/^Version:/{print $2}')
+  if [[ "${NETPERF_VERSION}" == *"${cmd_version}"* ]]; then
+    echo "We already have the specified version available."
+  else
+    download_netperf "Switching k8s-netperf version."
+  fi
+else
+  download_netperf "Downloading k8s-netperf."
+fi
 
 # Assuming kubeconfig is set
 if [[ "$(oc get ns netperf --no-headers --ignore-not-found)" == ""  ]]; then
@@ -23,13 +39,38 @@ log "###############################################"
 set +e
 
 JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-timeout $TEST_TIMEOUT ./k8s-netperf --debug --metrics --all --config ${WORKLOAD} --search $ES_SERVER --tcp-tolerance ${TOLERANCE} --clean=true --uuid $UUID
+
+# Initialize the command var
+cmd="timeout ${TEST_TIMEOUT} ./k8s-netperf"
+
+# Function to add flags conditionally
+add_flag() {
+  local flag_name="$1"
+  local flag_value="$2"
+  if [ -n "$flag_value" ]; then
+    cmd+=" --$flag_name=$flag_value"
+  fi
+}
+
+# Add flags based on conditions
+[ ! ${LOCAL} = true ] && add_flag "all" "${ALL_SCENARIOS}" || echo "LOCAL=true, not setting --all"
+add_flag "clean" "${CLEAN_UP}"
+add_flag "config" "${WORKLOAD}"
+add_flag "debug" "${DEBUG}"
+add_flag "local" "${LOCAL}"
+add_flag "metrics" "${METRICS}"
+add_flag "search" "${ES_SERVER}"
+add_flag "tcp-tolerance" "${TOLERANCE}"
+add_flag "uuid" "${UUID}"
+
+# Execute the constructed command
+eval "$cmd"
 run=$?
 JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Add debugging info (will be captured in each execution output)
 echo "============ Debug Info ============"
-echo k8s-netperf version $NETPERF_VERSION
+echo k8s-netperf version ${NETPERF_VERSION}
 oc get pods -n netperf -o wide
 oc get nodes -o wide
 oc get machineset -A || true
@@ -42,5 +83,5 @@ if [ $run -eq 0 ]; then
 else
   JOB_STATUS="failure"
 fi
-env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" WORKLOAD="k8s-netperf" ES_SERVER="$ES_SERVER" ../../utils/index.sh
+env JOB_START="${JOB_START}" JOB_END="${JOB_END}" JOB_STATUS="${JOB_STATUS}" UUID="${UUID}" WORKLOAD="k8s-netperf" ES_SERVER="${ES_SERVER}" ../../utils/index.sh
 exit $run
