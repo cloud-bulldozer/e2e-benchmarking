@@ -1,211 +1,210 @@
 ---
+tests:
+  - TCPStreamSmall:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 64
 
-# TCP Workloads
-TCPStreamSmall:
-   parallelism: 1
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 64
+  - TCPStreamSmall2:
+    parallelism: 2
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 64
 
-TCPStreamSmall2:
-   parallelism: 2
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 64
+  - TCPStream:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 1024
 
-TCPStream:
-   parallelism: 1
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 1024
+  - TCPStream2:
+    parallelism: 2
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 1024
 
-TCPStream2:
-   parallelism: 2
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 1024
+  - TCPStreamMed1:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 4096
 
-TCPStreamMed1:
-   parallelism: 1
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 4096
+  - TCPStreamMed2:
+    parallelism: 2
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 4096
 
-TCPStreamMed2:
-   parallelism: 2
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 4096 
+  - TCPStream3:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 8192
 
-TCPStream3:
-   parallelism: 1
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 8192
+  - TCPStream4:
+    parallelism: 2
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 8192
 
-TCPStream4:
-   parallelism: 2
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 8192
+ # UDP Workloads
+  - UDPStreamSmall:
+    parallelism: 1
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 64
 
-# UDP Workloads
-UDPStreamSmall:
-   parallelism: 1
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 64
+  - UDPStreamSmall2:
+    parallelism: 2
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 64
 
-UDPStreamSmall2:
-   parallelism: 2
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 64
+  - UDPStream:
+    parallelism: 1
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 1024
 
-UDPStream:
-   parallelism: 1
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 1024
+  - UDPStream2:
+    parallelism: 2
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 1024
 
-UDPStream2:
-   parallelism: 2
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 1024
+  - UDPStreamMed1:
+    parallelism: 1
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 4096 
 
-UDPStreamMed1:
-   parallelism: 1
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 4096 
+  - UDPStreamMed2:
+    parallelism: 2
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 4096 
 
-UDPStreamMed2:
-   parallelism: 2
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 4096 
+  - UDPStream3:
+    parallelism: 1
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 8192
 
-UDPStream3:
-   parallelism: 1
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 8192
-
-UDPStream4:
-   parallelism: 2
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 8192
+  - UDPStream4:
+    parallelism: 2
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 8192
 
 # Connection Request Response
-CRR:
-   parallelism: 1
-   profile: "TCP_CRR"
-   duration: 10
-   samples: 3
-   messagesize: 1024
+  - CRR:
+    parallelism: 1
+    profile: "TCP_CRR"
+    duration: 10
+    samples: 5
+    messagesize: 1024
 
 # Request Response
-RR:
-   parallelism: 1
-   profile: "TCP_RR"
-   duration: 30
-   samples: 3
-   messagesize: 1024
+  - RR:
+    parallelism: 1
+    profile: "TCP_RR"
+    duration: 30
+    samples: 5
+    messagesize: 1024
 
-RR2:
-   parallelism: 2
-   profile: "TCP_RR"
-   duration: 30
-   samples: 3
-   messagesize: 1024
+  - RR2:
+    parallelism: 2
+    profile: "TCP_RR"
+    duration: 30
+    samples: 5
+    messagesize: 1024
 
 # Workload Through Service
-TCPStreamService:
-   parallelism: 1
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 1024
-   service: True
+  - TCPStreamService:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 1024
+    service: True
 
-TCPStreamServiceMed:
-   parallelism: 1
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 4096 
-   service: True
+  - TCPStreamServiceMed:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 4096 
+    service: True
 
-TCPStreamServiceLrg:
-   parallelism: 1
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize:  8192 
-   service: True
+  - TCPStreamServiceLrg:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize:  8192 
+    service: True
 
-TCPStreamServiceSmall:
-   parallelism: 1
-   profile: "TCP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 64
-   service: True
+  - TCPStreamServiceSmall:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 64
+    service: True
 
-UDPStreamService:
-   parallelism: 1
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 1024
-   service: True
+  - UDPStreamService:
+    parallelism: 1
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 1024
+    service: True
 
-UDPStreamServiceMed:
-   parallelism: 1
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize: 4096 
-   service: True
+  - UDPStreamServiceMed:
+    parallelism: 1
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 4096 
+    service: True
 
-UDPStreamServiceLrg:
-   parallelism: 1
-   profile: "UDP_STREAM"
-   duration: 30
-   samples: 3
-   messagesize:  8192 
-   service: True
+  - UDPStreamServiceLrg:
+    parallelism: 1
+    profile: "UDP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize:  8192 
+    service: True
 
-RRService:
-   parallelism: 1
-   profile: "TCP_RR"
-   duration: 30
-   samples: 3
-   messagesize: 1024
-   service: True
+  - RRService:
+    parallelism: 1
+    profile: "TCP_RR"
+    duration: 30
+    samples: 5
+    messagesize: 1024
+    service: True
 
-CRRService:
-   parallelism: 1
-   profile: "TCP_CRR"
-   duration: 10
-   samples: 3
-   messagesize: 1024
-   service: True
+  - CRRService:
+    parallelism: 1
+    profile: "TCP_CRR"
+    duration: 10
+    samples: 5
+    messagesize: 1024
+    service: True
