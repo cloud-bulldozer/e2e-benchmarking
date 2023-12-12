@@ -252,7 +252,7 @@ fi
 ES_INDEX=perf_scale_ci
 
 setup
-get_ipsec_confg
+get_ipsec_config
 get_fips_config
 get_encryption_config
 get_publish_config
