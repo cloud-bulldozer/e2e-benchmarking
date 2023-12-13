@@ -73,19 +73,21 @@ setup(){
 get_ipsec_config(){
     # Get a ovnkube-master pod to try to ge the ipsec value
     ipsec=false
-    ovn_pod=$(oc get pods -o custom-columns=name:.metadata.name -n openshift-ovn-kubernetes --no-headers=true | grep ovnkube-master -m1)
+    ovn_pod=""
+    if result=$(oc get pods -o custom-columns=name:.metadata.name -n openshift-ovn-kubernetes --no-headers=true | grep ovnkube-master -m1); then
+        ovn_pod=$result
+    fi
+    if [[ -z "$ovn_pod" ]]; then
+        if result=$(oc get pods -o custom-columns=name:.metadata.name -n openshift-ovn-kubernetes --no-headers=true | grep ovnkube-node -m1); then
+            ovn_pod=$result
+        fi
+    fi
 
     # Check if the pod has the container nbdb, if it is OVNIC it won't
     # If it is a OVN the command will succed and the result will be stored in ipsec
     if result=$(oc -n openshift-ovn-kubernetes -c nbdb rsh $ovn_pod ovn-nbctl --no-leader-only get nb_global . ipsec); then
-        ipsec=$result
-    else
-        # When it is OVNIC the nbdb will be in a ovnkube-node, so we get a pod
-        ovnic_pod=$(oc get pods -o custom-columns=name:.metadata.name -n openshift-ovn-kubernetes --no-headers=true | grep ovnkube-node -m1)
-        # In case there is an error we check for the command success
-        # if it is successful we store it in ipsec
-        if result=$(oc -n openshift-ovn-kubernetes -c nbdb rsh $ovnic_pod ovn-nbctl --no-leader-only get nb_global . ipsec); then
-            ipsec=$result
+        if [[ $result == *"true"* ]]; then
+            ipsec=true
         fi
     fi
 }
@@ -167,14 +169,14 @@ index_task(){
         "jobDuration":"'$duration'",
         "startDate":"'"$start_date"'",
         "endDate":"'"$end_date"'",
-        "timestamp":"'"$start_date"'"
+        "timestamp":"'"$start_date"'",
         "ipsec":"'"$ipsec"'",
         "fips":"'"$fips"'",
         "encrypted":"'"$encrypted"'",
         "encryptionType":"'"$encryption"'",
         "publish":"'"$publish"'",
         "computeArch":"'"$compute_arch"'",
-        "controlPlaneArch":"'"$control_plane_arch"'",
+        "controlPlaneArch":"'"$control_plane_arch"'"
         }'
     echo $json_data >> $uuid_dir/index_data.json
     echo "${json_data}"
