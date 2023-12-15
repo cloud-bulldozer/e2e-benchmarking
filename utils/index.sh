@@ -70,8 +70,75 @@ setup(){
     done
 }
 
+get_ipsec_config(){
+    # Get a ovnkube-master pod to try to ge the ipsec value
+    ipsec=false
+    ovn_pod=""
+    if result=$(oc get pods -o custom-columns=name:.metadata.name -n openshift-ovn-kubernetes --no-headers=true | grep ovnkube-master -m1); then
+        ovn_pod=$result
+    fi
+    if [[ -z "$ovn_pod" ]]; then
+        if result=$(oc get pods -o custom-columns=name:.metadata.name -n openshift-ovn-kubernetes --no-headers=true | grep ovnkube-node -m1); then
+            ovn_pod=$result
+        fi
+    fi
+
+    # Check if the pod has the container nbdb, if it is OVNIC it won't
+    # If it is a OVN the command will succed and the result will be stored in ipsec
+    if result=$(oc -n openshift-ovn-kubernetes -c nbdb rsh $ovn_pod ovn-nbctl --no-leader-only get nb_global . ipsec); then
+        if [[ $result == *"true"* ]]; then
+            ipsec=true
+        fi
+    fi
+}
+
+get_fips_config(){
+    fips=false
+    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep 'fips: ' | cut -d' ' -f2); then
+        fips=$result
+    fi
+}
+
+get_encryption_config(){
+    # Check the apiserver for the encryption config
+    # If encryption was never turned on, you won't find this config on the apiserver
+    encrypted=false
+    encryption=$(oc get apiserver -o=json | jq -r '.items[0].spec.encrytion.type')
+    # Check for null or empty string
+    if [[ -n $encryption && $encryption != "null" ]]; then
+        # If the encryption has been Turned OFF at some point
+        # Then encryption type will be "identity"
+        # This means that it is not encrypted
+        if [[ $encryption != "identity" ]]; then
+            encrypted=true
+        fi
+    else
+        # Removing "identity" value of the encryption type
+        encryption=""
+    fi
+}
+
+get_publish_config(){
+    publish="External"
+    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep 'publish' | cut -d' ' -f2); then
+        publish=$result
+    fi
+}
+
+get_architecture_config(){
+    compute_arch=""
+    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep -A1 compute | grep architecture | cut -d' ' -f3 ); then
+        compute_arch=$result
+    fi
+
+    control_plane_arch=""
+    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep -A1 controlPlane | grep architecture | cut -d' ' -f4 ); then
+        control_plane_arch=$result
+    fi
+}
+
 index_task(){
-    
+
     url=$1
     uuid_dir=/tmp/$UUID
     mkdir $uuid_dir
@@ -102,12 +169,19 @@ index_task(){
         "jobDuration":"'$duration'",
         "startDate":"'"$start_date"'",
         "endDate":"'"$end_date"'",
-        "timestamp":"'"$start_date"'"
+        "timestamp":"'"$start_date"'",
+        "ipsec":"'"$ipsec"'",
+        "fips":"'"$fips"'",
+        "encrypted":"'"$encrypted"'",
+        "encryptionType":"'"$encryption"'",
+        "publish":"'"$publish"'",
+        "computeArch":"'"$compute_arch"'",
+        "controlPlaneArch":"'"$control_plane_arch"'"
         }'
     echo $json_data >> $uuid_dir/index_data.json
     echo "${json_data}"
     curl -sS --insecure -X POST -H "Content-Type:application/json" -H "Cache-Control:no-cache" -d "$json_data" "$url"
-    
+
 }
 
 set_duration(){
@@ -180,4 +254,9 @@ fi
 ES_INDEX=perf_scale_ci
 
 setup
+get_ipsec_config
+get_fips_config
+get_encryption_config
+get_publish_config
+get_architecture_config
 index_tasks
