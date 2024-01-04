@@ -10,6 +10,7 @@
   tool: wrk
   serverReplicas: 45
   delay: 10s
+  requestTimeout: 10s
   warmup: true
 
 - termination: http
@@ -20,6 +21,7 @@
   concurrency: 5
   tool: wrk
   serverReplicas: 45
+  requestTimeout: 10s
   delay: 10s
 
 - termination: edge
@@ -30,6 +32,7 @@
   concurrency: 5
   tool: wrk
   serverReplicas: 45
+  requestTimeout: 10s
   delay: 10s
 
 - termination: reencrypt
@@ -40,6 +43,7 @@
   concurrency: 5
   tool: wrk
   serverReplicas: 45
+  requestTimeout: 10s
   delay: 10s
 
 - termination: passthrough
@@ -50,5 +54,6 @@
   concurrency: 5
   tool: wrk
   serverReplicas: 45
+  requestTimeout: 10s
   delay: 10s
 
