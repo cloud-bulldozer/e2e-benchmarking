@@ -14,6 +14,7 @@ export METRICS=${METRICS:-true}
 export NETPERF_FILENAME=${NETPERF_FILENAME:-k8s-netperf}
 export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.20}
 export OS=${OS:-Linux}
+export PROMETHEUS_URL=
 export ARCH=$(uname -m)
 export NETPERF_URL=${NETPERF_URL:-https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz}
 
