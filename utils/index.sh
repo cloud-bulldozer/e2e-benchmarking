@@ -143,7 +143,7 @@ index_task(){
     uuid_dir=/tmp/$UUID
     mkdir $uuid_dir
 
-    start_date_unix_timestamp=$(date "+%s" -d "${startDate}")
+    start_date_unix_timestamp=$(date "+%s" -d "${start_date}")
     end_date_unix_timestamp=$(date "+%s" -d "${end_date}")
 
     json_data='{
@@ -171,8 +171,8 @@ index_task(){
         "executionDate":"'$execution_date'",
         "jobDuration":"'$duration'",
         "startDate":"'"$start_date"'",
-        "startDateUnixTimestamp":"'"$start_date_unix_timestamp"'",
         "endDate":"'"$end_date"'",
+        "startDateUnixTimestamp":"'"$start_date_unix_timestamp"'",
         "endDateUnixTimestamp":"'"$end_date_unix_timestamp"'",
         "timestamp":"'"$start_date"'",
         "ipsec":"'"$ipsec"'",
