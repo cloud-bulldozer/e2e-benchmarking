@@ -120,7 +120,7 @@ get_encryption_config(){
 
 get_publish_config(){
     publish="External"
-    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep 'publish' | cut -d' ' -f2); then
+    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep 'publish' | cut -d' ' -f2 | xargs ); then
         publish=$result
     fi
 }
