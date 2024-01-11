@@ -103,7 +103,7 @@ get_encryption_config(){
     # Check the apiserver for the encryption config
     # If encryption was never turned on, you won't find this config on the apiserver
     encrypted=false
-    encryption=$(oc get apiserver -o=json | jq -r '.items[0].spec.encrytion.type')
+    encryption=$(oc get apiserver -o=jsonpath='{.items[0].spec.encryption.type}' )
     # Check for null or empty string
     if [[ -n $encryption && $encryption != "null" ]]; then
         # If the encryption has been Turned OFF at some point
