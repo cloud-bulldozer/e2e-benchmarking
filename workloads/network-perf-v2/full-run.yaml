@@ -137,6 +137,14 @@ tests:
     messagesize: 1024
 
 # Workload Through Service
+  - TCPStreamServiceSmall:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 30
+    samples: 5
+    messagesize: 64
+    service: True
+
   - TCPStreamService:
     parallelism: 1
     profile: "TCP_STREAM"
@@ -161,9 +169,9 @@ tests:
     messagesize:  8192 
     service: True
 
-  - TCPStreamServiceSmall:
+  - UDPStreamServiceSmall:
     parallelism: 1
-    profile: "TCP_STREAM"
+    profile: "UDP_STREAM"
     duration: 30
     samples: 5
     messagesize: 64

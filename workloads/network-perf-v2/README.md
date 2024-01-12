@@ -41,6 +41,7 @@ This will orchestrate multiple netwok performance tests.
 | NETPERF_URL | URL to download k8s-netperf | https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz |
 | NETPERF_VERSION | k8s-netperf tag/version | v0.1.20 |
 | OS | System to run k8s-netperf | Linux |
+| PROMETHEUS_URL | URL for external Prometheus | unset |
 | TEST_TIMEOUT | Timeout for k8s-netperf | 14400 |
 | TOLERANCE | Tolerance when comparing hostNetwork to podNetwork | 70 |
 | UUID | UUID which will be used for the workload | uuidgen |
