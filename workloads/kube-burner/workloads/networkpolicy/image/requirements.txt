@@ -1,4 +1,4 @@
 datetime
 requests
 kubernetes
-elasticsearch6
+opensearch-py
