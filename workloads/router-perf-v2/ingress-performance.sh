@@ -25,6 +25,7 @@ if [[ ${METADATA_COLLECTION} == "true" ]]; then
   collect_metadata
 fi
 
+JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 test_routes
 for termination in ${TERMINATIONS}; do
   if [[ ${termination} ==  "mix" ]]; then
@@ -41,6 +42,7 @@ for termination in ${TERMINATIONS}; do
     done
   fi
 done
+JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 enable_ingress_operator
 log "Copying mb test results locally (large file)"
@@ -61,7 +63,9 @@ export WORKLOAD="router-perf"
 set +e
 if ! run_benchmark_comparison; then
   log "Benchmark comparison failed"
-  result="failed"
+  JOB_STATUS="failed"
+else
+  JOB_STATUS="success"
 fi
 set -e
 
@@ -69,6 +73,7 @@ if [[ ${ENABLE_SNAPPY_BACKUP} == "true" ]] ; then
  snappy_backup "csv json" "http-perf.yml" "router-perf-v2"
 fi
 
-if [[ ${result} == "failed" ]] ; then
+env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" WORKLOAD="$WORKLOAD" ES_SERVER="$ES_SERVER" ../../utils/index.sh
+if [[ ${JOB_STATUS} == "failed" ]] ; then
  exit 1
 fi
