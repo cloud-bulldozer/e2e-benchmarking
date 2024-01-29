@@ -4,7 +4,7 @@
 - termination: http
   connections: 200
   samples: 5
-  duration: 5m
+  duration: 3m
   path: /1024.html
   concurrency: 18
   tool: wrk
@@ -17,7 +17,7 @@
 - termination: http
   connections: 200
   samples: 2
-  duration: 5m
+  duration: 3m
   path: /1024.html
   concurrency: 18
   tool: wrk
@@ -28,7 +28,7 @@
 - termination: edge
   connections: 200
   samples: 2
-  duration: 5m
+  duration: 3m
   path: /1024.html
   concurrency: 18
   tool: wrk
@@ -39,7 +39,7 @@
 - termination: reencrypt
   connections: 200
   samples: 2
-  duration: 5m
+  duration: 3m
   path: /1024.html
   concurrency: 18
   tool: wrk
@@ -50,7 +50,7 @@
 - termination: passthrough
   connections: 200
   samples: 2
-  duration: 5m
+  duration: 3m
   path: /1024.html
   concurrency: 18
   tool: wrk

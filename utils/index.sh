@@ -103,7 +103,7 @@ get_encryption_config(){
     # Check the apiserver for the encryption config
     # If encryption was never turned on, you won't find this config on the apiserver
     encrypted=false
-    encryption=$(oc get apiserver -o=json | jq -r '.items[0].spec.encrytion.type')
+    encryption=$(oc get apiserver -o=jsonpath='{.items[0].spec.encryption.type}' )
     # Check for null or empty string
     if [[ -n $encryption && $encryption != "null" ]]; then
         # If the encryption has been Turned OFF at some point
@@ -120,7 +120,7 @@ get_encryption_config(){
 
 get_publish_config(){
     publish="External"
-    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep 'publish' | cut -d' ' -f2); then
+    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep 'publish' | cut -d' ' -f2 | xargs ); then
         publish=$result
     fi
 }
@@ -142,6 +142,9 @@ index_task(){
     url=$1
     uuid_dir=/tmp/$UUID
     mkdir $uuid_dir
+
+    start_date_unix_timestamp=$(date "+%s" -d "${start_date}")
+    end_date_unix_timestamp=$(date "+%s" -d "${end_date}")
 
     json_data='{
         "ciSystem":"'$ci'",
@@ -169,6 +172,8 @@ index_task(){
         "jobDuration":"'$duration'",
         "startDate":"'"$start_date"'",
         "endDate":"'"$end_date"'",
+        "startDateUnixTimestamp":"'"$start_date_unix_timestamp"'",
+        "endDateUnixTimestamp":"'"$end_date_unix_timestamp"'",
         "timestamp":"'"$start_date"'",
         "ipsec":"'"$ipsec"'",
         "fips":"'"$fips"'",

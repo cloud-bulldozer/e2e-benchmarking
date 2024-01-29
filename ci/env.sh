@@ -7,18 +7,6 @@ export NEW_WORKER_COUNT=$((ORIGINAL_WORKER_COUNT + 1))
 export SCALE=$NEW_WORKER_COUNT
 export RUNS=2
 
-# For kube burner 
-export JOB_ITERATIONS=1
-export NAMESPACE_COUNT=1
-export SERVICE_COUNT=1
-export CLEANUP=true
-export CLEANUP_WHEN_FINISH=true
-export NODE_COUNT=1
-export PODS_PER_NODE=100
-export PODS=50
-export POD_READY_THRESHOLD=1m
-export ALERTS_PROFILE=alerts-profiles/ci.yml
-
 # For upgrade perf
 export TOVERSION=`oc get clusterversion | grep -o [0-9.]* | head -1`
 
