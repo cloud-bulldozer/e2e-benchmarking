@@ -1,6 +1,6 @@
 FROM quay.io/openshifttest/python:3.9
 
-LABEL vendor="Red Hat Inc." maintainer="OCP Perfscale Team"
+LABEL vendor="Red Hat Inc." maintainer="OCP Perfscale Team test"
 
 RUN curl -sSL https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable/openshift-client-linux.tar.gz | tar -xvzf -  &&\
     mv oc /bin && mv kubectl /bin && apt-get update && apt-get install -y gettext-base uuid-runtime jq && \
