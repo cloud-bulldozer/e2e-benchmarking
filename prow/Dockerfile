@@ -10,4 +10,6 @@ WORKDIR /e2e
 
 COPY ../. .
 
+RUN chown -R 777 /e2e
+
 CMD cd /e2e && tail -f /dev/null
