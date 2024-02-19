@@ -1,0 +1,10 @@
+- endpoint: {{.MC_OBO}}
+  profile: metrics-profiles/hosted-cp-metrics.yml
+  alertProfile: alerts-profiles/hosted-cp-alerts.yml
+- endpoint: {{.MC_PROMETHEUS}}
+  token: {{.MC_PROMETHEUS_TOKEN}}
+  profile: metrics-profiles/mc-metrics.yml
+- endpoint: {{.HOSTED_PROMETHEUS}}
+  token: {{.HOSTED_PROMETHEUS_TOKEN}}
+  profile: metrics-profiles/hosted-cluster-metrics.yml
+  alertProfile: alerts-profiles/hosted-cluster-alerts.yml

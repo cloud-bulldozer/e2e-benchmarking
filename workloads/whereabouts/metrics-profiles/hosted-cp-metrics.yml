@@ -1,0 +1,32 @@
+# Hosted control-plane metrics
+# All these metrics should use the namespace=~".+{{.HCP_NAMESPACE}}" filter
+# Collected metrics about API, OVN, etcd and cluster_version provided by the CVO
+
+# OVN service sync latency
+
+- query: histogram_quantile(0.99, sum(rate(ovnkube_master_network_programming_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}", kind="service"}[2m])) by (le))
+  metricName: serviceSyncLatency
+
+# Etcd metrics
+
+- query: sum(rate(etcd_server_leader_changes_seen_total{namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
+  metricName: etcdLeaderChangesRate
+
+- query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
+  metricName: 99thEtcdDiskBackendCommitDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
+  metricName: 99thEtcdDiskWalFsyncDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}"}[5m]))
+  metricName: 99thEtcdRoundTripTimeSeconds
+
+- query: sum by (cluster_version)(etcd_cluster_version)
+  metricName: etcdVersion
+  instant: true
+
+# Cluster version
+
+- query: cluster_version{type="completed", namespace=~".+{{.HCP_NAMESPACE}}"}
+  metricName: clusterVersion
+  instant: true
