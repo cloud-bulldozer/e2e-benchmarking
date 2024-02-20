@@ -22,6 +22,20 @@ download_binary(){
   KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-linux-x86_64.tar.gz"
   curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
 }
+function cleanup_whereabouts(){
+    
+    # remove IP pool
+    oc delete ippools.whereabouts.cni.cncf.io 10.1.0.0-21 -n openshift-multus
+    overlaps=$(oc get overlappingrangeipreservations.whereabouts.cni.cncf.io -n openshift-multus | awk '{print $1}');
+
+    # also need to remove the overlapping reservations
+    for i in $overlaps; do
+        oc delete overlappingrangeipreservations.whereabouts.cni.cncf.io $i -n openshift-multus;
+    done
+
+
+
+}
 
 hypershift(){
   echo "HyperShift detected"
