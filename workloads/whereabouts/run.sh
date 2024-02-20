@@ -103,6 +103,19 @@ fi
 if [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
+
+# Install whereabouts reconciler daemon, give 
+oc patch network.operator.openshift.io cluster --patch-file=reconciler.yml --type=merge
+exit_code=$?
+if [ $exit_code -eq 0 ]; then
+    echo "whereabouts reconciler daemon installed via oc patch"
+else
+    echo "failure - reconciler daemon not installed"
+    exit $exit_code
+fi
+# give the pods time to come up.
+sleep 3
+
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
