@@ -33,9 +33,26 @@ function cleanup_whereabouts(){
         oc delete overlappingrangeipreservations.whereabouts.cni.cncf.io $i -n openshift-multus;
     done
 
+    # This will remove the whereabouts plugin from the network operator. The operator will stop the whereabouts pods on its own
+    oc patch network.operator.openshift.io cluster --type=json -p='[{"op":"remove","path":"/spec/additionalNetworks"}]'
 
 
 }
+function install_whereabouts(){
+
+    # Install whereabouts reconciler daemon
+    oc patch network.operator.openshift.io cluster --patch-file=reconciler.yml --type=merge
+    exit_code=$?
+    if [ $exit_code -eq 0 ]; then
+        echo "whereabouts reconciler daemon installed via oc patch"
+    else
+        echo "failure - reconciler daemon not installed"
+        exit $exit_code
+    fi
+    # give the pods time to come up.
+    sleep 3
+}
+
 
 hypershift(){
   echo "HyperShift detected"
@@ -118,18 +135,7 @@ if [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
 
-# Install whereabouts reconciler daemon, give 
-oc patch network.operator.openshift.io cluster --patch-file=reconciler.yml --type=merge
-exit_code=$?
-if [ $exit_code -eq 0 ]; then
-    echo "whereabouts reconciler daemon installed via oc patch"
-else
-    echo "failure - reconciler daemon not installed"
-    exit $exit_code
-fi
-# give the pods time to come up.
-sleep 3
-
+install_whereabouts
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
@@ -144,4 +150,7 @@ else
   JOB_STATUS="failure"
 fi
 env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" WORKLOAD="$WORKLOAD" ES_SERVER="$ES_SERVER" ../../utils/index.sh
+
+cleanup_whereabouts
+
 exit $exit_code
