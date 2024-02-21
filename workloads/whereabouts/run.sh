@@ -25,8 +25,9 @@ download_binary(){
 function cleanup_whereabouts(){
     
     # remove IP pool
-    oc delete ippools.whereabouts.cni.cncf.io 10.1.0.0-21 -n openshift-multus
-    overlaps=$(oc get overlappingrangeipreservations.whereabouts.cni.cncf.io -n openshift-multus | awk '{print $1}');
+    oc delete ippools.whereabouts.cni.cncf.io '10.1.0.0-21' -n openshift-multus
+
+    overlaps=$(oc get overlappingrangeipreservations.whereabouts.cni.cncf.io -n openshift-multus --no-headers=true | awk '{print $1}');
 
     # also need to remove the overlapping reservations
     for i in $overlaps; do
@@ -50,7 +51,9 @@ function install_whereabouts(){
         exit $exit_code
     fi
     # give the pods time to come up.
-    sleep 3
+    sleep_time=10
+    echo "sleeping for $sleep_time seconds to allow reconciler pods to start"
+    sleep $sleep_time
 }
 
 
@@ -140,6 +143,7 @@ if [[ -n ${ES_SERVER} ]]; then
 fi
 
 install_whereabouts
+
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 

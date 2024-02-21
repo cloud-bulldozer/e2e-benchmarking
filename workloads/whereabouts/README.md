@@ -28,7 +28,7 @@ This wrapper supports some variables to tweak some basic parameters of the workl
 - **EXTRA_FLAGS**: Extra flags that will be appended to the underlying kube-burner-ocp command, by default empty.
 - **ITERATIONS**: how many 6 pods namespaces to create
 
-### Using the EXTRA_FLAGS variable
+### ~Using the EXTRA_FLAGS variable~
 **This variable has not been tested in this repo, runner beware**
 
 All the flags that can be appeneded through the `EXTRA_FLAGS` variable can be found in the [kube-burner-ocp docs](https://kube-burner.github.io/kube-burner-ocp/latest/)
