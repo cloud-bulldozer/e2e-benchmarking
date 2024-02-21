@@ -1,23 +1,20 @@
-# Kube-burner
+# Whereabouts Testing
 
 The `./run.sh` script is just a small wrapper on top of kube-burner to be used as entrypoint of some of its flags. The supported workloads are described in the [kube-burner OCP wrapper docs](https://kube-burner.github.io/kube-burner-ocp/latest/).
 
-In order to run a workload you have to set the `WORKLOAD` environment variable to one of the workloads supported by kube-burner. Example
+This repo is based on the kube-burner node-density test, it has a pod annotation to configure secondary interface that is addressed by the multus ipam.
 
+[Here is a link to the 4.14 openshift docs](https://docs.openshift.com/container-platform/4.14/networking/multiple_networks/configuring-additional-network.html#nw-multus-creating-whereabouts-reconciler-daemon-set_configuring-additional-network)
+
+This test is configured to fill up a `/21` ip allocation. It does that by creating 341 namespaces with 6 pods per namespace for a total of 2046 pods. At 250 pods per node a cluster should have at least 9 nodes capable of hosting pods.
+
+A note that since this test is based on node-density, the config file uses the same name as the test so that kube-burner will use the local file over the known defaults. This is most accurately described as node-densit-with-net-attach-def.
+
+
+
+## To run the test
 ```shell
-$ ITERATIONS=5 WORKLOAD=cluster-density-v2 ./run.sh 
-/tmp/kube-burner-ocp cluster-density-v2 --log-level=info --iterations=5 --churn=true --es-server=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com --es-index=ripsaw-kube-burner --qps=20 --burst=20
-INFO[2023-03-13 16:39:57] 📁 Creating indexer: elastic                  
-INFO[2023-03-13 16:39:59] 👽 Initializing prometheus client with URL: <truncated>
-INFO[2023-03-13 16:40:00] 🔔 Initializing alert manager for prometheus: <truncated>
-INFO[2023-03-13 16:40:00] 🔥 Starting kube-burner (1.4.3@a575df584a6b520a45e2fe7903e608a34e722e5f) with UUID 69022407-7c55-4b8a-add2-5e40e6b4c593 
-INFO[2023-03-13 16:40:00] 📈 Creating measurement factory               
-INFO[2023-03-13 16:40:00] Registered measurement: podLatency           
-INFO[2023-03-13 16:40:00] Job cluster-density-v2: 5 iterations with 1 ImageStream replicas 
-INFO[2023-03-13 16:40:00] Job cluster-density-v2: 5 iterations with 1 Build replicas 
-INFO[2023-03-13 16:40:00] Job cluster-density-v2: 5 iterations with 3 Deployment replicas 
-INFO[2023-03-13 16:40:00] Job cluster-density-v2: 5 iterations with 2 Deployment replicas 
-<truncated>
+$ ./run.sh 
 ```
 
 ## Environment variables
@@ -29,8 +26,10 @@ This wrapper supports some variables to tweak some basic parameters of the workl
 - **QPS** and **BURST**: Defines client-go QPS and BURST parameters for kube-burner. 20 by default
 - **GC**: Garbage collect created namespaces. true by default
 - **EXTRA_FLAGS**: Extra flags that will be appended to the underlying kube-burner-ocp command, by default empty.
+- **ITERATIONS**: how many 6 pods namespaces to create
 
 ### Using the EXTRA_FLAGS variable
+**This variable has not been tested in this repo, runner beware**
 
 All the flags that can be appeneded through the `EXTRA_FLAGS` variable can be found in the [kube-burner-ocp docs](https://kube-burner.github.io/kube-burner-ocp/latest/)
 For example, we can tweak the churning behaviour of the cluster-density workload with:
@@ -49,17 +48,9 @@ $ EXTRA_FLAGS="--timeout=5h" ITERATIONS=500 WORKLOAD=cluster-density-v2 ./run.sh
 
 ### Cluster-density and cluster-density-v2
 
-- **ITERATIONS**: Defines the number of iterations of the workload to run. No default value
+- **ITERATIONS**: ~Defines the number of iterations of the workload to run. No default value~ see above, iterations is initially configured at 341
 - **CHURN**: Enables workload churning. Workload churning is enabled by default with `churn-duration=1h`, `churn-delay=2m` and `churn-percent=10`. These parameters can be tuned through the `EXTRA_FLAGS` variable as noted previously.
 
 ## HyperShift
+This code has not been tested on hypershift but the code to run that test has not been removed so it might be posible.
 
-It's possible to use this script with HyperShift hosted clusters. The particularity of this is that kube-burner-ocp will grab metrics from different Prometheus endpoints:
-
-- Hosted control-plane stack or OBO: Hosted control-plane application metrics such as etcd, API latencies, etc.
-- Management cluster stack: Hardware utilization metrics from its worker nodes and hosted control-plane pods.
-- Hosted cluster stack: From this endpoint kube-burner-ocp collects data-plane metrics.
-
-In order to use it, the hosted cluster kubeconfig must be set upfront. These environment variables are also required:
-
-- **MC_KUBECONFIG**: This variable points to the valid management cluster kubeconfig

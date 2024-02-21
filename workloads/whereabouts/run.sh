@@ -126,6 +126,10 @@ else
   cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
   cmd+=" ${EXTRA_FLAGS}"
 fi
+if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
+  ITERATIONS=${ITERATIONS:?}
+  cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
+fi
 if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
