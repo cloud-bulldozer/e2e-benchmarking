@@ -191,3 +191,252 @@ prep_networkpolicy_workload() {
   oc apply -f workloads/networkpolicy/clusterrole.yml
   oc apply -f workloads/networkpolicy/clusterrolebinding.yml
 }
+
+function generated_egress_firewall_policy(){
+
+  EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH=${EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH:=""}
+  if [[ -z $EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH ]];then
+	echo "Please specify EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH for template path and file name"
+	exit 1
+  fi
+  EGRESS_FIREWALL_POLICY_RULES_TOTAL_NUM=${EGRESS_FIREWALL_POLICY_TOTAL_NUM:="130"}
+  if [[ $EGRESS_FIREWALL_POLICY_RULES_TOTAL_NUM -le 4 ]];then
+	  echo "Please specify a number that large than 4 for EGRESS_FIREWALL_POLICY_RULES_TOTAL_NUM"
+	  exit 1
+  fi
+  EGRESS_FIREWALL_POLICY_IP_SEGMENT_ALLOW=${EGRESS_FIREWALL_POLICY_IP_SEGMENT_DENY:="5.110.1"}
+  EGRESS_FIREWALL_POLICY_IP_SEGMENT_DENY=${EGRESS_FIREWALL_POLICY_IP_SEGMENT_DENY:="5.112.2"}
+  EGRESS_FIREWALL_POLICY_DNS_PREFIX_ALLOW=${EGRESS_FIREWALL_POLICY_DNS_PREFIX_ALLOW:="www.perfscale"}
+  EGRESS_FIREWALL_POLICY_DNS_PREFIX_DENY=${EGRESS_FIREWALL_POLICY_DNS_PREFIX_ALLOW:="www.perftest"}
+  #Expected set 4 types of policy rule, but already have 4 rules by default, so each type of policy rule should be (total_num - 4)/4
+  #ie. 130 policy rule, 126=130-4
+  #EGRESS_FIREWALL_POLICY_RULE_IP_NUM=31
+  #EGRESS_FIREWALL_POLICY_RULE_DNS_NUM=126-2*31=64
+  EGRESS_FIREWALL_POLICY_RULE_TYPE_SUBNUM=$(( ($EGRESS_FIREWALL_POLICY_RULES_TOTAL_NUM - 4) /4 ))
+  if [[ $EGRESS_FIREWALL_POLICY_RULE_TYPE_SUBNUM -ge 254 ]];then
+        EGRESS_FIREWALL_POLICY_RULE_IP_NUM=${EGRESS_FIREWALL_POLICY_IP_NUM:="254"}
+  else
+	EGRESS_FIREWALL_POLICY_RULE_IP_NUM=$EGRESS_FIREWALL_POLICY_RULE_TYPE_SUBNUM
+  fi
+        EGRESS_FIREWALL_POLICY_RULE_DNS_NUM=$(( $EGRESS_FIREWALL_POLICY_RULES_TOTAL_NUM - 4 - 2 * $EGRESS_FIREWALL_POLICY_RULE_IP_NUM))
+
+  cat>$EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH<<EOF
+kind: EgressFirewall
+apiVersion: k8s.ovn.org/v1
+metadata:
+  name: default
+spec:
+  egress:
+  - type: Allow
+    to:
+      cidrSelector: 8.8.8.8/32
+  - type: Deny
+    to:
+      cidrSelector: 8.8.4.4/32
+  - type: Allow
+    to:
+      dnsName: www.google.com
+  - type: Deny
+    to:
+      dnsName: www.digitalocean.com
+EOF
+ #Allow Rules for IP Segment
+ INDEX=1
+ while [[ $INDEX -le $EGRESS_FIREWALL_POLICY_RULE_IP_NUM ]];
+ do
+         echo -e "  - type: Allow\n    to:\n      cidrSelector: ${EGRESS_FIREWALL_POLICY_IP_SEGMENT_ALLOW}.${INDEX}/32">>$EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH
+         echo -e "  - type: Deny\n    to:\n      cidrSelector: ${EGRESS_FIREWALL_POLICY_IP_SEGMENT_DENY}.${INDEX}/32">>$EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH
+	 INDEX=$(( $INDEX + 1 ))
+ done
+ #In case odd number divide by 2
+ TOTAL_ALLOW_DNS_NUM=$(( $EGRESS_FIREWALL_POLICY_RULE_DNS_NUM/2 ))
+ TOTAL_DENY_DNS_NUM=$(( $EGRESS_FIREWALL_POLICY_RULE_DNS_NUM - $TOTAL_ALLOW_DNS_NUM ))
+ INDEX=1
+ while [[ $INDEX -le $TOTAL_ALLOW_DNS_NUM ]];
+ do
+	 echo -e "  - type: Allow\n    to:\n      dnsName: ${EGRESS_FIREWALL_POLICY_DNS_PREFIX_ALLOW}${INDEX}.com">>$EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH
+	 INDEX=$(( $INDEX + 1 ))
+ done
+ INDEX=1
+ while [[ $INDEX -le $TOTAL_DENY_DNS_NUM ]];
+ do
+	 echo -e "  - type: Deny\n    to:\n      dnsName: ${EGRESS_FIREWALL_POLICY_DNS_PREFIX_DENY}${INDEX}.com">>$EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH
+	 INDEX=$(( $INDEX + 1 ))
+ done
+}
+
+function getLegcyOVNInfo()
+{
+  echo "Get master pod roles"
+for OVNMASTER in $(oc -n openshift-ovn-kubernetes get pods -l app=ovnkube-master -o custom-columns=NAME:.metadata.name --no-headers); \
+   do echo "········································" ; \
+   echo "· OVNKube Master: $OVNMASTER ·" ; \
+   echo "········································" ; \
+   echo 'North' `oc -n openshift-ovn-kubernetes rsh -Tc northd $OVNMASTER ovn-appctl -t /var/run/ovn/ovnnb_db.ctl cluster/status OVN_Northbound | grep Role` ; \
+   echo 'South' `oc -n openshift-ovn-kubernetes rsh -Tc northd $OVNMASTER ovn-appctl -t /var/run/ovn/ovnsb_db.ctl cluster/status OVN_Southbound | grep Role`; \
+   echo 'VMNDB Memory' `oc -n openshift-ovn-kubernetes rsh -Tc northd $OVNMASTER ovs-appctl -t /var/run/ovn/ovnnb_db.ctl memory/show`; \
+   echo "····················"; \
+   done
+
+for i in $(oc get node -l node-role.kubernetes.io/master= --no-headers -oname);
+do 
+	echo "$i:  DB Size" ; 
+	oc -n openshift-ovn-kubernetes debug $i --quiet=true -- ls -lh /host/var/lib/ovn/etc; 
+	echo "----------OVSDB CLUSTERS----------";
+	oc -n openshift-ovn-kubernetes debug $i --quiet=true -- grep -e '^OVSDB CLUSTER ' /host/var/lib/ovn/etc/ovnnb_db.db | cut -d' ' -f1-3 | sort -k3 -n | uniq -c | wc -l;
+	echo "----------TOP 10 OVSDB CLUSTER INFO----------";
+	oc -n openshift-ovn-kubernetes debug $i --quiet=true -- grep -e '^OVSDB CLUSTER ' /host/var/lib/ovn/etc/ovnnb_db.db | cut -d' ' -f1-3 | sort -k3 -n | uniq -c | sort -k1 -r -n | head -10;
+	echo "----------ACL----------";
+	POD=`oc -n openshift-ovn-kubernetes get po -l app=ovnkube-master -oname --field-selector=spec.host=${i#node/}`;
+	oc -n openshift-ovn-kubernetes exec -c northd $POD -- sh -c 'ovn-nbctl --columns=_uuid --no-leader-only list acl | grep ^_uuid | wc -l';
+	echo "----------match ACL----------";
+	oc -n openshift-ovn-kubernetes exec -c northd $POD -- sh -c 'ovn-nbctl --no-leader-only --columns=match list acl | grep -c ^match';
+done
+}
+
+function getOVNICDBInfo()
+{
+   UUID=${UUID:=""}
+   echo "Get ACL From OVN DB"
+   OVNKUBE_CONTROL_PLANE_POD=`oc -n openshift-ovn-kubernetes get lease ovn-kubernetes-master -o=jsonpath={.spec.holderIdentity}`
+   echo OVNKUBE_CONTROL_PLANE_POD is $OVNKUBE_CONTROL_PLANE_POD
+   NODE_NAME=`oc -n openshift-ovn-kubernetes get pod $OVNKUBE_CONTROL_PLANE_POD -o=jsonpath={.spec.nodeName}`
+   echo "The Node of Pod $OVNKUBE_CONTROL_PLANE_POD is $NODE_NAME"
+   OVNKUBE_NODE_POD=`oc -n openshift-ovn-kubernetes get pod -l app=ovnkube-node --field-selector spec.nodeName=$NODE_NAME, -ojsonpath='{..metadata.name}'`
+   echo OVNKUBE_NODE_POD is $OVNKUBE_NODE_POD
+   echo "----------ACL----------";
+   oc -n openshift-ovn-kubernetes exec -c northd $OVNKUBE_NODE_POD -- sh -c 'ovn-nbctl --columns=_uuid --no-leader-only list acl | grep ^_uuid | wc -l';
+   echo "----------match ACL----------";
+   oc -n openshift-ovn-kubernetes exec -c northd $OVNKUBE_NODE_POD -- sh -c 'ovn-nbctl --no-leader-only --columns=match list acl | grep -c ^match';
+   echo "----------ACL find port_group by uuid----------";
+   oc -n openshift-ovn-kubernetes exec -c northd $OVNKUBE_NODE_POD -- sh -c 'ovn-nbctl find port_group|grep _uuid|wc -l';
+   echo "----------ACL find address_set by uuid----------";
+   oc -n openshift-ovn-kubernetes exec -c northd $OVNKUBE_NODE_POD -- sh -c 'ovn-nbctl find address_set|grep _uuid|wc -l';
+   echo "----------ACL find external_ids by uuid for each namespace----------";
+   oc -n openshift-ovn-kubernetes exec -c northd $OVNKUBE_NODE_POD -- sh -c "ovn-nbctl --format=table --no-heading --columns=action,priority,match find acl external_ids:k8s.ovn.org/name=${UUID}-1|wc -l";
+}
+
+function networkPolicyInitSyncDurationCheck(){
+   #Check If existing pod is running
+   UUID=${UUID:=""}
+   WAIT_OVN_DB_SYNC_TIME=${WAIT_OVN_DB_SYNC_TIME:=""}
+   WORKLOAD_TMPLATE_PATH=workloads/large-networkpolicy-egress
+   INIT=1
+   MAXRETRY=240
+   while [[ $INIT -le $MAXRETRY ]];
+   do
+	unreadyNum=`oc get pods -A |grep $UUID | awk '{print $3}' | grep '0/.'|wc -l`
+        if [[ $unreadyNum -eq 0 ]];then
+		echo "All previous kube-burner job pod is ready"
+		break
+	fi
+	sleep 30
+
+	if [[ $INIT -lt $MAXRETRY ]];then
+	        echo "Some kube-burner job pod isn't ready, continue to check"
+        else
+		echo "The retry time reach maxinum, exit"
+		exit 1
+        fi
+	INIT=$(( $INIT + 1 ))
+   done
+   NODE_NUM=`oc get nodes |grep worker|wc -l`
+   echo "Create recycle ns to simulate customer remove network policy and egressfirewall operation" 
+
+   i=1
+   while [[ $i -le 10 ]]
+   do
+	oc create ns recycle-ns${i}
+	oc -n recycle-ns${i} apply -f ${WORKLOAD_TMPLATE_PATH}/deny-all.yml
+        oc -n recycle-ns${i} apply -f ${WORKLOAD_TMPLATE_PATH}/case-networkpolicy-defaultport.yml
+        oc -n recycle-ns${i} apply -f $EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH
+	i=$(( $i + 1 ))
+   done
+
+   sleep 600
+
+   echo "remove network policy and egressfirewall operation" 
+   i=1
+   while [[ $i -le 10 ]]
+   do
+        oc delete ns recycle-ns${i}
+	i=$(( $i + 1 ))
+   done
+
+   if ! oc get ns |grep zero-trust-jks >/dev/null;
+   then
+      oc create ns zero-trust-jks;
+   fi  
+   if ! oc get ns |grep zero-trust-clt >/dev/null;
+   then
+      oc create ns zero-trust-clt;
+   fi  
+   oc -n zero-trust-jks apply -f ${WORKLOAD_TMPLATE_PATH}/deny-all.yml
+   oc -n zero-trust-jks apply -f ${WORKLOAD_TMPLATE_PATH}/probe-detect-deployment.yaml
+   oc -n zero-trust-jks apply -f ${WORKLOAD_TMPLATE_PATH}/probe-detect-service.yaml
+   oc -n zero-trust-jks apply -f ${WORKLOAD_TMPLATE_PATH}/case-networkpolicy-probe-port.yml
+
+   echo "wait for $WAIT_OVN_DB_SYNC_TIME seconds to make sure all network policy/egress firewall rule sync"
+   sleep $WAIT_OVN_DB_SYNC_TIME
+   oc -n zero-trust-clt apply -f ${WORKLOAD_TMPLATE_PATH}/deny-all.yml
+   sleep 600
+   oc -n zero-trust-clt apply -f ${WORKLOAD_TMPLATE_PATH}/probe-detect-daemonset.yaml
+   oc -n zero-trust-clt apply -f ${WORKLOAD_TMPLATE_PATH}/case-networkpolicy-allowdns.yml
+   oc -n zero-trust-clt apply -f ${WORKLOAD_TMPLATE_PATH}/case-networkpolicy-defaultport.yml
+   
+   if oc -n openshift-ovn-kubernetes get pods |grep ovnkube-master; then
+
+      getLegcyOVNInfo
+   else
+      getOVNICDBInfo
+   fi
+   echo "----------------------TOP 15 Usage of Containers---------------------------"
+   oc -n openshift-ovn-kubernetes adm top pods --containers| sort -n -r -k4 | head -15
+
+   infraNodeNames=`oc get nodes |grep -E 'infra' |awk '{print $1}' | tr -s '\n' '|'`
+   infraNodeNames=${infraNodeNames:0:-1}
+
+   masterNodeNames=`oc get nodes |grep -E 'master' |awk '{print $1}' | tr -s '\n' '|'`
+   masterNodeNames=${masterNodeNames:0:-1}
+   echo "----------------------TOP Usage of Infra Node---------------------------"
+   if [[ -n $infraNodeNames ]];then
+      oc adm top nodes | grep -i -E "$infraNodeNames|NAME"  |sort -n -k5 
+   else
+      infraNodeNames="none"
+   fi
+   echo
+
+   echo "----------------------TOP Usage of Master/ControlPlane Node---------------------------"
+   oc adm top nodes | grep -i -E "$masterNodeNames|NAME" |sort -n -k5 
+   echo
+
+   echo "----------------------TOP Usage of Worker Node---------------------------"
+   oc adm top nodes | grep -i -E -v "$masterNodeNames|$infraNodeNames" | sort -k5 -n
+   echo "----------------------`date`-------------------------------"
+   #Wait for max 10 minutes to check if pod is up and running
+   INIT=1
+   MAXRETRY=20
+   while [[ $INIT -le $MAXRETRY ]];
+   do
+        desiredPods=`oc -n zero-trust-clt get daemonset probe-detect-ds -ojsonpath='{.status.desiredNumberScheduled}'`
+        readyPods=`oc -n zero-trust-clt get daemonset probe-detect-ds -ojsonpath='{.status.numberReady}'`
+        if [[ $readyPods -eq $desiredPods ]];then
+		echo "All daemonset probe-detectd-ds pod is ready"
+		break
+	fi
+	sleep 30
+
+	if [[ $INIT -lt $MAXRETRY ]];then
+	        echo "Some daemonset probe-detectd-ds pod isn't ready, continue to check"
+	else 
+		for podname in `oc -n probe-detect-ds get pods -oname`
+		do
+			oc -n probe-detect-ds logs $podname |grep -i -E 'FailedCreatePodSandBox|failed to configure pod interface|timed out waiting for OVS port binding'
+	        done
+	        echo "The retry time reach maxinum, exit"
+	        exit 1
+        fi
+	INIT=$(( $INIT + 1 ))
+   done
+   echo "----------------------`date`-------------------------------"
+}

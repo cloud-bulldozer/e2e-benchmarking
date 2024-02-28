@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: probe-detectd-deploy
+  labels:
+    app: probe-detectd-deploy
+spec:
+  selector:
+    matchLabels:
+      app: probe-detectd-deploy
+  template:
+    metadata:
+      labels:
+        app: probe-detectd-deploy
+    spec:
+      containers:
+      - name: jenkins
+        image: jenkins/jenkins:lts
+        securityContext:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL        
+        env:
+          - name: JAVA_OPTS
+            value: -Djenkins.install.runSetupWizard=false
+        ports:
+          - name: http-port
+            containerPort: 8080
+          - name: jnlp-port
+            containerPort: 50000
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10                 
+        volumeMounts:
+          - name: jenkins-vol
+            mountPath: /var/jenkins_home/
+      volumes:
+        - name: jenkins-vol
+          emptyDir: {}

@@ -120,6 +120,14 @@ case ${WORKLOAD} in
     export TEST_JOB_ITERATIONS=${JOB_ITERATIONS:-5}
     prep_networkpolicy_workload
   ;;
+  large-networkpolicy-egress)
+    WORKLOAD_TEMPLATE=workloads/large-networkpolicy-egress/case-large-networkpolicy-egress.yml
+    EGRESS_FIREWALL_POLICY_TEMPLAT_FILE_PATH=workloads/large-networkpolicy-egress/case-engress-firewall.yaml
+    METRICS_PROFILE=${METRICS_PROFILE:-metrics-profiles/metrics-ovn.yaml}
+    export TEST_JOB_ITERATIONS=${JOB_ITERATIONS:-5}
+    generated_egress_firewall_policy
+    prep_networkpolicy_workload
+  ;;
   custom)
   ;;
   *)
@@ -160,6 +168,9 @@ if [[ ${WORKLOAD} == "concurrent-builds" ]]; then
   done
   unlabel_nodes_with_label $label
   cat conc_builds_results.out
+elif [[ ${WORKLOAD} == "large-networkpolicy-egress" ]]; then
+  run_workload
+  networkPolicyInitSyncDurationCheck
 else
   run_workload
 fi

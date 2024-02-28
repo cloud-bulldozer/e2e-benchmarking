@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: egress-firewall-{{.Replica}}-{{.Iteration}}
+  labels:
+    label1: {{.label1}}-{{.Replica}}
+    label2: {{.label2}}-{{.Replica}}
+spec:
+  nodeSelector: {{.nodeSelector}}
+  containers:
+  - name: egress-firewall
+    image: quay.io/openshift-psap-qe/ubi9-minimal
+    imagePullPolicy: Always
+    command: [ "/bin/bash", "-c", "--" ]
+    args:
+    - while true;
+      do curl -Is http://www.google.com | head -n 1;
+      sleep 3;
+      ping -c 5 8.8.8.8;
+      ping -c 5 dev.azuresynapse.net;
+      sleep 3;
+      curl -Is https://www.digitalocean.com/robots.txt | head -n 1;
+      sleep 3;
+      ping -c 5 8.8.4.4;
+      ping -c 5 management.core.windows.net;
+      ping -c 5 infogw.api.openshift.com;
+      ping -c 5 dc.applicationinsights.azure.com;
+      done
+    ports:
+    - containerPort: 8080
+    volumeMounts:
+      - name: podinfo
+        mountPath: /etc/podinfo
+    env:
+    - name: WORKLOAD
+      value: {{.workload}}
+    - name: ES_SERVER
+      value: {{.es_server}}
+    - name: ES_INDEX_NETPOL
+      value: {{.es_index}}
+  volumes:
+    - name: podinfo
+      downwardAPI:
+        items:
+          - path: "labels"
+            fieldRef:
+              fieldPath: metadata.labels

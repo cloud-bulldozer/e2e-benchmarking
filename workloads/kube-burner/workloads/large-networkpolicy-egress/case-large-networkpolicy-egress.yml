@@ -1,0 +1,139 @@
+---
+global:
+  writeToFile: false
+  indexerConfig:
+    enabled: {{.INDEXING}}
+    esServers: ["{{.ES_SERVER}}"]
+    insecureSkipVerify: true
+    defaultIndex: {{.ES_INDEX}}
+    type: elastic
+  measurements:
+    - name: podLatency
+      esIndex: {{.ES_INDEX}}
+{{ if eq .PPROF_COLLECTION "true" }}
+    - name: pprof
+      pprofInterval: {{ .PPROF_COLLECTION_INTERVAL }}
+      pprofDirectory: /tmp/pprof-data
+      pprofTargets:
+
+      - name: kube-apiserver-cpu
+        namespace: "openshift-kube-apiserver"
+        labelSelector: {app: openshift-kube-apiserver}
+        bearerToken: {{ .BEARER_TOKEN }}
+        url: https://localhost:6443/debug/pprof/profile?timeout=30
+
+      - name: kube-apiserver-heap
+        namespace: "openshift-kube-apiserver"
+        labelSelector: {app: openshift-kube-apiserver}
+        bearerToken: {{ .BEARER_TOKEN }}
+        url: https://localhost:6443/debug/pprof/heap
+
+      - name: kube-controller-manager-heap
+        namespace: "openshift-kube-controller-manager"
+        labelSelector: {app: kube-controller-manager}
+        bearerToken: {{ .BEARER_TOKEN }}
+        url: https://localhost:10257/debug/pprof/heap
+
+      - name: kube-controller-manager-cpu
+        namespace: "openshift-kube-controller-manager"
+        labelSelector: {app: kube-controller-manager}
+        bearerToken: {{ .BEARER_TOKEN }}
+        url: https://localhost:10257/debug/pprof/profile?timeout=30
+
+      - name: etcd-heap
+        namespace: "openshift-etcd"
+        labelSelector: {app: etcd}
+        cert: {{ .CERTIFICATE }}
+        key: {{ .PRIVATE_KEY }}
+        url: https://localhost:2379/debug/pprof/heap
+
+      - name: etcd-cpu
+        namespace: "openshift-etcd"
+        labelSelector: {app: etcd}
+        cert: {{ .CERTIFICATE }}
+        key: {{ .PRIVATE_KEY }}
+        url: https://localhost:2379/debug/pprof/profile?timeout=30
+{{ end }}
+jobs:
+  - name: large-networkpolicy-egress-usecase
+    jobIterations: {{.TEST_JOB_ITERATIONS}}
+    qps: {{.QPS}}
+    burst: {{.BURST}}
+    namespacedIterations: true
+    namespace: {{.UUID}}
+    podWait: {{.POD_WAIT}}
+    cleanup: {{.CLEANUP}}
+    waitFor: {{.WAIT_FOR}}
+    waitWhenFinished: {{.WAIT_WHEN_FINISHED}}
+    verifyObjects: {{.VERIFY_OBJECTS}}
+    errorOnVerify: {{.ERROR_ON_VERIFY}}
+    maxWaitTimeout: {{.MAX_WAIT_TIMEOUT}}
+    preLoadImages: {{.PRELOAD_IMAGES}}
+    preLoadPeriod: {{.PRELOAD_PERIOD}}
+    namespaceLabels:
+      security.openshift.io/scc.podSecurityLabelSync: false
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+    objects:
+      - objectTemplate: case-engress-firewall.yaml
+        replicas: 1
+
+      - objectTemplate: deny-all.yml
+        replicas: 1
+
+      - objectTemplate: case-networkpolicy-deployapp.yml
+        replicas: {{.NETWORKPOLICY_RPLICAS}}
+        inputVars:
+          podselector_label_num: "label1"
+          podselector_label: "foo"
+          ingress_label_num: "label1"
+          ingress_label: "foo"
+
+      - objectTemplate: case-networkpolicy-deployapp.yml
+        replicas: {{.NETWORKPOLICY_RPLICAS}}
+        inputVars:
+          podselector_label_num: "label2"
+          podselector_label: "bar"
+          ingress_label_num: "label2"
+          ingress_label: "bar"
+
+      - objectTemplate: postgres-deployment.yml
+        replicas: {{.POD_RPLICAS}}
+        inputVars:
+          readinessPeriod: 1
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
+          label1: "foo"
+          label2: "bar"
+
+      - objectTemplate: app-deployment.yml
+        replicas: {{.POD_RPLICAS}}
+        inputVars:
+          readinessPeriod: 10
+          livenessPeriod: 10
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
+          label1: "foo"
+          label2: "bar"
+
+      - objectTemplate: postgres-service.yml
+        replicas: 1
+        inputVars:
+          label1: "foo"
+          label2: "bar"
+
+      - objectTemplate: egress-app.yaml
+        replicas: {{.POD_RPLICAS}}
+        inputVars:
+          nodeSelector: "{{.POD_NODE_SELECTOR}}"
+          label1: "foo"
+          label2: "bar"
+          workload: "{{.WORKLOAD}}"
+          es_server: "{{.ES_SERVER}}"
+          es_index: "{{.ES_INDEX_NETPOL}}"
+
+      - objectTemplate: case-networkpolicy-defaultport.yml
+        replicas: 1
+
+      - objectTemplate: case-networkpolicy-allowdns.yml
+        replicas: 1
+
