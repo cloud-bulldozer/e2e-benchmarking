@@ -72,22 +72,24 @@ setup(){
 
 get_ipsec_config(){
     ipsec=false
+    ipsecMode="Disabled"
     if result=$(oc get networks.operator.openshift.io cluster -o=jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig.ipsecConfig.mode}'); then
         # If $result is empty, it is version older than 4.15
-        # We need to chekc a level above in the jsonpath
+        # We need to check a level above in the jsonpath
         # If that level is not empty it means ipsec is enabled
         if [[ -z $result ]]; then
             if deprecatedresult=$(oc get networks.operator.openshift.io cluster -o=jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig.ipsecConfig}'); then
                 if [[ ! -z $deprecatedresult ]]; then
                     ipsec=true
+                    ipsecMode="Full"
                 fi
             fi
         else
-            # No matter if enabled and then disabled or
-            # Disabled by default
+            # No matter if enabled and then disabled or disabled by default,
             # this field is always shows Disabled when no IPSec
             if [[ ! $result == *"Disabled"* ]]; then
                 ipsec=true
+                ipsecMode=$result
             fi
         fi
     fi
@@ -177,6 +179,7 @@ index_task(){
         "endDateUnixTimestamp":"'"$end_date_unix_timestamp"'",
         "timestamp":"'"$start_date"'",
         "ipsec":"'"$ipsec"'",
+        "ipsecMode":"'"$ipsecMode"'",
         "fips":"'"$fips"'",
         "encrypted":"'"$encrypted"'",
         "encryptionType":"'"$encryption"'",
