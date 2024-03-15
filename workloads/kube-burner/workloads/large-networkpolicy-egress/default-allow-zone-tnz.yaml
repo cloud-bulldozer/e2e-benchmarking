@@ -1,0 +1,93 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-allow-zone-tnz
+spec:
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-ingress
+      podSelector:
+        matchLabels:
+          ingresscontroller.operator.openshift.io/deployment-ingresscontroller: app
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          acs.amadeus.com/securityZone: app
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-ingress
+      podSelector:
+        matchLabels:
+          ingresscontroller.operator.openshift.io/deployment-ingresscontroller: tnz
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          acs.amadeus.com/securityZone: tnz
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-ingress
+      podSelector:
+        matchLabels:
+          ingresscontroller.operator.openshift.io/deployment-ingresscontroller: cri
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          acs.amadeus.com/securityZone: cri
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-ingress
+      podSelector:
+        matchLabels:
+          ingresscontroller.operator.openshift.io/deployment-ingresscontroller: csz
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          acs.amadeus.com/securityZone: csz
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-ingress
+      podSelector:
+        matchLabels:
+          ingresscontroller.operator.openshift.io/deployment-ingresscontroller: dsz
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          acs.amadeus.com/securityZone: dsz
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-ingress
+      podSelector:
+        matchLabels:
+          ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-ingress
+      podSelector:
+        matchLabels:
+          ingresscontroller.operator.openshift.io/deployment-ingresscontroller: tnz
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          acs.amadeus.com/securityZone: tnz
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-ingress
+      podSelector:
+        matchLabels:
+          ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
+  podSelector:
+    matchLabels:
+      acs.amadeus.com/securityZone: tnz
+  policyTypes:
+  - Ingress
+  - Egress

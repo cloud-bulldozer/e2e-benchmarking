@@ -1,0 +1,26 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: probe-detectd-deploy-service
+spec:
+  selector:
+    app: probe-detectd-deploy
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
+  sessionAffinity: None
+---  
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins-jnlp
+spec:
+  type: ClusterIP
+  ports:
+    - port: 50000
+      targetPort: 50000
+  selector:
+    app: jenkins
