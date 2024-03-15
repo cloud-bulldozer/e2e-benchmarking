@@ -46,7 +46,7 @@ Or increase the benchmark timeout (by default 3h):
 $ EXTRA_FLAGS="--timeout=5h" ITERATIONS=500 WORKLOAD=cluster-density-v2 ./run.sh
 ```
 
-Or change the deletion strategy during churn, It is recommended for running churn cycles on large(500) scale clusters
+Or change the deletion strategy during churn. It is recommended for churning on large(500) scale clusters to maintain moderate kube-api burst.
 
 ```shell
 $ EXTRA_FLAGS="--churn-deletion-strategy=gvr" ITERATIONS=5000 WORKLOAD=cluster-density-v2 ./run.sh
