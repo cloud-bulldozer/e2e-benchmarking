@@ -1,0 +1,49 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  labels:
+    name: node-density-{{.Iteration}}-{{.Replica}}
+    app: pause
+  name: {{.JobName}}-{{.Iteration}}-{{.Replica}}
+  annotations:
+    k8s.v1.cni.cncf.io/networks: bridge-whereabouts-10-1-0-0
+spec:
+  topologySpreadConstraints:
+  - maxSkew: 1 
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway 
+    labelSelector: 
+      matchLabels:
+        app: pause
+  securityContext:
+      seccompProfile:
+          type: RuntimeDefault
+      runAsNonRoot: true
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/worker
+            operator: Exists
+          - key: node-role.kubernetes.io/infra
+            operator: DoesNotExist
+          - key: node-role.kubernetes.io/workload
+            operator: DoesNotExist
+  tolerations:
+  - key: os
+    value: Windows
+    effect: NoSchedule
+  containers:
+  - image: {{.containerImage}}
+    name: node-density
+    resources:
+      requests:
+        memory: "10Mi"
+        cpu: "10m"
+    securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+            drop:
+                - ALL
+    imagePullPolicy: IfNotPresent

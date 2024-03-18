@@ -1,0 +1,36 @@
+---
+global:
+  gc: {{.GC}}
+  gcMetrics: {{.GC_METRICS}}
+  indexerConfig:
+    esServers: ["{{.ES_SERVER}}"]
+    insecureSkipVerify: true
+    defaultIndex: {{.ES_INDEX}}
+    type: opensearch
+  measurements:
+    - name: podLatency
+      thresholds:
+        - conditionType: Ready
+          metric: P99
+          threshold: 2000ms
+jobs:
+  - name: whereabouts-21-fill
+    namespace: kube-burn-whereabouts
+    jobIterations: {{.ITERATIONS}}
+    podWait: true
+    qps: {{.QPS}}
+    burst: {{.BURST}}
+    namespacedIterations: true
+    waitWhenFinished: true
+    namespaceLabels:
+      security.openshift.io/scc.podSecurityLabelSync: false
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+    objects:
+        - objectTemplate: ipam.yml
+          replicas: 1
+        - objectTemplate: pod.yml
+          replicas: 6
+          inputVars:
+            containerImage: registry.k8s.io/pause:3.1
