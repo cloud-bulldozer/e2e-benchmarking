@@ -32,7 +32,7 @@ function cleanup_whereabouts(){
     WHEREABOUTS_OVERLAPS=${#overlaps[@]}
 
     # also need to remove the overlapping reservations
-    for i in $overlaps; do
+    for i in "${overlaps[@]}"; do
         oc delete overlappingrangeipreservations.whereabouts.cni.cncf.io $i -n openshift-multus;
     done
 
