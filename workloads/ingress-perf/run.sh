@@ -20,7 +20,7 @@ HARDWARE=$(uname -m)
 
 download_binary(){
   INGRESS_PERF_URL=https://github.com/cloud-bulldozer/ingress-perf/releases/download/v${INGRESS_PERF_VERSION}/ingress-perf-${OS}-v${INGRESS_PERF_VERSION}-${HARDWARE}.tar.gz
-  curl -sS -L ${INGRESS_PERF_URL} | tar xz ingress-perf
+  curl --fail --retry 8 --retry-all-errors -sS -L ${INGRESS_PERF_URL} | tar xz ingress-perf
 }
 
 download_binary

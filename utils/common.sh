@@ -77,7 +77,7 @@ function check_pod_ready_state () {
 }
 
 gen_spreadsheet_helper() {
-  pip install oauth2client>=4.1.3 gspread
+  pip install oauth2client>=4.1.3 gspread==5.12.4
   sheetname=${1}-$(date "+%Y-%m-%dT%H:%M:%S")
   log "Sheetname: ${sheetname}"
   log "CSV: ${2}"

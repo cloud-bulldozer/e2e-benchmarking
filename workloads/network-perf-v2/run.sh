@@ -7,7 +7,7 @@ source ../../utils/common.sh
 # Download k8s-netperf function
 download_netperf() {
   echo $1
-  curl -sS -L ${NETPERF_URL} | tar -xz
+  curl --fail --retry 8 --retry-all-errors -sS -L ${NETPERF_URL} | tar -xz
 }
 
 # Download and extract k8s-netperf if we haven't already

@@ -7,7 +7,7 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.0.0}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.2.0}
 CHURN=${CHURN:-true}
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
@@ -16,26 +16,10 @@ GC=${GC:-true}
 EXTRA_FLAGS=${EXTRA_FLAGS:-}
 UUID=${UUID:-$(uuidgen)}
 KUBE_DIR=${KUBE_DIR:-/tmp}
-MAX_RETRIES=3
-RETRY_DELAY=5
 
 download_binary(){
-  local retries=0
-  while [ $retries -lt $MAX_RETRIES ]; do
-    KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-linux-x86_64.tar.gz"
-
-    if curl -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp; then
-      echo "Download successful"
-      return 0
-    else
-      ((retries++))
-      echo "Download failed. Retrying (${retries}/$MAX_RETRIES) in $RETRY_DELAY seconds..."
-      sleep $RETRY_DELAY
-    fi
-  done
-
-  echo "Max retries reached. Unable to download the binary."
-  return 1
+  KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-linux-x86_64.tar.gz"
+  curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
 }
 
 hypershift(){
