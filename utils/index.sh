@@ -148,6 +148,7 @@ index_task(){
 
     start_date_unix_timestamp=$(date "+%s" -d "${start_date}")
     end_date_unix_timestamp=$(date "+%s" -d "${end_date}")
+    current_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
     json_data='{
         "ciSystem":"'$ci'",
@@ -177,7 +178,7 @@ index_task(){
         "endDate":"'"$end_date"'",
         "startDateUnixTimestamp":"'"$start_date_unix_timestamp"'",
         "endDateUnixTimestamp":"'"$end_date_unix_timestamp"'",
-        "timestamp":"'"$start_date"'",
+        "timestamp":"'"$current_timestamp"'",
         "ipsec":"'"$ipsec"'",
         "ipsecMode":"'"$ipsecMode"'",
         "fips":"'"$fips"'",
