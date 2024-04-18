@@ -167,5 +167,5 @@ if [[ ${BEFORE_N_TYPE} == "OpenShiftSDN" ]]; then
 
     echo "Finished CNI migration"
     AFTER_N_TYPE=$(oc get Network.operator.openshift.io cluster  -o json | jq -r '.spec.defaultNetwork.type')
-    #_index_results "$NW_MIGRATION_DURATION" "$MCP_DURATION" "$BEFORE_N_TYPE" "$AFTER_N_TYPE" "$VERSION"
+    _index_results "$NW_MIGRATION_DURATION" "$MCP_DURATION" "$BEFORE_N_TYPE" "$AFTER_N_TYPE" "$VERSION"
 fi
