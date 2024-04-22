@@ -118,6 +118,7 @@ if [[ ${BEFORE_N_TYPE} == "OpenShiftSDN" ]]; then
         fi
     done
 
+    delay=1
     # Reboot infra nodes, give 3 mins each
     for node in $infra_nodes; do
         pods_on_node=$(oc get pods -n openshift-machine-config-operator -o jsonpath='{.items[?(@.spec.nodeName=="'$node'")].metadata.name}' -l k8s-app=$daemonset_name)
@@ -128,6 +129,7 @@ if [[ ${BEFORE_N_TYPE} == "OpenShiftSDN" ]]; then
         fi
     done
 
+    delay=5
     # Reboot worker nodes
     for node in $worker_nodes; do
         pods_on_node=$(oc get pods -n openshift-machine-config-operator -o jsonpath='{.items[?(@.spec.nodeName=="'$node'")].metadata.name}' -l k8s-app=$daemonset_name)
