@@ -3,7 +3,7 @@ set -x
 
 source env.sh
 
-export ES_SERVER="${https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}"
+export ES_SERVER="${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}"
 export _es_index="${ES_INDEX:-managedservices-timings}"
 export UUID="${UUID:-$(uuidgen | tr '[:upper:]' '[:lower:]')}"
 export TEMP_DIR="$(mktemp -d)"
@@ -50,6 +50,7 @@ _index_results(){
   "worker_count": "$(oc get node --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",node-role.kubernetes.io/worker="" 2>/dev/null | wc -l)",
   "infra_count": "$(oc get node -l node-role.kubernetes.io/infra= --no-headers --ignore-not-found 2>/dev/null | wc -l)",
   "total_node_count": "$(oc get nodes --no-headers 2>/dev/null | wc -l)",
+  "ocp_version": "$5",
   "timestamp": "$(date +%s%3N)"
 }
 EOF
@@ -79,7 +80,7 @@ if [[ ${BEFORE_N_TYPE} == "OpenShiftSDN" ]]; then
 
     # _wait_for <resource> <resource_name> <desired_state> <timeout in minutes> 
     _wait_for mcp --all Updating=True 30
-    _wait_for mcp master Updated=True 30
+    _wait_for mcp master Updated=True 90
     _wait_for mcp master Updating=False 30
     _wait_for mcp master Degraded=False 10
 
