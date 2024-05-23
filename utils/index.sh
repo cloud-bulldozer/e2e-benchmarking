@@ -17,6 +17,7 @@ setup(){
     elif [[ -n $PROW_JOB_ID ]]; then
         export ci="PROW"
         export prow_base_url="https://prow.ci.openshift.org/view/gs/origin-ci-test/logs"
+        export prow_pr_base_url="https://prow.ci.openshift.org/view/gs/test-platform-results/pr-logs/pull/openshift_release"
     elif [[ -n $BUILD_ID ]]; then
         export ci="JENKINS"
         export build_url=${BUILD_URL}
@@ -233,7 +234,11 @@ index_tasks(){
         job_id=$JOB_NAME
         job_run_id=$PROW_JOB_ID
         state=$JOB_STATUS
-        build_url="${prow_base_url}/${job_id}/${task_id}"
+        if [[ "${JOB_TYPE}" == "presubmit" ]]; then
+            build_url="${prow_pr_base_url}/${PULL_NUMBER}/${job_id}/${task_id}"
+        else
+            build_url="${prow_base_url}/${job_id}/${task_id}"
+        fi
         execution_date=$JOB_START
         set_duration "$JOB_START" "$JOB_END"
         index_task "$ES_SERVER/$ES_INDEX/_doc/$job_id%2F$job_run_id%2F$task_id%2F$UUID"
