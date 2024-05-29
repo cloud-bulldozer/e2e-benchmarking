@@ -90,10 +90,12 @@ EOF
 download_binary
 if [[ ${WORKLOAD} =~ "index" ]]; then
   cmd="${KUBE_DIR}/kube-burner-ocp index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
+  JOB_START=$(date -u -d "@$START_TIME" +"%Y-%m-%dT%H:%M:%SZ")
+  JOB_END=$(date -u -d "@$((END_TIME + 600))" +"%Y-%m-%dT%H:%M:%SZ")
 else
   cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
-  cmd+=" ${EXTRA_FLAGS}"
 fi
+cmd+=" ${EXTRA_FLAGS}"
 if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
@@ -110,10 +112,10 @@ fi
 set +e
 
 echo $cmd
-JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 $cmd
 exit_code=$?
-JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+JOB_END=${JOB_END:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 if [ $exit_code -eq 0 ]; then
   JOB_STATUS="success"
 else
