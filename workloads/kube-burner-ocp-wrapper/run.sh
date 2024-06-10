@@ -39,16 +39,16 @@ EOF
   # Get hosted cluster ID and name
   HC_ID=$(oc get infrastructure cluster -o go-template --template='{{.status.infrastructureName}}')
   HC_NAME=$(oc get infrastructure cluster -o go-template --template='{{range .status.platformStatus.aws.resourceTags}}{{if eq .key "api.openshift.com/name" }}{{.value}}{{end}}{{end}}')
-  
+
   if [[ -z ${HC_ID} ]] || [[ -z ${HC_NAME} ]]; then
     echo "Couldn't obtain hosted cluster id and/or hosted cluster name"
     echo -e "HC_ID: ${HC_ID}\nHC_NAME: ${HC_NAME}"
     exit 1
   fi
-  
+
   # Hosted control-plane namespace is composed by the cluster ID plus the cluster name
   HCP_NAMESPACE=${HC_ID}-${HC_NAME}
-  
+
   echo "Creating OBO route"
   oc --kubeconfig=${MC_KUBECONFIG} apply -f obo-route.yml
   echo "Fetching OBO endpoint"
@@ -68,7 +68,7 @@ EOF
     fi
   done
   MGMT_WORKER_NODES=${Q_NODES}
-    
+
   echo "Exporting required vars"
   cat << EOF
 MC_OBO: ${MC_OBO}
@@ -83,7 +83,7 @@ EOF
   if [[ ${WORKLOAD} =~ "index" ]]; then
     export elapsed=${ELAPSED:-20m}
   fi
-  
+
   export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES
 }
 
@@ -96,7 +96,7 @@ else
   cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
 fi
 cmd+=" ${EXTRA_FLAGS}"
-if [[ ${WORKLOAD} =~ "cluster-density" ]]; then
+if [[ ${WORKLOAD} =~ "cluster-density" ]] && [[ ! ${WORKLOAD} =~ "web-burner" ]] ; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
