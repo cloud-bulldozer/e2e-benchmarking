@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 set -e
+source ./egressip.sh
 
 ES_SERVER=${ES_SERVER=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
 LOG_LEVEL=${LOG_LEVEL:-info}
@@ -100,6 +101,12 @@ if [[ ${WORKLOAD} =~ "cluster-density" ]] && [[ ! ${WORKLOAD} =~ "web-burner" ]]
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
+if [[ ${WORKLOAD} =~ "egressip" ]]; then
+  prep_aws
+  get_egressip_external_server
+  ITERATIONS=${ITERATIONS:?}
+  cmd+=" --iterations=${ITERATIONS} --external-server-ip=${EGRESSIP_EXTERNAL_SERVER_IP}"
+fi
 if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
@@ -122,4 +129,8 @@ else
   JOB_STATUS="failure"
 fi
 env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" WORKLOAD="$WORKLOAD" ES_SERVER="$ES_SERVER" ../../utils/index.sh
+
+if [[ ${WORKLOAD} =~ "egressip" ]]; then
+    cleanup_egressip_external_server
+fi
 exit $exit_code
