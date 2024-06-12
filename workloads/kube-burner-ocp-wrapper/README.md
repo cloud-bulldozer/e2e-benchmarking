@@ -68,3 +68,11 @@ It's possible to use this script with HyperShift hosted clusters. The particular
 In order to use it, the hosted cluster kubeconfig must be set upfront. These environment variables are also required:
 
 - **MC_KUBECONFIG**: This variable points to the valid management cluster kubeconfig
+
+## EgressIP
+
+EgressIP testing requires a nginx server outside OCP cluster. This server should be in the same network CIDR as OCP nodes but not controlled by OVN SDN. Workload client pods send requests to this external nginx server. Currently, we support egressIP testing only on the AWS platform. We aim to extend this support to other platforms and bare-metal environments. This script creates AWS instance and spawns external nginx servers.
+
+```shell
+$ EXTRA_FLAGS="--addresses-per-iteration=1" AWS_ACCESS_KEY_ID="" AWS_SECRET_ACCESS_KEY="" ITERATIONS=1 WORKLOAD=egressip ./run.sh
+```
