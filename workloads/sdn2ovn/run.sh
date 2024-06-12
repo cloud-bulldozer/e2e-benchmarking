@@ -65,7 +65,7 @@ echo "Migration of cluster default CNI to OVNKubernetes"
 echo "Take back up of cluster network configuration"
 oc get Network.config.openshift.io cluster -o yaml > $TEMP_DIR/cluster-openshift-sdn.yaml
 BEFORE_N_TYPE=$(oc get Network.operator.openshift.io cluster  -o json | jq -r '.spec.defaultNetwork.type')
-echo "Current CNI is $N_TYPE"
+echo "Current CNI is ${BEFORE_N_TYPE}"
 
 if [[ ${BEFORE_N_TYPE} == "OpenShiftSDN" ]]; then
 
