@@ -8,7 +8,7 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.2.8}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.2.5}
 CHURN=${CHURN:-true}
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
@@ -25,43 +25,66 @@ download_binary(){
 
 hypershift(){
   echo "HyperShift detected"
-  echo "Indexing Management cluster stats before executing"
+
+  # Get hosted cluster ID and name
+  HC_ID=$(oc get infrastructure cluster -o go-template --template='{{.status.infrastructureName}}')
+  HC_PLATFORM=$(oc get infrastructure cluster -o go-template --template='{{.status.platform}}'| awk '{print tolower($0)}')
+
+  if [[ $HC_PLATFORM == "aws" ]]; then
+    echo "Detected ${HC_PLATFORM} environment..."
+
+    MC_NAME=$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)
+    HC_NAME=$(oc get infrastructure cluster -o go-template --template='{{range .status.platformStatus.aws.resourceTags}}{{if eq .key "api.openshift.com/name" }}{{.value}}{{end}}{{end}}')
+    # Hosted control-plane namespace is composed by the cluster ID plus the cluster name
+    HCP_NAMESPACE=${HC_ID}-${HC_NAME}
+    QUERY="sum(cluster:nodes_roles{label_hypershift_openshift_io_control_plane=\"true\"})by(node)"
+
+    echo "Creating OBO route on MC"
+    oc --kubeconfig=${MC_KUBECONFIG} apply -f obo-route.yml
+    echo "Fetching OBO endpoint"
+    MC_OBO=http://$(oc --kubeconfig=${MC_KUBECONFIG} get route -n openshift-observability-operator prometheus-hypershift -o jsonpath="{.spec.host}")
+    MC_PROMETHEUS=https://$(oc --kubeconfig=${MC_KUBECONFIG} get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
+    MC_PROMETHEUS_TOKEN=$(oc --kubeconfig=${MC_KUBECONFIG} sa new-token -n openshift-monitoring prometheus-k8s)
+    HC_PRODUCT="rosa"
+  else
+    echo "Detected ${HC_PLATFORM} environment..."
+
+    MC_NAME=$(kubectl config view -o jsonpath='{.clusters[].name}' --kubeconfig=${MC_KUBECONFIG})
+    HC_NAME=$(oc get infrastructure cluster -o go-template --template='{{.status.etcdDiscoveryDomain}}' | awk -F. '{print$1}')
+    HCP_NAMESPACE=${HC_NAME}
+    QUERY="sum(kube_node_role{cluster=\"$MC_NAME\",role=\"worker\"})by(node)"
+
+    if [[ -z ${AKS_PROM} ]] || [[ -z ${AZURE_PROM} ]] || [[ -z ${AZURE_PROM_TOKEN} ]]; then
+      echo "Azure/AKS prometheus inputs are missing, exiting.."
+      exit 1
+    fi
+
+    MC_OBO=$AKS_PROM
+    MC_PROMETHEUS=$AZURE_PROM
+    MC_PROMETHEUS_TOKEN=$AZURE_PROM_TOKEN
+    HC_PRODUCT="aro"
+  fi
+
+  echo "Indexing Management cluster stats"
   METADATA=$(cat << EOF
 {
 "uuid": "${UUID}",
 "workload": "${WORKLOAD}",
-"mgmtClusterName": "$(oc get --kubeconfig=${MC_KUBECONFIG} infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
-"hostedClusterName": "$(oc get infrastructure.config.openshift.io cluster -o json 2>/dev/null | jq -r .status.infrastructureName)",
+"mgmtClusterName": "${MC_NAME}",
+"hostedClusterName": "${HC_NAME}",
 "timestamp": "$(date +%s%3N)"
 }
 EOF
 )
   curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
-  # Get hosted cluster ID and name
-  HC_ID=$(oc get infrastructure cluster -o go-template --template='{{.status.infrastructureName}}')
-  HC_NAME=$(oc get infrastructure cluster -o go-template --template='{{range .status.platformStatus.aws.resourceTags}}{{if eq .key "api.openshift.com/name" }}{{.value}}{{end}}{{end}}')
 
-  if [[ -z ${HC_ID} ]] || [[ -z ${HC_NAME} ]]; then
-    echo "Couldn't obtain hosted cluster id and/or hosted cluster name"
-    echo -e "HC_ID: ${HC_ID}\nHC_NAME: ${HC_NAME}"
-    exit 1
-  fi
-
-  # Hosted control-plane namespace is composed by the cluster ID plus the cluster name
-  HCP_NAMESPACE=${HC_ID}-${HC_NAME}
-
-  echo "Creating OBO route"
-  oc --kubeconfig=${MC_KUBECONFIG} apply -f obo-route.yml
-  echo "Fetching OBO endpoint"
-  MC_OBO=http://$(oc --kubeconfig=${MC_KUBECONFIG} get route -n openshift-observability-operator prometheus-hypershift -o jsonpath="{.spec.host}")
-  MC_PROMETHEUS=https://$(oc --kubeconfig=${MC_KUBECONFIG} get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
-  MC_PROMETHEUS_TOKEN=$(oc --kubeconfig=${MC_KUBECONFIG} sa new-token -n openshift-monitoring prometheus-k8s)
   HOSTED_PROMETHEUS=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
   HOSTED_PROMETHEUS_TOKEN=$(oc sa new-token -n openshift-monitoring prometheus-k8s)
 
   echo "Get all management worker nodes, excludes infra, obo, workload"
   Q_NODES=""
-  for n in $(curl -H "Authorization: Bearer ${MC_PROMETHEUS_TOKEN}" -k --silent --globoff  ${MC_PROMETHEUS}/api/v1/query?query='sum(cluster:nodes_roles{label_hypershift_openshift_io_control_plane="true"})by(node)&time='$(date +"%s")'' | jq -r '.data.result[].metric.node'); do
+  Q_STDOUT=$(curl -H "Authorization: Bearer ${MC_PROMETHEUS_TOKEN}" -k --silent --globoff  ${MC_PROMETHEUS}/api/v1/query?query=${QUERY}&time='$(date +"%s")')
+  for n in $(echo $Q_STDOUT | jq -r '.data.result[].metric.node'); do
     if [[ ${Q_NODES} == "" ]]; then
       Q_NODES=${n}
     else
@@ -72,6 +95,7 @@ EOF
 
   echo "Exporting required vars"
   cat << EOF
+MC_NAME: ${MC_NAME}
 MC_OBO: ${MC_OBO}
 MC_PROMETHEUS: ${MC_PROMETHEUS}
 MC_PROMETHEUS_TOKEN: <truncated>
@@ -79,13 +103,15 @@ HOSTED_PROMETHEUS: ${HOSTED_PROMETHEUS}
 HOSTED_PROMETHEUS_TOKEN: <truncated>
 HCP_NAMESPACE: ${HCP_NAMESPACE}
 MGMT_WORKER_NODES: ${MGMT_WORKER_NODES}
+HC_PRODUCT: ${HC_PRODUCT}
 EOF
 
   if [[ ${WORKLOAD} =~ "index" ]]; then
     export elapsed=${ELAPSED:-20m}
   fi
+  
+  export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES HC_PRODUCT MC_NAME
 
-  export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES
 }
 
 download_binary
