@@ -69,6 +69,17 @@ In order to use it, the hosted cluster kubeconfig must be set upfront. These env
 
 - **MC_KUBECONFIG**: This variable points to the valid management cluster kubeconfig
 
+### ARO inputs
+
+Along with above environmental inputs, ARO MC needs few more inputs from the users. 
+We are required to scrape metrics from multiple enpoints like ROSA, users need to supply those endpoints and tokens
+
+- **AZURE_PROM**: Azure Managed Prometheus instance endpoint for Management cluster metrics
+- **AZURE_PROM_TOKEN**: Token for the same
+- **AKS_PROM**: Prometheus Operator endpoint deployed on the MC to scrape HCP metrics
+
+The AKS Cluster observability is not finalized so this approach is subjected to change in the future when ARO-HCP is GA.
+
 ## EgressIP
 
 EgressIP testing requires a nginx server outside OCP cluster. This server should be in the same network CIDR as OCP nodes but not controlled by OVN SDN. Workload client pods send requests to this external nginx server. Currently, we support egressIP testing only on the AWS platform. We aim to extend this support to other platforms and bare-metal environments. This script creates AWS instance and spawns external nginx servers.
@@ -76,3 +87,4 @@ EgressIP testing requires a nginx server outside OCP cluster. This server should
 ```shell
 $ EXTRA_FLAGS="--addresses-per-iteration=1" AWS_ACCESS_KEY_ID="" AWS_SECRET_ACCESS_KEY="" ITERATIONS=1 WORKLOAD=egressip ./run.sh
 ```
+

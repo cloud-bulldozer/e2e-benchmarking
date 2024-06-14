@@ -1,8 +1,8 @@
 - endpoint: {{.MC_OBO}}
   metrics:
-    - metrics-profiles/hosted-cp-metrics.yml
+    - metrics-profiles/{{.HC_PRODUCT}}/hosted-cp-metrics.yml
   alerts:
-    - alerts-profiles/hosted-cp-alerts.yml
+    - alerts-profiles/{{.HC_PRODUCT}}/hosted-cp-alerts.yml
   indexer:
       esServers: ["{{.ES_SERVER}}"]
       insecureSkipVerify: true
@@ -11,7 +11,7 @@
 - endpoint: {{.MC_PROMETHEUS}}
   token: {{.MC_PROMETHEUS_TOKEN}}
   metrics:
-    - metrics-profiles/mc-metrics.yml
+    - metrics-profiles/{{.HC_PRODUCT}}/mc-metrics.yml
   indexer:
       esServers: ["{{.ES_SERVER}}"]
       insecureSkipVerify: true
@@ -20,9 +20,9 @@
 - endpoint: {{.HOSTED_PROMETHEUS}}
   token: {{.HOSTED_PROMETHEUS_TOKEN}}
   metrics:
-    - metrics-profiles/hosted-cluster-metrics.yml
+    - metrics-profiles/{{.HC_PRODUCT}}/hosted-cluster-metrics.yml
   alerts:
-    - alerts-profiles/hosted-cluster-alerts.yml
+    - alerts-profiles/{{.HC_PRODUCT}}/hosted-cluster-alerts.yml
   indexer:
       esServers: ["{{.ES_SERVER}}"]
       insecureSkipVerify: true
