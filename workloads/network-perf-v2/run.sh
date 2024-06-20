@@ -22,14 +22,6 @@ else
   download_netperf "Downloading k8s-netperf."
 fi
 
-# Assuming kubeconfig is set
-if [[ "$(oc get ns netperf --no-headers --ignore-not-found)" == ""  ]]; then
-  oc create ns netperf
-  oc create sa netperf -n netperf
-fi
-
-oc adm policy add-scc-to-user hostnetwork -z netperf -n netperf
-
 log "###############################################"
 log "Workload: ${WORKLOAD}"
 log "UUID: ${UUID}"
