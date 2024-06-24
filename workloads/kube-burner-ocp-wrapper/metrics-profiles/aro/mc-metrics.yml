@@ -1,0 +1,89 @@
+# Management cluster metrics
+# They should be preffixed with mgmt- to distinguish from the hosted cluster ones
+# Only collecting container and worker nodes CPU/Memory metrics
+
+# Management Node metrics: CPU & Memory
+
+- query: kube_node_role{}
+  metricName: mgmtNodeRoles
+
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{cluster="{{.MC_NAME}}",role="worker"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: mgmt-nodeCPU-Workers
+
+- query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(kube_node_role{cluster="{{.MC_NAME}}",role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: mgmt-nodeMemoryUtilization-Workers
+
+- query: (max((sum(irate(node_cpu_seconds_total{}[1m])) by (mode,instance) and on (instance) label_replace(bottomk(1, min_over_time(sum(irate(node_cpu_seconds_total{mode=~"idle",cluster="{{.MC_NAME}}",instance=~"{{.MGMT_WORKER_NODES}}"}[1m])) by (mode,instance)[{{ .elapsed }}:])), "instance", "$1", "instance", "(.+)"))) by (mode, instance)) > 0
+  metricName: mgmtNodeCPU-MostUtilizedWorker
+
+- query: bottomk(1,min_over_time(node_memory_MemAvailable_bytes{cluster="{{.MC_NAME}}",instance=~"{{.MGMT_WORKER_NODES}}"}[{{ .elapsed }}:]))
+  metricName: mgmtNodeMemoryAvailable-MostUtilizedWorker
+
+- query: (avg(node_memory_MemTotal_bytes{cluster="{{.MC_NAME}}",instance=~"{{.MGMT_WORKER_NODES}}"}) by (instance))
+  metricName: mgmtNodeMemoryTotal
+
+- query: irate(node_disk_reads_completed_total{cluster="{{.MC_NAME}}",instance=~"{{.MGMT_WORKER_NODES}}"}[2m])
+  metricName: mgmtNodeDiskReads
+
+- query: irate(node_disk_writes_completed_total{cluster="{{.MC_NAME}}",instance=~"{{.MGMT_WORKER_NODES}}"}[2m])
+  metricName: mgmtNodeDiskWrites
+
+# ControlPlane Containers metrics
+
+- query: (sum(irate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",name!="",namespace!~"clusters-.*"}[2m]) * 100) by (container, pod, instance,namespace)) > 0
+  metricName: mgmt-containerCPU
+
+- query: sum(container_memory_rss{cluster="{{.MC_NAME}}",name!="",namespace!~"clusters-.*"}) by (container, pod, instance,namespace)
+  metricName: mgmt-containerMemory
+
+# Process CPU and Memory metrics
+- query: sum(irate(process_cpu_seconds_total{cluster=~".*{{.MC_NAME}}",job="kube-apiserver"}[2m]) * 100) by (instance)
+  metricName: mgmt-APIServerCPU
+
+- query: sum(process_resident_memory_bytes{cluster=~".*{{.MC_NAME}}",job="kube-apiserver"}) by (instance)
+  metricName: mgmt-APIServerMemory
+
+# MC Etcd metrics
+
+- query: sum(rate(etcd_server_leader_changes_seen_total{cluster="{{.MC_NAME}}"}[2m]))
+  metricName: mgmt-etcdLeaderChangesRate
+
+- query: histogram_quantile(0.99,rate(etcd_disk_backend_commit_duration_seconds_bucket{cluster="{{.MC_NAME}}"}[2m]))
+  metricName: mgmt-99thEtcdDiskBackendCommitDurationSeconds
+
+- query: histogram_quantile(0.99,rate(etcd_disk_wal_fsync_duration_seconds_bucket{cluster="{{.MC_NAME}}"}[2m]))
+  metricName: mgmt-99thEtcdDiskWalFsyncDurationSeconds
+
+- query: histogram_quantile(0.99,rate(etcd_network_peer_round_trip_time_seconds_bucket{cluster="{{.MC_NAME}}"}[5m]))
+  metricName: mgmt-99thEtcdRoundTripTimeSeconds
+  
+- query: histogram_quantile(0.99, sum(irate(etcd_request_duration_seconds_bucket{cluster="{{.MC_NAME}}",type=~"configmaps|secrets|deamonsets.apps|deployments.apps|endpoints|events|pods",operation=~"LIST|GET"}[2m])) by (le, type, operation)) > 0
+  metricName: mgmt-readOnlyEtcdOperationLatency
+
+- query: histogram_quantile(0.99, sum(irate(etcd_request_duration_seconds_bucket{cluster="{{.MC_NAME}}",type=~"configmaps|secrets|deamonsets.apps|deployments.apps|endpoints|events|pods",operation=~"CREATE|DELETE|UPDATE"}[2m])) by (le, type, operation)) > 0
+  metricName: mgmt-writeEtcdOperationLatency
+
+# ControlPlane Containers & pod metrics
+# These metrics would be available in MC CMO
+
+- query: (sum(irate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",name!="",namespace=~".+{{.HCP_NAMESPACE}}"}[2m]) * 100) by (container, pod, instance,namespace)) > 0
+  metricName: podCPU-Controlplane
+
+- query: sum(container_memory_rss{cluster="{{.MC_NAME}}",name!="",namespace=~".+{{.HCP_NAMESPACE}}"}) by (container, pod, instance,namespace)
+  metricName: podMemory-Controlplane
+
+- query: sum(container_memory_cache{cluster="{{.MC_NAME}}",name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod, container, namespace, node)
+  metricName: podMemoryCache-Controlplane
+
+- query: sum(cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests{namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod,container,namespace)
+  metricName: podCPUReq
+  instant: true
+
+- query: sum(cluster:namespace:pod_memory:active:kube_pod_container_resource_requests{namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod,container,namespace)
+  metricName: podMemoryReq
+  instant: true
+
+- query: kubernetes_build_info{cluster="{{.MC_NAME}}"}
+  metricName: mgmtClusterVersion
+  instant: true  
+

@@ -17,6 +17,7 @@ setup(){
     elif [[ -n $PROW_JOB_ID ]]; then
         export ci="PROW"
         export prow_base_url="https://prow.ci.openshift.org/view/gs/origin-ci-test/logs"
+        export prow_pr_base_url="https://prow.ci.openshift.org/view/gs/test-platform-results/pr-logs/pull/openshift_release"
     elif [[ -n $BUILD_ID ]]; then
         export ci="JENKINS"
         export build_url=${BUILD_URL}
@@ -71,23 +72,26 @@ setup(){
 }
 
 get_ipsec_config(){
-    # Get a ovnkube-master pod to try to ge the ipsec value
     ipsec=false
-    ovn_pod=""
-    if result=$(oc get pods -o custom-columns=name:.metadata.name -n openshift-ovn-kubernetes --no-headers=true | grep ovnkube-master -m1); then
-        ovn_pod=$result
-    fi
-    if [[ -z "$ovn_pod" ]]; then
-        if result=$(oc get pods -o custom-columns=name:.metadata.name -n openshift-ovn-kubernetes --no-headers=true | grep ovnkube-node -m1); then
-            ovn_pod=$result
-        fi
-    fi
-
-    # Check if the pod has the container nbdb, if it is OVNIC it won't
-    # If it is a OVN the command will succed and the result will be stored in ipsec
-    if result=$(oc -n openshift-ovn-kubernetes -c nbdb rsh $ovn_pod ovn-nbctl --no-leader-only get nb_global . ipsec); then
-        if [[ $result == *"true"* ]]; then
-            ipsec=true
+    ipsecMode="Disabled"
+    if result=$(oc get networks.operator.openshift.io cluster -o=jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig.ipsecConfig.mode}'); then
+        # If $result is empty, it is version older than 4.15
+        # We need to check a level above in the jsonpath
+        # If that level is not empty it means ipsec is enabled
+        if [[ -z $result ]]; then
+            if deprecatedresult=$(oc get networks.operator.openshift.io cluster -o=jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig.ipsecConfig}'); then
+                if [[ ! -z $deprecatedresult ]]; then
+                    ipsec=true
+                    ipsecMode="Full"
+                fi
+            fi
+        else
+            # No matter if enabled and then disabled or disabled by default,
+            # this field is always shows Disabled when no IPSec
+            if [[ ! $result == *"Disabled"* ]]; then
+                ipsec=true
+                ipsecMode=$result
+            fi
         fi
     fi
 }
@@ -145,6 +149,7 @@ index_task(){
 
     start_date_unix_timestamp=$(date "+%s" -d "${start_date}")
     end_date_unix_timestamp=$(date "+%s" -d "${end_date}")
+    current_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
     json_data='{
         "ciSystem":"'$ci'",
@@ -174,8 +179,9 @@ index_task(){
         "endDate":"'"$end_date"'",
         "startDateUnixTimestamp":"'"$start_date_unix_timestamp"'",
         "endDateUnixTimestamp":"'"$end_date_unix_timestamp"'",
-        "timestamp":"'"$start_date"'",
+        "timestamp":"'"$current_timestamp"'",
         "ipsec":"'"$ipsec"'",
+        "ipsecMode":"'"$ipsecMode"'",
         "fips":"'"$fips"'",
         "encrypted":"'"$encrypted"'",
         "encryptionType":"'"$encryption"'",
@@ -228,7 +234,11 @@ index_tasks(){
         job_id=$JOB_NAME
         job_run_id=$PROW_JOB_ID
         state=$JOB_STATUS
-        build_url="${prow_base_url}/${job_id}/${task_id}"
+        if [[ "${JOB_TYPE}" == "presubmit" ]]; then
+            build_url="${prow_pr_base_url}/${PULL_NUMBER}/${job_id}/${task_id}"
+        else
+            build_url="${prow_base_url}/${job_id}/${task_id}"
+        fi
         execution_date=$JOB_START
         set_duration "$JOB_START" "$JOB_END"
         index_task "$ES_SERVER/$ES_INDEX/_doc/$job_id%2F$job_run_id%2F$task_id%2F$UUID"

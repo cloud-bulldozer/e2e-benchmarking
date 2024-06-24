@@ -7,7 +7,7 @@ source ../../utils/common.sh
 # Download k8s-netperf function
 download_netperf() {
   echo $1
-  curl -sS -L ${NETPERF_URL} | tar -xz
+  curl --fail --retry 8 --retry-all-errors -sS -L ${NETPERF_URL} | tar -xz
 }
 
 # Download and extract k8s-netperf if we haven't already
@@ -21,14 +21,6 @@ if [ -f "${NETPERF_FILENAME}" ]; then
 else
   download_netperf "Downloading k8s-netperf."
 fi
-
-# Assuming kubeconfig is set
-if [[ "$(oc get ns netperf --no-headers --ignore-not-found)" == ""  ]]; then
-  oc create ns netperf
-  oc create sa netperf -n netperf
-fi
-
-oc adm policy add-scc-to-user hostnetwork -z netperf -n netperf
 
 log "###############################################"
 log "Workload: ${WORKLOAD}"

@@ -1,12 +1,12 @@
 # Kube-burner
 
-The `./run.sh` script is just a small wrapper on top of kube-burner to be used as entrypoint of some of its flags. The supported workloads are described in the [OpenShift OCP wrapper section](https://cloud-bulldozer.github.io/kube-burner/latest/ocp/) of the kube-burner docs.
+The `./run.sh` script is just a small wrapper on top of kube-burner to be used as entrypoint of some of its flags. The supported workloads are described in the [kube-burner OCP wrapper docs](https://kube-burner.github.io/kube-burner-ocp/latest/).
 
 In order to run a workload you have to set the `WORKLOAD` environment variable to one of the workloads supported by kube-burner. Example
 
 ```shell
 $ ITERATIONS=5 WORKLOAD=cluster-density-v2 ./run.sh 
-/tmp/kube-burner ocp cluster-density-v2 --log-level=info --iterations=5 --churn=true --es-server=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com --es-index=ripsaw-kube-burner --qps=20 --burst=20
+/tmp/kube-burner-ocp cluster-density-v2 --log-level=info --iterations=5 --churn=true --es-server=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com --es-index=ripsaw-kube-burner --qps=20 --burst=20
 INFO[2023-03-13 16:39:57] 📁 Creating indexer: elastic                  
 INFO[2023-03-13 16:39:59] 👽 Initializing prometheus client with URL: <truncated>
 INFO[2023-03-13 16:40:00] 🔔 Initializing alert manager for prometheus: <truncated>
@@ -28,11 +28,11 @@ This wrapper supports some variables to tweak some basic parameters of the workl
 - **ES_INDEX**: Defines the ElasticSearch/OpenSearch index name. By default `ripsaw-kube-burner`
 - **QPS** and **BURST**: Defines client-go QPS and BURST parameters for kube-burner. 20 by default
 - **GC**: Garbage collect created namespaces. true by default
-- **EXTRA_FLAGS**: Extra flags that will be appended to the underlying kube-burner ocp command, by default empty.
+- **EXTRA_FLAGS**: Extra flags that will be appended to the underlying kube-burner-ocp command, by default empty.
 
 ### Using the EXTRA_FLAGS variable
 
-All the flags that can be appeneded through the `EXTRA_FLAGS` variable can be found in the [kube-burner docs](https://cloud-bulldozer.github.io/kube-burner/latest/ocp/)
+All the flags that can be appeneded through the `EXTRA_FLAGS` variable can be found in the [kube-burner-ocp docs](https://kube-burner.github.io/kube-burner-ocp/latest/)
 For example, we can tweak the churning behaviour of the cluster-density workload with:
 
 ```shell
@@ -46,6 +46,11 @@ Or increase the benchmark timeout (by default 3h):
 $ EXTRA_FLAGS="--timeout=5h" ITERATIONS=500 WORKLOAD=cluster-density-v2 ./run.sh
 ```
 
+Or change the deletion strategy during churn. It is recommended for churning on large(500) scale clusters to maintain moderate kube-api burst.
+
+```shell
+$ EXTRA_FLAGS="--churn-deletion-strategy=gvr" ITERATIONS=5000 WORKLOAD=cluster-density-v2 ./run.sh
+```
 
 ### Cluster-density and cluster-density-v2
 
@@ -54,12 +59,32 @@ $ EXTRA_FLAGS="--timeout=5h" ITERATIONS=500 WORKLOAD=cluster-density-v2 ./run.sh
 
 ## HyperShift
 
-It's possible to use this script with HyperShift hosted clusters. The particularity of this is that kube-burner will grab metrics from different Prometheus endpoints:
+It's possible to use this script with HyperShift hosted clusters. The particularity of this is that kube-burner-ocp will grab metrics from different Prometheus endpoints:
 
 - Hosted control-plane stack or OBO: Hosted control-plane application metrics such as etcd, API latencies, etc.
 - Management cluster stack: Hardware utilization metrics from its worker nodes and hosted control-plane pods.
-- Hosted cluster stack: From this endpoint kube-burner collects data-plane metrics.
+- Hosted cluster stack: From this endpoint kube-burner-ocp collects data-plane metrics.
 
 In order to use it, the hosted cluster kubeconfig must be set upfront. These environment variables are also required:
 
 - **MC_KUBECONFIG**: This variable points to the valid management cluster kubeconfig
+
+### ARO inputs
+
+Along with above environmental inputs, ARO MC needs few more inputs from the users. 
+We are required to scrape metrics from multiple enpoints like ROSA, users need to supply those endpoints and tokens
+
+- **AZURE_PROM**: Azure Managed Prometheus instance endpoint for Management cluster metrics
+- **AZURE_PROM_TOKEN**: Token for the same
+- **AKS_PROM**: Prometheus Operator endpoint deployed on the MC to scrape HCP metrics
+
+The AKS Cluster observability is not finalized so this approach is subjected to change in the future when ARO-HCP is GA.
+
+## EgressIP
+
+EgressIP testing requires a nginx server outside OCP cluster. This server should be in the same network CIDR as OCP nodes but not controlled by OVN SDN. Workload client pods send requests to this external nginx server. Currently, we support egressIP testing only on the AWS platform. We aim to extend this support to other platforms and bare-metal environments. This script creates AWS instance and spawns external nginx servers.
+
+```shell
+$ EXTRA_FLAGS="--addresses-per-iteration=1" AWS_ACCESS_KEY_ID="" AWS_SECRET_ACCESS_KEY="" ITERATIONS=1 WORKLOAD=egressip ./run.sh
+```
+
