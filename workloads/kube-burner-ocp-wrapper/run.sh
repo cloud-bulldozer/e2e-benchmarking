@@ -54,9 +54,16 @@ hypershift(){
     HCP_NAMESPACE=${HC_NAME}
     QUERY="sum(kube_node_role{cluster=\"$MC_NAME\",role=\"worker\"})by(node)"
 
-    if [[ -z ${AKS_PROM} ]] || [[ -z ${AZURE_PROM} ]] || [[ -z ${AZURE_PROM_TOKEN} ]]; then
+    if [[ -z ${AKS_PROM} ]] || [[ -z ${AZURE_PROM} ]] ; then
       echo "Azure/AKS prometheus inputs are missing, exiting.."
       exit 1
+    elif [[ -z ${AZURE_PROM_TOKEN} ]]; then
+      if [[ -z ${AZ_CLIENT_SECRET} ]] || [[ -z ${AZ_CLIENT_ID} ]] ; then
+        echo "Azure/AKS prometheus token is missing and cannot be calculated, exiting.."
+	exit 1
+      else
+	AZURE_PROM_TOKEN=$(curl --request POST 'https://login.microsoftonline.com/64dc69e4-d083-49fc-9569-ebece1dd1408/oauth2/v2.0/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'client_id=${AZ_CLIENT_ID}' --data-urlencode 'grant_type=client_credentials' --data-urlencode 'client_secret=${AZ_CLIENT_SECRET}' --data-urlencode 'scope=https://prometheus.monitor.azure.com/.default' | jq -r '.access_token')
+      fi
     fi
 
     MC_OBO=$AKS_PROM
