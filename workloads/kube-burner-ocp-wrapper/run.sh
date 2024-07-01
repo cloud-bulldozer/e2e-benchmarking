@@ -62,7 +62,7 @@ hypershift(){
         echo "Azure/AKS prometheus token is missing and cannot be calculated, exiting.."
 	exit 1
       else
-	AZURE_PROM_TOKEN=$(curl --request POST 'https://login.microsoftonline.com/64dc69e4-d083-49fc-9569-ebece1dd1408/oauth2/v2.0/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'client_id=${AZ_CLIENT_ID}' --data-urlencode 'grant_type=client_credentials' --data-urlencode 'client_secret=${AZ_CLIENT_SECRET}' --data-urlencode 'scope=https://prometheus.monitor.azure.com/.default' | jq -r '.access_token')
+	AZURE_PROM_TOKEN=$(curl --request POST 'https://login.microsoftonline.com/64dc69e4-d083-49fc-9569-ebece1dd1408/oauth2/v2.0/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode "client_id=${AZ_CLIENT_ID}" --data-urlencode 'grant_type=client_credentials' --data-urlencode "client_secret=${AZ_CLIENT_SECRET}" --data-urlencode 'scope=https://prometheus.monitor.azure.com/.default' | jq -r '.access_token')
       fi
     fi
 
