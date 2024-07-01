@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: probe-detect-ds
+  labels:
+    app: probe-detect-ds
+spec:
+  selector:
+    matchLabels:
+      app: probe-detect-ds
+  template:
+    metadata:
+      labels:
+        app: probe-detect-ds
+    spec:
+      containers:
+      - name: egress-firewall
+        image: quay.io/openshift-psap-qe/ubi9-minimal
+        imagePullPolicy: Always
+        securityContext:
+          runAsNonRoot: false
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          runAsUser: 0
+          #capabilities:
+          #  drop:
+          #  - ALL 
+        command: [ "/bin/bash", "-c", "--" ]
+        args:
+        - while true;
+          do
+            nslookup prometheus-k8s-0.prometheus-operated.openshift-monitoring.svc.cluster.local;
+            RC1=$?;
+            curl -Is http://probe-detectd-deploy-service.zero-trust-jks.svc.cluster.local:8080 | head -n 1| grep OK;
+            RC2=$?;
+            if [ $RC1 -eq 0 -a $RC2 -eq 0 ] ; then echo SUCCESS> /tmp/healthy;else rm -rf /tmp/healthy;fi;
+            sleep 30;
+          done
+        startupProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+        periodSeconds: 10
+        failureThreshold: 60
+        readinessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+          initialDelaySeconds: 15
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+          initialDelaySeconds: 15
+          periodSeconds: 5
+      - name: probe-detect-ds
+        image: quay.io/openshift-psap-qe/nginx-alpine:multiarch
+        securityContext:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL        
+        ports:
+        - containerPort: 8080
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8080
+        periodSeconds: 10
+        failureThreshold: 10
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10                 
+        resources:
+          limits:
+            cpu: 250m
+            memory: 100Mi
+          requests:
+            cpu: 250m
+            memory: 100Mi

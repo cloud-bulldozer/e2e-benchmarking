@@ -24,6 +24,7 @@ In order to kick off one of these benchmarks you must use the run.sh script. The
 - **`networkpolicy-case1`**: `WORKLOAD=networkpolicy-case1 ./run.sh`
 - **`networkpolicy-case2`**: `WORKLOAD=networkpolicy-case2 ./run.sh`
 - **`networkpolicy-case3`**: `WORKLOAD=networkpolicy-case3 ./run.sh`
+- **`large-networkpolicy-egress`**: `WORKLOAD=large-networkpolicy-egress ./run.sh`
 
 ## Environment variables
 
