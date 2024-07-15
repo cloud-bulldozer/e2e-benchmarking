@@ -58,3 +58,26 @@
   requestTimeout: 10s
   delay: 10s
 
+- termination: reencrypt
+  connections: 200
+  samples: 2
+  duration: 3m
+  path: /1024.html
+  concurrency: 18
+  tool: hloader
+  serverReplicas: 45
+  requestTimeout: 10s
+  tuningPatch: '{"metadata":{"annotations": {"ingress.operator.openshift.io/default-enable-http2": "true"}}}'
+  http2: true
+
+- termination: passthrough
+  connections: 200
+  samples: 2
+  duration: 3m
+  path: /1024.html
+  concurrency: 18
+  tool: hloader
+  serverReplicas: 45
+  requestTimeout: 10s
+  http2: true
+
