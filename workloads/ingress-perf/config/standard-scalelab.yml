@@ -1,16 +1,17 @@
 # vi: expandtab shiftwidth=2 softtabstop=2
 
-# First scenario is configured as warmup and it will also tune the default ingress-controller to assign the router pods to the infra nodes
+# First scenario warm ups ingress controller caches, assigns the router pods to the infra nodes and increase the number of nb threads
 - termination: http
   connections: 200
-  samples: 5
-  duration: 3m
+  samples: 1
+  duration: 1m
   path: /1024.html
-  concurrency: 5
+  concurrency: 18
   tool: wrk
   serverReplicas: 45
-  delay: 10s
   requestTimeout: 10s
+  tuningPatch: '{"spec":{"tuningOptions":{"threadCount": 64}, "nodePlacement": {"nodeSelector": {"matchLabels": {"node-role.kubernetes.io/infra": ""}}}, "replicas": 2}}'
+  delay: 10s
   warmup: true
 
 - termination: http
@@ -18,7 +19,7 @@
   samples: 2
   duration: 3m
   path: /1024.html
-  concurrency: 5
+  concurrency: 18
   tool: wrk
   serverReplicas: 45
   requestTimeout: 10s
@@ -29,7 +30,7 @@
   samples: 2
   duration: 3m
   path: /1024.html
-  concurrency: 5
+  concurrency: 18
   tool: wrk
   serverReplicas: 45
   requestTimeout: 10s
@@ -40,7 +41,7 @@
   samples: 2
   duration: 3m
   path: /1024.html
-  concurrency: 5
+  concurrency: 18
   tool: wrk
   serverReplicas: 45
   requestTimeout: 10s
@@ -51,7 +52,7 @@
   samples: 2
   duration: 3m
   path: /1024.html
-  concurrency: 5
+  concurrency: 18
   tool: wrk
   serverReplicas: 45
   requestTimeout: 10s
@@ -62,7 +63,7 @@
   samples: 2
   duration: 3m
   path: /1024.html
-  concurrency: 5
+  concurrency: 18
   tool: hloader
   serverReplicas: 45
   requestTimeout: 10s
@@ -74,7 +75,7 @@
   samples: 2
   duration: 3m
   path: /1024.html
-  concurrency: 5
+  concurrency: 18
   tool: hloader
   serverReplicas: 45
   requestTimeout: 10s

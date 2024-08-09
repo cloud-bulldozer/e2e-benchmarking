@@ -1,10 +1,30 @@
 - endpoint: {{.MC_OBO}}
-  profile: metrics-profiles/hosted-cp-metrics.yml
-  alertProfile: alerts-profiles/hosted-cp-alerts.yml
+  metrics:
+    - metrics-profiles/{{.HC_PRODUCT}}/hosted-cp-metrics.yml
+  alerts:
+    - alerts-profiles/{{.HC_PRODUCT}}/hosted-cp-alerts.yml
+  indexer:
+      esServers: ["{{.ES_SERVER}}"]
+      insecureSkipVerify: true
+      defaultIndex: {{.ES_INDEX}}
+      type: opensearch
 - endpoint: {{.MC_PROMETHEUS}}
   token: {{.MC_PROMETHEUS_TOKEN}}
-  profile: metrics-profiles/mc-metrics.yml
+  metrics:
+    - metrics-profiles/{{.HC_PRODUCT}}/mc-metrics.yml
+  indexer:
+      esServers: ["{{.ES_SERVER}}"]
+      insecureSkipVerify: true
+      defaultIndex: {{.ES_INDEX}}
+      type: opensearch
 - endpoint: {{.HOSTED_PROMETHEUS}}
   token: {{.HOSTED_PROMETHEUS_TOKEN}}
-  profile: metrics-profiles/hosted-cluster-metrics.yml
-  alertProfile: alerts-profiles/hosted-cluster-alerts.yml
+  metrics:
+    - metrics-profiles/{{.HC_PRODUCT}}/hosted-cluster-metrics.yml
+  alerts:
+    - alerts-profiles/{{.HC_PRODUCT}}/hosted-cluster-alerts.yml
+  indexer:
+      esServers: ["{{.ES_SERVER}}"]
+      insecureSkipVerify: true
+      defaultIndex: {{.ES_INDEX}}
+      type: opensearch
