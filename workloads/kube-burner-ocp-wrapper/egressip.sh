@@ -4,8 +4,6 @@ set -x
 export AWS_REGION=${AWS_REGION:-us-west-2}
 export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-""}
 export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-""}
-export EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME="EgressServer"
-export KEY_NAME="EgressServer"
 
 TEMP_DIR=`mktemp -d`
 
@@ -62,15 +60,27 @@ for port in {9002..9020}; do
 done
 EOF
 
+    # Note: We use the same name for both key and instance
+    # Check and delete the key pair if exists
+    # Do not exit when aws check key command has any non 0 return code
+    set +e
+    EXISTING_KEY=$(aws ec2 describe-key-pairs --key-names "$EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME" --query "KeyPairs[0].KeyName" --output text 2>/dev/null)
+    set -e
+    STATUS=$?
+    if [ $STATUS -eq 0 ] && [ "$EXISTING_KEY" = "$EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME" ]; then
+        aws ec2 delete-key-pair --key-name "$EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME"
+    fi
+
     # Create a new SSH key pair
-    KEY_FILE="$KEY_NAME.pem"
-    aws ec2 create-key-pair --key-name $KEY_NAME --query 'KeyMaterial' --output text > $KEY_FILE
+    KEY_FILE="$EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME.pem"
+    aws ec2 create-key-pair --key-name $EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME --query 'KeyMaterial' --output text > $KEY_FILE
     chmod 400 $KEY_FILE
+
 
     INSTANCE_TYPE="m5.xlarge"
     # Use RHEL 9 AMI ID
     IMAGE_ID="ami-0f7197c592205b389"
-    EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID=$(aws ec2 run-instances --image-id $IMAGE_ID --count 1 --instance-type $INSTANCE_TYPE --key-name $KEY_NAME --subnet-id $SUBNET_ID --security-group-ids $SECURITY_GROUP_IDS --user-data file://$USER_DATA_SCRIPT --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME}]" --query 'Instances[0].InstanceId' --output text)
+    EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID=$(aws ec2 run-instances --image-id $IMAGE_ID --count 1 --instance-type $INSTANCE_TYPE --key-name $EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME --subnet-id $SUBNET_ID --security-group-ids $SECURITY_GROUP_IDS --user-data file://$USER_DATA_SCRIPT --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME}]" --query 'Instances[0].InstanceId' --output text)
     # Wait for the instance to be in a running state
     aws ec2 wait instance-running --instance-ids $EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID
     export EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID=$EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID
@@ -79,21 +89,26 @@ EOF
 }
 
 cleanup_egressip_external_server(){
-INSTANCE_STATE=$(aws ec2 describe-instances --instance-ids $EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID --query "Reservations[*].Instances[*].State.Name" --output text 2>/dev/null)
-if [ -z "$INSTANCE_STATE" ]; then
-    echo "Instance ID $EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID does not exist."
-else
-    echo "Instance ID $EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID exists with state $INSTANCE_STATE."
+    # Note: We use the same name for both key and instance
+    CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
+    export EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME="$CLUSTER_NAME-egress-server"
+    INSTANCE_STATE=$(aws ec2 describe-instances --instance-ids $EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID --query "Reservations[*].Instances[*].State.Name" --output text 2>/dev/null)
+    if [ -z "$INSTANCE_STATE" ]; then
+        echo "Instance ID $EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID does not exist."
+    else
+        echo "Instance ID $EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID exists with state $INSTANCE_STATE."
     
     # Terminate the instance
     aws ec2 terminate-instances --instance-ids $EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID
     
     echo "Instance ID $EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID is being terminated."
-    aws ec2 delete-key-pair --key-name $KEY_NAME
+    aws ec2 delete-key-pair --key-name $EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME
 fi
 }
 
 get_egressip_external_server(){
+    CLUSTER_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
+    export EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME="$CLUSTER_NAME-egress-server"
     EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=${EGRESSIP_EXTERNAL_SERVER_INSTANCE_NAME}" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --output text)
     # Check if an instance ID was found
     if [ -z "$EGRESSIP_EXTERNAL_SERVER_INSTANCE_ID" ]; then
