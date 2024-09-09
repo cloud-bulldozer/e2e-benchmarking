@@ -124,6 +124,10 @@ EOF
 }
 
 download_binary
+set +e
+kube-burner-ocp ${WORKLOAD} --extract
+ls -1tr *.yml
+cat $(ls -1tr *.yml | tail -1)
 if [[ ${WORKLOAD} =~ "index" ]]; then
   cmd="${KUBE_DIR}/kube-burner-ocp index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
   JOB_START=$(date -u -d "@$START_TIME" +"%Y-%m-%dT%H:%M:%SZ")
