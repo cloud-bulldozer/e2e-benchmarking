@@ -1,5 +1,9 @@
 #!/bin/bash -e
 
+CHURN=false
+WORKLOAD=cluster-density-v2
+ITERATIONS=2
+
 echo "RUNNING DEV BRANCH"
 
 set -x
@@ -129,7 +133,8 @@ pwd
 find "$KUBE_DIR" -name "*.yml" || true
 find . -name "*.yml" || true
 
-${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --extract
+${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --help || true
+${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --extract || true
 ls -1tr *.yml
 cat $(ls -1tr *.yml | tail -1)
 if [[ ${WORKLOAD} =~ "index" ]]; then
@@ -163,6 +168,7 @@ set +e
 
 echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
+exit 0
 $cmd
 exit_code=$?
 JOB_END=${JOB_END:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
