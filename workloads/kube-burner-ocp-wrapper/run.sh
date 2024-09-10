@@ -4,11 +4,13 @@
 CHURN=${CHURN:-false}
 WORKLOAD=${WORKLOAD:-cluster-density-v2}
 ITERATIONS=${ITERATIONS:-2}
-KUBE_DIR="/tmp;  date"
 
 echo "RUNNING DEV BRANCH"
+pwd
 
+set +e
 set -x
+
 source ./egressip.sh
 
 ES_SERVER=${ES_SERVER=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
@@ -134,13 +136,6 @@ EOF
 }
 
 download_binary
-set +e
-pwd
-#find "$KUBE_DIR" -name "*.yml" || true
-#find . -name "*.yml" || true
-
-#ls *
-
 if [[ ${WORKLOAD} =~ "index" ]]; then
   cmd="${KUBE_DIR}/kube-burner-ocp index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
   JOB_START=$(date -u -d "@$START_TIME" +"%Y-%m-%dT%H:%M:%SZ")
@@ -173,6 +168,8 @@ set +e
 $cmd --extract
 ls -latr *.yml
 sed -i'' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml
+git diff || true
+grep METRICS *.yml
 echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 $cmd
