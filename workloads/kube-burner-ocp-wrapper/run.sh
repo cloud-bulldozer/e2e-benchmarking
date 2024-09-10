@@ -4,6 +4,7 @@
 CHURN=${CHURN:-false}
 WORKLOAD=${WORKLOAD:-cluster-density-v2}
 ITERATIONS=${ITERATIONS:-2}
+KUBE_DIR="/tmp;  date"
 
 echo "RUNNING DEV BRANCH"
 
@@ -135,10 +136,10 @@ EOF
 download_binary
 set +e
 pwd
-find "$KUBE_DIR" -name "*.yml" || true
-find . -name "*.yml" || true
+#find "$KUBE_DIR" -name "*.yml" || true
+#find . -name "*.yml" || true
 
-ls *
+#ls *
 
 if [[ ${WORKLOAD} =~ "index" ]]; then
   cmd="${KUBE_DIR}/kube-burner-ocp index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
@@ -169,6 +170,9 @@ fi
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
+$cmd --extract
+ls -latr *.yml
+sed -i'' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml
 echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 $cmd
