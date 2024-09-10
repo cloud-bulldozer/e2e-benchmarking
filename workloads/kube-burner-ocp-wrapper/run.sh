@@ -168,7 +168,6 @@ set +e
 
 echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
-exit 0
 $cmd
 exit_code=$?
 JOB_END=${JOB_END:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
