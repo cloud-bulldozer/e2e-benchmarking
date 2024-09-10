@@ -138,10 +138,8 @@ pwd
 find "$KUBE_DIR" -name "*.yml" || true
 find . -name "*.yml" || true
 
-${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --help || true
-${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --extract || true
 ls *
-cat $(ls -1tr *.yml | tail -1)
+
 if [[ ${WORKLOAD} =~ "index" ]]; then
   cmd="${KUBE_DIR}/kube-burner-ocp index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
   JOB_START=$(date -u -d "@$START_TIME" +"%Y-%m-%dT%H:%M:%SZ")
