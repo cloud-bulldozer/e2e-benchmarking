@@ -173,7 +173,6 @@ $cmd --extract
 ls -latr *.yml
 # Modify the configuration to reference additional local metrics files.
 sed -i '' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml
-git diff || true
 grep METRICS *.yml
 
 echo $cmd
