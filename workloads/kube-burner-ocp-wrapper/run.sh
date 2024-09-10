@@ -166,7 +166,7 @@ fi
 set +e
 
 # We could download the metrics config from the stackrox repo.
-# https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml
+curl -LsSo stackrox.yml https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml
 
 # Get the configuration kube-burner will run.
 $cmd --extract
