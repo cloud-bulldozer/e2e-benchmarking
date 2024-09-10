@@ -135,7 +135,7 @@ find . -name "*.yml" || true
 
 ${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --help || true
 ${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --extract || true
-ls -1tr *.yml
+ls *
 cat $(ls -1tr *.yml | tail -1)
 if [[ ${WORKLOAD} =~ "index" ]]; then
   cmd="${KUBE_DIR}/kube-burner-ocp index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
