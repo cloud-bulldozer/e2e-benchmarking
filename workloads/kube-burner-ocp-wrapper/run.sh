@@ -167,7 +167,7 @@ set +e
 
 $cmd --extract
 ls -latr *.yml
-sed -i'' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml
+sed -i '' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml
 git diff || true
 grep METRICS *.yml
 echo $cmd
