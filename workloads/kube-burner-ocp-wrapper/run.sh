@@ -165,11 +165,17 @@ fi
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
+# We could download the metrics config from the stackrox repo.
+# https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml
+
+# Get the configuration kube-burner will run.
 $cmd --extract
 ls -latr *.yml
+# Modify the configuration to reference additional local metrics files.
 sed -i '' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml
 git diff || true
 grep METRICS *.yml
+
 echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 $cmd
