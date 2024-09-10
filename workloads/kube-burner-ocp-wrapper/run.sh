@@ -125,6 +125,10 @@ EOF
 
 download_binary
 set +e
+pwd
+find "$KUBE_DIR" -name "*.yml" || true
+find . -name "*.yml" || true
+
 ${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --extract
 ls -1tr *.yml
 cat $(ls -1tr *.yml | tail -1)
