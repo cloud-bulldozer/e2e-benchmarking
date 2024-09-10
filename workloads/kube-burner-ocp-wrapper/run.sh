@@ -125,7 +125,7 @@ EOF
 
 download_binary
 set +e
-kube-burner-ocp ${WORKLOAD} --extract
+${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --extract
 ls -1tr *.yml
 cat $(ls -1tr *.yml | tail -1)
 if [[ ${WORKLOAD} =~ "index" ]]; then
