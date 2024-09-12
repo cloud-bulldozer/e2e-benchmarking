@@ -174,6 +174,7 @@ set +e
 ## Modify the configuration to reference additional local metrics files.
 #sed -i '' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml
 #grep METRICS *.yml
+CLUSTER_PROM_URL="https://$(oc -n openshift-monitoring get routes prometheus-k8s --no-headers | awk '{print $2}')"
 
 echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
