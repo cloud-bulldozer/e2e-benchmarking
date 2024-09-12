@@ -1,0 +1,8 @@
+- endpoint: {{.CLUSTER_PROM_URL}}
+  token: {{.TOKEN}}
+  metrics: [{{.EXTRA_METRICS_FILE}}]
+  indexer:
+    esServers: ["{{.ES_SERVER}}"]
+    insecureSkipVerify: true
+    defaultIndex: {{.ES_INDEX}}
+    type: opensearch
