@@ -184,7 +184,7 @@ JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 $cmd
 exit_code=$?
 
-$cmd <(echo -e "- endpoint: $(oc -n openshift-monitoring get routes prometheus-k8s --no-headers|awk "{print \$2}")"'\n  token: '"$(oc create token -n openshift-monitoring prometheus-k8s)"'\n  metrics: [{{.EXTRA_METRICS_FILE}}]\n  indexer:\n    esServers: ["{{.ES_SERVER}}"]\n    defaultIndex: {{.ES_INDEX}}')
+$cmd <(echo -e "- endpoint: $(oc -n openshift-monitoring get routes prometheus-k8s --no-headers|awk "{print \$2}")\n  token: $(oc create token -n openshift-monitoring prometheus-k8s)\n  metrics: [{{.EXTRA_METRICS_FILE}}]\n  indexer:\n    esServers: ["{{.ES_SERVER}}"]\n    defaultIndex: {{.ES_INDEX}}')
 
 JOB_END=${JOB_END:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 if [ $exit_code -eq 0 ]; then
