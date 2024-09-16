@@ -55,6 +55,7 @@ add_flag "prom" "${PROMETHEUS_URL}"
 add_flag "search" "${ES_SERVER}"
 add_flag "tcp-tolerance" "${TOLERANCE}"
 add_flag "uuid" "${UUID}"
+add_flag "vm" "${VM}"
 
 # Execute the constructed command
 eval "$cmd"
