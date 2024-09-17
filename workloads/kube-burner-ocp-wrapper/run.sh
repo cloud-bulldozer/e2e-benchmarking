@@ -166,7 +166,7 @@ fi
 set +e
 
 ## We could download the metrics config from the stackrox repo.
-#curl -LsSo stackrox.yml https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml
+curl -LsSo stackrox.yml https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml
 #
 ## Get the configuration kube-burner will run.
 #$cmd --extract
@@ -185,6 +185,7 @@ echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 $cmd
 exit_code=$?
+export EXTRA_METRICS_FILE=${EXTRA_METRICS_FILE:-stackrox.yml}
 
 $cmd <(echo -e "- endpoint: $(oc -n openshift-monitoring get routes prometheus-k8s --no-headers|awk "{print \$2}")\n  token: $(oc create token -n openshift-monitoring prometheus-k8s)\n  metrics: [{{.EXTRA_METRICS_FILE}}]\n  indexer:\n    esServers: ["{{.ES_SERVER}}"]\n    defaultIndex: {{.ES_INDEX}}')
 set -x
