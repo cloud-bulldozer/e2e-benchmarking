@@ -165,6 +165,8 @@ fi
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
+export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
+
 echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 
