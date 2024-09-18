@@ -135,7 +135,7 @@ EOF
 
 }
 
-#download_binary
+download_binary
 if [[ ${WORKLOAD} =~ "index" ]]; then
   cmd="${KUBE_DIR}/kube-burner-ocp index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
   JOB_START=$(date -u -d "@$START_TIME" +"%Y-%m-%dT%H:%M:%SZ")
@@ -165,31 +165,32 @@ fi
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
-## We could download the metrics config from the stackrox repo.
-#curl -LsSo stackrox.yml https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml
-#
+echo $cmd
+JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
+
+# Option metrics-endpoint:
+## Create a metrics-endpoint yaml file with the local prometheus endpoint+token
+export PROM_URL="https://$(oc -n openshift-monitoring get routes prometheus-k8s --no-headers | awk '{print $2}')"
+# example: https://prometheus-k8s-openshift-monitoring.apps.dh-09-17-old-beds-educate.ocp.infra.rox.systems
+
+set +x
+export PROM_TOKEN=${PROM_TOKEN:-"$(oc create token -n openshift-monitoring prometheus-k8s)"}
+set -x
+
+export EXTRA_METRICS_FILE="https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml"
+$cmd
+exit_code=$?
+
+# Option extract and add:
 ## Get the configuration kube-burner will run.
 #$cmd --extract
+#curl -LsSo stackrox.yml https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml
 #ls -latr *.yml
 ## Modify the configuration to reference additional local metrics files.
 #sed -i '' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml
 #grep METRICS *.yml
-#export CLUSTER_PROM_URL="https://$(oc -n openshift-monitoring get routes prometheus-k8s --no-headers | awk '{print $2}')"
-set +x
-if [[ -z "${TOKEN}" ]]; then
-  echo "TOKEN not set"
-fi
-#export TOKEN=${TOKEN:-"$(oc create token -n openshift-monitoring prometheus-k8s)"}
-
-echo $cmd
-set -x
-JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
-export EXTRA_METRICS_FILE=${EXTRA_METRICS_FILE:-stackrox.yml}
-$cmd
-exit_code=$?
-
-#$cmd <(echo -e "- endpoint: \n  token: $(oc create token -n openshift-monitoring prometheus-k8s)\n  metrics: [{{.EXTRA_METRICS_FILE}}]\n  indexer:\n    esServers: ["{{.ES_SERVER}}"]\n    defaultIndex: {{.ES_INDEX}}')
-# "- endpoint: $(oc -n openshift-monitoring get routes prometheus-k8s --no-headers|awk "{print \$2}")\n  token: $(oc create token -n openshift-monitoring prometheus-k8s)\n  metrics: [{{.EXTRA_METRICS_FILE}}]\n  indexer:\n    esServers: ["{{.ES_SERVER}}"]\n    defaultIndex: {{.ES_INDEX}}')
+#$cmd
+#exit_code=$?
 
 JOB_END=${JOB_END:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 if [ $exit_code -eq 0 ]; then
