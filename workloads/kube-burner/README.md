@@ -33,7 +33,7 @@ Workloads can be tweaked with the following environment variables:
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
 | **INDEXING**         | Enable/disable indexing         | true    |
-| **ES_SERVER**        | Elasticsearch endpoint          | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
+| **ES_SERVER**        | Elasticsearch endpoint          | `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443) |
 | **ES_INDEX**         | Elasticsearch index             | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint, it should be Thanos querier endpoint when running on `HYPERSHIFT` cluster | Prometheus endpoint is automatically discovered |
 | **JOB_TIMEOUT**      | Kube-burner's timeout, in seconds | 4h (4 hours) |

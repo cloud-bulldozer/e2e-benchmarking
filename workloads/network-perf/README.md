@@ -25,7 +25,7 @@ The run.sh script can be tweaked with the following environment variables
 | **WORKLOAD**            | Networking workload, can be either pod2pod, pod2pod, hostnet or, smoke | smoke |
 | **OPERATOR_REPO**       | Benchmark-operator repo                     | https://github.com/cloud-bulldozer/benchmark-operator.git |
 | **OPERATOR_BRANCH**     | Benchmark-operator branch                     | master      |
-| **ES_SERVER**           | Elasticsearch endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 |
+| **ES_SERVER**           | Elasticsearch endpoint         | `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443) |
 | **METADATA_COLLECTION** | Enable metadata collection | true (If indexing is disabled metadata collection will be also disabled) |
 | **METADATA_TARGETED**   | Enable metadata targeted collection | false |
 | **SYSTEM_METRICS_COLLECTION**   | Enable system metrics collection | false |
@@ -46,7 +46,7 @@ The environment variables below are used to configure benchmark comparison and/o
 | Variable                | Description              | Default |
 |-------------------------|--------------------------|---------|
 | **COMPARISON_ALIASES**  | Benchmark-comparison aliases (UUIDs will be replaced by these aliases | "" |
-| **ES_SERVER_BASELINE**  | Elasticsearch endpoint used used by the baseline benchmark | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 |
+| **ES_SERVER_BASELINE**  | Elasticsearch endpoint used used by the baseline benchmark | `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443) |
 | **BASELINE_UUID**       | Baseline UUID used for comparison | "" |
 | **COMPARISON_CONFIG**   | Benchmark-comparison config file,, file needs to be in **e2e-benchmarking/utils/touchstone-config **folder | [uperf-touchstone.json](../../utils/touchstone-configs/uperf-touchstone.json)|
 | **COMPARISON_RC**       | Benchmark-comparison return code if tolerancy check fails | 0 |
