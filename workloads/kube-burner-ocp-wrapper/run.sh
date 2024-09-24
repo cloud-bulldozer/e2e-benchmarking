@@ -176,11 +176,11 @@ curl -LsSo stackrox.yml "${EXTRA_METRICS_FILE}"
 
 # Get the configuration kube-burner will run.
 $cmd --extract
-ls -latr *.yml *.yaml
+ls -latr *.y*ml
 
 # Modify the configuration to reference additional local metrics files.
-sed -i '' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml *.yaml
-grep METRICS *.yml *.yaml
+sed -i '' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.y*ml
+grep METRICS *.y*ml
 $cmd
 exit_code=$?
 
