@@ -11,8 +11,9 @@ fi
 export ALL_SCENARIOS=${ALL_SCENARIOS:-true}
 export DEBUG=${DEBUG:-true}
 export METRICS=${METRICS:-true}
+export VM=${VIRT:-false}
 export NETPERF_FILENAME=${NETPERF_FILENAME:-k8s-netperf}
-export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.24}
+export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.25}
 export OS=${OS:-Linux}
 export PROMETHEUS_URL=
 export ARCH=$(uname -m)
