@@ -165,34 +165,24 @@ fi
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
-export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
-
 echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 
-# Option metrics-endpoint:
-## Create a metrics-endpoint yaml file with the local prometheus endpoint+token
-export PROM_URL="https://$(oc -n openshift-monitoring get routes prometheus-k8s --no-headers | awk '{print $2}')"
-# example: https://prometheus-k8s-openshift-monitoring.apps.dh-09-17-old-beds-educate.ocp.infra.rox.systems
-
-set +x
-export PROM_TOKEN=${PROM_TOKEN:-"$(oc create token -n openshift-monitoring prometheus-k8s)"}
 set -x
 
-export EXTRA_METRICS_FILE="https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml"
+export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
+export EXTRA_METRICS_FILE=${EXTRA_METRICS_FILE:-"https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml"}
+curl -LsSo stackrox.yml "${EXTRA_METRICS_FILE}"
+
+# Get the configuration kube-burner will run.
+$cmd --extract
+ls -latr *.yml *.yaml
+
+# Modify the configuration to reference additional local metrics files.
+sed -i '' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml *.yaml
+grep METRICS *.yml *.yaml
 $cmd
 exit_code=$?
-
-# Option extract and add:
-## Get the configuration kube-burner will run.
-#$cmd --extract
-#curl -LsSo stackrox.yml https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml
-#ls -latr *.yml
-## Modify the configuration to reference additional local metrics files.
-#sed -i '' -e 's/\[{{.METRICS}}\]/\[stackrox.yml,{{.METRICS}}\]/' *.yml
-#grep METRICS *.yml
-#$cmd
-#exit_code=$?
 
 JOB_END=${JOB_END:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 if [ $exit_code -eq 0 ]; then

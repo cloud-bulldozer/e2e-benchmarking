@@ -1,8 +1,0 @@
-- endpoint: {{.PROM_URL}}
-  token: {{.PROM_TOKEN}}
-  metrics: [{{.EXTRA_METRICS_FILE}}]
-  indexer:
-    esServers: ["{{.ES_SERVER}}"]
-    insecureSkipVerify: true
-    defaultIndex: {{.ES_INDEX}}
-    type: opensearch
