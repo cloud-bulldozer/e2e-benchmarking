@@ -170,22 +170,22 @@ JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 
 set -x
 
-export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
-export EXTRA_METRICS_FILE=${EXTRA_METRICS_FILE:-"https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml"}
-curl -LsSo extra_metrics_file.yml "${EXTRA_METRICS_FILE}"
-
-# Get the configuration kube-burner will run.
-$cmd --extract
-ls -latr *.y*ml
-
-# Modify the configuration to reference additional local metrics files.
-# > replace '[{{.METRICS}}]' string with '[extra_metrics_file.yml,{{.METRICS}}]' in every yaml file
-sed -i '' -e 's/\[{{.METRICS}}\]/\[extra_metrics_file.yml,{{.METRICS}}\]/' *.y*ml
-grep '{{.METRICS}}' *.y*ml  # show which lines in which files changed
+# Alternative manually adding more metrics files:
+# export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
+# export EXTRA_METRICS_FILE=${EXTRA_METRICS_FILE:-"https://raw.githubusercontent.com/stackrox/stackrox/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml"}
+# curl -LsSo extra_metrics_file.yml "${EXTRA_METRICS_FILE}"
+# 
+# # Get the configuration kube-burner will run.
+# $cmd --extract
+# ls -latr *.y*ml
+# 
+# # Modify the configuration to reference additional local metrics files.
+# # > replace '[{{.METRICS}}]' string with '[extra_metrics_file.yml,{{.METRICS}}]' in every yaml file
+# sed -i '' -e 's/\[{{.METRICS}}\]/\[extra_metrics_file.yml,{{.METRICS}}\]/' *.y*ml
+# grep '{{.METRICS}}' *.y*ml  # show which lines in which files changed
 
 $cmd
 exit_code=$?
-
 JOB_END=${JOB_END:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 if [ $exit_code -eq 0 ]; then
   JOB_STATUS="success"
