@@ -18,23 +18,23 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.3.2}
+KUBE_BURNER_VERSION=latest
 CHURN=${CHURN:-true}
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
 BURST=${BURST:-20}
 GC=${GC:-true}
-EXTRA_FLAGS=${EXTRA_FLAGS:-}
+stackrox_metrics_url="https://raw.githubusercontent.com/stackrox/stackrox/refs/heads/master/tests/performance/scale/tests/kube-burner/cluster-density/metrics.yml"
+EXTRA_FLAGS=${EXTRA_FLAGS:- --metrics-profile "${stackrox_metrics_url}"}
 UUID=${UUID:-$(uuidgen)}
 KUBE_DIR=${KUBE_DIR:-/tmp}
 
+KUBE_BURNER_REPOSITORY=${KUBE_BURNER_REPOSITORY:-"https://github.com/davdhacs/kube-burner-ocp/"}
 download_binary(){
-  if uname | grep -i darwin; then
-    KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-darwin-arm64.tar.gz"
-  else
-    KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-linux-x86_64.tar.gz"
-  fi
-  curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
+  KUBE_BURNER_URL="${KUBE_BURNER_REPOSITORY}/releases/download/${KUBE_BURNER_VERSION}/kube-burner-ocp"
+  curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" -o kube-burner-ocp
+  chmod ugo+x kube-burner-ocp
+  mv kube-burner-ocp "${KUBE_DIR}/" 
 }
 
 hypershift(){
