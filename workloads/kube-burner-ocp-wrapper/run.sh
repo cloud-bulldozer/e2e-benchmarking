@@ -130,7 +130,7 @@ else
   cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
 fi
 cmd+=" ${EXTRA_FLAGS}"
-if [[ ${WORKLOAD} =~ "cluster-density" ]] && [[ ! ${WORKLOAD} =~ "web-burner" ]] ; then
+if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-l3-pods" ]] && [[ ! ${WORKLOAD} =~ "web-burner" ]] ; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
