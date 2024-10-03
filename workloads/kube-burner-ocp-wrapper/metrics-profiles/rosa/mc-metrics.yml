@@ -54,7 +54,7 @@
 - query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|suricata|observability-operator)|dynatrace"}[1m]) * 100)  by (container, pod, namespace, node)) > 0
   metricName: mgmt-containerCPU
 
-- query: sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|suricata|observability-operator)|dynatrace"}) by (container, pod, namespace, node)
+- query: sum(container_memory_working_set_bytes{name!="",container!="POD",namespace=~"openshift-(etcd|.*apiserver|ovn-kubernetes|sdn|ingress|.*controller-manager|.*scheduler|image-registry|monitoring|suricata|observability-operator)|dynatrace"}) by (container, pod, namespace, node)
   metricName: mgmt-containerMemory
 
 # MC Etcd metrics
@@ -76,7 +76,7 @@
 - query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}[1m]) * 100) by (pod, container, namespace, node)) > 0
   metricName: podCPU-Controlplane
 
-- query: sum(container_memory_rss{name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod, container, namespace, node)
+- query: sum(container_memory_working_set_bytes{name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod, container, namespace, node)
   metricName: podMemory-Controlplane
 
 - query: sum(container_memory_cache{name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod, container, namespace, node)
