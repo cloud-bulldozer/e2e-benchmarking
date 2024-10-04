@@ -22,7 +22,7 @@ Workloads can be tweaked with the following environment variables:
 |------------------|-------------------------------------|---------|
 | **OPERATOR_REPO**    | Benchmark-operator repo         | https://github.com/cloud-bulldozer/benchmark-operator.git      |
 | **OPERATOR_BRANCH**  | Benchmark-operator branch       | master  |
-| **ES_SERVER**        | Elasticsearch endpoint          | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
+| **ES_SERVER**        | Elasticsearch endpoint          | `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443) |
 | **ES_INDEX**         | Elasticsearch index             | ripsaw-api-load|
 | **TEST_TIMEOUT**        | Benchmark timeout, in seconds | 28800 (8 hours) |
 | **JOB_TIMEOUT**        | api-load job timeout, in seconds | 28800 (8 hours) |

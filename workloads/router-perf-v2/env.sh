@@ -3,7 +3,6 @@ export KUBECONFIG=${KUBECONFIG:-~/.kube/config}
 export UUID=${UUID:-$(uuidgen)}
 
 # ES configuration
-export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=${ES_INDEX:-router-test-results}
 
 # Environment setup
@@ -46,7 +45,6 @@ KEEPALIVE_REQUESTS=${KEEPALIVE_REQUESTS:-"0 1 50"}
 
 # Comparison and csv generation
 BASELINE_UUID=${BASELINE_UUID}
-ES_SERVER_BASELINE=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 COMPARISON_CONFIG=${COMPARISON_CONFIG:-"mb-touchstone.json"}
 COMPARISON_RC=${COMPARISON_RC:-0}
 GEN_CSV=${GEN_CSV:-false}

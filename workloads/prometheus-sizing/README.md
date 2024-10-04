@@ -19,7 +19,7 @@ These environment variables can be customized in both scenarios
 | **BURST**              | Kube-burner's Burst rate            | 40 |
 | **CLEANUP_WHEN_FINISH** | Delete workload's namespaces after running it | false |
 | **ENABLE_INDEXING**  | Enable/disable ES indexing      | true |
-| **ES_SERVER**        | ElasticSearch endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
+| **ES_SERVER**        | ElasticSearch endpoint         | `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443) |
 | **ES_INDEX**         | ElasticSearch index            | ripsaw-kube-burner |
 | **WRITE_TO_FILE**    | Whether to dump collected metrics to files in ./collected-metrics | false |
 | **METRICS**          | Metrics profile file | metrics.yaml |

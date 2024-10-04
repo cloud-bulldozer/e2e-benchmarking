@@ -6,7 +6,6 @@ openshift_login
 export KUBE_BURNER_RELEASE_URL=${KUBE_BURNER_RELEASE_URL:-https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.14.2/kube-burner-0.14.2-Linux-x86_64.tar.gz}
 
 export ENABLE_INDEXING=${ENABLE_INDEXING:-true}
-export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
 export WRITE_TO_FILE=${WRITE_TO_FILE:-false}
 

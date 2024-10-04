@@ -6,7 +6,7 @@ In order to run a workload you have to set the `WORKLOAD` environment variable t
 
 ```shell
 $ ITERATIONS=5 WORKLOAD=cluster-density-v2 ./run.sh 
-/tmp/kube-burner-ocp cluster-density-v2 --log-level=info --iterations=5 --churn=true --es-server=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com --es-index=ripsaw-kube-burner --qps=20 --burst=20
+/tmp/kube-burner-ocp cluster-density-v2 --log-level=info --iterations=5 --churn=true --es-server=https://USER:PASSWORD@HOSTNAME:443 --es-index=ripsaw-kube-burner --qps=20 --burst=20
 INFO[2023-03-13 16:39:57] 📁 Creating indexer: elastic                  
 INFO[2023-03-13 16:39:59] 👽 Initializing prometheus client with URL: <truncated>
 INFO[2023-03-13 16:40:00] 🔔 Initializing alert manager for prometheus: <truncated>

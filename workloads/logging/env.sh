@@ -4,7 +4,6 @@
 export UUID=${UUID:-`uuidgen`}
 
 # Benchmark-operator
-export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export METADATA_COLLECTION=${METADATA_COLLECTION:-false}
 
 # Logging workload args

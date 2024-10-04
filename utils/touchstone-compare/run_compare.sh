@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-datasource="elasticsearch"
-_es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
-_es_baseline=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+datasource="elasticsearch"4
+_es=$ES_SERVER
+_es_baseline=$ES_SERVER_BASELINE
 tool=${1}
 
 python3 -m venv ./venv

@@ -7,7 +7,7 @@ set -x
 oc delete namespace benchmark-operator --ignore-not-found
 
 trap "rm -rf /tmp/benchmark-operator" EXIT
-_es=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
+_es=$ES_SERVER
 latency_th=${LATENCY_TH:-10000000}
 index=ripsaw-fio-results
 curl_body='{"_source": false, "aggs": {"max-fsync-lat-99th": {"max": {"field": "fio.sync.lat_ns.percentile.99.000000"}}}}'

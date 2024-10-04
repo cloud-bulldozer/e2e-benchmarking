@@ -35,7 +35,7 @@ This will orchestrate multiple netwok performance tests.
 | ALL_SCENARIOS | Run all test scenarios (hostNetwork & podNetwork) | true |
 | CLEAN_UP | Clean-up resources created by k8s-netperf | true |
 | DEBUG | Enable debug log levevl for k8s-netperf | true |
-| ES_SERVER | Server to send results | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 |
+| ES_SERVER | Server to send results | `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443) |
 | LOCAL | Run network performance test pods on the same node | false |
 | METRICS | Enable collection of metrics by k8s-netperf | true |
 | NETPERF_URL | URL to download k8s-netperf | https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz |

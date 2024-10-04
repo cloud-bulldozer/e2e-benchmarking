@@ -83,7 +83,6 @@ hypershift(){
 }
 EOF
 )
-  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
 
   HOSTED_PROMETHEUS=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
   HOSTED_PROMETHEUS_TOKEN=$(oc sa new-token -n openshift-monitoring prometheus-k8s)
@@ -146,6 +145,7 @@ if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
 fi
 # If ES_SERVER is specified
 if [[ -n ${ES_SERVER} ]]; then
+  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
 # Capture the exit code of the run, but don't exit the script if it fails.
