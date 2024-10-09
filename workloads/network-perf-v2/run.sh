@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
+oc adm wait-for-stable-cluster --minimum-stable-period=1m --timeout=5m
 
 source ./env.sh
-source ../../utils/common.sh
 
 # Download k8s-netperf function
 download_netperf() {
@@ -22,10 +22,10 @@ else
   download_netperf "Downloading k8s-netperf."
 fi
 
-log "###############################################"
-log "Workload: ${WORKLOAD}"
-log "UUID: ${UUID}"
-log "###############################################"
+echo "###############################################"
+echo "Workload: ${WORKLOAD}"
+echo "UUID: ${UUID}"
+echo "###############################################"
 
 # Capture exit code of k8s-netperf
 set +e
@@ -69,7 +69,7 @@ oc get pods -n netperf -o wide
 oc get nodes -o wide
 oc get machineset -A || true
 
-log "Finished workload ${0} ${WORKLOAD}, exit code ($run)"
+echo "Finished workload ${0} ${WORKLOAD}, exit code ($run)"
 
 cat *.csv
 if [ $run -eq 0 ]; then

@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 set -e
+oc adm wait-for-stable-cluster --minimum-stable-period=1m --timeout=5m
 
 UUID=${UUID:-$(uuidgen)}
 ES_INDEX=${ES_INDEX:-ingress-performance}
