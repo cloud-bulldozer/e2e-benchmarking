@@ -39,7 +39,7 @@
 - query: (sum(irate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",id="/system.slice/containerd.service"}[2m])*100) by (container, pod, instance)) > 0
   metricName: mgmtContainerdCPU
 
-- query: sum(container_memory_rss{cluster="{{.MC_NAME}}",id="/system.slice/containerd.service"}) by (container, pod, instance)
+- query: sum(container_memory_working_set_bytes{cluster="{{.MC_NAME}}",id="/system.slice/containerd.service"}) by (container, pod, instance)
   metricName: mgmtContainerdMemory
   
 # ControlPlane Containers metrics
@@ -47,7 +47,7 @@
 - query: (sum(irate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",name!="",namespace!~"clusters-.*"}[2m]) * 100) by (container, pod, instance,namespace)) > 0
   metricName: mgmt-containerCPU
 
-- query: sum(container_memory_rss{cluster="{{.MC_NAME}}",name!="",namespace!~"clusters-.*"}) by (container, pod, instance,namespace)
+- query: sum(container_memory_working_set_bytes{cluster="{{.MC_NAME}}",name!="",namespace!~"clusters-.*"}) by (container, pod, instance,namespace)
   metricName: mgmt-containerMemory
 
 # Process CPU and Memory metrics
@@ -83,7 +83,7 @@
 - query: (sum(irate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",name!="",namespace=~".+{{.HCP_NAMESPACE}}"}[2m]) * 100) by (container, pod, instance,namespace)) > 0
   metricName: podCPU-Controlplane
 
-- query: sum(container_memory_rss{cluster="{{.MC_NAME}}",name!="",namespace=~".+{{.HCP_NAMESPACE}}"}) by (container, pod, instance,namespace)
+- query: sum(container_memory_working_set_bytes{cluster="{{.MC_NAME}}",name!="",namespace=~".+{{.HCP_NAMESPACE}}"}) by (container, pod, instance,namespace)
   metricName: podMemory-Controlplane
 
 - query: sum(container_memory_cache{cluster="{{.MC_NAME}}",name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod, container, namespace, node)
