@@ -3,7 +3,7 @@
 set -e
 source ./egressip.sh
 
-ES_SERVER=${ES_SERVER=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
+ES_SERVER=${ES_SERVER=https://USER:PASSWORD@HOSTNAME:443}
 LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
