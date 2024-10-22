@@ -122,7 +122,6 @@ EOF
 
 download_binary
 if [[ ${WORKLOAD} =~ "index" || ${WORKLOAD} =~ "workers-scale" ]]; then
-  
   if [[ "$START_TIME" != 0 && "$END_TIME" != 0 ]]; then
     JOB_START=$(date -u -d "@$START_TIME" +"%Y-%m-%dT%H:%M:%SZ")
     END_TIME=$(expr $END_TIME + 600)
