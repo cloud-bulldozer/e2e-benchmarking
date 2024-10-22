@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 set -e
+oc adm wait-for-stable-cluster --minimum-stable-period=1m --timeout=5m
 source ./egressip.sh
 
 ES_SERVER=${ES_SERVER=https://USER:PASSWORD@HOSTNAME:443}
