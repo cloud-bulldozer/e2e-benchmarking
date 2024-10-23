@@ -127,7 +127,7 @@ if [[ ${WORKLOAD} =~ "index" || ${WORKLOAD} =~ "workers-scale" ]]; then
     END_TIME=$(expr $END_TIME + 600)
     JOB_END=$(date -u -d "@$END_TIME" +"%Y-%m-%dT%H:%M:%SZ")
   fi
-  cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --uuid=${UUID} --start=$START_TIME --end=$END_TIME --log-level ${LOG_LEVEL}" --gc=${GC}
+  cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --uuid=${UUID} --start=$START_TIME --end=$END_TIME --log-level ${LOG_LEVEL} --gc=${GC}"
 else
   cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
 fi
