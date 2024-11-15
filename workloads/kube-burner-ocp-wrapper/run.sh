@@ -37,7 +37,7 @@ hypershift(){
     HC_NAME=$(oc get infrastructure cluster -o go-template --template='{{range .status.platformStatus.aws.resourceTags}}{{if eq .key "api.openshift.com/name" }}{{.value}}{{end}}{{end}}')
     # Hosted control-plane namespace is composed by the cluster ID plus the cluster name
     HCP_NAMESPACE=${HC_ID}-${HC_NAME}
-    QUERY="sum(cluster:nodes_roles{label_hypershift_openshift_io_control_plane=\"true\"})by(node)"
+    QUERY="sum(cluster:nodes_roles{label_hypershift_openshift_io_control_plane=\"true\",label_hypershift_openshift_io_request_serving_component!=\"true\"})by(node)"
 
     echo "Creating OBO route on MC"
     oc --kubeconfig=${MC_KUBECONFIG} apply -f obo-route.yml
