@@ -14,7 +14,7 @@ UUID=${UUID:-$(uuidgen)}
 WORKERS_SCALE_DIR=${WORKERS_SCALE_DIR:-/tmp}
 
 download_binary(){
-  WORKERS_SCALE_URL="https://github.com/vishnuchalla/workers-scale/releases/download/v${WORKERS_SCALE_VERSION}/workers-scale-V${WORKERS_SCALE_VERSION}-linux-x86_64.tar.gz"
+  WORKERS_SCALE_URL="https://github.com/cloud-bulldozer/workers-scale/releases/download/v${WORKERS_SCALE_VERSION}/workers-scale-V${WORKERS_SCALE_VERSION}-linux-x86_64.tar.gz"
   curl --fail --retry 8 --retry-all-errors -sS -L "${WORKERS_SCALE_URL}" | tar -xzC "${WORKERS_SCALE_DIR}/" workers-scale
 }
 
