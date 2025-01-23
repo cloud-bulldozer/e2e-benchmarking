@@ -36,7 +36,8 @@ export DEPLOY_LOGGING=${DEPLOY_LOGGING:-true}
 export TEST_CLEANUP=${TEST_CLEANUP:-"false"}
 
 # Deploy Variables
-export CHANNEL=${CHANNEL:="stable-5.6"}
+export ESCHANNEL=${ESCHANNEL:="stable-5.8"}
+export LOGCHANNEL=${LOGCHANNEL:="stable-6.1"}
 export CUSTOM_ES_URL=${CUSTOM_ES_URL:=""}
 export ES_NODE_COUNT=${ES_NODE_COUNT:=3}
 export ES_STORAGE_CLASS=${ES_STORAGE_CLASS:="gp3-csi"}
