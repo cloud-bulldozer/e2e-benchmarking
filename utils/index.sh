@@ -142,39 +142,39 @@ get_architecture_config(){
 }
 
 index_task(){
-
     url=$1
     uuid_dir=/tmp/$UUID
-    mkdir $uuid_dir
+    mkdir -p "$uuid_dir"
 
     start_date_unix_timestamp=$(date "+%s" -d "${start_date}")
     end_date_unix_timestamp=$(date "+%s" -d "${end_date}")
     current_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-    json_data='{
-        "ciSystem":"'$ci'",
-        "uuid":"'$UUID'",
-        "releaseStream":"'$RELEASE_STREAM'",
-        "platform":"'$platform'",
-        "clusterType":"'$cluster_type'",
-        "benchmark":"'$WORKLOAD'",
-        "masterNodesCount":'$masters',
-        "workerNodesCount":'$workers',
-        "infraNodesCount":'$infra',
-        "masterNodesType":"'$master_type'",
-        "workerNodesType":"'$worker_type'",
-        "infraNodesType":"'$infra_type'",
-        "totalNodesCount":'$all',
-        "clusterName":"'$cluster_name'",
-        "ocpVersion":"'$cluster_version'",
-        "networkType":"'$network_type'",
-        "buildTag":"'$task_id'",
-        "jobStatus":"'$state'",
-        "buildUrl":"'$build_url'",
-        "upstreamJob":"'$job_id'",
-        "upstreamJobBuild":"'$job_run_id'",
-        "executionDate":"'$execution_date'",
-        "jobDuration":"'$duration'",
+    # Create base JSON
+    base_json='{
+        "ciSystem":"'"$ci"'",
+        "uuid":"'"$UUID"'",
+        "releaseStream":"'"$RELEASE_STREAM"'",
+        "platform":"'"$platform"'",
+        "clusterType":"'"$cluster_type"'",
+        "benchmark":"'"$WORKLOAD"'",
+        "masterNodesCount":'"$masters"',
+        "workerNodesCount":'"$workers"',
+        "infraNodesCount":'"$infra"',
+        "masterNodesType":"'"$master_type"'",
+        "workerNodesType":"'"$worker_type"'",
+        "infraNodesType":"'"$infra_type"'",
+        "totalNodesCount":'"$all"',
+        "clusterName":"'"$cluster_name"'",
+        "ocpVersion":"'"$cluster_version"'",
+        "networkType":"'"$network_type"'",
+        "buildTag":"'"$task_id"'",
+        "jobStatus":"'"$state"'",
+        "buildUrl":"'"$build_url"'",
+        "upstreamJob":"'"$job_id"'",
+        "upstreamJobBuild":"'"$job_run_id"'",
+        "executionDate":"'"$execution_date"'",
+        "jobDuration":"'"$duration"'",
         "startDate":"'"$start_date"'",
         "endDate":"'"$end_date"'",
         "startDateUnixTimestamp":"'"$start_date_unix_timestamp"'",
@@ -188,11 +188,25 @@ index_task(){
         "publish":"'"$publish"'",
         "computeArch":"'"$compute_arch"'",
         "controlPlaneArch":"'"$control_plane_arch"'"
-        }'
-    echo $json_data >> $uuid_dir/index_data.json
-    echo "${json_data}"
-    curl -sS --insecure -X POST -H "Content-Type:application/json" -H "Cache-Control:no-cache" -d "$json_data" "$url"
+    }'
 
+    # Ensure ADDITIONAL_PARAMS is valid JSON
+    if [[ -n "$ADDITIONAL_PARAMS" ]]; then
+        if ! echo "$ADDITIONAL_PARAMS" | jq . >/dev/null 2>&1; then
+            echo "Error: ADDITIONAL_PARAMS is not valid JSON."
+            exit 1
+        fi
+    else
+        ADDITIONAL_PARAMS='{}' # Default to empty JSON if not set
+    fi
+
+    # Merge base_json with ADDITIONAL_PARAMS
+    merged_json=$(jq -n --argjson base "$base_json" --argjson extra "$ADDITIONAL_PARAMS" '$base + $extra')
+
+    # Save and send the merged JSON
+    echo "$merged_json" >> $uuid_dir/index_data.json
+    echo "$merged_json"
+    curl -sS --insecure -X POST -H "Content-Type:application/json" -H "Cache-Control:no-cache" -d "$merged_json" "$url"
 }
 
 set_duration(){
