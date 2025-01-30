@@ -44,6 +44,11 @@ add_flag() {
   fi
 }
 
+if [ -n "${EXTERNAL_SERVER_ADDRESS}" ]; then
+  echo "EXTERNAL_SERVER_ADDRESS is set ${EXTERNAL_SERVER_ADDRESS}"
+  add_flag "serverIP" "${EXTERNAL_SERVER_ADDRESS}"
+fi
+
 # Add flags based on conditions
 [ ! ${LOCAL} = true ] && add_flag "all" "${ALL_SCENARIOS}" || echo "LOCAL=true, not setting --all"
 add_flag "clean" "${CLEAN_UP}"
