@@ -104,9 +104,9 @@ get_fips_config(){
 }
 
 get_ocpVirtVersion_config(){
-    ocpVirtVersion=false
+    ocp_virt_version=false
     if result=$(kubectl get csv -n openshift-cnv -o jsonpath='{.items[0].metadata.labels.olm\.version}'); then
-        ocpVirtVersion=$result
+        ocp_virt_version=$result
     fi
 }
 
