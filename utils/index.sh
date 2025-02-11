@@ -103,7 +103,7 @@ get_fips_config(){
     fi
 }
 
-get_ocpVirtVersion_config(){
+get_ocp_virt_version_config(){
     ocp_virt_version=false
     if result=$(kubectl get csv -n openshift-cnv -o jsonpath='{.items[0].metadata.labels.olm\.version}'); then
         ocp_virt_version=$result
@@ -293,7 +293,7 @@ ES_INDEX=perf_scale_ci
 setup
 get_ipsec_config
 get_fips_config
-get_ocpVirtVersion_config
+get_ocp_virt_version_config
 get_encryption_config
 get_publish_config
 get_architecture_config
