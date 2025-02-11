@@ -103,6 +103,13 @@ get_fips_config(){
     fi
 }
 
+get_ocpVirtVersion_config(){
+    ocpVirtVersion=false
+    if result=$(kubectl get csv -n openshift-cnv -o jsonpath='{.items[0].metadata.labels.olm\.version}'); then
+        ocpVirtVersion=$result
+    fi
+}
+
 get_encryption_config(){
     # Check the apiserver for the encryption config
     # If encryption was never turned on, you won't find this config on the apiserver
@@ -167,6 +174,7 @@ index_task(){
         "totalNodesCount":'"$all"',
         "clusterName":"'"$cluster_name"'",
         "ocpVersion":"'"$cluster_version"'",
+        "ocpVirtVersion":"'"$ocp_virt_version"'",
         "networkType":"'"$network_type"'",
         "buildTag":"'"$task_id"'",
         "jobStatus":"'"$state"'",
@@ -285,6 +293,7 @@ ES_INDEX=perf_scale_ci
 setup
 get_ipsec_config
 get_fips_config
+get_ocpVirtVersion_config
 get_encryption_config
 get_publish_config
 get_architecture_config
