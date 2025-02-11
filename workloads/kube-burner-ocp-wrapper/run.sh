@@ -8,8 +8,10 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.6.2}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.6.3}
 CHURN=${CHURN:-true}
+PPROF=${PPROF:-true}
+ARCHIVE=${ARCHIVE:-true}
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
 BURST=${BURST:-20}
@@ -148,6 +150,12 @@ if [[ -n ${ES_SERVER} ]]; then
   curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
+
+# Enable pprof collection
+if $PPROF; then
+  cmd+=" --pprof"
+fi
+
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
@@ -165,5 +173,10 @@ env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UU
 
 if [[ ${WORKLOAD} =~ "egressip" ]]; then
     cleanup_egressip_external_server
+fi
+if $ARCHIVE; then
+  if $PPROF; then
+    cp -r pprof-data "${ARTIFACT_DIR}/"
+  fi
 fi
 exit $exit_code
