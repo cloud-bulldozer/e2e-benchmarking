@@ -103,6 +103,21 @@ get_fips_config(){
     fi
 }
 
+get_ocp_virt_config(){
+    ocp_virt=false
+    if [[ `oc get pods -n openshift-cnv -l app.kubernetes.io/component=compute | wc -l` -gt 0 ]]; then
+        ocp_virt=true
+    fi
+}
+
+
+get_ocp_virt_version_config(){
+    ocp_virt_version=""
+    if result=$(kubectl get csv -n openshift-cnv -o jsonpath='{.items[0].spec.version}'); then
+        ocp_virt_version=$result
+    fi
+}
+
 get_encryption_config(){
     # Check the apiserver for the encryption config
     # If encryption was never turned on, you won't find this config on the apiserver
@@ -167,6 +182,8 @@ index_task(){
         "totalNodesCount":'"$all"',
         "clusterName":"'"$cluster_name"'",
         "ocpVersion":"'"$cluster_version"'",
+        "ocpVirt":"'"$ocp_virt"'",
+        "ocpVirtVersion":"'"$ocp_virt_version"'",
         "networkType":"'"$network_type"'",
         "buildTag":"'"$task_id"'",
         "jobStatus":"'"$state"'",
@@ -285,6 +302,8 @@ ES_INDEX=perf_scale_ci
 setup
 get_ipsec_config
 get_fips_config
+get_ocp_virt_config
+get_ocp_virt_version_config
 get_encryption_config
 get_publish_config
 get_architecture_config
