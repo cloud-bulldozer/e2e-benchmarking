@@ -176,6 +176,9 @@ if [[ ${WORKLOAD} =~ "egressip" ]]; then
 fi
 if $ARCHIVE; then
   if $PPROF; then
+    if [[ -z "${ARTIFACT_DIR}" ]]; then
+        ARTIFACT_DIR="/tmp"
+    fi
     cp -r pprof-data "${ARTIFACT_DIR}/"
   fi
 fi
