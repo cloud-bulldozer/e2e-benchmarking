@@ -14,15 +14,47 @@ setup(){
         export KUBECONFIG=/home/airflow/auth/config
         curl -sS https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xz oc
         export PATH=$PATH:/home/airflow/.local/bin:$(pwd)
+        if echo "$job_run_id" | grep -qi "scheduled"; then
+            job_type="scheduled"
+        elif echo "$job_run_id" | grep -qi "backfill"; then
+            job_type="backfill"
+        elif echo "$job_run_id" | grep -qi "dataset"; then
+            job_type="dataset dependancy"
+        else
+            job_type="manual"
+        fi
     elif [[ -n $PROW_JOB_ID ]]; then
         export ci="PROW"
         export prow_base_url="https://prow.ci.openshift.org/view/gs/origin-ci-test/logs"
         export prow_pr_base_url="https://prow.ci.openshift.org/view/gs/test-platform-results/pr-logs/pull/openshift_release"
+        job_type=${JOB_TYPE}
+        if [[ "${job_type}" == "presubmit" && "${JOB_NAME}" == *pull* ]]; then
+            # Indicates a ci test triggered in PR against source code
+            job_type="pull"
+        fi
+        if [[ "${job_type}" == "presubmit" && "${JOB_NAME}" == *rehearse* ]]; then
+            # Indicates a rehearsel in PR against openshift/release repo
+            job_type="rehearse"
+        fi
+        
     elif [[ -n $BUILD_ID ]]; then
         export ci="JENKINS"
         export build_url=${BUILD_URL}
+        LATEST_CAUSE=$(curl -s "${BUILD_URL}"/api/json | jq -r '.actions[].causes[].shortDescription' 2>/dev/null | grep -v "null" | tail -n 1)
+        if echo "$LATEST_CAUSE" | grep -iq "SCM"; then
+            job_type="scm trigger"
+        elif echo "$LATEST_CAUSE" | grep -iq "timer"; then
+            job_type="time trigger"
+        elif echo "$LATEST_CAUSE" | grep -iq "upstream"; then
+            job_type="upstream trigger"
+        elif echo "$LATEST_CAUSE" | grep -iq "user"; then
+            job_type="manual trigger"
+        else
+            job_type="unknown"
+        fi
     fi
 
+    export job_type
     export UUID=$UUID
     # Elasticsearch Config
     export ES_SERVER=$ES_SERVER
@@ -187,6 +219,7 @@ index_task(){
         "networkType":"'"$network_type"'",
         "buildTag":"'"$task_id"'",
         "jobStatus":"'"$state"'",
+        "jobType":"'"$job_type"'",
         "buildUrl":"'"$build_url"'",
         "upstreamJob":"'"$job_id"'",
         "upstreamJobBuild":"'"$job_run_id"'",
