@@ -39,8 +39,10 @@ setup(){
         
     elif [[ -n $BUILD_ID ]]; then
         export ci="JENKINS"
-        export build_url=${BUILD_URL}
-        LATEST_CAUSE=$(curl -s "${BUILD_URL}"/api/json | jq -r '.actions[].causes[].shortDescription' 2>/dev/null | grep -v "null" | tail -n 1)
+        export build_url="${BUILD_URL}api/json"
+        set +eo pipefail
+        LATEST_CAUSE=$(curl -s ${build_url} | tr '\n' ' ' | jq -r '.actions[].causes[].shortDescription' 2>/dev/null | grep -v "null" | head -n 1)
+        echo "latest cause $LATEST_CAUSE"
         if echo "$LATEST_CAUSE" | grep -iq "SCM"; then
             job_type="scm trigger"
         elif echo "$LATEST_CAUSE" | grep -iq "timer"; then
@@ -52,8 +54,8 @@ setup(){
         else
             job_type="unknown"
         fi
+        set -eo pipefail
     fi
-
     export job_type
     export UUID=$UUID
     # Elasticsearch Config
@@ -101,6 +103,7 @@ setup(){
         fi
         all=$((all + 1))
     done
+
 }
 
 get_ipsec_config(){
