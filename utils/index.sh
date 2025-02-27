@@ -36,7 +36,7 @@ setup(){
             # Indicates a rehearsel in PR against openshift/release repo
             job_type="rehearse"
         fi
-        
+
     elif [[ -n $BUILD_ID ]]; then
         export ci="JENKINS"
         export build_url="${BUILD_URL}api/json"
@@ -145,11 +145,17 @@ get_ocp_virt_config(){
     fi
 }
 
-
 get_ocp_virt_version_config(){
     ocp_virt_version=""
-    if result=$(kubectl get csv -n openshift-cnv -o jsonpath='{.items[0].spec.version}'); then
+    if result=$(kubectl get csv -n openshift-cnv -o jsonpath='{.items[0].spec.version}' 2> /dev/null); then
         ocp_virt_version=$result
+    fi
+}
+
+get_ocp_virt_tuning_policy_config(){
+    ocp_virt_tuning_policy=""
+    if result=$(kubectl get hyperconverged kubevirt-hyperconverged -n openshift-cnv -o jsonpath='{.spec.tuningPolicy}' 2> /dev/null); then
+        ocp_virt_tuning_policy=$result
     fi
 }
 
@@ -219,6 +225,7 @@ index_task(){
         "ocpVersion":"'"$cluster_version"'",
         "ocpVirt":"'"$ocp_virt"'",
         "ocpVirtVersion":"'"$ocp_virt_version"'",
+        "ocpVirtTuningPolicy":"'"$ocp_virt_tuning_policy"'",
         "networkType":"'"$network_type"'",
         "buildTag":"'"$task_id"'",
         "jobStatus":"'"$state"'",
@@ -340,6 +347,7 @@ get_ipsec_config
 get_fips_config
 get_ocp_virt_config
 get_ocp_virt_version_config
+get_ocp_virt_tuning_policy_config
 get_encryption_config
 get_publish_config
 get_architecture_config
