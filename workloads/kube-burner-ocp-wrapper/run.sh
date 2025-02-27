@@ -135,6 +135,10 @@ if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" ]] &
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
+if [[ ${WORKLOAD} =~ ^(crd-scale|networkpolicy-(matchexpressions|multitenant|matchlabels)|pvc-density)$ ]]; then
+  ITERATIONS=${ITERATIONS:?}
+  cmd+=" --iterations=${ITERATIONS}"
+fi
 if [[ ${WORKLOAD} =~ "egressip" ]]; then
   prep_aws
   get_egressip_external_server
