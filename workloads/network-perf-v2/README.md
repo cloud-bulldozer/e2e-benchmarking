@@ -2,11 +2,12 @@
 
 The purpose of the network scripts is to run netperf workload on the Openshift Cluster.
 
-There are 3 types of network tests k8s-netperf will run through:
+There are 4 types of network tests k8s-netperf will run through:
 
 1. Pod to Pod using SDN
-3. Pod to Pod using HostNetwork 
-4. Pod to Service 
+2. Pod to Pod using HostNetwork
+3. Pod to Service
+4. Pod to External Server provided by the user
 
 Running from CLI:
 
@@ -46,3 +47,4 @@ This will orchestrate multiple netwok performance tests.
 | TOLERANCE | Tolerance when comparing hostNetwork to podNetwork | 70 |
 | UUID | UUID which will be used for the workload | uuidgen |
 | WORKLOAD | Config definition for k8s-netperf | smoke.yaml |
+| EXTERNAL_SERVER_ADDRESS | IP address where the external server is running. User has to configure the external server with the required k8s-netperf driver | unset |
