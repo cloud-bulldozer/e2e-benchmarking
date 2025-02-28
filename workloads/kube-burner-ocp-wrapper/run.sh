@@ -135,7 +135,7 @@ if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" ]] &
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
-if [[ ${WORKLOAD} =~ ^(crd-scale|networkpolicy-(matchexpressions|multitenant|matchlabels)|pvc-density)$ ]]; then
+if [[ ${WORKLOAD} =~ ^(crd-scale)|pvc-density)$ ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS}"
 fi

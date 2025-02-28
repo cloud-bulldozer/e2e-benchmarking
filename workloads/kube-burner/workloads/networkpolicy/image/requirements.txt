@@ -1,4 +1,0 @@
-datetime
-requests
-kubernetes
-opensearch-py
