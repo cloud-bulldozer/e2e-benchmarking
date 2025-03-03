@@ -15,8 +15,8 @@ prep_aws(){
     fi
     if [[ -z $(rosa version)  ]]; then
         mkdir -p ${TEMP_DIR}/bin/
-        sudo curl -L $(curl -s https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa-linux-amd64\") | .browser_download_url") --output ${TEMP_DIR}/bin/rosa
-        sudo curl -L $(curl -s https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output ${TEMP_DIR}/bin/ocm
+        curl -L $(curl -sSL https://api.github.com/repos/openshift/rosa/releases/latest | jq -r ".assets[] | select(.name == \"rosa_Linux_x86_64.tar.gz\") | .browser_download_url") --output ${TEMP_DIR}/bin/rosa
+        curl -L $(curl -sSL https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output ${TEMP_DIR}/bin/ocm
         chmod +x ${TEMP_DIR}/bin/rosa && chmod +x ${TEMP_DIR}/bin/ocm
         export PATH=${TEMP_DIR}/bin:$PATH
     fi
@@ -28,7 +28,8 @@ prep_aws(){
     if [[ -z $(aws --version) ]]; then
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip awscliv2.zip
-        sudo ./aws/install
+        ./aws/install --install-dir "$TEMP_DIR/.aws-cli" --bin-dir "$TEMP_DIR/.aws-cli/bin" --update
+        export PATH="$TEMP_DIR/.aws-cli/bin:$PATH"
     fi
     echo [default] > ${TEMP_DIR}/aws_credentials
     echo aws_access_key_id=$AWS_ACCESS_KEY_ID >> ${TEMP_DIR}/aws_credentials
@@ -36,7 +37,7 @@ prep_aws(){
     echo [default] > ${TEMP_DIR}/aws_config
     echo region=$AWS_REGION >> ${TEMP_DIR}/aws_config
     echo output=json >> ${TEMP_DIR}/aws_config
-    export AWS_SHARED_CREDENTIALS_FILE=${TEMP_DIR}/aws_credentials
+    export AWS_SHARED_CREDENTIALS_FILE=${AWS_SHARED_CREDENTIALS_FILE:-${TEMP_DIR}/aws_credentials}
     export AWS_CONFIG_FILE=${TEMP_DIR}/aws_config
 }
 
