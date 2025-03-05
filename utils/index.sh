@@ -237,8 +237,6 @@ index_task(){
         "jobDuration":"'"$duration"'",
         "startDate":"'"$start_date"'",
         "endDate":"'"$end_date"'",
-        "startDateUnixTimestamp":"'"$start_date_unix_timestamp"'",
-        "endDateUnixTimestamp":"'"$end_date_unix_timestamp"'",
         "timestamp":"'"$current_timestamp"'",
         "ipsec":"'"$ipsec"'",
         "ipsecMode":"'"$ipsecMode"'",
