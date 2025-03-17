@@ -197,12 +197,12 @@ get_architecture_config(){
     fi
 }
 
-get_flavor(){
+get_stream(){
     result=$(oc version -o yaml)
     if echo "$result" | grep -iq "okd"; then
-        flavor="okd"
+        stream="okd"
     else
-        flavor="ocp"
+        stream="ocp"
     fi
 }
 
@@ -232,7 +232,7 @@ index_task(){
         "totalNodesCount":'"$all"',
         "clusterName":"'"$cluster_name"'",
         "ocpVersion":"'"$cluster_version"'",
-        "flavor":"'"$flavor"'",
+        "stream":"'"$stream"'",
         "ocpVirt":"'"$ocp_virt"'",
         "ocpVirtVersion":"'"$ocp_virt_version"'",
         "ocpVirtTuningPolicy":"'"$ocp_virt_tuning_policy"'",
@@ -361,5 +361,5 @@ get_ocp_virt_tuning_policy_config
 get_encryption_config
 get_publish_config
 get_architecture_config
-get_flavor
+get_stream
 index_tasks
