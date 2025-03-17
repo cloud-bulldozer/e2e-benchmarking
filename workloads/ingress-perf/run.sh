@@ -9,13 +9,14 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$INGRESS_PERF_VERSION" = "default" ]; then
     unset INGRESS_PERF_VERSION
 fi
-INGRESS_PERF_VERSION=${INGRESS_PERF_VERSION:-0.4.3}
+INGRESS_PERF_VERSION=${INGRESS_PERF_VERSION:-0.5.0}
 CONFIG=${CONFIG:?}
 BASELINE_UUID=${BASELINE_UUID:-}
 BASELINE_INDEX=${BASELINE_INDEX:-ingress-performance-baseline}
 TOLERANCY=${TOLERANCY:-20}
 OS=$(uname -s)
 HARDWARE=$(uname -m)
+GATEWAY_API=${GATEWAY_API:-false}
 
 download_binary(){
   INGRESS_PERF_URL=https://github.com/cloud-bulldozer/ingress-perf/releases/download/v${INGRESS_PERF_VERSION}/ingress-perf-${OS}-v${INGRESS_PERF_VERSION}-${HARDWARE}.tar.gz
@@ -29,6 +30,9 @@ if [[ -n ${ES_SERVER} ]]; then
 fi
 if [[ -n ${BASELINE_UUID} ]]; then
   cmd+=" --baseline-uuid=${BASELINE_UUID} --baseline-index=${BASELINE_INDEX} --tolerancy=${TOLERANCY}"
+fi
+if [[ ${GATEWAY_API} = true ]]; then
+  cmd+=" --gateway-api=true"
 fi
 
 # Do not exit if ingress-perf fails, we need to capture the exit code.
