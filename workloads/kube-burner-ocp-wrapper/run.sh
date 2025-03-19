@@ -9,6 +9,7 @@ if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
 KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.6.3}
+PERFORMANCE_PROFILE=${PERFORMANCE_PROFILE:-default}
 CHURN=${CHURN:-true}
 PPROF=${PPROF:-true}
 ARCHIVE=${ARCHIVE:-true}
@@ -131,7 +132,7 @@ else
   cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
 fi
 cmd+=" ${EXTRA_FLAGS}"
-if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" ]] && [[ ! ${WORKLOAD} =~ "web-burner" ]] ; then
+if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || ${WORKLOAD} =~ "rds-core" ]] && [[ ! ${WORKLOAD} =~ "web-burner" ]] ; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
@@ -153,6 +154,10 @@ fi
 if [[ -n ${ES_SERVER} ]]; then
   curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
+fi
+# If PERFORMANCE_PROFILE is specified
+if [[ -n ${PERFORMANCE_PROFILE} ]]; then
+  cmd+=" --perf-profile=${PERFORMANCE_PROFILE}"
 fi
 
 # Enable pprof collection
