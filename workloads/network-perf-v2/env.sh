@@ -19,6 +19,9 @@ export PROMETHEUS_URL=
 export ARCH=$(uname -m)
 export NETPERF_URL=${NETPERF_URL:-https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz}
 
+# External server
+export EXTERNAL_SERVER_ADDRESS=${EXTERNAL_SERVER_ADDRESS:-}
+
 # Workload
 export WORKLOAD=${WORKLOAD:-smoke.yaml}
 export TEST_TIMEOUT=${TEST_TIMEOUT:-14400}
