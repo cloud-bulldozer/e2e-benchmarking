@@ -156,7 +156,7 @@ if [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 fi
 # If PERFORMANCE_PROFILE is specified
-if [[ -n ${PERFORMANCE_PROFILE} ]]; then
+if [[ -n ${PERFORMANCE_PROFILE} && ${WORKLOAD} =~ "rds-core" ]]; then
   cmd+=" --perf-profile=${PERFORMANCE_PROFILE}"
 fi
 
