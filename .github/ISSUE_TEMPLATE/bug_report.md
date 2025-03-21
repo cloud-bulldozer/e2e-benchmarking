@@ -3,7 +3,7 @@ name: Bug report
 about: Create a report to help us improve
 title: ''
 labels: bug
-assignees: afcollins, jtaleric, rsevilla87, dry923, mohit-sheth, mukrishn
+assignees: afcollins, jtaleric, rsevilla87, vishnuchalla, mohit-sheth, mukrishn
 
 ---
 
