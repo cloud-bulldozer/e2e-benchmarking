@@ -344,8 +344,10 @@ setup
 get_ipsec_config
 get_fips_config
 get_ocp_virt_config
-get_ocp_virt_version_config
-get_ocp_virt_tuning_policy_config
+if [[ "$ocp_virt" == true ]]; then
+    get_ocp_virt_version_config
+    get_ocp_virt_tuning_policy_config
+fi
 get_encryption_config
 get_publish_config
 get_architecture_config
