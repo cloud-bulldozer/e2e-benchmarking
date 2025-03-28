@@ -149,7 +149,11 @@ rosa_upgrade_index_results(){
 }
 EOF
 )
-  printf "Indexing installation timings to ${ES_SERVER}/${_es_index}"
-  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${_es_index}/_doc -d "${METADATA}" -o /dev/null
+  if [ -n "$ES_SERVER" ]; then
+      printf "Indexing installation timings to ${ES_SERVER}/${_es_index}"
+      curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${_es_index}/_doc -d "${METADATA}" -o /dev/null
+  else
+      echo "ES_SERVER is not set, skipping indexing."
+  fi
   return 0
 }

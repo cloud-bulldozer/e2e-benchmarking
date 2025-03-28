@@ -185,9 +185,3 @@ unlabel_nodes_with_label() {
     done
   done
 }
-
-prep_networkpolicy_workload() {
-  export ES_INDEX_NETPOL=${ES_INDEX_NETPOL:-networkpolicy-enforcement}
-  oc apply -f workloads/networkpolicy/clusterrole.yml
-  oc apply -f workloads/networkpolicy/clusterrolebinding.yml
-}

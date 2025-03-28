@@ -28,6 +28,20 @@
 - query: irate(node_disk_writes_completed_total{cluster="{{.MC_NAME}}",instance=~"{{.MGMT_WORKER_NODES}}"}[2m])
   metricName: mgmtNodeDiskWrites
 
+# Kubelet & Containerd runtime metrics
+
+- query: sum(irate(process_cpu_seconds_total{cluster="{{.MC_NAME}}",job="kubelet"}[2m]) * 100) by (instance) and on (instance) label_replace(kube_node_role{cluster="{{.MC_NAME}}",role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: mgmtKubeletCPU
+
+- query: sum(process_resident_memory_bytes{cluster="{{.MC_NAME}}",job="kubelet"}) by (instance) and on (instance) label_replace(kube_node_role{cluster="{{.MC_NAME}}",role="worker"}, "instance", "$1", "node", "(.+)")
+  metricName: mgmtKubeletMemory
+
+- query: (sum(irate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",id="/system.slice/containerd.service"}[2m])*100) by (container, pod, instance)) > 0
+  metricName: mgmtContainerdCPU
+
+- query: sum(container_memory_rss{cluster="{{.MC_NAME}}",id="/system.slice/containerd.service"}) by (container, pod, instance)
+  metricName: mgmtContainerdMemory
+  
 # ControlPlane Containers metrics
 
 - query: (sum(irate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",name!="",namespace!~"clusters-.*"}[2m]) * 100) by (container, pod, instance,namespace)) > 0

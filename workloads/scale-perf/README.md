@@ -50,7 +50,7 @@ Default: 3
 How many times to run the scale up. It will scale down to the original size before running the next iteration
 
 ### ES_SERVER
-Default: `https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443`
+Default: `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443)
 
 Elasticsearch server to index the results of the current run. Use the notation `http(s)://[username]:[password]@[address]:[port]` in case you want to use an authenticated ES instance.
 
