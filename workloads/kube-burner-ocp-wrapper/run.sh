@@ -136,7 +136,7 @@ if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || $
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
-if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density)$ ]]; then
+if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density|virt-density)$ ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS}"
 fi
