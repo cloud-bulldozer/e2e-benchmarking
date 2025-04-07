@@ -9,7 +9,7 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$INGRESS_PERF_VERSION" = "default" ]; then
     unset INGRESS_PERF_VERSION
 fi
-INGRESS_PERF_VERSION=${INGRESS_PERF_VERSION:-0.5.0}
+INGRESS_PERF_VERSION=${INGRESS_PERF_VERSION:-0.5.1}
 CONFIG=${CONFIG:?}
 BASELINE_UUID=${BASELINE_UUID:-}
 BASELINE_INDEX=${BASELINE_INDEX:-ingress-performance-baseline}
@@ -32,7 +32,7 @@ if [[ -n ${BASELINE_UUID} ]]; then
   cmd+=" --baseline-uuid=${BASELINE_UUID} --baseline-index=${BASELINE_INDEX} --tolerancy=${TOLERANCY}"
 fi
 if [[ ${GATEWAY_API} = true ]]; then
-  cmd+=" --gateway-api=true"
+  cmd+=" --gw-api=true"
 fi
 
 # Do not exit if ingress-perf fails, we need to capture the exit code.
