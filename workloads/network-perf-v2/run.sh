@@ -61,7 +61,8 @@ add_flag "search" "${ES_SERVER}"
 add_flag "tcp-tolerance" "${TOLERANCE}"
 add_flag "uuid" "${UUID}"
 add_flag "vm" "${VM}"
-add_flag "udn" "${UDN}"
+add_flag "udnl2" "${UDNL2}"
+add_flag "udnl3" "${UDNL3}"
 
 # Execute the constructed command
 eval "$cmd"
