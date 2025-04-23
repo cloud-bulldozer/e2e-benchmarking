@@ -8,7 +8,7 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.6.3}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.6.4}
 PERFORMANCE_PROFILE=${PERFORMANCE_PROFILE:-default}
 CHURN=${CHURN:-true}
 PPROF=${PPROF:-true}
@@ -136,7 +136,7 @@ if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || $
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
-if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density)$ ]]; then
+if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density|network-policy)$ ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS}"
 fi
