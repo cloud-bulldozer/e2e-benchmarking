@@ -16,6 +16,7 @@ export BURST=${BURST:-20}
 export MAX_WAIT_TIMEOUT=${MAX_WAIT_TIMEOUT:-1h}
 export CLEANUP=${CLEANUP:-true}
 export POD_NODE_SELECTOR=${POD_NODE_SELECTOR:-'{node-role.kubernetes.io/worker: }'}
+export VM_NODE_SELECTOR=${VM_NODE_SELECTOR:-'{kubernetes.io/hostname: }'}
 export WORKER_NODE_LABEL=${WORKER_NODE_LABEL:-"node-role.kubernetes.io/worker"}
 export WAIT_WHEN_FINISHED=true
 export POD_WAIT=${POD_WAIT:-false}
@@ -34,6 +35,7 @@ export JOB_PAUSE=${JOB_PAUSE:-1m}
 
 # kube-burner workload defaults
 export NODE_POD_DENSITY_IMAGE=${NODE_POD_DENSITY_IMAGE:-gcr.io/google_containers/pause:3.1}
+export NODE_VM_DENSITY_IMAGE=${NODE_VM_DENSITY_IMAGE:-quay.io/kubevirt/fedora-container-disk-images:35}
 
 # kube-burner churn enablement
 export CHURN=${CHURN:-false}
