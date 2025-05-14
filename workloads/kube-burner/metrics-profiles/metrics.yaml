@@ -66,7 +66,7 @@
 
 - query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")
   metricName: nodeMemoryUtilization-Masters
-  
+
 - query: node_memory_MemAvailable_bytes and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")
   metricName: nodeMemoryAvailable-Infra
 
@@ -109,7 +109,7 @@
   metricName: secretCount
   instant: true
 
-- query: count(kube_deployment_labels{})
+- query: count(kube_deployment_spec_replicas{})
   metricName: deploymentCount
   instant: true
 
@@ -134,6 +134,6 @@
   metricName: clusterVersion
   instant: true
 
-- query: count(kube_replicaset_labels{})
+- query: count(kube_replicaset_spec_replicas{})
   metricName: replicaSetCount
   instant: true

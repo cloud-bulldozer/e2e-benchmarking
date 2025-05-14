@@ -106,7 +106,7 @@
   metricName: secretCount
   instant: true
 
-- query: count(kube_deployment_labels{})
+- query: count(kube_deployment_spec_replicas{})
   metricName: deploymentCount
   instant: true
 
@@ -128,7 +128,7 @@
 - query: sum(kube_node_status_condition{status="true"}) by (condition)
   metricName: nodeStatus
 
-- query: count(kube_replicaset_labels{})
+- query: count(kube_replicaset_spec_replicas{})
   metricName: replicaSetCount
   instant: true
 

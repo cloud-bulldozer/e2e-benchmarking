@@ -39,13 +39,13 @@
 
 - query: (max(sum(irate(node_cpu_seconds_total{}[1m])) by (mode,instance) and on (instance) label_replace(bottomk(1, min_over_time(sum(irate(node_cpu_seconds_total{mode=~"idle"}[1m])) by (mode,instance)[{{ .elapsed }}:])), "instance", "$1", "instance", "(.+)")) by (mode)) > 0
   metricName: nodeCPU-MostUtilizedWorkers
-  
+
 - query: bottomk(1,min_over_time(node_memory_MemAvailable_bytes{}[{{ .elapsed }}:]))
   metricName: nodeMemoryAvailable-MostUtilizedWorker
 
 - query: avg(node_memory_MemTotal_bytes{} and on (instance) label_replace(kube_node_role{role="worker"}, "instance", "$1", "node", "(.+)"))
   metricName: nodeMemoryTotal-AggregatedWorkers
-  instant: true  
+  instant: true
 
 # Cluster metrics
 
@@ -59,7 +59,7 @@
   metricName: secretCount
   instant: true
 
-- query: count(kube_deployment_labels{})
+- query: count(kube_deployment_spec_replicas{})
   metricName: deploymentCount
   instant: true
 
