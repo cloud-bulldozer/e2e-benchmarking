@@ -68,6 +68,7 @@ add_flag "udnl2" "${UDNL2}"
 echo $cmd
 # Execute the constructed command
 eval "$cmd"
+echo "$cmd"
 run=$?
 JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
