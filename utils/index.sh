@@ -146,14 +146,12 @@ get_ocp_virt_config(){
 }
 
 get_ocp_virt_version_config(){
-    ocp_virt_version=""
     if result=$(kubectl get csv -n openshift-cnv -o jsonpath='{.items[0].spec.version}' 2> /dev/null); then
         ocp_virt_version=$result
     fi
 }
 
 get_ocp_virt_tuning_policy_config(){
-    ocp_virt_tuning_policy=""
     if result=$(kubectl get hyperconverged kubevirt-hyperconverged -n openshift-cnv -o jsonpath='{.spec.tuningPolicy}' 2> /dev/null); then
         ocp_virt_tuning_policy=$result
     fi
@@ -354,6 +352,9 @@ setup
 get_ipsec_config
 get_fips_config
 get_ocp_virt_config
+# address `ocp_virt_version: unbound variable when ocp_virt=false 
+ocp_virt_version=""
+ocp_virt_tuning_policy=""
 if [[ "$ocp_virt" == true ]]; then
     get_ocp_virt_version_config
     get_ocp_virt_tuning_policy_config
