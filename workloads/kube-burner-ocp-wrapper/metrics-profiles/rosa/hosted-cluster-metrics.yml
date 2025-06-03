@@ -93,14 +93,14 @@
 
 # API server
 
-- query: irate(apiserver_request_total{verb="POST", resource="pods", subresource="binding",code="201"}[2m]) > 0
+- query: irate(apiserver_request_total{verb="POST", resource="pods",code="201"}[2m]) > 0
   metricName: schedulingThroughput
 
-- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{job="kube-apiserver", verb=~"LIST|GET", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope)) > 0
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{verb=~"LIST|GET", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope)) > 0
   metricName: readOnlyAPICallsLatency
 
-- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{job="kube-apiserver", verb=~"POST|PUT|DELETE|PATCH", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope)) > 0
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{verb=~"POST|PUT|DELETE|PATCH", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope)) > 0
   metricName: mutatingAPICallsLatency
 
-- query: sum(irate(apiserver_request_total{job="kube-apiserver",verb!="WATCH"}[2m])) by (verb,resource,instance) > 0
+- query: sum(irate(apiserver_request_total{verb!="WATCH"}[2m])) by (verb,resource,instance) > 0
   metricName: APIRequestRate
