@@ -186,7 +186,7 @@
   metricName: secretCount
   instant: true
 
-- query: count(kube_deployment_labels{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"})
+- query: count(kube_deployment_spec_replicas{openshift_cluster_name=~"${HOSTED_CLUSTER_NAME}"})
   metricName: deploymentCount
   instant: true
 

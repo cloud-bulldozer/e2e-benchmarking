@@ -166,7 +166,7 @@
   metricName: secretCount
   instant: true
 
-- query: count(kube_deployment_labels{})
+- query: count(kube_deployment_spec_replicas{})
   metricName: deploymentCount
   instant: true
 

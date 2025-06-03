@@ -103,7 +103,7 @@
   metricName: secretCount
   instant: true
 
-- query: count(kube_deployment_labels{})
+- query: count(kube_deployment_spec_replicas{})
   metricName: deploymentCount
   instant: true
 
@@ -125,6 +125,6 @@
   metricName: clusterVersion
   instant: true
 
-- query: count(kube_replicaset_labels{})
+- query: count(kube_replicaset_spec_replicas{})
   metricName: replicaSetCount
   instant: true
