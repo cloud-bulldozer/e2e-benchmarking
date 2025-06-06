@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 set -e
-source ./egressip.sh
+source ./sdn_workloads.sh
 
 ES_SERVER=${ES_SERVER=https://USER:PASSWORD@HOSTNAME:443}
 LOG_LEVEL=${LOG_LEVEL:-info}
@@ -140,12 +140,6 @@ if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density)$ ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS}"
 fi
-if [[ ${WORKLOAD} =~ "egressip" ]]; then
-  prep_aws
-  get_egressip_external_server
-  ITERATIONS=${ITERATIONS:?}
-  cmd+=" --iterations=${ITERATIONS} --external-server-ip=${EGRESSIP_EXTERNAL_SERVER_IP}"
-fi
 if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
@@ -160,17 +154,20 @@ if [[ -n ${PERFORMANCE_PROFILE} && ${WORKLOAD} =~ "rds-core" ]]; then
   cmd+=" --perf-profile=${PERFORMANCE_PROFILE}"
 fi
 
-# Enable pprof collection
-if $PPROF; then
-  cmd+=" --pprof"
-fi
-
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
 echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
-$cmd
+if [[ ${WORKLOAD} == "udn-bgp" || ${WORKLOAD} == "egressip" ]]; then
+  run_sdn_workload
+else
+  # Enable pprof collection
+  if $PPROF; then
+    cmd+=" --pprof"
+  fi
+  $cmd
+fi
 exit_code=$?
 JOB_END=${JOB_END:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 if [ $exit_code -eq 0 ]; then
@@ -180,9 +177,6 @@ else
 fi
 env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" WORKLOAD="$WORKLOAD" ES_SERVER="$ES_SERVER" ../../utils/index.sh
 
-if [[ ${WORKLOAD} =~ "egressip" ]]; then
-    cleanup_egressip_external_server
-fi
 if $ARCHIVE; then
   if $PPROF; then
     if [[ -z "${ARTIFACT_DIR}" ]]; then
