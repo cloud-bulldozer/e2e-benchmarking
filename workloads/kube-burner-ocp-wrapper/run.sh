@@ -146,14 +146,16 @@ if [[ ${WORKLOAD} =~ "egressip" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --external-server-ip=${EGRESSIP_EXTERNAL_SERVER_IP}"
 fi
+# if ES_SERVER is specified and for hypershift clusters
 if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
-fi
-# If ES_SERVER is specified
-if [[ -n ${ES_SERVER} ]]; then
+# for non-hypershift cluster
+elif [[ -n ${ES_SERVER} ]]; then
   curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
+else
+  echo "ES_SERVER is not set, not indexing the results"
 fi
 # If PERFORMANCE_PROFILE is specified
 if [[ -n ${PERFORMANCE_PROFILE} && ${WORKLOAD} =~ "rds-core" ]]; then
