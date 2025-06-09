@@ -148,11 +148,11 @@ if [[ ${WORKLOAD} =~ "egressip" ]]; then
 fi
 # if ES_SERVER is specified and for hypershift clusters
 if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
+  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
 # for non-hypershift cluster
 elif [[ -n ${ES_SERVER} ]]; then
-  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
 else
   echo "ES_SERVER is not set, not indexing the results"
