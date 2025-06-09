@@ -3,7 +3,6 @@ export COMPARE=${COMPARE:-false}
 export COMPARE_WITH_GOLD=${COMPARE_WITH_GOLD:-false}
 
 # indexing variables
-export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=${ES_INDEX:-ripsaw-oslat}
 export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 

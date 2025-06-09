@@ -1,5 +1,4 @@
 # Common
-export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export UUID=${UUID:-$(uuidgen)}
 export CLEAN_UP=${CLEAN_UP:-true}
 export LOCAL=${LOCAL:-false}
@@ -12,12 +11,16 @@ export ALL_SCENARIOS=${ALL_SCENARIOS:-true}
 export DEBUG=${DEBUG:-true}
 export METRICS=${METRICS:-true}
 export VM=${VIRT:-false}
+export UDN=${UDN:-false}
 export NETPERF_FILENAME=${NETPERF_FILENAME:-k8s-netperf}
-export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.25}
+export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.27}
 export OS=${OS:-Linux}
 export PROMETHEUS_URL=
 export ARCH=$(uname -m)
 export NETPERF_URL=${NETPERF_URL:-https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz}
+
+# External server
+export EXTERNAL_SERVER_ADDRESS=${EXTERNAL_SERVER_ADDRESS:-}
 
 # Workload
 export WORKLOAD=${WORKLOAD:-smoke.yaml}

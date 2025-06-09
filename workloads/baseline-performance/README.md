@@ -12,6 +12,6 @@ These environment variables can be customized
 | **KUBE_BURNER_RELEASE_URL** | kube-burner tarball release location | `https://github.com/cloud-bulldozer/kube-burner/releases/download/v0.14.2/kube-burner-0.14.2-Linux-x86_64.tar.gz` |
 | **WATCH_TIME**              | Sleep duration for which metrics will be collected in minutes| 30 |
 | **ENABLE_INDEXING**  | Enable/disable ES indexing      | true |
-| **ES_SERVER**        | ElasticSearch endpoint         | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
+| **ES_SERVER**        | ElasticSearch endpoint         | `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443) |
 | **ES_INDEX**         | ElasticSearch index            | ripsaw-kube-burner |
 | **WRITE_TO_FILE**     | Dump collected metrics to files  locally  | false |

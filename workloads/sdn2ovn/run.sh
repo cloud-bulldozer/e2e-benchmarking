@@ -3,7 +3,6 @@ set -x
 
 source env.sh
 
-export ES_SERVER="${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}"
 export _es_index="${ES_INDEX:-managedservices-timings}"
 export UUID="${UUID:-$(uuidgen | tr '[:upper:]' '[:lower:]')}"
 export TEMP_DIR="$(mktemp -d)"
@@ -55,8 +54,12 @@ _index_results(){
 }
 EOF
 )
-    printf "Indexing installation timings to ${ES_SERVER}/${_es_index}"
-    curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${_es_index}/_doc -d "${METADATA}" -o /dev/null
+    if [ -n "$ES_SERVER" ]; then
+        printf "Indexing installation timings to ${ES_SERVER}/${_es_index}\n"
+        curl -k -sS -X POST -H "Content-type: application/json" "${ES_SERVER}/${_es_index}/_doc" -d "${METADATA}" -o /dev/null
+    else
+        echo "ES_SERVER is not set, skipping indexing."
+    fi
     return 0
 }
 

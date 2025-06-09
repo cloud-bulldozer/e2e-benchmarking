@@ -20,8 +20,7 @@ fi
 #Function to store the run id, snappy path and other cluster details on elasticsearch
 store_on_elastic()
 {
-    if [[ -n $SNAPPY_RUN_ID ]];then 
-        export ES_SERVER_SNAPPY="https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443"
+    if [[ -n $SNAPPY_RUN_ID ]] && [ -n "$ES_SERVER_SNAPPY" ];then 
         export ES_INDEX_SNAPPY=snappy
         export ts=`date +"%Y-%m-%dT%T.%3N"`
 

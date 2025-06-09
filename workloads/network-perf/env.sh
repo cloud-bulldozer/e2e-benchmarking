@@ -1,7 +1,6 @@
 # Common
 
 TEST_CLEANUP=${TEST_CLEANUP:-true}
-export ES_SERVER=${ES_SERVER:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 export ES_INDEX=ripsaw-uperf-results
 export METADATA_COLLECTION=${METADATA_COLLECTION:-true}
 # Metadata collection can sometimes cause port collisions in uperf when running in targeted mode
@@ -26,7 +25,6 @@ export PAIRS=${PAIRS:-1 2}
 # Comparison and csv generation
 
 BASELINE_MULTUS_UUID=${BASELINE_MULTUS_UUID}
-ES_SERVER_BASELINE=${ES_SERVER_BASELINE:-https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443}
 COMPARISON_CONFIG=${COMPARISON_CONFIG:-"uperf-touchstone.json"}
 COMPARISON_RC=${COMPARISON_RC:-0}
 GEN_CSV=${GEN_CSV:-false}

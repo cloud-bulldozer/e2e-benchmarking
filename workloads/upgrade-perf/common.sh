@@ -18,9 +18,9 @@ if [[ ${CERBERUS_URL} ]]; then
   fi
 fi
 
-_es=${ES_SERVER:=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
+_es=$ES_SERVER
 _es_index=${ES_INDEX:=openshift-upgrade-timings}
-_es_baseline=${ES_SERVER_BASELINE:=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
+_es_baseline=$ES_SERVER_BASELINE
 _poll_interval=${POLL_INTERVAL:=5}
 COMPARE=${COMPARE:=false}
 _timeout=${TIMEOUT:=240}

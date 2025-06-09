@@ -2,11 +2,12 @@
 
 The purpose of the network scripts is to run netperf workload on the Openshift Cluster.
 
-There are 3 types of network tests k8s-netperf will run through:
+There are 4 types of network tests k8s-netperf will run through:
 
 1. Pod to Pod using SDN
-3. Pod to Pod using HostNetwork 
-4. Pod to Service 
+2. Pod to Pod using HostNetwork
+3. Pod to Service
+4. Pod to External Server provided by the user
 
 Running from CLI:
 
@@ -35,7 +36,7 @@ This will orchestrate multiple netwok performance tests.
 | ALL_SCENARIOS | Run all test scenarios (hostNetwork & podNetwork) | true |
 | CLEAN_UP | Clean-up resources created by k8s-netperf | true |
 | DEBUG | Enable debug log levevl for k8s-netperf | true |
-| ES_SERVER | Server to send results | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443 |
+| ES_SERVER | Server to send results | `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443) |
 | LOCAL | Run network performance test pods on the same node | false |
 | METRICS | Enable collection of metrics by k8s-netperf | true |
 | NETPERF_URL | URL to download k8s-netperf | https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz |
@@ -46,3 +47,4 @@ This will orchestrate multiple netwok performance tests.
 | TOLERANCE | Tolerance when comparing hostNetwork to podNetwork | 70 |
 | UUID | UUID which will be used for the workload | uuidgen |
 | WORKLOAD | Config definition for k8s-netperf | smoke.yaml |
+| EXTERNAL_SERVER_ADDRESS | IP address where the external server is running. User has to configure the external server with the required k8s-netperf driver | unset |

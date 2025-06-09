@@ -21,9 +21,6 @@ In order to kick off one of these benchmarks you must use the run.sh script. The
 - **`custom`**: `WORKLOAD=custom ./run.sh`
 - **`concurrent-builds`**: `WORKLOAD=concurrent-builds ./run.sh`
 - **`cluster-density-ms`**: `WORKLOAD=cluster-density-ms ./run.sh`
-- **`networkpolicy-case1`**: `WORKLOAD=networkpolicy-case1 ./run.sh`
-- **`networkpolicy-case2`**: `WORKLOAD=networkpolicy-case2 ./run.sh`
-- **`networkpolicy-case3`**: `WORKLOAD=networkpolicy-case3 ./run.sh`
 
 ## Environment variables
 
@@ -33,7 +30,7 @@ Workloads can be tweaked with the following environment variables:
 | Variable         | Description                         | Default |
 |------------------|-------------------------------------|---------|
 | **INDEXING**         | Enable/disable indexing         | true    |
-| **ES_SERVER**        | Elasticsearch endpoint          | https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com:443|
+| **ES_SERVER**        | Elasticsearch endpoint          | `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443) |
 | **ES_INDEX**         | Elasticsearch index             | ripsaw-kube-burner|
 | **PROM_URL**         | Prometheus endpoint, it should be Thanos querier endpoint when running on `HYPERSHIFT` cluster | Prometheus endpoint is automatically discovered |
 | **JOB_TIMEOUT**      | Kube-burner's timeout, in seconds | 4h (4 hours) |

@@ -14,7 +14,7 @@ nic=""
 testpmd_workers=()
 
 # If ES_SERVER is set and empty we disable ES indexing and metadata collection
-if [[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]; then
+if ([[ -v ES_SERVER ]] && [[ -z ${ES_SERVER} ]]) || [[ ! -v ES_SERVER ]]; then
   export METADATA_COLLECTION=false
 else
   export PROM_TOKEN=$(oc -n openshift-monitoring sa get-token prometheus-k8s)

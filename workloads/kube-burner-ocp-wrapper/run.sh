@@ -3,13 +3,16 @@
 set -e
 source ./egressip.sh
 
-ES_SERVER=${ES_SERVER=https://search-perfscale-dev-chmf5l4sh66lvxbnadi4bznl3a.us-west-2.es.amazonaws.com}
+ES_SERVER=${ES_SERVER=https://USER:PASSWORD@HOSTNAME:443}
 LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.3.4}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.6.9}
+PERFORMANCE_PROFILE=${PERFORMANCE_PROFILE:-default}
 CHURN=${CHURN:-true}
+PPROF=${PPROF:-true}
+ARCHIVE=${ARCHIVE:-true}
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
 BURST=${BURST:-20}
@@ -83,7 +86,6 @@ hypershift(){
 }
 EOF
 )
-  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
 
   HOSTED_PROMETHEUS=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
   HOSTED_PROMETHEUS_TOKEN=$(oc sa new-token -n openshift-monitoring prometheus-k8s)
@@ -130,9 +132,13 @@ else
   cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
 fi
 cmd+=" ${EXTRA_FLAGS}"
-if [[ ${WORKLOAD} =~ "cluster-density" ]] && [[ ! ${WORKLOAD} =~ "web-burner" ]] ; then
+if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || ${WORKLOAD} =~ "rds-core" ]] && [[ ! ${WORKLOAD} =~ "web-burner" ]] ; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
+fi
+if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density)$ ]]; then
+  ITERATIONS=${ITERATIONS:?}
+  cmd+=" --iterations=${ITERATIONS}"
 fi
 if [[ ${WORKLOAD} =~ "egressip" ]]; then
   prep_aws
@@ -140,14 +146,27 @@ if [[ ${WORKLOAD} =~ "egressip" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --external-server-ip=${EGRESSIP_EXTERNAL_SERVER_IP}"
 fi
+# if ES_SERVER is specified and for hypershift clusters
 if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
-fi
-# If ES_SERVER is specified
-if [[ -n ${ES_SERVER} ]]; then
+# for non-hypershift cluster
+elif [[ -n ${ES_SERVER} ]]; then
+  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
   cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
+else
+  echo "ES_SERVER is not set, not indexing the results"
 fi
+# If PERFORMANCE_PROFILE is specified
+if [[ -n ${PERFORMANCE_PROFILE} && ${WORKLOAD} =~ "rds-core" ]]; then
+  cmd+=" --perf-profile=${PERFORMANCE_PROFILE}"
+fi
+
+# Enable pprof collection
+if $PPROF; then
+  cmd+=" --pprof"
+fi
+
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
@@ -165,5 +184,13 @@ env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UU
 
 if [[ ${WORKLOAD} =~ "egressip" ]]; then
     cleanup_egressip_external_server
+fi
+if $ARCHIVE; then
+  if $PPROF; then
+    if [[ -z "${ARTIFACT_DIR}" ]]; then
+        ARTIFACT_DIR="/tmp"
+    fi
+    cp -r pprof-data "${ARTIFACT_DIR}/"
+  fi
 fi
 exit $exit_code
