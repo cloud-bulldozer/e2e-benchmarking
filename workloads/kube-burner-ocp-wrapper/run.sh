@@ -162,17 +162,19 @@ if [[ -n ${PERFORMANCE_PROFILE} && ${WORKLOAD} =~ "rds-core" ]]; then
   cmd+=" --perf-profile=${PERFORMANCE_PROFILE}"
 fi
 
-# Enable pprof collection
-if $PPROF; then
-  cmd+=" --pprof"
-fi
-
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
 echo $cmd
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
-$cmd
+if [[ ${WORKLOAD} =~ "udn-bgp" ]]; then
+  export COMMAND="$cmd --iterations=${ITERATIONS} --gc=false"
+  get_egressip_external_server
+  #(exit $((exist_string)))
+  sleep 3000
+else  
+  $cmd
+fi
 exit_code=$?
 JOB_END=${JOB_END:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 if [ $exit_code -eq 0 ]; then
