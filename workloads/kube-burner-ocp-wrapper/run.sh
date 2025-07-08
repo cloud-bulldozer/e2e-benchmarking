@@ -146,6 +146,11 @@ if [[ ${WORKLOAD} =~ "egressip" ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --external-server-ip=${EGRESSIP_EXTERNAL_SERVER_IP}"
 fi
+if [[ ${WORKLOAD} =~ "olm" ]]; then
+  ITERATIONS=${ITERATIONS:?"ERROR: ITERATIONS must be set when WORKLOAD includes 'olm'"}
+  cmd+=" --iterations=${ITERATIONS}"
+fi
+
 # if ES_SERVER is specified and for hypershift clusters
 if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
