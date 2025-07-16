@@ -136,7 +136,7 @@ if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || $
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
-if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density)$ ]]; then
+if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density|olm)$ ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS}"
 fi
@@ -145,10 +145,6 @@ if [[ ${WORKLOAD} =~ "egressip" ]]; then
   get_egressip_external_server
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --external-server-ip=${EGRESSIP_EXTERNAL_SERVER_IP}"
-fi
-if [[ ${WORKLOAD} =~ "olm" ]]; then
-  ITERATIONS=${ITERATIONS:?"ERROR: ITERATIONS must be set when WORKLOAD includes 'olm'"}
-  cmd+=" --iterations=${ITERATIONS}"
 fi
 
 # if ES_SERVER is specified and for hypershift clusters
