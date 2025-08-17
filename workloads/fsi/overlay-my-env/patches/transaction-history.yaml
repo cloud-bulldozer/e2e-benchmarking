@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transactionhistory
+spec:
+  template:
+    spec:
+      containers:
+      - name: transactionhistory
+        env:
+        - name: ENABLE_TRACING
+          value: "false"
+        - name: ENABLE_METRICS
+          value: "false"

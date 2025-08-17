@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ledger-db
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 999
+      initContainers:
+      - name: fix-permissions
+        image: busybox
+        command: ["sh","-c","chown -R 999:999 /var/lib/postgresql/data && chmod 700 /var/lib/postgresql/data"]
+        volumeMounts:
+        - name: postgresdb
+          mountPath: /var/lib/postgresql/data
+        securityContext:
+          runAsUser: 0
+      containers:
+      - name: postgres
+        image: us-central1-docker.pkg.dev/bank-of-anthos-ci/bank-of-anthos/ledger-db:v0.6.6@sha256:db8bb60717be587cb3c419a73012cebc7c8cf464a77ae45fd78502f0fa3922d8
+        envFrom:
+        - configMapRef:
+            name: environment-config
+        - configMapRef:
+            name: ledger-db-config
+        - configMapRef:
+            name: demo-data-config
+        securityContext:
+          runAsUser: 999
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgresdb
+  volumeClaimTemplates:
+  - metadata:
+      name: postgresdb
+    spec:
+      accessModes: [ReadWriteOnce]
+      resources:
+        requests:
+          storage: 1Gi
