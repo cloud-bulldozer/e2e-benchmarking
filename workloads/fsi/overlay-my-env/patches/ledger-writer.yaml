@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledgerwriter
+spec:
+  template:
+    spec:
+      containers:
+      - name: ledgerwriter
+        env:
+        - name: ENABLE_TRACING
+          value: "false"
+        - name: ENABLE_METRICS
+          value: "false"
