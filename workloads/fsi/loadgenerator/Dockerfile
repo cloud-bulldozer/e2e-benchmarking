@@ -6,8 +6,14 @@ FROM base AS builder
 
 WORKDIR /app
 
+# Copy overlay requirements
+#COPY requirements.txt .
+
+# Install overlay dependencies
+#RUN pip install --no-cache-dir -r requirements.txt
+
 # Install git to clone the repo
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git vim && rm -rf /var/lib/apt/lists/*
 
 # Clone Bank of Anthos repo to get requirements
 RUN git clone https://github.com/GoogleCloudPlatform/bank-of-anthos.git /tmp/bank-of-anthos
@@ -24,7 +30,10 @@ WORKDIR /app
 COPY --from=builder /install /usr/local
 
 # Add application code
-COPY locustfile.py .
+COPY locustfile.py indexing.py requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y git vim curl && rm -rf /var/lib/apt/lists/*
 
 # Show Python logs as they occur
 ENV PYTHONUNBUFFERED=0
@@ -38,4 +47,9 @@ ENV LOG_LEVEL info
 ENV TEST=yes
 
 # Start Locust load generator with default 100 users
-ENTRYPOINT sh -c "echo 'Delaying start for 90s...'; sleep 90; locust --host=http://${FRONTEND_ADDR} --loglevel $LOG_LEVEL --headless --users=${USERS:-100} --run-time 1m --print-stats; echo 'Sleeping for 1 hour...'; sleep 3600"
+ENTRYPOINT sh -c "\
+echo 'Delaying start for 90s...'; sleep 90; \
+locust --host=http://${FRONTEND_ADDR} --loglevel $LOG_LEVEL --headless --users=${USERS:-100} --run-time 1m --print-stats --csv=/tmp/locust-results; \
+echo 'Running indexing.py...'; python /app/indexing.py; \
+echo 'Sleeping for 1 hour...'; sleep 3600 \
+"
