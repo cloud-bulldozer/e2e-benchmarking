@@ -31,6 +31,20 @@ spec:
               value: "20"
             - name: LOG_LEVEL
               value: error
+            - name: ES_SERVER
+              value: "${ES_SERVER}"
+            - name: UUID
+              value: "${UUID}"
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - |
+                  curl -sf "http://frontend:80"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 120
           resources:
             limits:
               cpu: 250m
@@ -44,7 +58,7 @@ spec:
               drop:
                 - all
             privileged: false
-            readOnlyRootFilesystem: true
+            readOnlyRootFilesystem: false
       securityContext:
         fsGroup: 1000
         runAsGroup: 1000
