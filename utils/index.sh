@@ -138,6 +138,10 @@ get_fips_config(){
     fi
 }
 
+get_osimage_config(){
+    osimage=$(oc get node -o jsonpath='{.items[0].status.nodeInfo.osImage}')
+}
+
 get_ocp_virt_config(){
     ocp_virt=false
     if [[ `oc get pods -n openshift-cnv -l app.kubernetes.io/component=compute | wc -l` -gt 0 ]]; then
@@ -231,6 +235,7 @@ index_task(){
         "clusterName":"'"$cluster_name"'",
         "ocpVersion":"'"$cluster_version"'",
         "stream":"'"$stream"'",
+        "osImage":"'"$osimage"'",
         "ocpVirt":"'"$ocp_virt"'",
         "ocpVirtVersion":"'"$ocp_virt_version"'",
         "ocpVirtTuningPolicy":"'"$ocp_virt_tuning_policy"'",
@@ -351,8 +356,9 @@ ES_INDEX=perf_scale_ci
 setup
 get_ipsec_config
 get_fips_config
+get_osimage_config
 get_ocp_virt_config
-# address `ocp_virt_version: unbound variable when ocp_virt=false 
+# address `ocp_virt_version: unbound variable when ocp_virt=false
 ocp_virt_version=""
 ocp_virt_tuning_policy=""
 if [[ "$ocp_virt" == true ]]; then
