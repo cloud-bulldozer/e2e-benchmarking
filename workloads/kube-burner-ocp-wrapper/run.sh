@@ -8,7 +8,9 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.7.0}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.7.2}
+OS=$(uname -s)
+HARDWARE=$(uname -m)
 PERFORMANCE_PROFILE=${PERFORMANCE_PROFILE:-default}
 CHURN=${CHURN:-true}
 PPROF=${PPROF:-true}
@@ -22,7 +24,7 @@ UUID=${UUID:-$(uuidgen)}
 KUBE_DIR=${KUBE_DIR:-/tmp}
 
 download_binary(){
-  KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-linux-x86_64.tar.gz"
+  KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-${OS}-${HARDWARE}.tar.gz"
   curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
 }
 
