@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - ../bank-of-anthos-base/kubernetes-manifests
-  - loadgenerator-job.yaml
 
 patches:
   - path: patches/accounts-db.yaml
