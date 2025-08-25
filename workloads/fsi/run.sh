@@ -68,19 +68,48 @@ apply_jwt_secret() {
     fi
 }
 
+wait_for_externalip() {
+    local FRONTEND_ADDR=""
+    while [ -z "$FRONTEND_ADDR" ]; do
+        FRONTEND_ADDR=$(oc get svc frontend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null)
+        if [ -z "$FRONTEND_ADDR" ]; then
+            echo "Waiting for frontend external IP/hostname..." >&2
+            sleep 5
+        fi
+    done
+
+    echo "$FRONTEND_ADDR"
+}
+
 apply_overlay() {
     if [ ! -d "$OVERLAY_DIR" ]; then
         log ERROR "Overlay directory $OVERLAY_DIR does not exist!"
         exit 1
     fi
 
-    log INFO "📝 Generating loadgenerator Job from template..."
-    # Substitute environment variables in the template
-    envsubst < "$OVERLAY_DIR/loadgenerator-job-template.yaml" > "$OVERLAY_DIR/loadgenerator-job.yaml"
-
-    log INFO "🛠️  Applying overlay with patches..."
+    # Step 1: Apply base overlay (patches + base manifests)
+    log INFO "🛠️ Applying base overlay (excluding loadgenerator job)..."
     START_TIME=$(date +%s)
     oc apply -k "$OVERLAY_DIR"
+
+    # Step 2: Wait for frontend hostname
+    log INFO "⏳ Waiting for frontend service external hostname..."
+    FRONTEND_ADDR=$(wait_for_externalip)
+    log INFO "✅ Frontend external hostname: $FRONTEND_ADDR"
+
+    # Step 3: Generate loadgenerator job from template
+    LOADGEN_TEMPLATE="$OVERLAY_DIR/loadgenerator-template/loadgenerator-job-template.yaml"
+    LOADGEN_YAML="$OVERLAY_DIR/loadgenerator-template/loadgenerator-job.yaml"
+
+    log INFO "📝 Generating loadgenerator job with FRONTEND_ADDR=$FRONTEND_ADDR..."
+    FRONTEND_ADDR="$FRONTEND_ADDR" envsubst < "$LOADGEN_TEMPLATE" > "$LOADGEN_YAML"
+
+    # Step 4: Apply the generated loadgenerator job
+    log INFO "🚀 Applying loadgenerator job..."
+    oc apply -f "$LOADGEN_YAML"
+
+    END_TIME=$(date +%s)
+    log INFO "✅ Overlay applied successfully in $((END_TIME - START_TIME)) seconds."
 }
 
 wait_for_loadgen() {
