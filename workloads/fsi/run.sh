@@ -16,14 +16,15 @@ WRAPPER_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BOA_DIR="$WRAPPER_DIR/bank-of-anthos-base"
 OVERLAY_DIR="$WRAPPER_DIR/overlay-my-env"
 KUBE_DIR=${KUBE_DIR:-/tmp}
-OC_VERSION=$(oc get clusterversion -o json | jq -r '.items[0].status.desired.version')
+OCP_VERSION=$(oc get clusterversion -o json | jq -r '.items[0].status.desired.version')
 WORKER_COUNT=$(oc get no --no-headers -l node-role.kubernetes.io/worker | wc -l)
 ES_INDEX="ripsaw-kube-burner-mohit"
 EXTRA_FLAGS=${EXTRA_FLAGS:-}
+NAMESPACE=${NAMESPACE:-fsi-workload}
 
 export UUID=${UUID:-$(uuidgen)}
 
-log INFO "🖥️ Cluster version: $OC_VERSION, Worker nodes: $WORKER_COUNT"
+log INFO "🖥️ Cluster version: $OCP_VERSION, Worker nodes: $WORKER_COUNT"
 
 clone_or_update_repo() {
     if [ ! -d "$BOA_DIR" ]; then
@@ -50,6 +51,7 @@ resources:
   - accounts-db.yaml
   - balance-reader.yaml
   - contacts.yaml
+  - config.yaml
   - frontend.yaml
   - ledger-db.yaml
   - ledger-writer.yaml
@@ -59,10 +61,25 @@ EOL
     log INFO "✅ Base kustomization.yaml written. "
 }
 
-apply_jwt_secret() {
+ensure_namespace() {
+    if ! oc get namespace "$NAMESPACE" >/dev/null 2>&1; then
+        log INFO "📦 Creating namespace $NAMESPACE..."
+        oc create namespace "$NAMESPACE"
+    else
+        log INFO "📦 Namespace $NAMESPACE already exists."
+    fi
+}
+
+grant_permissions() {
+    log INFO "🔐 Granting cluster-admin to service accounts in $NAMESPACE..."
+    oc adm policy add-cluster-role-to-user cluster-admin -z default -n "$NAMESPACE"
+    oc adm policy add-cluster-role-to-user cluster-admin -z bank-of-anthos -n "$NAMESPACE"
+}
+
+apply_secret() {
     if [ -f "$BOA_DIR/extras/jwt/jwt-secret.yaml" ]; then
-        log INFO "🔑 Applying JWT secret..."
-        kubectl apply -f "$BOA_DIR/extras/jwt/jwt-secret.yaml"
+        log INFO "🔑 Applying secret..."
+        kubectl apply -n "$NAMESPACE" -f "$BOA_DIR/extras/jwt/jwt-secret.yaml"
     else
         log WARN "JWT secret file not found at $BOA_DIR/extras/jwt/jwt-secret.yaml. Skipping."
     fi
@@ -71,7 +88,7 @@ apply_jwt_secret() {
 wait_for_externalip() {
     local FRONTEND_ADDR=""
     while [ -z "$FRONTEND_ADDR" ]; do
-        FRONTEND_ADDR=$(oc get svc frontend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null)
+        FRONTEND_ADDR=$(oc get svc frontend -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null)
         if [ -z "$FRONTEND_ADDR" ]; then
             echo "Waiting for frontend external IP/hostname..." >&2
             sleep 5
@@ -90,7 +107,7 @@ apply_overlay() {
     # Step 1: Apply base overlay (patches + base manifests)
     log INFO "🛠️ Applying base overlay (excluding loadgenerator job)..."
     START_TIME=$(date +%s)
-    oc apply -k "$OVERLAY_DIR"
+    oc apply -k "$OVERLAY_DIR" -n "$NAMESPACE"
 
     # Step 2: Wait for frontend hostname
     log INFO "⏳ Waiting for frontend service external hostname..."
@@ -102,11 +119,11 @@ apply_overlay() {
     LOADGEN_YAML="$OVERLAY_DIR/loadgenerator-template/loadgenerator-job.yaml"
 
     log INFO "📝 Generating loadgenerator job with FRONTEND_ADDR=$FRONTEND_ADDR..."
-    FRONTEND_ADDR="$FRONTEND_ADDR" envsubst < "$LOADGEN_TEMPLATE" > "$LOADGEN_YAML"
+    FRONTEND_ADDR="$FRONTEND_ADDR" ES_SERVER="${ES_SERVER:-}" UUID="$UUID" WORKER_COUNT="$WORKER_COUNT" OCP_VERSION="$OCP_VERSION" envsubst < "$LOADGEN_TEMPLATE" > "$LOADGEN_YAML"
 
     # Step 4: Apply the generated loadgenerator job
     log INFO "🚀 Applying loadgenerator job..."
-    oc apply -f "$LOADGEN_YAML"
+    oc apply -f "$LOADGEN_YAML" -n "$NAMESPACE"
 
     END_TIME=$(date +%s)
     log INFO "✅ Overlay applied successfully in $((END_TIME - START_TIME)) seconds."
@@ -114,15 +131,15 @@ apply_overlay() {
 
 wait_for_loadgen() {
     # Get the loadgenerator pod name
-    LOADGEN_POD=$(oc get pod -l job-name=loadgenerator -o jsonpath='{.items[0].metadata.name}')
+    LOADGEN_POD=$(oc get pod -n "$NAMESPACE" -l job-name=loadgenerator -o jsonpath='{.items[0].metadata.name}')
 
     TIMEOUT=600  # 10 minutes
     INTERVAL=5
     ELAPSED=0
     log INFO "⏳ Waiting for loadgenerator pod [$LOADGEN_POD] to finish..."
-    oc wait --for=condition=Ready pod -l job-name=loadgenerator
+    oc wait -n "$NAMESPACE" --for=jsonpath='{.status.phase}'=Running pod -l job-name=loadgenerator --timeout=${TIMEOUT}s
     while true; do
-        if oc logs "$LOADGEN_POD" | grep -q "Sleeping"; then
+        if oc logs -n "$NAMESPACE" "$LOADGEN_POD" | grep -q "Sleeping"; then
             log INFO "🏁 Loadgenerator finished workload!"
             break
         fi
@@ -160,7 +177,9 @@ kube_burner_index() {
 main() 
     {
     clone_or_update_repo
-    apply_jwt_secret
+    ensure_namespace
+    grant_permissions
+    apply_secret
     apply_overlay
     wait_for_loadgen
     kube_burner_index

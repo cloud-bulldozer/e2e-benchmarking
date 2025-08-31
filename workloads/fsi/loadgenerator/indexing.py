@@ -52,9 +52,11 @@ def csv_to_json(csv_path):
 
 def index_to_es(doc):
     """Index a single document to OpenSearch."""
-    # Add UUID and @timestamp
+    # Add UUID, timestamp, worker_count and ocp_version from environment
     doc["uuid"] = os.environ.get("UUID", str(uuid.uuid4()))
     doc["timestamp"] = datetime.utcnow().isoformat()
+    doc["worker_count"] = int(os.environ.get("WORKER_COUNT", "0"))
+    doc["ocp_version"] = os.environ.get("OCP_VERSION", "")
 
     json_doc = json.dumps(doc, indent=2)
     print("Indexing combined document:\n", json_doc)

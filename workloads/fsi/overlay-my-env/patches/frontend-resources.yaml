@@ -2,5 +2,5 @@
   path: /spec/template/spec/containers/0/resources
   value:
     requests:
-      cpu: "100m"
-      memory: "128Mi"
+      cpu: "500m"
+      memory: "512Mi"
