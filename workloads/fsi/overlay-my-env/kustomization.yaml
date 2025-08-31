@@ -70,6 +70,22 @@ patches:
       kind: Deployment
       name: userservice
 
+  - path: patches/userservice-resources.yaml
+    target:
+      kind: Deployment
+      name: frontend
+
+  - path: patches/accounts-db-resources.yaml
+    target:
+      kind: Deployment
+      name: frontend
+
+  - path: patches/ledger-db-resources.yaml
+    target:
+      kind: Deployment
+      name: frontend
+
+
 patchesJson6902:
   - target:
       version: v1

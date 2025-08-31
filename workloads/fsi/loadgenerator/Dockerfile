@@ -1,55 +1,46 @@
-# Base Python image
-FROM python:3.12.6-slim@sha256:ad48727987b259854d52241fac3bc633574364867b8e20aec305e6e7f4028b26 as base
+# Base Python image (pinned digest for reproducibility)
+FROM python:3.12.6-slim@sha256:ad48727987b259854d52241fac3bc633574364867b8e20aec305e6e7f4028b26 AS base
 
-# Builder stage to install dependencies
+# Builder stage
 FROM base AS builder
-
 WORKDIR /app
 
-# Copy overlay requirements
-#COPY requirements.txt .
-
-# Install overlay dependencies
-#RUN pip install --no-cache-dir -r requirements.txt
-
-# Install git to clone the repo
-RUN apt-get update && apt-get install -y git vim && rm -rf /var/lib/apt/lists/*
+# Install build tools & git (only here, not in final)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 # Clone Bank of Anthos repo to get requirements
 RUN git clone https://github.com/GoogleCloudPlatform/bank-of-anthos.git /tmp/bank-of-anthos
 
-# Install Python dependencies from the cloned repo
-RUN pip install --prefix="/install" -r /tmp/bank-of-anthos/src/loadgenerator/requirements.txt
+# Upgrade pip and install requirements into /install
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip install --prefix="/install" -r /tmp/bank-of-anthos/src/loadgenerator/requirements.txt
 
 # Final stage
 FROM base
-
 WORKDIR /app
 
 # Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
-# Add application code
-COPY locustfile.py indexing.py requirements.txt .
+# Copy application code
+COPY locustfile.py indexing.py requirements.txt . 
+COPY --chmod=755 entrypoint.sh /app/entrypoint.sh
 
-RUN pip install --no-cache-dir -r requirements.txt
-RUN apt-get update && apt-get install -y git vim curl && rm -rf /var/lib/apt/lists/*
+# Install overlay-specific requirements
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Create non-root user
+RUN useradd -m locust
+USER locust
 
 # Show Python logs as they occur
 ENV PYTHONUNBUFFERED=0
-
-# Enable gevent support in debugger
 ENV GEVENT_SUPPORT=True
-
-# Set fallback log level
-ENV LOG_LEVEL info
-
+ENV LOG_LEVEL=info
 ENV TEST=yes
 
-# Start Locust load generator with default 100 users
-ENTRYPOINT sh -c "\
-echo 'Delaying start for 90s...'; sleep 90; \
-locust --host=http://${FRONTEND_ADDR} --loglevel $LOG_LEVEL --headless --users=${USERS:-100} --run-time 1m --print-stats --csv=/tmp/locust-results; \
-echo 'Running indexing.py...'; python /app/indexing.py; \
-echo 'Sleeping for 1 hour...'; sleep 3600 \
-"
+# Entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]

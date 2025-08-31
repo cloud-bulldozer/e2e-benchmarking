@@ -22,19 +22,23 @@ spec:
       restartPolicy: Never
       containers:
         - name: loadgenerator
-          image: quay.io/msheth/boa-loadgenerator:v0.3
+          image: quay.io/msheth/boa-loadgenerator:v0.4
           imagePullPolicy: Always
           env:
             - name: FRONTEND_ADDR
               value: "${FRONTEND_ADDR}"
             - name: USERS
-              value: "20"
+              value: "100"
             - name: LOG_LEVEL
               value: error
             - name: ES_SERVER
               value: "${ES_SERVER}"
             - name: UUID
               value: "${UUID}"
+            - name: WORKER_COUNT
+              value: "${WORKER_COUNT}"
+            - name: OCP_VERSION
+              value: "${OCP_VERSION}"
           startupProbe:
             exec:
               command:
@@ -47,11 +51,11 @@ spec:
             failureThreshold: 120
           resources:
             limits:
-              cpu: 250m
+              cpu: 2
               memory: 2Gi
             requests:
-              cpu: 100m
-              memory: 512Mi
+              cpu: 1
+              memory: 1Gi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

@@ -24,7 +24,7 @@ import sys
 from string import ascii_letters, digits
 from random import randint, random, choice
 
-from locust import HttpUser, TaskSet, SequentialTaskSet, task, between
+from locust import HttpUser, TaskSet, SequentialTaskSet, task, between, constant
 
 
 logging.basicConfig(level=logging.INFO)
@@ -218,4 +218,4 @@ class WebsiteUser(HttpUser):
     Locust class to simulate HTTP users
     """
     tasks = [AllTasks]
-    wait_time = between(1, 1)
+    wait_time = constant(0)
