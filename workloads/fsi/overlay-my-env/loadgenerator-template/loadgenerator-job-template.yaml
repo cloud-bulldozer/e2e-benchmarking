@@ -20,6 +20,24 @@ spec:
         sidecar.istio.io/rewriteAppHTTPProbers: "true"
     spec:
       restartPolicy: Never
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: loadgenerator
+                topologyKey: "kubernetes.io/hostname"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: loadgenerator
       containers:
         - name: loadgenerator
           image: quay.io/msheth/boa-loadgenerator:v0.4
@@ -28,7 +46,7 @@ spec:
             - name: FRONTEND_ADDR
               value: "${FRONTEND_ADDR}"
             - name: USERS
-              value: "100"
+              value: "500"
             - name: LOG_LEVEL
               value: error
             - name: ES_SERVER
