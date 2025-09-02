@@ -36,6 +36,10 @@ setup(){
             # Indicates a rehearsel in PR against openshift/release repo
             job_type="rehearse"
         fi
+        # Handle cases where a periodic job iw triggered via pull request
+        if [[ ${job_type} == "periodic" ]] && [[ -n ${PULL_NUMBER} ]]; then
+          job_type="pull"
+        fi
 
     elif [[ -n $BUILD_ID ]]; then
         export ci="JENKINS"
