@@ -8,13 +8,11 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.7.2}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.7.4}
 OS=$(uname -s)
 HARDWARE=$(uname -m)
 PERFORMANCE_PROFILE=${PERFORMANCE_PROFILE:-default}
 CHURN=${CHURN:-true}
-PPROF=${PPROF:-true}
-ARCHIVE=${ARCHIVE:-true}
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
 BURST=${BURST:-20}
@@ -166,11 +164,6 @@ if [[ -n ${PERFORMANCE_PROFILE} && ${WORKLOAD} =~ "rds-core" ]]; then
   cmd+=" --perf-profile=${PERFORMANCE_PROFILE}"
 fi
 
-# Enable pprof collection
-if $PPROF; then
-  cmd+=" --pprof"
-fi
-
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
@@ -188,13 +181,5 @@ env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UU
 
 if [[ ${WORKLOAD} =~ "egressip" ]]; then
     cleanup_egressip_external_server
-fi
-if $ARCHIVE; then
-  if $PPROF; then
-    if [[ -z "${ARTIFACT_DIR}" ]]; then
-        ARTIFACT_DIR="/tmp"
-    fi
-    cp -r pprof-data "${ARTIFACT_DIR}/"
-  fi
 fi
 exit $exit_code
