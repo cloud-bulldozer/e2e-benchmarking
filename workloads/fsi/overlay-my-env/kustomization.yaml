@@ -1,0 +1,97 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../bank-of-anthos-base/kubernetes-manifests
+
+patches:
+  - path: patches/accounts-db.yaml
+    target:
+      kind: StatefulSet
+      name: accounts-db
+
+  - path: patches/balance-reader.yaml
+    target:
+      kind: Deployment
+      name: balancereader
+
+  - path: patches/balancereader-resources.yaml
+    target:
+      kind: Deployment
+      name: balancereader
+
+  - path: patches/contacts.yaml
+    target:
+      kind: Deployment
+      name: contacts
+
+  - path: patches/frontend.yaml
+    target:
+      kind: Deployment
+      name: frontend
+
+  - path: patches/frontend-resources.yaml
+    target:
+      kind: Deployment
+      name: frontend
+
+  - path: patches/frontend-service.yaml
+    target:
+      kind: Service
+      name: frontend
+
+  - path: patches/ledger-db.yaml
+    target:
+      kind: StatefulSet
+      name: ledger-db
+
+  - path: patches/ledger-writer.yaml
+    target:
+      kind: Deployment
+      name: ledgerwriter
+
+  - path: patches/ledgerwriter-resources.yaml
+    target:
+      kind: Deployment
+      name: ledgerwriter
+
+  - path: patches/transaction-history.yaml
+    target:
+      kind: Deployment
+      name: transactionhistory
+
+  - path: patches/transactionhistory-resources.yaml
+    target:
+      kind: Deployment
+      name: transactionhistory
+
+  - path: patches/userservice.yaml
+    target:
+      kind: Deployment
+      name: userservice
+
+  - path: patches/userservice-resources.yaml
+    target:
+      kind: Deployment
+      name: frontend
+
+  - path: patches/accounts-db-resources.yaml
+    target:
+      kind: Deployment
+      name: frontend
+
+  - path: patches/ledger-db-resources.yaml
+    target:
+      kind: Deployment
+      name: frontend
+
+
+patchesJson6902:
+  - target:
+      version: v1
+      group: apps
+      kind: Deployment
+      name: loadgenerator
+    patch: |-
+      - op: remove
+        path: /
