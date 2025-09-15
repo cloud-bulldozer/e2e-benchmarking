@@ -137,6 +137,15 @@ if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || $
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
+if [[ ${WORKLOAD} =~ "kube-burner-ai" ]]; then
+  WORKLOAD="cluster-density"
+  numbers=(100 150 200 250 300 350 400 450 500)
+  array_length=${#numbers[@]}
+  random_index=$(( $RANDOM % array_length ))
+  ITERATIONS=${numbers[$random_index]}
+
+  cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
+fi
 if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density|olm|udn-bgp)$ ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS}"
