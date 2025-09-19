@@ -22,7 +22,7 @@ UUID=${UUID:-$(uuidgen)}
 KUBE_DIR=${KUBE_DIR:-/tmp}
 
 download_binary(){
-  KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-${OS}-${HARDWARE}.tar.gz"
+  KUBE_BURNER_URL="https://github.com/venkataanil/kube-burner-ocp/releases/download/3.0.0/kube-burner-ocp-3.0.0-linux-x86_64.tar.gz"
   curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
 }
 
@@ -134,7 +134,7 @@ else
 fi
 cmd+=" ${EXTRA_FLAGS}"
 if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || ${WORKLOAD} =~ "rds-core" ]] && [[ ! ${WORKLOAD} =~ "web-burner" ]] ; then
-  ITERATIONS=${ITERATIONS:?}
+  ITERATIONS=$((RANDOM % (15 - 10 + 1) + 10))
   cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
 fi
 if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density|olm|udn-bgp)$ ]]; then
