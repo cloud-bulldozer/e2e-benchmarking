@@ -4,6 +4,7 @@ apiVersion: build.openshift.io/v1
 metadata:
   name: {{.JobName}}-{{.Replica}}
 spec:
+  runPolicy: "Parallel"
   nodeSelector: {{.nodeSelector}}
   triggers:
   - type: GitHub
