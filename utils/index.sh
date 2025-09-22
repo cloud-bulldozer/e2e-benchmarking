@@ -28,6 +28,7 @@ setup(){
         export prow_base_url="https://prow.ci.openshift.org/view/gs/origin-ci-test/logs"
         export prow_pr_base_url="https://prow.ci.openshift.org/view/gs/test-platform-results/pr-logs/pull/openshift_release"
         job_type=${JOB_TYPE}
+        get_prowjob_info
         if [[ "${job_type}" == "presubmit" && "${JOB_NAME}" == *pull* ]]; then
             # Indicates a ci test triggered in PR against source code
             job_type="pull"
@@ -37,8 +38,10 @@ setup(){
             job_type="rehearse"
         fi
         # Handle cases where a periodic job iw triggered via pull request
-        if [[ ${job_type} == "periodic" ]] && [[ -n ${PULL_NUMBER} ]]; then
-          job_type="pull"
+        if [[ "${job_type}" == "periodic" ]]; then
+            if [[ "$pull_number" -ne 0 ]]; then
+                job_type="pull"
+            fi
         fi
 
     elif [[ -n $BUILD_ID ]]; then
@@ -62,6 +65,10 @@ setup(){
     fi
     export job_type
     export UUID=$UUID
+    # Prow job info
+    export organization=$organization
+    export repository=$repository
+    export pull_number=$pull_number
     # Elasticsearch Config
     export ES_SERVER=$ES_SERVER
     export WORKLOAD=$WORKLOAD
@@ -108,6 +115,35 @@ setup(){
         all=$((all + 1))
     done
 
+}
+
+# Function to extract infor from the prowjob.json file
+get_prowjob_info() {
+    if [[ "${job_type}" == "presubmit" ]]; then
+        pull_number=$PULL_NUMBER
+        organization=$REPO_OWNER
+        repository=$REPO_NAME
+    else
+        prow_artifacts_base_url="https://gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com/gcs/test-platform-results/logs"
+        job_id=$JOB_NAME
+        task_id=$BUILD_ID
+        prowjobjson_file="${PWD}/prowjob.json"
+        prowjobjson_url="${prow_artifacts_base_url}/${job_id}/${task_id}/prowjob.json"
+        
+        curl -s $prowjobjson_url -o $prowjobjson_file
+
+        # Test if the file is valid
+        if result=$(jq $prowjobjson_file); then
+            # Read the file and parse it with jq
+            pull_number=$(jq -r '.metadata.labels."prow.k8s.io/refs.pull" // "0"' "$prowjobjson_file")
+            organization=$(jq -r '.metadata.labels."prow.k8s.io/refs.org" // ""' "$prowjobjson_file")
+            repository=$(jq -r '.metadata.labels."prow.k8s.io/refs.repo" // ""' "$prowjobjson_file")
+        else
+            pull_number=0
+            organization=""
+            repository=""
+        fi
+    fi
 }
 
 get_ipsec_config(){
@@ -262,7 +298,10 @@ index_task(){
         "encryptionType":"'"$encryption"'",
         "publish":"'"$publish"'",
         "computeArch":"'"$compute_arch"'",
-        "controlPlaneArch":"'"$control_plane_arch"'"
+        "controlPlaneArch":"'"$control_plane_arch"'",
+        "pullNumber":"'"$pull_number"'",
+        "organization":"'"$organization"'",
+        "repository":"'"$repository"'"
     }'
 
     # Ensure ADDITIONAL_PARAMS is valid JSON
