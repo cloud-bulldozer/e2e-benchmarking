@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -eox pipefail
 
 setup(){
     if [[ -n $AIRFLOW_CTX_DAG_ID ]]; then
@@ -131,6 +131,7 @@ get_prowjob_info() {
         prowjobjson_url="${prow_artifacts_base_url}/${job_id}/${task_id}/prowjob.json"
         
         curl -s $prowjobjson_url -o $prowjobjson_file
+        ls -la $prowjobjson_file
 
         # Test if the file is valid
         if result=$(jq $prowjobjson_file); then
