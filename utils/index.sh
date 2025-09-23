@@ -125,19 +125,14 @@ get_prowjob_info() {
         repository=$REPO_NAME
     else
         prow_artifacts_base_url="https://gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com/gcs/test-platform-results/logs"
-        job_id=$JOB_NAME
-        task_id=$BUILD_ID
-        prowjobjson_file="${PWD}/prowjob.json"
-        prowjobjson_url="${prow_artifacts_base_url}/${job_id}/${task_id}/prowjob.json"
+        prowjobjson_url="${prow_artifacts_base_url}/${JOB_NAME}/${BUILD_ID}/prowjob.json"
         
-        curl -s $prowjobjson_url -o $prowjobjson_file
-
-        # Test if the file is valid
-        if result=$(jq $prowjobjson_file); then
+        # Test if URL is valid
+        if result=$(curl -s "$prowjobjson_url" | jq); then
             # Read the file and parse it with jq
-            pull_number=$(jq -r '.metadata.labels."prow.k8s.io/refs.pull" // "0"' "$prowjobjson_file")
-            organization=$(jq -r '.metadata.labels."prow.k8s.io/refs.org" // ""' "$prowjobjson_file")
-            repository=$(jq -r '.metadata.labels."prow.k8s.io/refs.repo" // ""' "$prowjobjson_file")
+            pull_number=$(echo $result | jq -r '.metadata.labels."prow.k8s.io/refs.pull" // "0"')
+            organization=$(echo $result | jq -r '.metadata.labels."prow.k8s.io/refs.org" // ""')
+            repository=$(echo $result | jq -r '.metadata.labels."prow.k8s.io/refs.repo" // ""')
         else
             pull_number=0
             organization=""
