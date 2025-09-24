@@ -134,7 +134,7 @@ get_prowjob_info() {
         ls -la $prowjobjson_file
 
         # Test if the file is valid
-        if result=$(jq $prowjobjson_file); then
+        if result=$(cat $prowjobjson_file | jq); then
             # Read the file and parse it with jq
             pull_number=$(jq -r '.metadata.labels."prow.k8s.io/refs.pull" // "0"' "$prowjobjson_file")
             organization=$(jq -r '.metadata.labels."prow.k8s.io/refs.org" // ""' "$prowjobjson_file")
