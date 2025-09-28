@@ -86,6 +86,6 @@ spec:
         runAsGroup: 1000
         runAsNonRoot: true
         runAsUser: 1000
-      serviceAccountName: default
+      serviceAccountName: bank-of-anthos
       terminationGracePeriodSeconds: 5
 
