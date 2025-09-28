@@ -18,13 +18,20 @@ OVERLAY_DIR="$WRAPPER_DIR/overlay-my-env"
 KUBE_DIR=${KUBE_DIR:-/tmp}
 OCP_VERSION=$(oc get clusterversion -o json | jq -r '.items[0].status.desired.version')
 WORKER_COUNT=$(oc get no --no-headers -l node-role.kubernetes.io/worker | wc -l)
-ES_INDEX="ripsaw-kube-burner-mohit"
+ES_INDEX="mohit-ripsaw-kube-burner"
 EXTRA_FLAGS=${EXTRA_FLAGS:-}
 NAMESPACE=${NAMESPACE:-fsi-workload}
 
 export UUID=${UUID:-$(uuidgen)}
 
 log INFO "🖥️ Cluster version: $OCP_VERSION, Worker nodes: $WORKER_COUNT"
+
+
+download_binary(){
+  KUBE_BURNER_VERSION=1.7.7
+  KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-linux-x86_64.tar.gz"
+  curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
+}
 
 clone_or_update_repo() {
     if [ ! -d "$BOA_DIR" ]; then
@@ -72,8 +79,10 @@ ensure_namespace() {
 
 grant_permissions() {
     log INFO "🔐 Granting cluster-admin to service accounts in $NAMESPACE..."
-    oc adm policy add-cluster-role-to-user cluster-admin -z default -n "$NAMESPACE"
+    oc adm policy add-scc-to-user anyuid -z bank-of-anthos -n "$NAMESPACE"
     oc adm policy add-cluster-role-to-user cluster-admin -z bank-of-anthos -n "$NAMESPACE"
+    oc adm policy add-scc-to-user privileged -z bank-of-anthos -n "$NAMESPACE"
+    oc adm policy add-scc-to-user privileged -z default -n "$NAMESPACE"
 }
 
 apply_secret() {
@@ -155,6 +164,7 @@ wait_for_loadgen() {
 }
 
 kube_burner_index() {
+    cd "$WRAPPER_DIR"
     END_TIME=$(date +%s)
     cmd=("${KUBE_DIR}/kube-burner-ocp" index \
          --start="$START_TIME" \
@@ -182,6 +192,7 @@ main()
     apply_secret
     apply_overlay
     wait_for_loadgen
+    download_binary
     kube_burner_index
     log INFO "===== 🎉 Setup complete. 🎉 ====="
     JOB_END=${JOB_END:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
