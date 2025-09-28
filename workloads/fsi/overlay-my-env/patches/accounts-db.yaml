@@ -24,16 +24,9 @@ spec:
             matchLabels:
               app: accounts-db
       securityContext:
-        fsGroup: 999
-      initContainers:
-      - name: fix-permissions
-        image: busybox
-        command: ["sh","-c","chown -R 999:999 /var/lib/postgresql/data && chmod 700 /var/lib/postgresql/data"]
-        volumeMounts:
-        - name: postgresdb
-          mountPath: /var/lib/postgresql/data
-        securityContext:
-          runAsUser: 0
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
       containers:
       - name: accounts-db
         image: us-central1-docker.pkg.dev/bank-of-anthos-ci/bank-of-anthos/accounts-db:v0.6.6@sha256:829a5d79d382ad92d8a6379c37e73f98a0131dff4785a64a6f7dd8f6e02be2d5
@@ -45,12 +38,8 @@ spec:
         - configMapRef:
             name: demo-data-config
         securityContext:
-          runAsUser: 999
-          capabilities:
-            drop:
-            - ALL
-          seccompProfile:
-            type: RuntimeDefault
+          runAsUser: 0
+          privileged: true
         ports:
         - containerPort: 5432
         volumeMounts:
@@ -64,4 +53,3 @@ spec:
       resources:
         requests:
           storage: 1Gi
-

@@ -24,16 +24,9 @@ spec:
             matchLabels:
               app: ledger-db
       securityContext:
-        fsGroup: 999
-      initContainers:
-      - name: fix-permissions
-        image: busybox
-        command: ["sh","-c","chown -R 999:999 /var/lib/postgresql/data && chmod 700 /var/lib/postgresql/data"]
-        volumeMounts:
-        - name: postgresdb
-          mountPath: /var/lib/postgresql/data
-        securityContext:
-          runAsUser: 0
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
       containers:
       - name: postgres
         image: us-central1-docker.pkg.dev/bank-of-anthos-ci/bank-of-anthos/ledger-db:v0.6.6@sha256:db8bb60717be587cb3c419a73012cebc7c8cf464a77ae45fd78502f0fa3922d8
@@ -45,12 +38,8 @@ spec:
         - configMapRef:
             name: demo-data-config
         securityContext:
-          runAsUser: 999
-          capabilities:
-            drop:
-            - ALL
-          seccompProfile:
-            type: RuntimeDefault
+          runAsUser: 0
+          privileged: true
         ports:
         - containerPort: 5432
         volumeMounts:
