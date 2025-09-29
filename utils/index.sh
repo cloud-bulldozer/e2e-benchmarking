@@ -252,6 +252,7 @@ index_task(){
     url=$1
     uuid_dir=/tmp/$UUID
     mkdir -p "$uuid_dir"
+    echo "$UUID" >> "/tmp/$WORKLOAD-uuid.txt"
 
     start_date_unix_timestamp=$(date "+%s" -d "${start_date}")
     end_date_unix_timestamp=$(date "+%s" -d "${end_date}")
