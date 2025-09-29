@@ -34,7 +34,7 @@ fi
 if [[ ${GATEWAY_API} = true ]]; then
   cmd+=" --gw-api=true"
 fi
-
+echo "$UUID" >> /tmp/"${WORKLOAD}"-uuid.txt
 # Do not exit if ingress-perf fails, we need to capture the exit code.
 set +e
 
