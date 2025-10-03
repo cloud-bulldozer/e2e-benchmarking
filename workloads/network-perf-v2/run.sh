@@ -49,6 +49,13 @@ if [ -n "${EXTERNAL_SERVER_ADDRESS}" ]; then
   add_flag "serverIP" "${EXTERNAL_SERVER_ADDRESS}"
 fi
 
+if [ "${LOCAL}" = "true" ]; then
+  echo "LOCAL mode enabled — removing infra label from worker nodes"
+  for node in $(oc get nodes -l node-role.kubernetes.io/infra -o name); do
+    oc label "$node" node-role.kubernetes.io/infra- || true
+  done
+fi
+
 # Add flags based on conditions
 [ ! ${LOCAL} = true ] && add_flag "all" "${ALL_SCENARIOS}" || echo "LOCAL=true, not setting --all"
 add_flag "clean" "${CLEAN_UP}"
@@ -64,6 +71,7 @@ add_flag "vm" "${VM}"
 add_flag "udn" "${UDN}"
 
 # Execute the constructed command
+echo "Executing command: $cmd"
 eval "$cmd"
 run=$?
 JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -72,6 +80,7 @@ JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 echo "============ Debug Info ============"
 echo k8s-netperf version ${NETPERF_VERSION}
 oc get pods -n netperf -o wide
+oc describe pods -n netperf
 oc get nodes -o wide
 oc get machineset -A || true
 

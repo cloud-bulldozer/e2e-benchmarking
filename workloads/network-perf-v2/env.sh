@@ -1,7 +1,7 @@
 # Common
 export UUID=${UUID:-$(uuidgen)}
 export CLEAN_UP=${CLEAN_UP:-true}
-export LOCAL=${LOCAL:-false}
+export LOCAL=${LOCAL:-true}
 
 # k8s-netperf version
 if [ "${NETPERF_VERSION}" = "default" ]; then
