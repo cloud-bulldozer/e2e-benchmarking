@@ -1,0 +1,109 @@
+# API server
+
+- query: irate(apiserver_request_total{verb="POST", resource="pods", subresource="binding",code="201"}[2m]) > 0
+  metricName: schedulingThroughput
+
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{apiserver="kube-apiserver", verb=~"LIST|GET", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope)) > 0
+  metricName: readOnlyAPICallsLatency
+
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{apiserver="kube-apiserver", verb=~"POST|PUT|DELETE|PATCH", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope)) > 0
+  metricName: mutatingAPICallsLatency
+
+- query: sum(irate(apiserver_request_total{apiserver="kube-apiserver",verb!="WATCH"}[2m])) by (verb,resource,code) > 0
+  metricName: APIRequestRate
+
+# Kubeproxy and OVN service sync latency
+
+- query: histogram_quantile(0.99, sum(rate(kubeproxy_network_programming_duration_seconds_bucket[2m])) by (le)) > 0
+  metricName: serviceSyncLatency
+
+- query: histogram_quantile(0.99, sum(rate(ovnkube_master_network_programming_duration_seconds_bucket{kind="service"}[2m])) by (le))
+  metricName: serviceSyncLatency
+
+# Containers & pod metrics
+
+- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(etcd|oauth-apiserver|sdn|ovn-kubernetes|network-node-identity|multus|.*apiserver|authentication|.*controller-manager|.*scheduler|image-registry|operator-lifecycle-manager)"}[2m]) * 100) by (container, pod, namespace, node) and on (node) kube_node_role{role="master"}) > 0
+  metricName: containerCPU-Masters
+
+- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(monitoring|sdn|ovn-kubernetes|multus|ingress)"}[2m]) * 100) by (container, pod, namespace, node) and on (node) kube_node_role{role="infra"}) > 0
+  metricName: containerCPU-Infra
+
+- query: (sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(etcd|oauth-apiserver|.*apiserver|ovn-kubernetes|network-node-identity|sdn|multus|ingress|authentication|.*controller-manager|.*scheduler|image-registry|operator-lifecycle-manager)"}) by (container, pod, namespace, node) and on (node) kube_node_role{role="master"}) > 0
+  metricName: containerMemory-Masters
+
+- query: (sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|multus|ingress|monitoring|image-registry)"}) by (container, pod, namespace, node) and on (node) kube_node_role{role="infra"}) > 0
+  metricName: containerMemory-Infra
+
+- query: (sum(irate(container_cpu_usage_seconds_total{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|multus)"}[2m]) * 100) by (container, pod, namespace, node) and on (node) kube_node_role{role="ovnic"}) > 0
+  metricName: containerCPU-Workers
+
+- query: (sum(container_memory_rss{name!="",container!="POD",namespace=~"openshift-(sdn|ovn-kubernetes|multus)"}) by (container, pod, namespace, node) and on (node) kube_node_role{role="ovnic"}) > 0
+  metricName: containerMemory-Workers
+
+# Node metrics: CPU & Memory
+
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="ovnic"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: nodeCPU-Workers
+
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: nodeCPU-Masters
+
+- query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")) > 0
+  metricName: nodeCPU-Infra
+
+# We compute memory utilization by substrating available memory to the total
+#
+- query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(kube_node_role{role="master"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryUtilization-Masters
+
+- query: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) and on (instance) label_replace(kube_node_role{role="infra"}, "instance", "$1", "node", "(.+)")
+  metricName: nodeMemoryUtilization-Infra
+
+# Etcd metrics
+
+- query: sum(rate(etcd_server_leader_changes_seen_total[2m]))
+  metricName: etcdLeaderChangesRate
+
+- query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket[2m]))
+  metricName: 99thEtcdDiskBackendCommitDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket[2m]))
+  metricName: 99thEtcdDiskWalFsyncDurationSeconds
+
+- query: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[5m]))
+  metricName: 99thEtcdRoundTripTimeSeconds
+
+- query: sum by (cluster_version)(etcd_cluster_version)
+  metricName: etcdVersion
+  instant: true
+
+# Cluster metrics
+
+- query: sum(kube_namespace_status_phase) by (phase) > 0
+  metricName: namespaceCount
+
+- query: count(kube_secret_info{})
+  metricName: secretCount
+  instant: true
+
+- query: count(kube_deployment_labels{})
+  metricName: deploymentCount
+  instant: true
+
+- query: count(kube_configmap_info{})
+  metricName: configmapCount
+  instant: true
+
+- query: count(kube_service_info{})
+  metricName: serviceCount
+  instant: true
+
+- query: kube_node_role
+  metricName: nodeRoles
+
+- query: sum(kube_node_status_condition{status="true"}) by (condition)
+  metricName: nodeStatus
+
+- query: count(kube_replicaset_labels{})
+  metricName: replicaSetCount
+  instant: true
