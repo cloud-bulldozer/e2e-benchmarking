@@ -20,6 +20,7 @@ GC=${GC:-true}
 EXTRA_FLAGS=${EXTRA_FLAGS:-}
 UUID=${UUID:-$(uuidgen)}
 KUBE_DIR=${KUBE_DIR:-/tmp}
+ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
 
 download_binary(){
   KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-${OS}-${HARDWARE}.tar.gz"
@@ -161,10 +162,10 @@ fi
 if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
-  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
+  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}" -o /dev/null
 # for non-hypershift cluster
 elif [[ -n ${ES_SERVER} ]]; then
-  cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
+  cmd+=" --es-server=${ES_SERVER} --es-index=${ES_INDEX}"
 else
   echo "ES_SERVER is not set, not indexing the results"
 fi
