@@ -201,6 +201,12 @@ get_ocp_virt_tuning_policy_config(){
     fi
 }
 
+get_ovn_version(){
+    if result=$(oc exec -n openshift-ovn-kubernetes   $(oc get pod -n openshift-ovn-kubernetes -l app=ovnkube-node -o jsonpath='{.items[0].metadata.name}')   -- ovn-controller --version   | grep "^ovn-controller" | awk '{print $2}' 2> /dev/null); then
+        ovn_version=$result
+    fi
+}
+
 get_encryption_config(){
     # Check the apiserver for the encryption config
     # If encryption was never turned on, you won't find this config on the apiserver
@@ -281,6 +287,7 @@ index_task(){
         "ocpVirtVersion":"'"$ocp_virt_version"'",
         "ocpVirtTuningPolicy":"'"$ocp_virt_tuning_policy"'",
         "networkType":"'"$network_type"'",
+        "ovnVersion""'"$ovn_version"'",
         "buildTag":"'"$task_id"'",
         "jobStatus":"'"$state"'",
         "jobType":"'"$job_type"'",
@@ -409,6 +416,7 @@ if [[ "$ocp_virt" == true ]]; then
     get_ocp_virt_version_config
     get_ocp_virt_tuning_policy_config
 fi
+get_ovn_version
 get_encryption_config
 get_publish_config
 get_architecture_config
