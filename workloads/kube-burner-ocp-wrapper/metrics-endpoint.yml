@@ -1,4 +1,5 @@
 - endpoint: {{.MC_OBO}}
+  {{if ne .HC_PLATFORM "aws"}}token: {{.MC_PROMETHEUS_TOKEN}}{{end}}
   metrics:
     - metrics-profiles/{{.HC_PRODUCT}}/hosted-cp-metrics.yml
   alerts:
