@@ -21,10 +21,41 @@ EXTRA_FLAGS=${EXTRA_FLAGS:-}
 UUID=${UUID:-$(uuidgen)}
 KUBE_DIR=${KUBE_DIR:-/tmp}
 ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
+KUBEBURNER_OCP_PR=${KUBEBURNER_OCP_PR:-}
 
 download_binary(){
   KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-${OS}-${HARDWARE}.tar.gz"
   curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
+}
+
+build_from_pr(){
+  echo "Building kube-burner-ocp from PR #${KUBEBURNER_OCP_PR}"
+  BIN_ARCH=$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)
+  # Clone the repository
+  REPO_DIR="${KUBE_DIR}/kube-burner-ocp-repo"
+  if [ -d "${REPO_DIR}" ]; then
+    rm -rf "${REPO_DIR}"
+  fi
+  
+  git clone https://github.com/kube-burner/kube-burner-ocp.git "${REPO_DIR}"
+  cd "${REPO_DIR}"
+  
+  # Fetch the PR and checkout
+  git pull origin pull/${KUBEBURNER_OCP_PR}/head:${KUBEBURNER_OCP_PR} --rebase
+  git switch ${KUBEBURNER_OCP_PR}
+  
+  # Build the binary
+  echo "Building binary..."
+  make build
+  
+  # Copy the binary to KUBE_DIR
+  cp bin/${BIN_ARCH}/kube-burner-ocp "${KUBE_DIR}/kube-burner-ocp"
+  chmod +x "${KUBE_DIR}/kube-burner-ocp"
+  
+  # Return to original directory
+  cd -
+  
+  echo "Successfully built kube-burner-ocp from PR #${KUBEBURNER_OCP_PR}"
 }
 
 hypershift(){
@@ -124,7 +155,13 @@ EOF
 
 }
 
-download_binary
+# Build from PR if KUBEBURNER_OCP_PR is set, otherwise download binary
+if [[ -n ${KUBEBURNER_OCP_PR} ]]; then
+  build_from_pr
+else
+  download_binary
+fi
+
 if [[ ${WORKLOAD} =~ "index" ]]; then
   cmd="${KUBE_DIR}/kube-burner-ocp index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
   JOB_START=$(date -u -d "@$START_TIME" +"%Y-%m-%dT%H:%M:%SZ")
