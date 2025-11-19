@@ -129,7 +129,7 @@ get_prowjob_info() {
         task_id=$BUILD_ID
         prowjobjson_file="${PWD}/prowjob.json"
         prowjobjson_url="${prow_artifacts_base_url}/${job_id}/${task_id}/prowjob.json"
-        
+
         curl -s $prowjobjson_url -o $prowjobjson_file
 
         # Test if the file is valid
@@ -198,6 +198,12 @@ get_ocp_virt_version_config(){
 get_ocp_virt_tuning_policy_config(){
     if result=$(kubectl get hyperconverged kubevirt-hyperconverged -n openshift-cnv -o jsonpath='{.spec.tuningPolicy}' 2> /dev/null); then
         ocp_virt_tuning_policy=$result
+    fi
+}
+
+get_ovn_version(){
+    if result=$(oc exec -n openshift-ovn-kubernetes   $(oc get pod -n openshift-ovn-kubernetes -l app=ovnkube-node -o jsonpath='{.items[0].metadata.name}')   -- ovn-controller --version   | grep "^ovn-controller" | awk '{print $2}' 2> /dev/null); then
+        ovn_version=$result
     fi
 }
 
@@ -281,6 +287,7 @@ index_task(){
         "ocpVirtVersion":"'"$ocp_virt_version"'",
         "ocpVirtTuningPolicy":"'"$ocp_virt_tuning_policy"'",
         "networkType":"'"$network_type"'",
+        "ovnVersion""'"$ovn_version"'",
         "buildTag":"'"$task_id"'",
         "jobStatus":"'"$state"'",
         "jobType":"'"$job_type"'",
@@ -321,6 +328,12 @@ index_task(){
     # Save and send the merged JSON
     echo "$merged_json" >> $uuid_dir/index_data.json
     echo "$merged_json"
+
+    if [[ -z $ES_SERVER ]]; then
+        echo "Elastic server is not defined, please check"
+        exit 0
+    fi
+
     curl -sS --insecure -X POST -H "Content-Type:application/json" -H "Cache-Control:no-cache" -d "$merged_json" "$url"
 }
 
@@ -386,13 +399,9 @@ if [[ -z $PROW_JOB_ID && -z $AIRFLOW_CTX_DAG_ID && -z $BUILD_ID ]]; then
     echo "Not a CI run. Skipping CI metrics to be indexed"
     exit 0
 fi
-if [[ -z $ES_SERVER ]]; then
-  echo "Elastic server is not defined, please check"
-  exit 0
-fi
 if [[ -z $UUID ]]; then
-  echo "UUID is not present. UUID is a must for the indexing step"
-  exit 0
+    echo "UUID is not present. UUID is a must for the indexing step"
+    exit 0
 fi
 
 ES_INDEX=perf_scale_ci
@@ -409,6 +418,7 @@ if [[ "$ocp_virt" == true ]]; then
     get_ocp_virt_version_config
     get_ocp_virt_tuning_policy_config
 fi
+get_ovn_version
 get_encryption_config
 get_publish_config
 get_architecture_config
