@@ -129,7 +129,7 @@ get_prowjob_info() {
         task_id=$BUILD_ID
         prowjobjson_file="${PWD}/prowjob.json"
         prowjobjson_url="${prow_artifacts_base_url}/${job_id}/${task_id}/prowjob.json"
-        
+
         curl -s $prowjobjson_url -o $prowjobjson_file
 
         # Test if the file is valid
@@ -328,6 +328,20 @@ index_task(){
     # Save and send the merged JSON
     echo "$merged_json" >> $uuid_dir/index_data.json
     echo "$merged_json"
+
+    if [[ -z $PROW_JOB_ID && -z $AIRFLOW_CTX_DAG_ID && -z $BUILD_ID ]]; then
+        echo "Not a CI run. Skipping CI metrics to be indexed"
+        exit 0
+    fi
+    if [[ -z $ES_SERVER ]]; then
+        echo "Elastic server is not defined, please check"
+        exit 0
+    fi
+    if [[ -z $UUID ]]; then
+        echo "UUID is not present. UUID is a must for the indexing step"
+        exit 0
+    fi
+
     curl -sS --insecure -X POST -H "Content-Type:application/json" -H "Cache-Control:no-cache" -d "$merged_json" "$url"
 }
 
@@ -387,20 +401,6 @@ index_tasks(){
         index_task "$ES_SERVER/$ES_INDEX/_doc/$job_id%2F$task_id%2F$UUID"
     fi
 }
-
-# Defaults
-if [[ -z $PROW_JOB_ID && -z $AIRFLOW_CTX_DAG_ID && -z $BUILD_ID ]]; then
-    echo "Not a CI run. Skipping CI metrics to be indexed"
-    exit 0
-fi
-if [[ -z $ES_SERVER ]]; then
-  echo "Elastic server is not defined, please check"
-  exit 0
-fi
-if [[ -z $UUID ]]; then
-  echo "UUID is not present. UUID is a must for the indexing step"
-  exit 0
-fi
 
 ES_INDEX=perf_scale_ci
 
