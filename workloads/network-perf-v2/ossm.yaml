@@ -1,0 +1,102 @@
+---
+tests:
+
+# Pod 2 service
+# TCP
+- TCPStreamServiceSmall:
+  parallelism: 1
+  profile: "TCP_STREAM"
+  duration: 30
+  samples: 2
+  messagesize: 64
+  service: True
+
+- TCPStreamServiceMed:
+  parallelism: 1
+  profile: "TCP_STREAM"
+  duration: 30
+  samples: 2
+  messagesize: 1024
+  service: True
+
+- TCPStreamServiceLarge:
+  parallelism: 1
+  profile: "TCP_STREAM"
+  duration: 30
+  samples: 2
+  messagesize: 8192
+  service: True
+
+- TCPStreamServiceSmall2:
+  parallelism: 2
+  profile: "TCP_STREAM"
+  duration: 30
+  samples: 2
+  messagesize: 64
+  service: True
+
+- TCPStreamServiceMed2:
+  parallelism: 2
+  profile: "TCP_STREAM"
+  duration: 30
+  samples: 2
+  messagesize: 1024
+  service: True
+
+- TCPStreamServiceLarge2:
+  parallelism: 2
+  profile: "TCP_STREAM"
+  duration: 30
+  samples: 2
+  messagesize: 8192
+  service: True
+
+- TCPStreamServiceSmall4:
+  parallelism: 4
+  profile: "TCP_STREAM"
+  duration: 30
+  samples: 2
+  messagesize: 64
+  service: True
+
+- TCPStreamServiceMed4:
+  parallelism: 4
+  profile: "TCP_STREAM"
+  duration: 30
+  samples: 2
+  messagesize: 1024
+  service: True
+
+- TCPStreamServiceLarge4:
+  parallelism: 4
+  profile: "TCP_STREAM"
+  duration: 30
+  samples: 2
+  messagesize: 8192
+  service: True
+
+# Latency - RR
+
+- RRService-TCP:
+  parallelism: 1
+  profile: "TCP_RR"
+  duration: 30
+  samples: 2
+  messagesize: 64
+  service: true
+
+- RRService-TCP2:
+  parallelism: 1
+  profile: "TCP_RR"
+  duration: 30
+  samples: 2
+  messagesize: 1024
+  service: true
+
+- RRService-TCP4:
+  parallelism: 1
+  profile: "TCP_RR"
+  duration: 30
+  samples: 2
+  messagesize: 8192
+  service: true

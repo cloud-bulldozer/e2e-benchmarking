@@ -25,6 +25,7 @@ export EXTERNAL_SERVER_ADDRESS=${EXTERNAL_SERVER_ADDRESS:-}
 
 # Workload
 export WORKLOAD=${WORKLOAD:-smoke.yaml}
+export WORKLOAD_NAME=${WORKLOAD_NAME:-k8s-netperf}
 export TEST_TIMEOUT=${TEST_TIMEOUT:-14400}
 
 # Tolerance of delta from hostNetwork to podNetwork - single stream
