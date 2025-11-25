@@ -75,7 +75,8 @@ build_from_pr(){
   cd "${REPO_DIR}"
 
   # Fetch the PR and checkout
-  git pull origin pull/${KUBEBURNER_OCP_PR}/head:${KUBEBURNER_OCP_PR} --rebase
+  git fetch origin pull/${KUBEBURNER_OCP_PR}/head:${KUBEBURNER_OCP_PR}
+  git rebase ${KUBEBURNER_OCP_PR}
   git switch ${KUBEBURNER_OCP_PR}
   
   # Build the binary
