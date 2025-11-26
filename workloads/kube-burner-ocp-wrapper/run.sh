@@ -74,9 +74,12 @@ build_from_pr(){
   git clone https://github.com/kube-burner/kube-burner-ocp.git "${REPO_DIR}"
   cd "${REPO_DIR}"
 
+  # Update GIT Global user settings
+  git config --global user.name "Tu Nombre"
+  git config --global user.email "tu.email@example.com"
+
   # Fetch the PR and checkout
-  git fetch origin pull/${KUBEBURNER_OCP_PR}/head:${KUBEBURNER_OCP_PR}
-  git rebase ${KUBEBURNER_OCP_PR}
+  git pull origin pull/${KUBEBURNER_OCP_PR}/head:${KUBEBURNER_OCP_PR} --rebase 
   git switch ${KUBEBURNER_OCP_PR}
   
   # Build the binary
