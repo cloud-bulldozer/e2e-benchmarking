@@ -9,7 +9,7 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$INGRESS_PERF_VERSION" = "default" ]; then
     unset INGRESS_PERF_VERSION
 fi
-INGRESS_PERF_VERSION=${INGRESS_PERF_VERSION:-0.5.2}
+INGRESS_PERF_VERSION=${INGRESS_PERF_VERSION:-0.6.0}
 CONFIG=${CONFIG:?}
 BASELINE_UUID=${BASELINE_UUID:-}
 BASELINE_INDEX=${BASELINE_INDEX:-ingress-performance-baseline}
@@ -34,6 +34,10 @@ fi
 if [[ ${GATEWAY_API} = true ]]; then
   cmd+=" --gw-api=true"
 fi
+if [[ -n ${SERVICE_MESH} ]]; then
+  cmd+=" --service-mesh=${SERVICE_MESH}"
+fi
+
 echo "$UUID" >> /tmp/"${WORKLOAD}"-uuid.txt
 # Do not exit if ingress-perf fails, we need to capture the exit code.
 set +e

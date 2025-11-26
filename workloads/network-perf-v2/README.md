@@ -20,7 +20,7 @@ execute against the cloud.
 ```sh
 $ WORKLOAD=full-run.yaml ./run.sh
 ```
-This will orchestrate multiple netwok performance tests. 
+This will orchestrate multiple network performance tests. 
 
 | Test | Iterations | Duration | 
 |------|------------|----------|
@@ -28,6 +28,16 @@ This will orchestrate multiple netwok performance tests.
 |UDP Stream| 3| 30 |
 |TCP RR| 3| 30 |
 |TCP CRR| 3| 10 |
+
+```sh
+$ WORKLOAD=ossm.yaml ./run.sh
+```
+This will orchestrate multiple network performance tests for OpenShift ServiceMesh.
+
+| Test | Parallelism | MessageSize | Iterations | Duration | 
+|------|------------|------------|----------|
+|TCP Stream| 1 - 2 - 4 | 64 - 1024 - 8192 | 2 | 30 |
+|TCP RR| 1 | 64 - 1024 - 8192 | 2 | 30 |
 
 ### Environment Variables
 
