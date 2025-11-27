@@ -11,6 +11,9 @@ fi
 KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.8.0}
 OS=$(uname -s)
 HARDWARE=$(uname -m)
+# Detect architecture for different use cases
+BIN_ARCH=${BIN_ARCH:-$(uname -m | sed s/aarch64/arm64/ | sed s/x86_64/amd64/)}
+GO_ARCH=${GO_ARCH:-$(uname -s | awk '{print tolower($0)}')-${BIN_ARCH}}
 PERFORMANCE_PROFILE=${PERFORMANCE_PROFILE:-default}
 CHURN=${CHURN:-true}
 WORKLOAD=${WORKLOAD:?}
@@ -21,10 +24,76 @@ EXTRA_FLAGS=${EXTRA_FLAGS:-}
 UUID=${UUID:-$(uuidgen)}
 KUBE_DIR=${KUBE_DIR:-/tmp}
 ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
+KUBEBURNER_OCP_PR=${KUBEBURNER_OCP_PR:-}
+GO_VERSION=${GO_VERSION:-1.23.4}
 
 download_binary(){
   KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-${OS}-${HARDWARE}.tar.gz"
   curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
+}
+
+install_go(){
+  INSTALL_GO=false
+  
+  # Check if go is installed
+  if ! command -v go &> /dev/null; then
+    echo "Go is not installed. Installing Go ${GO_VERSION}..."
+    INSTALL_GO=true
+  else
+    # Check if installed version is sufficient
+    INSTALLED_GO_VERSION=$(go version | awk '{print $3}' | sed 's/go//')
+    REQUIRED_GO_VERSION="${GO_VERSION}"
+    
+    if [ "$(printf '%s\n' "$REQUIRED_GO_VERSION" "$INSTALLED_GO_VERSION" | sort -V | head -n1)" != "$REQUIRED_GO_VERSION" ]; then
+      echo "Go version $INSTALLED_GO_VERSION is too old (requires >= $REQUIRED_GO_VERSION). Installing Go ${GO_VERSION}..."
+      INSTALL_GO=true
+    else
+      echo "Go version $INSTALLED_GO_VERSION is sufficient."
+    fi
+  fi
+  
+  if [ "$INSTALL_GO" = true ]; then
+    GO_TARBALL="go${GO_VERSION}.${GO_ARCH}.tar.gz"
+    curl -L https://go.dev/dl/${GO_TARBALL} -o ${GO_TARBALL}
+    tar -C ${KUBE_DIR}/ -xzf ${GO_TARBALL}
+    export PATH=${KUBE_DIR}/go/bin:$PATH
+    rm -f ${GO_TARBALL}
+    echo "Go ${GO_VERSION} installed successfully."
+  fi
+}
+
+build_from_pr(){
+  echo "Building kube-burner-ocp from PR #${KUBEBURNER_OCP_PR}"
+  install_go
+  # Clone the repository
+  REPO_DIR="${KUBE_DIR}/kube-burner-ocp-repo"
+  if [ -d "${REPO_DIR}" ]; then
+    rm -rf "${REPO_DIR}"
+  fi
+  
+  git clone https://github.com/kube-burner/kube-burner-ocp.git "${REPO_DIR}"
+  cd "${REPO_DIR}"
+
+  # Update GIT Global user settings
+  git config --global user.name "RedHat Performance"
+  git config --global user.email "redhat-performance@redhat.com"
+
+  # Fetch the PR and checkout
+  git pull origin pull/${KUBEBURNER_OCP_PR}/head:${KUBEBURNER_OCP_PR} --rebase 
+  git switch ${KUBEBURNER_OCP_PR}
+  
+  # Build the binary
+  echo "Building binary..."
+  make build
+  
+  # Copy the binary to KUBE_DIR
+  cp bin/${BIN_ARCH}/kube-burner-ocp "${KUBE_DIR}/kube-burner-ocp"
+  chmod +x "${KUBE_DIR}/kube-burner-ocp"
+  
+  # Return to original directory
+  cd -
+  
+  echo "Successfully built kube-burner-ocp from PR #${KUBEBURNER_OCP_PR}"
 }
 
 hypershift(){
@@ -124,7 +193,13 @@ EOF
 
 }
 
-download_binary
+# Build from PR if KUBEBURNER_OCP_PR is set, otherwise download binary
+if [[ -n ${KUBEBURNER_OCP_PR} ]]; then
+  build_from_pr
+else
+  download_binary
+fi
+
 if [[ ${WORKLOAD} =~ "index" ]]; then
   cmd="${KUBE_DIR}/kube-burner-ocp index --uuid=${UUID} --start=$START_TIME --end=$((END_TIME+600)) --log-level ${LOG_LEVEL}"
   JOB_START=$(date -u -d "@$START_TIME" +"%Y-%m-%dT%H:%M:%SZ")
