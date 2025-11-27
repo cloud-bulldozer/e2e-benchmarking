@@ -75,8 +75,8 @@ build_from_pr(){
   cd "${REPO_DIR}"
 
   # Update GIT Global user settings
-  git config --global user.name "Tu Nombre"
-  git config --global user.email "tu.email@example.com"
+  git config --global user.name "RedHat Performance"
+  git config --global user.email "redhat-performance@redhat.com"
 
   # Fetch the PR and checkout
   git pull origin pull/${KUBEBURNER_OCP_PR}/head:${KUBEBURNER_OCP_PR} --rebase 
