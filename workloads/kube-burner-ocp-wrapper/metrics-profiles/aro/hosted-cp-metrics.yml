@@ -4,29 +4,36 @@
 
 # OVN service sync latency
 
-- query: histogram_quantile(0.99, sum(rate(ovnkube_master_network_programming_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}", kind="service"}[2m])) by (le))
+- query: histogram_quantile(0.99, sum(rate(ovnkube_master_network_programming_duration_seconds_bucket{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}", kind="service"}[2m])) by (le))
   metricName: serviceSyncLatency
 
 # Etcd metrics
 
-- query: sum(rate(etcd_server_leader_changes_seen_total{namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
+- query: sum(rate(etcd_server_leader_changes_seen_total{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
   metricName: etcdLeaderChangesRate
 
-- query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
+- query: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
   metricName: 99thEtcdDiskBackendCommitDurationSeconds
 
-- query: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
+- query: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}"}[2m]))
   metricName: 99thEtcdDiskWalFsyncDurationSeconds
 
-- query: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{namespace=~".+{{.HCP_NAMESPACE}}"}[5m]))
+- query: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}"}[5m]))
   metricName: 99thEtcdRoundTripTimeSeconds
 
-- query: sum by (cluster_version)(etcd_cluster_version)
+- query: sum by (cluster_version)(etcd_cluster_version{cluster="{{.MC_NAME}}"})
   metricName: etcdVersion
   instant: true
 
 # Cluster version
+- query: sum(cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests{cluster="{{.MC_NAME}}",namespace=~".*{{.HCP_NAMESPACE}}"}) by (pod,container,namespace)
+  metricName: podCPUReq
+  instant: true
 
-- query: cluster_version{type="completed", namespace=~".+{{.HCP_NAMESPACE}}"}
+- query: sum(cluster:namespace:pod_memory:active:kube_pod_container_resource_requests{cluster="{{.MC_NAME}}",namespace=~".*{{.HCP_NAMESPACE}}"}) by (pod,container,namespace)
+  metricName: podMemoryReq
+  instant: true
+
+- query: cluster_version{cluster="{{.MC_NAME}}",type="completed", namespace=~".+{{.HCP_NAMESPACE}}"}
   metricName: clusterVersion
   instant: true
