@@ -287,7 +287,7 @@ index_task(){
         "ocpVirtVersion":"'"$ocp_virt_version"'",
         "ocpVirtTuningPolicy":"'"$ocp_virt_tuning_policy"'",
         "networkType":"'"$network_type"'",
-        "ovnVersion""'"$ovn_version"'",
+        "ovnVersion":"'"$ovn_version"'",
         "buildTag":"'"$task_id"'",
         "jobStatus":"'"$state"'",
         "jobType":"'"$job_type"'",
