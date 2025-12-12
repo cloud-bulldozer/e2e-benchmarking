@@ -3,12 +3,12 @@
 # First scenario is configured as warmup and it will also tune the default ingress-controller to assign the router pods to the infra nodes
 - termination: http
   connections: 200
-  samples: 5
+  samples: 3
   duration: 3m
   path: /1024.html
-  concurrency: 9
+  concurrency: 5
   tool: wrk
-  serverReplicas: 45
+  serverReplicas: 25
   tuningPatch: '{"spec":{"nodePlacement": {"nodeSelector": {"matchLabels": {"node-role.kubernetes.io/infra": ""}}}, "replicas": 2}}'
   delay: 10s
   requestTimeout: 10s
@@ -20,9 +20,9 @@
   samples: 2
   duration: 5m
   path: /1024.html
-  concurrency: 9
+  concurrency: 5
   tool: wrk
-  serverReplicas: 45
+  serverReplicas: 25
   requestTimeout: 10s
   delay: 10s
 
@@ -31,9 +31,9 @@
   samples: 2
   duration: 5m
   path: /1024.html
-  concurrency: 9
+  concurrency: 5
   tool: wrk
-  serverReplicas: 45
+  serverReplicas: 25
   requestTimeout: 10s
   delay: 10s
 
@@ -45,7 +45,7 @@
   path: /1024.html
   concurrency: 1
   tool: hloader
-  serverReplicas: 45
+  serverReplicas: 25
   requestTimeout: 10s
   delay: 10s
   requestRate: 5000
@@ -58,7 +58,7 @@
   path: /1024.html
   concurrency: 1
   tool: hloader
-  serverReplicas: 45
+  serverReplicas: 25
   requestTimeout: 10s
   delay: 10s
   requestRate: 5000
