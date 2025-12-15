@@ -8,11 +8,9 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.8.0}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.9.0}
 OS=$(uname -s)
 HARDWARE=$(uname -m)
-PERFORMANCE_PROFILE=${PERFORMANCE_PROFILE:-default}
-CHURN=${CHURN:-true}
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
 BURST=${BURST:-20}
@@ -134,9 +132,9 @@ else
   cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
 fi
 cmd+=" ${EXTRA_FLAGS}"
-if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || ${WORKLOAD} =~ "rds-core" ]] && [[ ! ${WORKLOAD} =~ "web-burner" ]] ; then
+if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || ${WORKLOAD} =~ "rds-core" ]] && [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density|olm|udn-bgp)$ ]]; then
   ITERATIONS=${ITERATIONS:?}
-  cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
+  cmd+=" --iterations=${ITERATIONS}"
 fi
 if [[ ${WORKLOAD} =~ "kube-burner-ai" ]]; then
   WORKLOAD="cluster-density"
@@ -145,10 +143,6 @@ if [[ ${WORKLOAD} =~ "kube-burner-ai" ]]; then
   random_index=$(( $RANDOM % array_length ))
   ITERATIONS=${numbers[$random_index]}
 
-  cmd+=" --iterations=${ITERATIONS} --churn=${CHURN}"
-fi
-if [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density|olm|udn-bgp)$ ]]; then
-  ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS}"
 fi
 if [[ ${WORKLOAD} =~ "egressip" ]]; then
@@ -168,10 +162,6 @@ elif [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=${ES_INDEX}"
 else
   echo "ES_SERVER is not set, not indexing the results"
-fi
-# If PERFORMANCE_PROFILE is specified
-if [[ -n ${PERFORMANCE_PROFILE} && ${WORKLOAD} =~ "rds-core" ]]; then
-  cmd+=" --perf-profile=${PERFORMANCE_PROFILE}"
 fi
 
 # Capture the exit code of the run, but don't exit the script if it fails.
