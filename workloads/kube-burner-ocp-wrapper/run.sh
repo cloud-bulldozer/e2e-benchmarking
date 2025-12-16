@@ -8,7 +8,7 @@ LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.9.0}
+KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.9.1}
 OS=$(uname -s)
 HARDWARE=$(uname -m)
 WORKLOAD=${WORKLOAD:?}
@@ -132,7 +132,7 @@ else
   cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
 fi
 cmd+=" ${EXTRA_FLAGS}"
-if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || ${WORKLOAD} =~ "rds-core" ]] && [[ ${WORKLOAD} =~ ^(crd-scale|pvc-density|olm|udn-bgp)$ ]]; then
+if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || ${WORKLOAD} =~ "rds-core" || ${WORKLOAD} =~ ^(crd-scale|pvc-density|olm|udn-bgp)$ ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS}"
 fi
