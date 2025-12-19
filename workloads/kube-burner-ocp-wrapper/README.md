@@ -6,7 +6,7 @@ In order to run a workload you have to set the `WORKLOAD` environment variable t
 
 ```shell
 $ ITERATIONS=5 WORKLOAD=cluster-density-v2 ./run.sh 
-/tmp/kube-burner-ocp cluster-density-v2 --log-level=info --iterations=5 --churn=true --es-server=https://USER:PASSWORD@HOSTNAME:443 --es-index=ripsaw-kube-burner --qps=20 --burst=20
+/tmp/kube-burner-ocp cluster-density-v2 --log-level=info --iterations=5 --es-server=https://USER:PASSWORD@HOSTNAME:443 --es-index=ripsaw-kube-burner --qps=20 --burst=20
 INFO[2023-03-13 16:39:57] 📁 Creating indexer: elastic                  
 INFO[2023-03-13 16:39:59] 👽 Initializing prometheus client with URL: <truncated>
 INFO[2023-03-13 16:40:00] 🔔 Initializing alert manager for prometheus: <truncated>
@@ -46,16 +46,15 @@ Or increase the benchmark timeout (by default 3h):
 $ EXTRA_FLAGS="--timeout=5h" ITERATIONS=500 WORKLOAD=cluster-density-v2 ./run.sh
 ```
 
-Or change the deletion strategy during churn. It is recommended for churning on large(500) scale clusters to maintain moderate kube-api burst.
+Or change the churn mode. It is recommended for churning on large(500) scale clusters to maintain moderate kube-api burst.
 
 ```shell
-$ EXTRA_FLAGS="--churn-deletion-strategy=gvr" ITERATIONS=5000 WORKLOAD=cluster-density-v2 ./run.sh
+$ EXTRA_FLAGS="--churn-duration=1h --churn-mode=objects" ITERATIONS=5000 WORKLOAD=cluster-density-v2 ./run.sh
 ```
 
 ### Cluster-density and cluster-density-v2
 
 - **ITERATIONS**: Defines the number of iterations of the workload to run. No default value
-- **CHURN**: Enables workload churning. Workload churning is enabled by default with `churn-duration=1h`, `churn-delay=2m` and `churn-percent=10`. These parameters can be tuned through the `EXTRA_FLAGS` variable as noted previously.
 
 ## HyperShift
 
