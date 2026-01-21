@@ -88,6 +88,20 @@ Each iteration creates the following objects:
 - 10 secrets containing 2048 character random string
 - 10 configMaps containing a 2048 character random string
 
+### node-vm-density variables
+
+The `node-vm-density`workloads support the following environment variables:
+
+- **NODE_COUNT**: Number of worker nodes to deploy the pods on. During the workload nodes will be labeled with `node-density=enabled`. Defaults to the number of worker nodes across the cluster (Nodes resulting of the expression `oc get node -o name --no-headers -l node-role.kubernetes.io/workload!="",node-role.kubernetes.io/infra!="",${WORKER_NODE_LABEL}`
+- **PODS_PER_NODE**: Define the maximum number of VM to deploy on each labeled node. Defaults to 245
+- **VM_POD_DENSITY_IMAGE**: Image to use as node-vm-density workload. Defaults to `quay.io/kubevirt/fedora-container-disk-images:35`.
+
+These workloads create different objects each:
+
+- **node-density**: Creates a single namespace with a number of Deployments proportional to the calculated number of pod.
+Each iteration of this workload creates the following object:
+  - 1 pod. (sleep)
+
 ### Node-density and Node-density-heavy variables
 
 The `node-density` and `node-density-heavy` workloads support the following environment variables:
