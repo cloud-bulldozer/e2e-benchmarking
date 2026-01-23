@@ -11,6 +11,10 @@ RUN curl -sSL $(curl -sSL https://api.github.com/repos/openshift/rosa/releases/l
 
 RUN curl -sSL $(curl -sSL https://api.github.com/repos/openshift-online/ocm-cli/releases/latest | jq -r ".assets[] | select(.name == \"ocm-linux-amd64\") | .browser_download_url") --output /bin/ocm && chmod 777 /bin/ocm
 
+# Add shared perfscale library functions
+COPY perfscale-lib.sh /usr/local/share/perfscale-lib.sh
+RUN chmod 644 /usr/local/share/perfscale-lib.sh
+
 WORKDIR /e2e
 
 RUN chown -R 777 /e2e
