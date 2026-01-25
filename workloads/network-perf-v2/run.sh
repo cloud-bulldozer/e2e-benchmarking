@@ -54,6 +54,17 @@ if [ "${LOCAL}" = "true" ]; then
   for node in $(oc get nodes -l node-role.kubernetes.io/infra -o name); do
     oc label "$node" node-role.kubernetes.io/infra- || true
   done
+else
+  echo "Labeling client and server nodes for consistency"
+  WORKERS=$(kubectl get nodes -l node-role.kubernetes.io/worker --no-headers -o custom-columns=':metadata.name,:metadata.labels' | grep -v infra | awk '{print $1}')
+  CLIENT_NODE=$(echo "$WORKERS" | head -1)
+  SERVER_NODE=$(echo "$WORKERS" | sed -n '2p')
+  if [ -z "$CLIENT_NODE" ] || [ -z "$SERVER_NODE" ]; then
+    echo "Error: Need at least 2 non-infra worker nodes"
+    exit 1
+  fi
+  kubectl label nodes "$CLIENT_NODE" netperf=client --overwrite
+  kubectl label nodes "$SERVER_NODE" netperf=server --overwrite
 fi
 
 # Add flags based on conditions
@@ -75,6 +86,9 @@ add_flag "udnl3" "${UDNL3}"
 echo "Executing command: $cmd"
 eval "$cmd"
 run=$?
+echo "Removing client/server labels"
+kubectl label nodes -l netperf=client netperf-
+kubectl label nodes -l netperf=server netperf-
 JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Add debugging info (will be captured in each execution output)
