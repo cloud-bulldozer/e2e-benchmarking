@@ -10,11 +10,12 @@ fi
 export ALL_SCENARIOS=${ALL_SCENARIOS:-true}
 export DEBUG=${DEBUG:-true}
 export METRICS=${METRICS:-true}
-export VM=${VIRT:-false}
+export VM=${VM:-false}
+export POD=${POD:-true}
 export UDNL2=${UDNL2:-false}
 export UDNL3=${UDNL3:-false}
 export NETPERF_FILENAME=${NETPERF_FILENAME:-k8s-netperf}
-export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.34}
+export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.36}
 export OS=${OS:-Linux}
 export PROMETHEUS_URL=
 export ARCH=$(uname -m)
