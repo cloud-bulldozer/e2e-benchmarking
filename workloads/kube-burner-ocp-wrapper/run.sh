@@ -146,8 +146,10 @@ if [[ ${WORKLOAD} =~ "kube-burner-ai" ]]; then
   cmd+=" --iterations=${ITERATIONS}"
 fi
 if [[ ${WORKLOAD} =~ "egressip" ]]; then
-  prep_aws
-  get_egressip_external_server
+  if [[ -v AWS_ACCESS_KEY_ID && -n $AWS_ACCESS_KEY_ID ]]; then
+    prep_aws
+    get_egressip_external_server
+  fi
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS} --external-server-ip=${EGRESSIP_EXTERNAL_SERVER_IP}"
 fi
