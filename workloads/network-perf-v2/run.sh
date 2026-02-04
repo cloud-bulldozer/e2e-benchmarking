@@ -56,7 +56,7 @@ if [ "${LOCAL}" = "true" ]; then
   done
 else
   echo "Labeling client and server nodes for consistency"
-  WORKERS=$(kubectl get nodes -l node-role.kubernetes.io/worker --no-headers -o custom-columns=':metadata.name,:metadata.labels' | grep -v infra | awk '{print $1}')
+  WORKERS=$(kubectl get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!= --no-headers  | awk '{print $1}')
   CLIENT_NODE=$(echo "$WORKERS" | head -1)
   SERVER_NODE=$(echo "$WORKERS" | sed -n '2p')
   if [ -z "$CLIENT_NODE" ] || [ -z "$SERVER_NODE" ]; then
