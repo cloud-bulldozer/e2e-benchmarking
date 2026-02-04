@@ -3,6 +3,7 @@
 set -e
 
 ES_SERVER=${ES_SERVER=https://USER:PASSWORD@HOSTNAME:443}
+ES_INDEX=${ES_INDEX=workers-scale-results}
 LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$WORKERS_SCALE_VERSION" = "default" ]; then
     unset WORKERS_SCALE_VERSION
@@ -28,8 +29,8 @@ cmd+=" ${EXTRA_FLAGS}"
 
 # If ES_SERVER is specified
 if [[ -n ${ES_SERVER} ]]; then
-  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/ripsaw-kube-burner/_doc -d "${METADATA}" -o /dev/null
-  cmd+=" --es-server=${ES_SERVER} --es-index=ripsaw-kube-burner"
+  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}" -o /dev/null
+  cmd+=" --es-server=${ES_SERVER} --es-index=${ES_INDEX}"
 fi
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
