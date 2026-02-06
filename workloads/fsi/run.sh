@@ -28,7 +28,7 @@ log INFO "🖥️ Cluster version: $OCP_VERSION, Worker nodes: $WORKER_COUNT"
 
 
 download_binary(){
-  KUBE_BURNER_VERSION=1.7.7
+  KUBE_BURNER_VERSION=1.10.2
   KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-linux-x86_64.tar.gz"
   curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
 }
