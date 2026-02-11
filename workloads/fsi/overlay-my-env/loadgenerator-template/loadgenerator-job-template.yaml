@@ -1,0 +1,91 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: loadgenerator
+  labels:
+    environment: development
+    team: loadgenerator
+    tier: test
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: loadgenerator
+        environment: development
+        team: loadgenerator
+        tier: test
+      annotations:
+        sidecar.istio.io/rewriteAppHTTPProbers: "true"
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: loadgenerator
+                topologyKey: "kubernetes.io/hostname"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: loadgenerator
+      containers:
+        - name: loadgenerator
+          image: quay.io/msheth/boa-loadgenerator:v0.4
+          imagePullPolicy: Always
+          env:
+            - name: FRONTEND_ADDR
+              value: "${FRONTEND_ADDR}"
+            - name: USERS
+              value: "500"
+            - name: LOG_LEVEL
+              value: error
+            - name: ES_SERVER
+              value: "${ES_SERVER}"
+            - name: UUID
+              value: "${UUID}"
+            - name: WORKER_COUNT
+              value: "${WORKER_COUNT}"
+            - name: OCP_VERSION
+              value: "${OCP_VERSION}"
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - |
+                  curl -sf "http://frontend:80"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 120
+          resources:
+            limits:
+              cpu: 2
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - all
+            privileged: false
+            readOnlyRootFilesystem: false
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      serviceAccountName: bank-of-anthos
+      terminationGracePeriodSeconds: 5
+
