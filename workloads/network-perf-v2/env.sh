@@ -16,7 +16,6 @@ export UDNL2=${UDNL2:-false}
 export UDNL3=${UDNL3:-false}
 export NETPERF_FILENAME=${NETPERF_FILENAME:-k8s-netperf}
 export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.37}
-
 export OS=${OS:-Linux}
 export PROMETHEUS_URL=
 export ARCH=$(uname -m)
