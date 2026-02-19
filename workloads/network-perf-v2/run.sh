@@ -83,6 +83,11 @@ add_flag "pod" "${POD}"
 add_flag "udnl2" "${UDNL2}"
 add_flag "udnl3" "${UDNL3}"
 
+# Add virtctl flag if VM mode is enabled 
+if [ "${VM}" = true ]; then
+  add_flag use-virtctl "${USE_VIRTCTL}"
+fi
+
 # Execute the constructed command
 echo "Executing command: $cmd"
 eval "$cmd"
