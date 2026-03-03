@@ -91,7 +91,12 @@ EOF
 )
 
   HOSTED_PROMETHEUS=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
-  HOSTED_PROMETHEUS_TOKEN=$(oc sa new-token -n openshift-monitoring prometheus-k8s)
+
+  # Retry until HOSTED_PROMETHEUS_TOKEN is retrieved
+  until HOSTED_PROMETHEUS_TOKEN=$(oc sa new-token -n openshift-monitoring prometheus-k8s 2>/dev/null) && [[ -n "$HOSTED_PROMETHEUS_TOKEN" ]]; do
+    echo "Waiting for HOSTED_PROMETHEUS_TOKEN..."
+    sleep 30
+  done
 
   echo "Get all management worker nodes, excludes infra, obo, workload"
   Q_NODES=""
