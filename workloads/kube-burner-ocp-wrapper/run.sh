@@ -3,7 +3,7 @@
 set -e
 source ./egressip.sh
 
-ES_SERVER=${ES_SERVER=https://USER:PASSWORD@HOSTNAME:443}
+ES_SERVER=${ES_SERVER:-}
 LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
