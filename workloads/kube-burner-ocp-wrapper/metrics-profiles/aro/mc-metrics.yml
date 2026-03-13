@@ -4,7 +4,7 @@
 
 # Management Node metrics: CPU & Memory
 
-- query: kube_node_role{}
+- query: kube_node_info{cluster="{{.MC_NAME}}"}
   metricName: mgmtNodeRoles
 
 - query: (sum(irate(node_cpu_seconds_total[2m])) by (mode,instance) unless on (instance) label_replace(kube_node_role{cluster="{{.MC_NAME}}",role="infra"}, "instance", "$1", "node", "(.+)")) > 0
@@ -88,14 +88,6 @@
 
 - query: sum(container_memory_cache{cluster="{{.MC_NAME}}",name!="",container!="POD",namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod, container, namespace, node)
   metricName: podMemoryCache-Controlplane
-
-- query: sum(cluster:namespace:pod_cpu:active:kube_pod_container_resource_requests{namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod,container,namespace)
-  metricName: podCPUReq
-  instant: true
-
-- query: sum(cluster:namespace:pod_memory:active:kube_pod_container_resource_requests{namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod,container,namespace)
-  metricName: podMemoryReq
-  instant: true
 
 - query: kubernetes_build_info{cluster="{{.MC_NAME}}"}
   metricName: mgmtClusterVersion
