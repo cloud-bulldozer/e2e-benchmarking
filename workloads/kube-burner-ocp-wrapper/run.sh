@@ -5,12 +5,6 @@ source ./egressip.sh
 
 ES_SERVER=${ES_SERVER:-}
 LOG_LEVEL=${LOG_LEVEL:-info}
-if [ "$KUBE_BURNER_VERSION" = "default" ]; then
-    unset KUBE_BURNER_VERSION
-fi
-KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.11.7}
-OS=$(uname -s)
-HARDWARE=$(uname -m)
 WORKLOAD=${WORKLOAD:?}
 QPS=${QPS:-20}
 BURST=${BURST:-20}
@@ -21,8 +15,7 @@ KUBE_DIR=${KUBE_DIR:-/tmp}
 ES_INDEX=${ES_INDEX:-ripsaw-kube-burner}
 
 download_binary(){
-  KUBE_BURNER_URL="https://github.com/kube-burner/kube-burner-ocp/releases/download/v${KUBE_BURNER_VERSION}/kube-burner-ocp-V${KUBE_BURNER_VERSION}-${OS}-${HARDWARE}.tar.gz"
-  curl --fail --retry 8 --retry-all-errors -sS -L "${KUBE_BURNER_URL}" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
+  curl --fail --retry 8 --retry-all-errors -sS -L "https://github.com/mohit-sheth/kube-burner-ocp/releases/download/v1.11.12/kube-burner-ocp-V1.11.12-linux-x86_64.tar.gz" | tar -xzC "${KUBE_DIR}/" kube-burner-ocp
 }
 
 hypershift(){
@@ -132,7 +125,7 @@ else
   cmd="${KUBE_DIR}/kube-burner-ocp ${WORKLOAD} --log-level=${LOG_LEVEL} --qps=${QPS} --burst=${BURST} --gc=${GC} --uuid ${UUID}"
 fi
 cmd+=" ${EXTRA_FLAGS}"
-if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || ${WORKLOAD} =~ "rds-core" || ${WORKLOAD} =~ "network-policy" || ${WORKLOAD} =~ ^(crd-scale|pvc-density|olm|udn-bgp)$ ]]; then
+if [[ ${WORKLOAD} =~ "cluster-density" || ${WORKLOAD} =~ "udn-density-pods" || ${WORKLOAD} =~ "cudn-density" || ${WORKLOAD} =~ "rds-core" || ${WORKLOAD} =~ "network-policy" || ${WORKLOAD} =~ ^(crd-scale|pvc-density|olm|udn-bgp)$ ]]; then
   ITERATIONS=${ITERATIONS:?}
   cmd+=" --iterations=${ITERATIONS}"
 fi
