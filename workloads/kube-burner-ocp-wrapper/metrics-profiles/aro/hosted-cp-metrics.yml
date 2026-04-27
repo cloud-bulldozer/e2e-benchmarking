@@ -31,6 +31,9 @@
 - query: delta(etcd_server_slow_read_indexes_total{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}"}[2m])
   metricName: etcdSlowRead
 
+- query: histogram_quantile(0.99, sum(rate(etcd_server_apply_duration_seconds_bucket{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}", job=~"etcd.*"}[5m])) by(le, op))
+  metricName: etcdApplyDurationLatency
+
 # Cluster version
 - query: sum(kube_pod_container_resource_requests{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}", resource="cpu"}) by (pod,container,namespace)
   metricName: podCPUReq
