@@ -25,12 +25,18 @@
   metricName: etcdVersion
   instant: true
 
+- query: delta(etcd_server_slow_apply_total{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}"}[2m])
+  metricName: etcdSlowApply
+
+- query: delta(etcd_server_slow_read_indexes_total{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}"}[2m])
+  metricName: etcdSlowRead
+
 # Cluster version
-- query: sum(kube_pod_container_resource_requests{resource="cpu", cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod,container,namespace)
+- query: sum(kube_pod_container_resource_requests{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}", resource="cpu"}) by (pod,container,namespace)
   metricName: podCPUReq
   instant: true
 
-- query: sum(kube_pod_container_resource_requests{resource="memory", cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}"}) by (pod,container,namespace)
+- query: sum(kube_pod_container_resource_requests{cluster="{{.MC_NAME}}",namespace=~".+{{.HCP_NAMESPACE}}", resource="memory"}) by (pod,container,namespace)
   metricName: podMemoryReq
   instant: true
 
