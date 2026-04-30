@@ -48,7 +48,9 @@ hypershift(){
     echo "Fetching OBO endpoint"
     MC_OBO=http://$(oc --kubeconfig=${MC_KUBECONFIG} get route -n openshift-observability-operator prometheus-hypershift -o jsonpath="{.spec.host}")
     MC_PROMETHEUS=https://$(oc --kubeconfig=${MC_KUBECONFIG} get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
+    set +x
     MC_PROMETHEUS_TOKEN=$(oc --kubeconfig=${MC_KUBECONFIG} create token -n openshift-monitoring prometheus-k8s --duration=24h)
+    set -x
     HC_PRODUCT="rosa"
   else
     echo "Detected ${HC_PLATFORM} environment..."
@@ -68,13 +70,17 @@ hypershift(){
         echo "Azure/AKS prometheus token is missing and cannot be calculated, exiting.."
 	exit 1
       else
+        set +x
 	AZURE_PROM_TOKEN=$(curl --request POST 'https://login.microsoftonline.com/64dc69e4-d083-49fc-9569-ebece1dd1408/oauth2/v2.0/token' --header 'Content-Type: application/x-www-form-urlencoded' --data-urlencode "client_id=${AZ_CLIENT_ID}" --data-urlencode 'grant_type=client_credentials' --data-urlencode "client_secret=${AZ_CLIENT_SECRET}" --data-urlencode 'scope=https://prometheus.monitor.azure.com/.default' | jq -r '.access_token')
+        set -x
       fi
     fi
 
     MC_OBO=$AKS_PROM
     MC_PROMETHEUS=$AZURE_PROM
+    set +x
     MC_PROMETHEUS_TOKEN=$AZURE_PROM_TOKEN
+    set -x
     HC_PRODUCT="aro"
   fi
 
@@ -92,15 +98,19 @@ EOF
 
   HOSTED_PROMETHEUS=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
 
+  set +x
   # Retry until HOSTED_PROMETHEUS_TOKEN is retrieved
   until HOSTED_PROMETHEUS_TOKEN=$(oc create token -n openshift-monitoring prometheus-k8s --duration=24h 2>/dev/null) && [[ -n "$HOSTED_PROMETHEUS_TOKEN" ]]; do
     echo "Waiting for HOSTED_PROMETHEUS_TOKEN..."
     sleep 30
   done
+  set -x
 
   echo "Get all management worker nodes, excludes infra, obo, workload"
   Q_NODES=""
-  Q_STDOUT=$(curl -H "Authorization: Bearer ${MC_PROMETHEUS_TOKEN}" -k --silent --globoff  ${MC_PROMETHEUS}/api/v1/query?query=${QUERY}&time='$(date +"%s")')
+  set +x
+  Q_STDOUT=$(curl -H "Authorization: Bearer ${MC_PROMETHEUS_TOKEN}" -k --silent --globoff ${MC_PROMETHEUS}/api/v1/query?query=${QUERY}&time='$(date +"%s")' 2>/dev/null)
+  set -x
   for n in $(echo "$Q_STDOUT" | jq -r ".data.result[].metric.$([ \"$HC_PLATFORM\" = \"aws\" ] && echo node || echo instance)"); do
     if [[ ${Q_NODES} == "" ]]; then
       Q_NODES=${n}
@@ -128,7 +138,9 @@ EOF
     export elapsed=${ELAPSED:-20m}
   fi
   
+  set +x
   export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES HC_PRODUCT MC_NAME HC_PLATFORM
+  set -x
 
 }
 
@@ -168,7 +180,7 @@ fi
 if [[ -n ${MC_KUBECONFIG} ]] && [[ -n ${ES_SERVER} ]]; then
   cmd+=" --metrics-endpoint=metrics-endpoint.yml"
   hypershift
-  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}" -o /dev/null
+  curl -k -sS -X POST -H "Content-type: application/json" ${ES_SERVER}/${ES_INDEX}/_doc -d "${METADATA}" -o /dev/null 2>/dev/null || echo "WARNING: Failed to index metadata to ES"
 # for non-hypershift cluster
 elif [[ -n ${ES_SERVER} ]]; then
   cmd+=" --es-server=${ES_SERVER} --es-index=${ES_INDEX}"
