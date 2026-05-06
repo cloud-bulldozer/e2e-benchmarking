@@ -1,0 +1,38 @@
+namespace: "fio-test"
+workload:
+  name: "fio"
+  args:
+    kind: "pod"
+    servers: 3
+    samples: 3
+    jobs: ["read", "write", "randread", "randwrite"]
+    bs: ["4KiB", "8KiB", "16KiB"]
+    numjobs: [1]
+    iodepth: 4
+    filesize: "1G"
+    read_runtime: 60
+    read_ramp_time: 10
+    write_runtime: 60
+    write_ramp_time: 10
+    prefill: true
+    prefill_bs: "1024KiB"
+    post_prefill_sleep: 30
+    image: "quay.io/jtaleric/fio:latest"
+
+job_params:
+  - jobname_match: write
+    params:
+      - time_based=1
+      - fsync_on_close=1
+      - create_on_open=1
+  - jobname_match: read
+    params:
+      - time_based=1
+  - jobname_match: randwrite
+    params:
+      - time_based=1
+      - fsync_on_close=1
+      - create_on_open=1
+  - jobname_match: randread
+    params:
+      - time_based=1

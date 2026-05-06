@@ -1,0 +1,18 @@
+namespace: "fio-test"
+workload:
+  name: "fio"
+  args:
+    kind: "pod"
+    servers: 1
+    samples: 1
+    jobs: ["read"]
+    bs: ["4KiB"]
+    numjobs: [1]
+    iodepth: 1
+    filesize: "256M"
+    read_runtime: 30
+    read_ramp_time: 5
+    write_runtime: 30
+    write_ramp_time: 5
+    prefill: false
+    image: "quay.io/jtaleric/fio:latest"
