@@ -4,6 +4,16 @@ set -e
 source ./env.sh
 source ../../utils/common.sh
 
+if [[ "${PLATFORM}" == "microshift" && "${LOCAL}" != "true" ]]; then
+  echo "ERROR: PLATFORM=microshift currently requires LOCAL=true"
+  exit 1
+fi
+
+if [[ "${PLATFORM}" == "microshift" && "${METRICS}" == "true" && -z "${PROMETHEUS_URL}" ]]; then
+  echo "ERROR: PLATFORM=microshift with METRICS=true requires PROMETHEUS_URL"
+  exit 1
+fi
+
 # Download k8s-netperf function
 download_netperf() {
   echo $1
@@ -33,15 +43,30 @@ set +e
 JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Initialize the command var
-cmd="timeout ${TEST_TIMEOUT} ./k8s-netperf"
+cmd=(timeout "${TEST_TIMEOUT}" "./${NETPERF_FILENAME}")
 
 # Function to add flags conditionally
 add_flag() {
   local flag_name="$1"
   local flag_value="$2"
   if [ -n "$flag_value" ]; then
-    cmd+=" --$flag_name=$flag_value"
+    cmd+=("--$flag_name=$flag_value")
   fi
+}
+
+print_command() {
+  local redacted_cmd=()
+  local arg
+  for arg in "${cmd[@]}"; do
+    case "$arg" in
+      --search=*) redacted_cmd+=("--search=<redacted>") ;;
+      --prom=*) redacted_cmd+=("--prom=<redacted>") ;;
+      *) redacted_cmd+=("$arg") ;;
+    esac
+  done
+  printf 'Executing command:'
+  printf ' %q' "${redacted_cmd[@]}"
+  printf '\n'
 }
 
 if [ -n "${EXTERNAL_SERVER_ADDRESS}" ]; then
@@ -50,13 +75,16 @@ if [ -n "${EXTERNAL_SERVER_ADDRESS}" ]; then
 fi
 
 if [ "${LOCAL}" = "true" ]; then
-  echo "LOCAL mode enabled — removing infra label from worker nodes"
-  for node in $(oc get nodes -l node-role.kubernetes.io/infra -o name); do
-    oc label "$node" node-role.kubernetes.io/infra- || true
-  done
+  echo "LOCAL mode enabled"
+  if [[ "${PLATFORM}" != "microshift" ]]; then
+    echo "Removing infra label from worker nodes"
+    for node in $(oc get nodes -l node-role.kubernetes.io/infra -o name); do
+      oc label "$node" node-role.kubernetes.io/infra- || true
+    done
+  fi
 else
   echo "Labeling client and server nodes for consistency"
-  WORKERS=$(kubectl get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!= --no-headers  | awk '{print $1}')
+  WORKERS=$(kubectl get nodes -l node-role.kubernetes.io/worker,node-role.kubernetes.io/infra!= --no-headers | awk '{print $1}')
   CLIENT_NODE=$(echo "$WORKERS" | head -1)
   SERVER_NODE=$(echo "$WORKERS" | sed -n '2p')
   if [ -z "$CLIENT_NODE" ] || [ -z "$SERVER_NODE" ]; then
@@ -68,7 +96,11 @@ else
 fi
 
 # Add flags based on conditions
-[ ! ${LOCAL} = true ] && add_flag "all" "${ALL_SCENARIOS}" || echo "LOCAL=true, not setting --all"
+if [[ "${LOCAL}" != "true" ]]; then
+  add_flag "all" "${ALL_SCENARIOS}"
+else
+  echo "LOCAL=true, not setting --all"
+fi
 add_flag "clean" "${CLEAN_UP}"
 add_flag "config" "${WORKLOAD}"
 add_flag "debug" "${DEBUG}"
@@ -89,12 +121,12 @@ if [ "${VM}" = true ]; then
 fi
 
 # Execute the constructed command
-echo "Executing command: $cmd"
-eval "$cmd"
+print_command
+"${cmd[@]}"
 run=$?
 echo "Removing client/server labels"
-kubectl label nodes -l netperf=client netperf-
-kubectl label nodes -l netperf=server netperf-
+kubectl label nodes -l netperf=client netperf- || true
+kubectl label nodes -l netperf=server netperf- || true
 JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Add debugging info (will be captured in each execution output)
@@ -113,5 +145,5 @@ if [ $run -eq 0 ]; then
 else
   JOB_STATUS="failure"
 fi
-env JOB_START="${JOB_START}" JOB_END="${JOB_END}" JOB_STATUS="${JOB_STATUS}" UUID="${UUID}" WORKLOAD="${WORKLOAD_NAME}" ES_SERVER="${ES_SERVER}" ../../utils/index.sh
+env JOB_START="${JOB_START}" JOB_END="${JOB_END}" JOB_STATUS="${JOB_STATUS}" UUID="${UUID}" WORKLOAD="${WORKLOAD_NAME}" ES_SERVER="${ES_SERVER}" PLATFORM="${PLATFORM}" ../../utils/index.sh
 exit $run
