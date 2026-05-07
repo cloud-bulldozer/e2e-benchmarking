@@ -77,6 +77,15 @@
 - query: sum(kube_node_status_condition{status="true"}) by (condition)
   metricName: nodeStatus
 
+- query: cluster:usage:resources:sum{resource="events"}
+  metricName: clusterEventCount
+
+- query: sum(rate(etcd_requests_total{type="events", operation=~"create|update|delete"}[2m]))
+  metricName: etcdEventWriteRate
+
+- query: sum(rate(etcd_requests_total{type="/kubernetes.io/events/", operation=~"get|list|listWithCount"}[2m]))
+  metricName: etcdEventReadRate
+
 # Kubelet & CRI-O runtime metrics
 
 - query: irate(process_cpu_seconds_total{service="kubelet",job="kubelet"}[1m]) * 100 and on (node) topk(5,avg_over_time(irate(process_cpu_seconds_total{service="kubelet",job="kubelet"}[1m])[{{ .elapsed }}:]) unless on (node) kube_node_role{role="infra"})
