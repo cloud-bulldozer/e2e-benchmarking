@@ -201,7 +201,20 @@ if [ $exit_code -eq 0 ]; then
 else
   JOB_STATUS="failure"
 fi
-env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" WORKLOAD="$WORKLOAD" ES_SERVER="$ES_SERVER" ../../utils/index.sh
+
+KUBE_BURNER_WORKLOAD_CONFIG='{}'
+if [[ -n ${ES_SERVER} ]]; then
+  # Just pick the value of the field workloadFlags from the first jobSummary entry
+  WORKLOAD_FLAGS=$(curl -sS --insecure "${ES_SERVER}/${ES_INDEX}/_search" \
+    -H "Content-Type: application/json" \
+    -d '{"size":1,"query":{"bool":{"must":[{"term":{"uuid.keyword":"'"${UUID}"'"}},{"term":{"metricName.keyword":"jobSummary"}}]}}}'  2>/dev/null \
+    | jq -r '.hits.hits[0]._source.workloadFlags // empty')
+  if [[ -n ${WORKLOAD_FLAGS} ]]; then
+    KUBE_BURNER_WORKLOAD_CONFIG=$(jq -n --argjson wf "$WORKLOAD_FLAGS" '{"kbCfg": $wf}')
+  fi
+fi
+
+env JOB_START="$JOB_START" JOB_END="$JOB_END" JOB_STATUS="$JOB_STATUS" UUID="$UUID" WORKLOAD="$WORKLOAD" ES_SERVER="$ES_SERVER" KUBE_BURNER_WORKLOAD_CONFIG="$KUBE_BURNER_WORKLOAD_CONFIG" ../../utils/index.sh
 
 if [[ ${WORKLOAD} =~ "egressip" ]]; then
     cleanup_egressip_external_server

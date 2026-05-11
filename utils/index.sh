@@ -334,8 +334,16 @@ index_task(){
         ADDITIONAL_PARAMS='{}' # Default to empty JSON if not set
     fi
 
-    # Merge base_json with ADDITIONAL_PARAMS
-    merged_json=$(jq -n --argjson base "$base_json" --argjson extra "$ADDITIONAL_PARAMS" '$base + $extra')
+    # Merge base_json with ADDITIONAL_PARAMS and KUBE_BURNER_WORKLOAD_CONFIG
+    if [[ -n "$KUBE_BURNER_WORKLOAD_CONFIG" ]]; then
+        if ! echo "$KUBE_BURNER_WORKLOAD_CONFIG" | jq . >/dev/null 2>&1; then
+            echo "Error: KUBE_BURNER_WORKLOAD_CONFIG is not valid JSON."
+            exit 1
+        fi
+    else
+        KUBE_BURNER_WORKLOAD_CONFIG='{}'
+    fi
+    merged_json=$(jq -n --argjson base "$base_json" --argjson extra "$ADDITIONAL_PARAMS" --argjson kbcfg "$KUBE_BURNER_WORKLOAD_CONFIG" '$base + $extra + $kbcfg')
 
     # Save and send the merged JSON
     echo "$merged_json" >> $uuid_dir/index_data.json
