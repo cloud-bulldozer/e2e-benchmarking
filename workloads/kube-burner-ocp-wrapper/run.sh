@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
 set -e
-source ./egressip.sh
 
 ES_SERVER=${ES_SERVER:-}
 LOG_LEVEL=${LOG_LEVEL:-info}
@@ -168,6 +167,7 @@ if [[ ${WORKLOAD} =~ "kube-burner-ai" ]]; then
   cmd+=" --iterations=${ITERATIONS}"
 fi
 if [[ ${WORKLOAD} =~ "egressip" ]]; then
+  source ./egressip.sh
   if [[ -v AWS_ACCESS_KEY_ID && -n $AWS_ACCESS_KEY_ID ]]; then
     prep_aws
     get_egressip_external_server
