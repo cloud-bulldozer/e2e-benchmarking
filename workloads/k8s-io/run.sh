@@ -33,7 +33,11 @@ set +e
 
 JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-cmd="timeout ${TEST_TIMEOUT} ./${K8S_IO_FILENAME} -config ${CONFIG}"
+RESOLVED_CONFIG=$(mktemp -t k8s-io-config-XXXX.yaml)
+envsubst < "${CONFIG}" > "${RESOLVED_CONFIG}"
+trap "rm -f ${RESOLVED_CONFIG}" EXIT
+
+cmd="timeout ${TEST_TIMEOUT} ./${K8S_IO_FILENAME} -config ${RESOLVED_CONFIG}"
 
 echo "Executing command: $cmd"
 eval "$cmd"

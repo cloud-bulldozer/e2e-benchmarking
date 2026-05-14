@@ -33,3 +33,9 @@ job_params:
       - time_based=1
       - fsync_on_close=1
       - create_on_open=1
+
+elasticsearch:
+  url: "${ES_SERVER}"
+  index_name: "${ES_INDEX}"
+  verify_cert: false
+  parallel: true
