@@ -16,3 +16,9 @@ workload:
     write_ramp_time: 5
     prefill: false
     image: "quay.io/jtaleric/fio:latest"
+
+elasticsearch:
+  url: "${ES_SERVER}"
+  index_name: "${ES_INDEX}"
+  verify_cert: false
+  parallel: true
