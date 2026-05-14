@@ -4,9 +4,9 @@ workload:
   args:
     kind: "pod"
     servers: 3
-    samples: 3
-    jobs: ["read", "write", "randread", "randwrite"]
-    bs: ["4KiB", "8KiB", "16KiB"]
+    samples: 2
+    jobs: ["read", "write", "randwrite"]
+    bs: ["4KiB", "16KiB"]
     numjobs: [1]
     iodepth: 4
     filesize: "1G"
@@ -33,6 +33,3 @@ job_params:
       - time_based=1
       - fsync_on_close=1
       - create_on_open=1
-  - jobname_match: randread
-    params:
-      - time_based=1
