@@ -1,7 +1,17 @@
 # Common
 export UUID=${UUID:-$(uuidgen)}
 export CLEAN_UP=${CLEAN_UP:-true}
-export LOCAL=${LOCAL:-false}
+export PLATFORM=${PLATFORM:-openshift}
+
+if [[ "${PLATFORM}" == "microshift" ]]; then
+    export LOCAL=${LOCAL:-true}
+    # MicroShift has no in-cluster Prometheus; opt out by default so a
+    # default run does not fail the PROMETHEUS_URL guard in run.sh.
+    export METRICS=${METRICS:-false}
+else
+    export LOCAL=${LOCAL:-false}
+    export METRICS=${METRICS:-true}
+fi
 
 # k8s-netperf version
 if [ "${NETPERF_VERSION}" = "default" ]; then
@@ -9,15 +19,14 @@ if [ "${NETPERF_VERSION}" = "default" ]; then
 fi
 export ALL_SCENARIOS=${ALL_SCENARIOS:-true}
 export DEBUG=${DEBUG:-true}
-export METRICS=${METRICS:-true}
 export VM=${VM:-false}
 export POD=${POD:-true}
 export UDNL2=${UDNL2:-false}
 export UDNL3=${UDNL3:-false}
 export NETPERF_FILENAME=${NETPERF_FILENAME:-k8s-netperf}
-export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.39}
+export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.41}
 export OS=${OS:-Linux}
-export PROMETHEUS_URL=
+export PROMETHEUS_URL=${PROMETHEUS_URL:-}
 export ARCH=$(uname -m)
 export NETPERF_URL=${NETPERF_URL:-https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz}
 

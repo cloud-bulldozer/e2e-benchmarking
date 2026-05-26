@@ -73,6 +73,102 @@ setup(){
     export ES_SERVER=$ES_SERVER
     export WORKLOAD=$WORKLOAD
     export ES_INDEX=$ES_INDEX
+
+    if [[ "${PLATFORM:-openshift}" == "microshift" ]]; then
+        # MicroShift does not expose many OpenShift config APIs. Keep this
+        # metadata path limited to Kubernetes resources and the
+        # microshift-version ConfigMap.
+        cluster_name=${MICROSHIFT_CLUSTER_NAME:-$(kubectl get ns kube-system -o jsonpath='{.metadata.uid}' 2>/dev/null || hostname -s 2>/dev/null || echo "microshift")}
+        # Prefer the microshift-version CM (carries the 4.y release); fall
+        # back to oc version (Kubernetes gitVersion) only if the CM is absent.
+        if mscm=$(kubectl get cm -n kube-public microshift-version -o json 2>/dev/null); then
+            cluster_version=$(echo "$mscm" | jq -r '.data.version // "unknown"')
+            RELEASE_STREAM=$(echo "$mscm" | jq -r '"\(.data.major).\(.data.minor)"')
+            export RELEASE_STREAM
+        else
+            cluster_version=$(oc version -o json 2>/dev/null | jq -r '.serverVersion.gitVersion // "unknown"' 2>/dev/null || echo "unknown")
+            RELEASE_STREAM=$(echo "$cluster_version" | sed -E 's/^v?([0-9]+\.[0-9]+).*/\1/')
+            export RELEASE_STREAM
+        fi
+        network_type="unknown"
+        ovn_version=""
+        ovn_namespace="openshift-ovn-kubernetes"
+        if kubectl get namespace "$ovn_namespace" >/dev/null 2>&1; then
+            network_type="OVNKubernetes"
+            ovn_pod=$(kubectl get pod -n "$ovn_namespace" -l app=ovnkube-node -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+            if [[ -z "$ovn_pod" ]]; then
+                ovn_pod=$(kubectl get pod -n "$ovn_namespace" --no-headers -o custom-columns=:.metadata.name 2>/dev/null | awk '/^ovnkube-node/{print; exit}' || true)
+            fi
+            if [[ -n "$ovn_pod" ]]; then
+                ovn_version=$(kubectl exec -n "$ovn_namespace" "$ovn_pod" -- ovn-controller --version 2>/dev/null | awk '/^ovn-controller/{print $2; exit}' || true)
+            fi
+        fi
+        # platform mirrors the cloud-platform field used in the OCP path
+        # (AWS/Azure/BareMetal/None); MicroShift carries its distinction via
+        # cluster_type and stream so dashboards filtering on platform still match.
+        platform="None"
+        cluster_type="microshift"
+        stream="microshift"
+
+        masters=0
+        infra=0
+        workers=0
+        all=0
+        master_type=""
+        infra_type=""
+        worker_type=""
+        osimage=""
+
+        # Role counts mirror the OpenShift path's taint-aware logic: an
+        # untainted master with the worker label is counted as both, so on a
+        # default single-node MicroShift masters=workers=1. Role counts are
+        # not a partition of `all`.
+        for node in $(kubectl get nodes --ignore-not-found --no-headers -o custom-columns=:.metadata.name || true); do
+            labels=$(kubectl get node "$node" -o jsonpath='{.metadata.labels}' 2>/dev/null || true)
+            node_type=$(kubectl get node "$node" -o jsonpath='{.metadata.labels.beta\.kubernetes\.io/instance-type}' 2>/dev/null || true)
+            if [[ -z "$node_type" ]]; then
+                node_type=$(kubectl get node "$node" -o jsonpath='{.metadata.labels.node\.kubernetes\.io/instance-type}' 2>/dev/null || true)
+            fi
+            if [[ -z "$osimage" ]]; then
+                osimage=$(kubectl get node "$node" -o jsonpath='{.status.nodeInfo.osImage}' 2>/dev/null || true)
+            fi
+            if [[ $labels == *"node-role.kubernetes.io/master"* || $labels == *"node-role.kubernetes.io/control-plane"* ]]; then
+                masters=$((masters + 1))
+                master_type=$node_type
+                taints=$(kubectl get node "$node" -o jsonpath='{.spec.taints}' 2>/dev/null || true)
+                if [[ $labels == *"node-role.kubernetes.io/worker"* && $taints == "" ]]; then
+                    workers=$((workers + 1))
+                    worker_type=$node_type
+                fi
+            elif [[ $labels == *"node-role.kubernetes.io/infra"* ]]; then
+                infra=$((infra + 1))
+                infra_type=$node_type
+            elif [[ $labels == *"node-role.kubernetes.io/worker"* ]]; then
+                workers=$((workers + 1))
+                worker_type=$node_type
+            fi
+            all=$((all + 1))
+        done
+
+        compute_arch=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.architecture}' 2>/dev/null || true)
+        if [[ -z "$compute_arch" ]]; then
+            compute_arch=$(kubectl get nodes -o jsonpath='{.items[0].metadata.labels.kubernetes\.io/arch}' 2>/dev/null || true)
+        fi
+        control_plane_arch=$compute_arch
+
+        ocp_virt=false
+        ocp_virt_version=""
+        ocp_virt_tuning_policy=""
+        # ipsec/fips are not exposed via API on MicroShift; left as defaults.
+        ipsec=false
+        ipsecMode="Disabled"
+        fips=false
+        encrypted=false
+        encryption=""
+        publish=""
+        return
+    fi
+
     # Get OpenShift cluster details
     cluster_name=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}') || echo "Cluster Install Failed"
     cluster_version=$(oc version -o json | jq -r '.openshiftVersion') || echo "Cluster Install Failed"
@@ -427,6 +523,10 @@ fi
 ES_INDEX=${ES_METADATA_INDEX:-perf_scale_ci}
 
 setup
+if [[ "${PLATFORM:-openshift}" == "microshift" ]]; then
+    index_tasks
+    exit 0
+fi
 get_ipsec_config
 get_fips_config
 get_osimage_config
