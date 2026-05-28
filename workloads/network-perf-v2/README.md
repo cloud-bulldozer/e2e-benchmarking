@@ -66,7 +66,7 @@ When `PLATFORM=microshift`, `LOCAL` defaults to `true` and `METRICS` defaults to
 | METRICS | Enable collection of metrics by k8s-netperf | `false` when `PLATFORM=microshift`, otherwise `true` |
 | NETPERF_FILENAME | Filename of the k8s-netperf binary that run.sh executes | k8s-netperf |
 | NETPERF_URL | URL to download k8s-netperf | https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz |
-| NETPERF_VERSION | k8s-netperf tag/version | v0.1.41 |
+| NETPERF_VERSION | k8s-netperf tag/version | v0.1.42 |
 | OS | System to run k8s-netperf | Linux |
 | PLATFORM | Target platform (`openshift` or `microshift`) | openshift |
 | POD | Run pod-network scenarios | true |
