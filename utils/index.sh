@@ -8,26 +8,38 @@ set -eo pipefail
 #           totalNodes, sdnType, clusterName, fips, ipsec, publish, architecture, etc.
 # See: https://github.com/cloud-bulldozer/go-commons
 get_ocp_metadata(){
-    OCP_METADATA_VERSION=${OCP_METADATA_VERSION:-"v2.3.6"}
+    OCP_METADATA_VERSION=${OCP_METADATA_VERSION:-"latest"}
     OCP_METADATA_TOOL="ocp-metadata-linux-amd64"
     OCP_METADATA_URL="https://github.com/cloud-bulldozer/go-commons/releases/download/${OCP_METADATA_VERSION}/${OCP_METADATA_TOOL}"
 
     # Download ocp-metadata tool if not already present
     if [[ ! -f "${OCP_METADATA_TOOL}" ]]; then
         echo "Downloading ocp-metadata tool from ${OCP_METADATA_URL}..."
-        curl -sL "${OCP_METADATA_URL}" -o "${OCP_METADATA_TOOL}"
+        if ! curl -sSL --fail --retry 3 --max-time 60 "${OCP_METADATA_URL}" -o "${OCP_METADATA_TOOL}"; then
+            echo "Error: Failed to download ocp-metadata tool from ${OCP_METADATA_URL}"
+            exit 1
+        fi
         chmod +x "${OCP_METADATA_TOOL}"
     fi
 
     # Run ocp-metadata and capture output as JSON
     OCP_METADATA_JSON=$(./${OCP_METADATA_TOOL})
+    if ! OCP_METADATA_JSON=$(./${OCP_METADATA_TOOL}); then
+        echo "Error: Failed to execute ocp-metadata tool"
+        exit 1
+    fi
+    # Validate output is valid JSON
+    if ! echo ${OCP_METADATA_JSON} | jq . >/dev/null 2>&1; then
+      echo "Error: ocp-metadata tool did not return valid JSON"
+    fi
 
     # Export the JSON for later use in index_task()
     export OCP_METADATA_JSON
 
     # Extract RELEASE_STREAM for setup function
     cluster_version=$(echo "$OCP_METADATA_JSON" | jq -r '.ocpVersion // ""')
-    export RELEASE_STREAM=$(echo "$cluster_version" | cut -d '-' -f1-2)
+    RELEASE_STREAM=$(echo "$cluster_version" | cut -d '-' -f1-2)
+    export RELEASE_STREAM
 }
 
 setup(){
