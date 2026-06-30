@@ -45,6 +45,8 @@ set +e
 echo $cmd
 JOB_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 $cmd
+oc get pod -n openshift-ingress
+for i in `oc get pods -n openshift-ingress -oname`; do oc describe $i -n openshift-ingress; done
 exit_code=$?
 JOB_END=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 if [ $exit_code -eq 0 ]; then
