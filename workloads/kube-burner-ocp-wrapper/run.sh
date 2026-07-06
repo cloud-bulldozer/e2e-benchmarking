@@ -191,7 +191,14 @@ fi
 # Capture the exit code of the run, but don't exit the script if it fails.
 set +e
 
-echo $cmd
+redacted_cmd=${cmd}
+if [[ -n ${ES_SERVER} ]]; then
+  redacted_cmd=${redacted_cmd//"${ES_SERVER}"/<redacted-es-server>}
+fi
+if [[ -n ${PROMETHEUS_TOKEN:-} ]]; then
+  redacted_cmd=${redacted_cmd//"${PROMETHEUS_TOKEN}"/<redacted-prometheus-token>}
+fi
+echo "${redacted_cmd}"
 JOB_START=${JOB_START:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")};
 $cmd
 exit_code=$?

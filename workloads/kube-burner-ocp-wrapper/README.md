@@ -58,6 +58,63 @@ $ EXTRA_FLAGS="--churn-duration=1h --churn-mode=objects" ITERATIONS=5000 WORKLOA
 
 - **ITERATIONS**: Defines the number of iterations of the workload to run. No default value
 
+## MicroShift node-density workloads
+
+MicroShift node-density workloads can be run through the same generic
+`run.sh` wrapper by passing the workload name and kube-burner-ocp flags through
+environment variables:
+
+- `node-density`
+- `node-density-cni`
+- `node-density-cni-netpol`, run through the kube-burner-ocp
+  `network-policy` workload
+
+MicroShift does not expose the OpenShift in-cluster Prometheus route, so pass
+an external Prometheus endpoint with `--prometheus-url`. For indexed runs, set
+`ES_SERVER` and `ES_INDEX` as usual. For automation that needs a specific
+kube-burner-ocp build, use `KUBE_BURNER_VERSION` or `KUBE_BURNER_URL`.
+MicroShift support requires kube-burner-ocp v1.11.17 or later.
+
+Run `node-density`:
+
+```shell
+$ ES_SERVER=https://USER:PASSWORD@HOSTNAME:443 \
+  KUBE_BURNER_VERSION=1.11.17 \
+  WORKLOAD=node-density \
+  QPS=10 \
+  BURST=10 \
+  EXTRA_FLAGS="--pods-per-node=245 --selector=node-role.kubernetes.io/worker=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= --metrics-profile=microshift-metrics.yml --prometheus-url=http://prometheus.example:9091 --alerting=false" \
+  ./run.sh
+```
+
+Run `node-density-cni`:
+
+```shell
+$ ES_SERVER=https://USER:PASSWORD@HOSTNAME:443 \
+  KUBE_BURNER_VERSION=1.11.17 \
+  WORKLOAD=node-density-cni \
+  QPS=10 \
+  BURST=10 \
+  EXTRA_FLAGS="--pods-per-node=245 --selector=node-role.kubernetes.io/worker=,node-role.kubernetes.io/infra!=,node-role.kubernetes.io/workload!= --metrics-profile=microshift-metrics.yml --prometheus-url=http://prometheus.example:9091 --alerting=false" \
+  ./run.sh
+```
+
+Run the network policy variant:
+
+```shell
+$ ES_SERVER=https://USER:PASSWORD@HOSTNAME:443 \
+  KUBE_BURNER_VERSION=1.11.17 \
+  WORKLOAD=network-policy \
+  ITERATIONS=75 \
+  QPS=10 \
+  BURST=10 \
+  EXTRA_FLAGS="--metrics-profile=microshift-metrics.yml --prometheus-url=http://prometheus.example:9091 --alerting=false" \
+  ./run.sh
+```
+
+To sweep multiple QPS values, call `run.sh` repeatedly from the automation
+layer while varying `QPS`, `BURST`, and `UUID`.
+
 ## HyperShift
 
 It's possible to use this script with HyperShift hosted clusters. The particularity of this is that kube-burner-ocp will grab metrics from different Prometheus endpoints:
@@ -88,4 +145,3 @@ EgressIP testing requires a nginx server outside OCP cluster. This server should
 ```shell
 $ EXTRA_FLAGS="--addresses-per-iteration=1" AWS_ACCESS_KEY_ID="" AWS_SECRET_ACCESS_KEY="" ITERATIONS=1 WORKLOAD=egressip ./run.sh
 ```
-
