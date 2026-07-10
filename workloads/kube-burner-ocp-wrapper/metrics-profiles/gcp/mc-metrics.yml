@@ -1,0 +1,172 @@
+# Management cluster metrics from GCP Managed Prometheus
+# Uses both cluster="{{.MC_NAME}}" and cluster_name="{{.MC_NAME}}" patterns
+
+# Management Node metrics: CPU & Memory
+# Using GKE-specific aggregated metrics (cluster_name label)
+
+- query: sum(rate(kubernetes_io:node_cpu_core_usage_time{cluster_name="{{.MC_NAME}}"}[2m])) by (node_name, cluster_name) > 0
+  metricName: mgmt-nodeCPU-Workers
+
+- query: sum(kubernetes_io:node_memory_used_bytes{cluster_name="{{.MC_NAME}}"}) by (node_name, cluster_name)
+  metricName: mgmt-nodeMemoryUtilization-Workers
+
+- query: sum(kubernetes_io:node_cpu_allocatable_cores{cluster_name="{{.MC_NAME}}"}) by (node_name, cluster_name)
+  metricName: mgmtNodeCPUAllocatable
+
+- query: sum(kubernetes_io:node_cpu_allocatable_utilization{cluster_name="{{.MC_NAME}}"}) by (node_name, cluster_name)
+  metricName: mgmtNodeCPUAllocatableUtilization
+
+- query: sum(kubernetes_io:node_memory_allocatable_bytes{cluster_name="{{.MC_NAME}}"}) by (node_name, cluster_name)
+  metricName: mgmtNodeMemoryAllocatable
+
+- query: sum(kubernetes_io:node_memory_allocatable_utilization{cluster_name="{{.MC_NAME}}"}) by (node_name, cluster_name)
+  metricName: mgmtNodeMemoryAllocatableUtilization
+
+# Network I/O
+- query: sum(rate(kubernetes_io:node_network_received_bytes_count{cluster_name="{{.MC_NAME}}"}[2m])) by (node_name, cluster_name) > 0
+  metricName: mgmtNodeNetworkReceived
+
+- query: sum(rate(kubernetes_io:node_network_sent_bytes_count{cluster_name="{{.MC_NAME}}"}[2m])) by (node_name, cluster_name) > 0
+  metricName: mgmtNodeNetworkSent
+
+# Ephemeral Storage
+- query: sum(kubernetes_io:node_ephemeral_storage_used_bytes{cluster_name="{{.MC_NAME}}"}) by (node_name, cluster_name)
+  metricName: mgmtNodeEphemeralStorageUsed
+
+- query: sum(kubernetes_io:node_ephemeral_storage_allocatable_bytes{cluster_name="{{.MC_NAME}}"}) by (node_name, cluster_name)
+  metricName: mgmtNodeEphemeralStorageAllocatable
+
+# BEGIN TODO(etcd-disk-tuning): temporary metrics for the Hyperdisk IOPS/throughput
+# sizing investigation for etcd. Remove everything between the BEGIN/END
+# etcd-disk-tuning markers (in this file and hosted-cp-metrics.yml) if not needed.
+# Disk I/O (GCE instance disk metrics, per node and device)
+- query: sum(rate({"__name__"="compute.googleapis.com/instance/disk/read_ops_count","monitored_resource"="gce_instance","metadata_user_goog-k8s-cluster-name"="{{.MC_NAME}}"}[2m])) by (instance_name, device_name)
+  metricName: mgmtNodeDiskReads
+
+- query: sum(rate({"__name__"="compute.googleapis.com/instance/disk/write_ops_count","monitored_resource"="gce_instance","metadata_user_goog-k8s-cluster-name"="{{.MC_NAME}}"}[2m])) by (instance_name, device_name)
+  metricName: mgmtNodeDiskWrites
+
+- query: sum(rate({"__name__"="compute.googleapis.com/instance/disk/read_bytes_count","monitored_resource"="gce_instance","metadata_user_goog-k8s-cluster-name"="{{.MC_NAME}}"}[2m])) by (instance_name, device_name)
+  metricName: mgmtNodeDiskReadBytes
+
+- query: sum(rate({"__name__"="compute.googleapis.com/instance/disk/write_bytes_count","monitored_resource"="gce_instance","metadata_user_goog-k8s-cluster-name"="{{.MC_NAME}}"}[2m])) by (instance_name, device_name)
+  metricName: mgmtNodeDiskWriteBytes
+
+# Average I/O latency per disk (microseconds)
+- query: max({"__name__"="compute.googleapis.com/instance/disk/average_io_latency","monitored_resource"="gce_instance","metadata_user_goog-k8s-cluster-name"="{{.MC_NAME}}"}) by (instance_name, device_name)
+  metricName: mgmtNodeDiskAvgIOLatency
+# END TODO(etcd-disk-tuning)
+
+# PID limits
+- query: sum(kubernetes_io:node_pid_used{cluster_name="{{.MC_NAME}}"}) by (node_name, cluster_name)
+  metricName: mgmtNodePIDUsed
+
+- query: sum(kubernetes_io:node_pid_limit{cluster_name="{{.MC_NAME}}"}) by (node_name, cluster_name)
+  metricName: mgmtNodePIDLimit
+
+# Node health
+- query: sum(kubernetes_io:node_status_condition{cluster_name="{{.MC_NAME}}"}) by (node_name, status, condition, cluster_name)
+  metricName: mgmtNodeStatusCondition
+
+# Worker node instance type (machine type from GCE instance metadata)
+# No instant:true - range query captures nodes added/removed during the benchmark
+- query: count by (instance_name, metadata_system_machine_type) ({'__name__'='compute.googleapis.com/instance/cpu/utilization', 'monitored_resource'='gce_instance', 'metadata_user_goog-k8s-cluster-name'='{{.MC_NAME}}'})
+  metricName: mgmtWorkerInstanceType
+
+# Kubelet & Containerd runtime metrics (using 'cluster' label)
+
+- query: sum(rate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",id="/system.slice/kubelet.service"}[2m]) * 100) by (node, cluster)
+  metricName: mgmtKubeletCPU
+
+- query: sum(container_memory_rss{cluster="{{.MC_NAME}}",id="/system.slice/kubelet.service"}) by (node, cluster)
+  metricName: mgmtKubeletMemory
+
+- query: (sum(irate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",id="/system.slice/containerd.service"}[2m])*100) by (container, pod, node, cluster)) > 0
+  metricName: mgmtContainerdCPU
+
+- query: sum(container_memory_rss{cluster="{{.MC_NAME}}",id="/system.slice/containerd.service"}) by (container, pod, node, cluster)
+  metricName: mgmtContainerdMemory
+
+# Kubelet Performance
+- query: histogram_quantile(0.99, sum(irate(kubelet_pod_worker_duration_seconds_bucket{cluster="{{.MC_NAME}}"}[2m])) by (operation_type, node, le, cluster)) > 0
+  metricName: mgmtKubeletPodWorkerLatency
+
+- query: histogram_quantile(0.99, sum(rate(kubelet_pleg_relist_duration_seconds_bucket{cluster="{{.MC_NAME}}"}[2m])) by (node, le, cluster)) > 0
+  metricName: mgmtKubeletPLEGLatency
+
+- query: sum(rate(kubelet_runtime_operations_total{cluster="{{.MC_NAME}}"}[2m])) by (node, operation_type, cluster) > 0
+  metricName: mgmtKubeletRuntimeOperations
+
+# Container metrics for all pods on MC (excluding HCP namespace)
+- query: (sum(irate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",name!="",namespace!~"clusters-.*"}[2m]) * 100) by (container, pod, node, namespace, cluster)) > 0
+  metricName: mgmt-containerCPU
+
+- query: sum(container_memory_rss{cluster="{{.MC_NAME}}",name!="",namespace!~"clusters-.*"}) by (container, pod, node, namespace, cluster)
+  metricName: mgmt-containerMemory
+
+# HCP Control Plane Pods CPU/Memory (via GMP - not available on MC Prometheus in Autopilot)
+- query: (sum(irate(container_cpu_usage_seconds_total{cluster="{{.MC_NAME}}",namespace=~"{{.HCP_NAMESPACE}}",name!="",container!="POD"}[2m]) * 100) by (container, pod, namespace, node, cluster)) > 0
+  metricName: podCPU-Controlplane
+
+- query: sum(container_memory_working_set_bytes{cluster="{{.MC_NAME}}",namespace=~"{{.HCP_NAMESPACE}}",name!="",container!="POD"}) by (container, pod, namespace, node, cluster)
+  metricName: podMemory-Controlplane
+
+# BEGIN TODO(etcd-disk-tuning): per-pod disk I/O for HCP pods (see note above)
+- query: (sum(rate(container_fs_reads_total{cluster="{{.MC_NAME}}",namespace=~"{{.HCP_NAMESPACE}}"}[2m])) by (pod, namespace, node, cluster)) > 0
+  metricName: podDiskReads-Controlplane
+
+- query: (sum(rate(container_fs_writes_total{cluster="{{.MC_NAME}}",namespace=~"{{.HCP_NAMESPACE}}"}[2m])) by (pod, namespace, node, cluster)) > 0
+  metricName: podDiskWrites-Controlplane
+
+- query: (sum(rate(container_fs_reads_bytes_total{cluster="{{.MC_NAME}}",namespace=~"{{.HCP_NAMESPACE}}"}[2m])) by (pod, namespace, node, cluster)) > 0
+  metricName: podDiskReadBytes-Controlplane
+
+- query: (sum(rate(container_fs_writes_bytes_total{cluster="{{.MC_NAME}}",namespace=~"{{.HCP_NAMESPACE}}"}[2m])) by (pod, namespace, node, cluster)) > 0
+  metricName: podDiskWriteBytes-Controlplane
+# END TODO(etcd-disk-tuning)
+
+- query: sum by (pod, container, namespace) (label_replace(label_replace(label_replace({"__name__"="kubernetes.io/container/cpu/request_cores","monitored_resource"="k8s_container","namespace_name"=~"{{.HCP_NAMESPACE}}","cluster_name"="{{.MC_NAME}}"}, "container", "$1", "container_name", "(.*)"), "pod", "$1", "pod_name", "(.*)"), "namespace", "$1", "namespace_name", "(.*)"))
+  metricName: podCPUReq
+
+- query: sum by (pod, container, namespace) (label_replace(label_replace(label_replace({"__name__"="kubernetes.io/container/memory/request_bytes","monitored_resource"="k8s_container","namespace_name"=~"{{.HCP_NAMESPACE}}","cluster_name"="{{.MC_NAME}}"}, "container", "$1", "container_name", "(.*)"), "pod", "$1", "pod_name", "(.*)"), "namespace", "$1", "namespace_name", "(.*)"))
+  metricName: podMemoryReq
+
+# API Server metrics (GKE control plane)
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{cluster="{{.MC_NAME}}",verb=~"LIST|GET", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope, cluster)) > 0
+  metricName: mgmt-readOnlyAPICallsLatency
+
+- query: histogram_quantile(0.99, sum(irate(apiserver_request_duration_seconds_bucket{cluster="{{.MC_NAME}}",verb=~"POST|PUT|DELETE|PATCH", subresource!~"log|exec|portforward|attach|proxy"}[2m])) by (le, resource, verb, scope, cluster)) > 0
+  metricName: mgmt-mutatingAPICallsLatency
+
+- query: sum(irate(apiserver_request_total{cluster="{{.MC_NAME}}",verb!="WATCH"}[2m])) by (verb, resource, code, cluster) > 0
+  metricName: mgmt-APIRequestRate
+
+- query: sum(apiserver_current_inflight_requests{cluster="{{.MC_NAME}}"}) by (request_kind, cluster)
+  metricName: mgmt-apiServerInflightRequests
+
+- query: sum(apiserver_storage_objects{cluster="{{.MC_NAME}}"}) by (resource, cluster)
+  metricName: mgmt-apiServerStorageObjects
+
+# Scheduler metrics
+- query: max(scheduler_pending_pods{cluster="{{.MC_NAME}}"}) by (queue, cluster)
+  metricName: mgmt-schedulerPendingPods
+
+- query: sum(rate(scheduler_schedule_attempts_total{cluster="{{.MC_NAME}}"}[2m])) by (result, cluster) > 0
+  metricName: mgmt-schedulerAttempts
+
+- query: histogram_quantile(0.99, sum(rate(scheduler_pod_scheduling_sli_duration_seconds_bucket{cluster="{{.MC_NAME}}"}[2m])) by (le, cluster)) > 0
+  metricName: mgmt-schedulerE2ELatency
+
+# Cluster-wide pod metrics
+- query: sum(kube_pod_status_phase{cluster="{{.MC_NAME}}"}) by (phase, cluster)
+  metricName: mgmt-podStatusCount
+
+- query: sum(kubelet_running_pods{cluster="{{.MC_NAME}}"}) by (instance, cluster)
+  metricName: mgmt-podDistribution
+
+- query: sum(kube_pod_status_unschedulable{cluster="{{.MC_NAME}}"}) by (namespace, cluster) > 0
+  metricName: mgmt-podsUnschedulable
+
+- query: sum(kube_pod_container_status_waiting_reason{cluster="{{.MC_NAME}}"}) by (namespace, pod, reason, cluster)
+  metricName: mgmt-containerWaitingReason
+
