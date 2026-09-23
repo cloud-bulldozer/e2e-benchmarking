@@ -69,9 +69,51 @@ deploy_maas_platform() {
 
   if [[ "${OPERATOR_TYPE}" == "rhoai" ]]; then
     INFRA_NS="redhat-ai-gateway-infra"
+    APP_NS="redhat-ods-applications"
   else
     INFRA_NS="odh-ai-gateway-infra"
+    APP_NS="opendatahub"
   fi
+  
+  echo "Granting ai-gateway-operator the RBAC its bundle is missing (SA in ${APP_NS})..."
+  cat <<EOF | oc apply -f -
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: maas-perf-ai-gateway-operator-ocp
+rules:
+- apiGroups: ["config.openshift.io"]
+  resources: ["apiservers", "authentications"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["statefulsets"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["maas.opendatahub.io"]
+  resources: ["externalmodels/status"]
+  verbs: ["get", "patch", "update"]
+- apiGroups: ["networking.istio.io"]
+  resources: ["destinationrules", "envoyfilters", "serviceentries"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles", "clusterrolebindings", "roles", "rolebindings"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: maas-perf-ai-gateway-operator-ocp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: maas-perf-ai-gateway-operator-ocp
+subjects:
+- kind: ServiceAccount
+  name: ai-gateway-operator
+  namespace: ${APP_NS}
+EOF
 
   (
     for i in $(seq 1 120); do
