@@ -6,7 +6,7 @@ export MAAS_REF=${MAAS_REF:-v0.2.1}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
-export KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.12.6}
+export KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.12.7}
 export GUIDELLM_IMAGE=${GUIDELLM_IMAGE:-"ghcr.io/cloud-bulldozer/guidellm-results-parser:v0.0.4"}
 export PROVIDERS=${PROVIDERS:-"gpt-4o-openai,claude-sonnet-anthropic"}
 export PAYLOAD_SIZES=${PAYLOAD_SIZES:-"small,medium"}
