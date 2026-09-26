@@ -2,6 +2,46 @@
 
 set -eo pipefail
 
+# Function to download and use ocp-metadata tool
+# This tool efficiently gathers OpenShift cluster metadata in a single call
+# Provides: platform, clusterType, ocpVersion, masterNodesCount, workerNodesCount,
+#           totalNodes, sdnType, clusterName, fips, ipsec, publish, architecture, etc.
+# See: https://github.com/cloud-bulldozer/go-commons
+get_ocp_metadata(){
+    OCP_METADATA_VERSION=${OCP_METADATA_VERSION:-"latest"}
+    OCP_METADATA_TOOL="ocp-metadata-linux-amd64"
+    OCP_METADATA_URL="https://github.com/cloud-bulldozer/go-commons/releases/download/${OCP_METADATA_VERSION}/${OCP_METADATA_TOOL}"
+
+    # Download ocp-metadata tool if not already present
+    if [[ ! -f "${OCP_METADATA_TOOL}" ]]; then
+        echo "Downloading ocp-metadata tool from ${OCP_METADATA_URL}..."
+        if ! curl -sSL --fail --retry 3 --max-time 60 "${OCP_METADATA_URL}" -o "${OCP_METADATA_TOOL}"; then
+            echo "Error: Failed to download ocp-metadata tool from ${OCP_METADATA_URL}"
+            exit 1
+        fi
+        chmod +x "${OCP_METADATA_TOOL}"
+    fi
+
+    # Run ocp-metadata and capture output as JSON
+    OCP_METADATA_JSON=$(./${OCP_METADATA_TOOL})
+    if ! OCP_METADATA_JSON=$(./${OCP_METADATA_TOOL}); then
+        echo "Error: Failed to execute ocp-metadata tool"
+        exit 1
+    fi
+    # Validate output is valid JSON
+    if ! echo ${OCP_METADATA_JSON} | jq . >/dev/null 2>&1; then
+      echo "Error: ocp-metadata tool did not return valid JSON"
+    fi
+
+    # Export the JSON for later use in index_task()
+    export OCP_METADATA_JSON
+
+    # Extract RELEASE_STREAM for setup function
+    cluster_version=$(echo "$OCP_METADATA_JSON" | jq -r '.ocpVersion // ""')
+    RELEASE_STREAM=$(echo "$cluster_version" | cut -d '-' -f1-2)
+    export RELEASE_STREAM
+}
+
 setup(){
     if [[ -n $AIRFLOW_CTX_DAG_ID ]]; then
         export job_id=${AIRFLOW_CTX_DAG_ID}
@@ -74,153 +114,18 @@ setup(){
     export WORKLOAD=$WORKLOAD
     export ES_INDEX=$ES_INDEX
 
-    if [[ "${PLATFORM:-openshift}" == "microshift" ]]; then
-        # MicroShift does not expose many OpenShift config APIs. Keep this
-        # metadata path limited to Kubernetes resources and the
-        # microshift-version ConfigMap.
-        cluster_name=${MICROSHIFT_CLUSTER_NAME:-$(kubectl get ns kube-system -o jsonpath='{.metadata.uid}' 2>/dev/null || hostname -s 2>/dev/null || echo "microshift")}
-        # Prefer the microshift-version CM (carries the 4.y release); fall
-        # back to oc version (Kubernetes gitVersion) only if the CM is absent.
-        if mscm=$(kubectl get cm -n kube-public microshift-version -o json 2>/dev/null); then
-            cluster_version=$(echo "$mscm" | jq -r '.data.version // "unknown"')
-            RELEASE_STREAM=$(echo "$mscm" | jq -r '"\(.data.major).\(.data.minor)"')
-            export RELEASE_STREAM
-        else
-            cluster_version=$(oc version -o json 2>/dev/null | jq -r '.serverVersion.gitVersion // "unknown"' 2>/dev/null || echo "unknown")
-            RELEASE_STREAM=$(echo "$cluster_version" | sed -E 's/^v?([0-9]+\.[0-9]+).*/\1/')
-            export RELEASE_STREAM
-        fi
-        network_type="unknown"
-        ovn_version=""
-        ovn_namespace="openshift-ovn-kubernetes"
-        if kubectl get namespace "$ovn_namespace" >/dev/null 2>&1; then
-            network_type="OVNKubernetes"
-            ovn_pod=$(kubectl get pod -n "$ovn_namespace" -l app=ovnkube-node -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
-            if [[ -z "$ovn_pod" ]]; then
-                ovn_pod=$(kubectl get pod -n "$ovn_namespace" --no-headers -o custom-columns=:.metadata.name 2>/dev/null | awk '/^ovnkube-node/{print; exit}' || true)
-            fi
-            if [[ -n "$ovn_pod" ]]; then
-                ovn_version=$(kubectl exec -n "$ovn_namespace" "$ovn_pod" -- ovn-controller --version 2>/dev/null | awk '/^ovn-controller/{print $2; exit}' || true)
-            fi
-        fi
-        # platform mirrors the cloud-platform field used in the OCP path
-        # (AWS/Azure/BareMetal/None); MicroShift carries its distinction via
-        # cluster_type and stream so dashboards filtering on platform still match.
-        platform="None"
-        cluster_type="microshift"
-        stream="microshift"
+    # Get OpenShift cluster metadata using ocp-metadata tool
+    get_ocp_metadata
 
-        masters=0
-        infra=0
-        workers=0
-        all=0
-        master_type=""
-        infra_type=""
-        worker_type=""
-        osimage=""
-
-        # Role counts mirror the OpenShift path's taint-aware logic: an
-        # untainted master with the worker label is counted as both, so on a
-        # default single-node MicroShift masters=workers=1. Role counts are
-        # not a partition of `all`.
-        for node in $(kubectl get nodes --ignore-not-found --no-headers -o custom-columns=:.metadata.name || true); do
-            labels=$(kubectl get node "$node" -o jsonpath='{.metadata.labels}' 2>/dev/null || true)
-            node_type=$(kubectl get node "$node" -o jsonpath='{.metadata.labels.beta\.kubernetes\.io/instance-type}' 2>/dev/null || true)
-            if [[ -z "$node_type" ]]; then
-                node_type=$(kubectl get node "$node" -o jsonpath='{.metadata.labels.node\.kubernetes\.io/instance-type}' 2>/dev/null || true)
-            fi
-            if [[ -z "$osimage" ]]; then
-                osimage=$(kubectl get node "$node" -o jsonpath='{.status.nodeInfo.osImage}' 2>/dev/null || true)
-            fi
-            if [[ $labels == *"node-role.kubernetes.io/master"* || $labels == *"node-role.kubernetes.io/control-plane"* ]]; then
-                masters=$((masters + 1))
-                master_type=$node_type
-                taints=$(kubectl get node "$node" -o jsonpath='{.spec.taints}' 2>/dev/null || true)
-                if [[ $labels == *"node-role.kubernetes.io/worker"* && $taints == "" ]]; then
-                    workers=$((workers + 1))
-                    worker_type=$node_type
-                fi
-            elif [[ $labels == *"node-role.kubernetes.io/infra"* ]]; then
-                infra=$((infra + 1))
-                infra_type=$node_type
-            elif [[ $labels == *"node-role.kubernetes.io/worker"* ]]; then
-                workers=$((workers + 1))
-                worker_type=$node_type
-            fi
-            all=$((all + 1))
-        done
-
-        compute_arch=$(kubectl get nodes -o jsonpath='{.items[0].status.nodeInfo.architecture}' 2>/dev/null || true)
-        if [[ -z "$compute_arch" ]]; then
-            compute_arch=$(kubectl get nodes -o jsonpath='{.items[0].metadata.labels.kubernetes\.io/arch}' 2>/dev/null || true)
-        fi
-        control_plane_arch=$compute_arch
-
-        ocp_virt=false
-        ocp_virt_version=""
-        ocp_virt_tuning_policy=""
-        # ipsec/fips are not exposed via API on MicroShift; left as defaults.
-        ipsec=false
-        ipsecMode="Disabled"
-        fips=false
-        encrypted=false
-        encryption=""
-        publish=""
-        return
-    fi
-
-    # Get OpenShift cluster details
-    cluster_name=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}') || echo "Cluster Install Failed"
-    cluster_version=$(oc version -o json | jq -r '.openshiftVersion') || echo "Cluster Install Failed"
-    export RELEASE_STREAM=$(oc version -o json | jq -r '.openshiftVersion' | cut -d '-' -f1-2) || echo "Cluster Install Failed"
-    network_type=$(oc get network.config/cluster -o jsonpath='{.status.networkType}') || echo "Cluster Install Failed"
-    platform=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.type}') || echo "Cluster Install Failed"
-    cluster_type=""
-    control_plane_topology=$(oc get infrastructure cluster -o jsonpath='{.status.controlPlaneTopology}') || true
-    if [ "$platform" = "AWS" ]; then
-        cluster_type=$(oc get infrastructure cluster -o jsonpath='{.status.platformStatus.aws.resourceTags[?(@.key=="red-hat-clustertype")].value}') || echo "Cluster Install Failed"
-        if [ "$cluster_type" = "rosa" ]; then
-            if [ "$control_plane_topology" = "External" ]; then
-                cluster_type="rosa-hcp"
-            fi
-        fi
-    elif [ "$platform" = "Azure" ]; then
-        if [ "$control_plane_topology" = "External" ]; then
-            cluster_type="aro-hcp"
-        else
-            cluster_type="aro"
-        fi
-    fi
-    if [ -z "$cluster_type" ]; then
-        cluster_type="self-managed"
-    fi
-
-    masters=0
+    # Get infra node information (not provided by ocp-metadata)
     infra=0
-    workers=0
-    all=0
-    master_type=""
     infra_type=""
-    worker_type=""
-
     for node in $(oc get nodes --ignore-not-found --no-headers -o custom-columns=:.metadata.name || true); do
         labels=$(oc get node "$node" --no-headers -o jsonpath='{.metadata.labels}')
-        if [[ $labels == *"node-role.kubernetes.io/master"* ]]; then
-            masters=$((masters + 1))
-            master_type=$(oc get node "$node" -o jsonpath='{.metadata.labels.beta\.kubernetes\.io/instance-type}')
-            taints=$(oc get node "$node" -o jsonpath='{.spec.taints}')
-
-            if [[ $labels == *"node-role.kubernetes.io/worker"* && $taints == "" ]]; then
-                workers=$((workers + 1))
-            fi
-        elif [[ $labels == *"node-role.kubernetes.io/infra"* ]]; then
+        if [[ $labels == *"node-role.kubernetes.io/infra"* ]]; then
             infra=$((infra + 1))
             infra_type=$(oc get node "$node" -o jsonpath='{.metadata.labels.beta\.kubernetes\.io/instance-type}')
-        elif [[ $labels == *"node-role.kubernetes.io/worker"* ]]; then
-            workers=$((workers + 1))
-            worker_type=$(oc get node "$node" -o jsonpath='{.metadata.labels.beta\.kubernetes\.io/instance-type}')
         fi
-        all=$((all + 1))
     done
 
 }
@@ -254,37 +159,7 @@ get_prowjob_info() {
     fi
 }
 
-get_ipsec_config(){
-    ipsec=false
-    ipsecMode="Disabled"
-    if result=$(oc get networks.operator.openshift.io cluster -o=jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig.ipsecConfig.mode}'); then
-        # If $result is empty, it is version older than 4.15
-        # We need to check a level above in the jsonpath
-        # If that level is not empty it means ipsec is enabled
-        if [[ -z $result ]]; then
-            if deprecatedresult=$(oc get networks.operator.openshift.io cluster -o=jsonpath='{.spec.defaultNetwork.ovnKubernetesConfig.ipsecConfig}'); then
-                if [[ ! -z $deprecatedresult ]]; then
-                    ipsec=true
-                    ipsecMode="Full"
-                fi
-            fi
-        else
-            # No matter if enabled and then disabled or disabled by default,
-            # this field is always shows Disabled when no IPSec
-            if [[ ! $result == *"Disabled"* ]]; then
-                ipsec=true
-                ipsecMode=$result
-            fi
-        fi
-    fi
-}
-
-get_fips_config(){
-    fips=false
-    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep 'fips: ' | cut -d' ' -f2); then
-        fips=$result
-    fi
-}
+# Functions for metadata not provided by ocp-metadata tool
 
 get_osimage_config(){
     osimage=$(oc get node -o jsonpath='{.items[0].status.nodeInfo.osImage}')
@@ -334,25 +209,6 @@ get_encryption_config(){
     fi
 }
 
-get_publish_config(){
-    publish="External"
-    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep 'publish' | cut -d' ' -f2 | xargs ); then
-        publish=$result
-    fi
-}
-
-get_architecture_config(){
-    compute_arch=""
-    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep -A1 compute | grep architecture | cut -d' ' -f3 ); then
-        compute_arch=$result
-    fi
-
-    control_plane_arch=""
-    if result=$(oc get cm cluster-config-v1 -n kube-system -o json | jq -r '.data."install-config"' | grep -A1 controlPlane | grep architecture | cut -d' ' -f4 ); then
-        control_plane_arch=$result
-    fi
-}
-
 get_stream(){
     result=$(oc version -o yaml)
     if echo "$result" | grep -iq "okd"; then
@@ -372,29 +228,20 @@ index_task(){
     end_date_unix_timestamp=$(date "+%s" -d "${end_date}")
     current_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-    # Create base JSON
-    base_json='{
+    # Start with ocp-metadata JSON and add additional fields
+    # Create additional fields JSON for data not in ocp-metadata
+    additional_fields='{
         "ciSystem":"'"$ci"'",
         "uuid":"'"$UUID"'",
         "releaseStream":"'"$RELEASE_STREAM"'",
-        "platform":"'"$platform"'",
-        "clusterType":"'"$cluster_type"'",
         "benchmark":"'"$WORKLOAD"'",
-        "masterNodesCount":'"$masters"',
-        "workerNodesCount":'"$workers"',
         "infraNodesCount":'"$infra"',
-        "masterNodesType":"'"$master_type"'",
-        "workerNodesType":"'"$worker_type"'",
         "infraNodesType":"'"$infra_type"'",
-        "totalNodesCount":'"$all"',
-        "clusterName":"'"$cluster_name"'",
-        "ocpVersion":"'"$cluster_version"'",
         "stream":"'"$stream"'",
         "osImage":"'"$osimage"'",
         "ocpVirt":"'"$ocp_virt"'",
         "ocpVirtVersion":"'"$ocp_virt_version"'",
         "ocpVirtTuningPolicy":"'"$ocp_virt_tuning_policy"'",
-        "networkType":"'"$network_type"'",
         "ovnVersion":"'"$ovn_version"'",
         "buildTag":"'"$task_id"'",
         "jobStatus":"'"$state"'",
@@ -407,18 +254,18 @@ index_task(){
         "startDate":"'"$start_date"'",
         "endDate":"'"$end_date"'",
         "timestamp":"'"$current_timestamp"'",
-        "ipsec":"'"$ipsec"'",
-        "ipsecMode":"'"$ipsecMode"'",
-        "fips":"'"$fips"'",
         "encrypted":"'"$encrypted"'",
         "encryptionType":"'"$encryption"'",
-        "publish":"'"$publish"'",
-        "computeArch":"'"$compute_arch"'",
-        "controlPlaneArch":"'"$control_plane_arch"'",
         "pullNumber":"'"$pull_number"'",
         "organization":"'"$organization"'",
         "repository":"'"$repository"'"
     }'
+
+    # Rename fields from ocp-metadata to match expected format
+    # sdnType -> networkType in ocp-metadata JSON
+    base_json=$(echo "$OCP_METADATA_JSON" | jq '. + {networkType: .sdnType} | del(.sdnType)')
+    # Merge with additional fields
+    base_json=$(jq -n --argjson ocp "$base_json" --argjson extra "$additional_fields" '$ocp + $extra')
 
     # Ensure ADDITIONAL_PARAMS is valid JSON
     if [[ -n "$ADDITIONAL_PARAMS" ]]; then
@@ -523,12 +370,8 @@ fi
 ES_INDEX=${ES_METADATA_INDEX:-perf_scale_ci}
 
 setup
-if [[ "${PLATFORM:-openshift}" == "microshift" ]]; then
-    index_tasks
-    exit 0
-fi
-get_ipsec_config
-get_fips_config
+
+# Get additional metadata not provided by ocp-metadata
 get_osimage_config
 get_ocp_virt_config
 # address `ocp_virt_version: unbound variable when ocp_virt=false
@@ -540,7 +383,5 @@ if [[ "$ocp_virt" == true ]]; then
 fi
 get_ovn_version
 get_encryption_config
-get_publish_config
-get_architecture_config
 get_stream
 index_tasks
