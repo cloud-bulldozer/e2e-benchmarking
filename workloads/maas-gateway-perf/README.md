@@ -100,7 +100,7 @@ $ ES_SERVER=https://USER:PASSWORD@HOSTNAME:443 \
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `KUBE_BURNER_VERSION` | Version to download. Set `default` to use the built-in default | `1.12.0` |
+| `KUBE_BURNER_VERSION` | Version to download. Set `default` to use the built-in default | `1.12.8` |
 | `KUBE_BURNER_URL` | Direct URL to a kube-burner-ocp binary. Overrides `KUBE_BURNER_VERSION` | (unset) |
 | `QPS` | Client-go QPS | `20` |
 | `BURST` | Client-go burst | `20` |
