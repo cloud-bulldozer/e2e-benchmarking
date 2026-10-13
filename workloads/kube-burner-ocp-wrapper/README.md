@@ -112,8 +112,85 @@ $ ES_SERVER=https://USER:PASSWORD@HOSTNAME:443 \
   ./run.sh
 ```
 
-To sweep multiple QPS values, call `run.sh` repeatedly from the automation
-layer while varying `QPS`, `BURST`, and `UUID`.
+### QPS sweeps
+
+Set `QPS_LIST` to an ordered, whitespace-separated list of distinct positive
+integers to enable a sweep. An explicit list allows both regular and sparse
+sampling without start/end/step rules. Unset or empty keeps the single-run
+behavior, including its UUID, exit status and artifact paths.
+
+- `UUID`: base run ID (generated when unset); each step uses `${UUID}-qps${QPS}`.
+  Use a new base UUID for each workload and iteration. Step UUIDs must fit the
+  Kubernetes label limit of 63 characters.
+- `BURST`: follows each step's QPS when unset; an explicit positive integer stays
+  fixed across the sweep. `QPS` is ignored in sweep mode.
+- `SWEEP_SLEEP`: seconds between steps **after namespace deletion**, default `30`;
+  set `0` to disable.
+- `SWEEP_CLEANUP_TIMEOUT`: namespace deletion timeout in seconds, default `300`.
+  Cleanup uses `oc delete namespaces` with the step's `kube-burner.io/uuid` label,
+  waits for deletion, and has a 10-second API request timeout and an outer wall
+  timeout (plus up to 5 seconds to kill an unresponsive client).
+
+Each step calls the existing wrapper, including its binary download and indexing.
+`EXTRA_FLAGS`, `ES_SERVER`, `ES_INDEX`, `--local-indexing` and `--metrics-endpoint`
+are passed through unchanged. Keep the default local directory
+`collected-metrics-<step-uuid>`, or use UUID-dependent paths in custom endpoint
+configuration; a fixed custom metrics directory would overwrite earlier steps.
+Do not override `--uuid`, `--qps` or `--burst` through `EXTRA_FLAGS`.
+Relative metrics-profile/endpoint paths still resolve from the current directory.
+
+For example, run the MicroShift node-density QPS 2..20 sweep with 245 pods/node:
+
+```shell
+$ unset BURST
+$ WORKLOAD=node-density UUID=$(uuidgen) QPS_LIST="2 4 6 8 10 12 14 16 18 20" \
+  EXTRA_FLAGS="--pods-per-node=245 --local-indexing --metrics-endpoint=microshift-endpoint.yml --alerting=false" \
+  ./run.sh
+```
+
+Use `WORKLOAD=node-density-cni` and a new UUID for the second workload. Configure
+`microshift-endpoint.yml` with the external Prometheus endpoint, MicroShift metrics
+profile and a **5s step** so short jobs have enough samples. For local archival:
+
+```yaml
+- endpoint: http://prometheus.example:9091
+  step: 5s
+  metrics:
+    - microshift-metrics.yml
+  indexer:
+    type: local
+```
+
+Endpoint/indexer configuration remains kube-burner-ocp's responsibility; sweep
+mode does not alter it or verify metric completeness. For ES plus local output,
+use the same endpoint configuration as a single run.
+
+The sweep stops at the first failed invocation or cleanup, exits nonzero and
+never retries. Namespace cleanup also runs on exit/INT/TERM, even with `GC=false`.
+It targets only the current step's namespaces, not unrelated runs or cluster-wide
+resources. Index-only workloads are not supported. Sweep mode needs `jq`, `oc`,
+GNU `timeout` and `setsid` in addition to the single-run dependencies.
+
+Artifacts in the current directory:
+
+- `sweep-<step-uuid>.log`: each invocation's stdout/stderr and cleanup output.
+- `collected-metrics-<step-uuid>/`: normal kube-burner local output when enabled.
+- `sweep-<base-uuid>.json`: an array atomically updated after every attempted step,
+  containing `workload`, `qps`, `burst`, `uuid`, `start_epoch`, `end_epoch`, `rc`,
+  `cleanup_rc`, and `log`. Epochs are integer seconds and include cleanup time.
+  `rc` is the wrapper exit code (130/143 for INT/TERM); `cleanup_rc` is separate.
+  Unattempted steps are absent. Existing summaries or default step artifacts are
+  rejected to avoid mixing runs.
+
+CI consumers opting into sweeps must archive the summary, logs and every step's
+metrics directory. Existing single-run consumers need no change.
+
+Local tests (all cluster clients and downloads stubbed):
+
+```shell
+python3 workloads/kube-burner-ocp-wrapper/test-sweep.py
+shellcheck workloads/kube-burner-ocp-wrapper/sweep.sh
+```
 
 ## HyperShift
 
