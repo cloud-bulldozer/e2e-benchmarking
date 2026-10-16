@@ -1,0 +1,238 @@
+- query: 'sum(fleet_manager_management_cluster_hosted_cluster_count{ job="fleet-manager-metrics", namespace="osd-fleet-manager-stage",  region="us-east-2"}) by (management_cluster)'
+  metricName: managementClusterHostedClusterCount
+
+- query: '(1-avg_over_time(floor(sum(rate(haproxy_backend_http_responses_total{route="osd-fleet-manager",exported_namespace="osd-fleet-manager-stage",code!="5xx"}[10m])) / sum(rate(haproxy_backend_http_responses_total{route="osd-fleet-manager",exported_namespace="osd-fleet-manager-stage"}[10m])) > 0 + 0.35)[10m:]))/(1-0.99)'
+  metricName: errBudgetExApiAvaialability99
+
+- query: '(1-(sum(rate(api_inbound_request_duration_bucket{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage",le="0.1"}[10m]))/sum(rate(api_inbound_request_duration_count{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage"}[10m]))))/(1-0.9)'
+  metricName: errBudgetExApiLatencyP90
+
+- query: '(1-avg_over_time(floor(sum(rate(haproxy_backend_http_responses_total{route="osd-fleet-manager",exported_namespace="osd-fleet-manager-stage",code!="5xx"}[10m])) / sum(rate(haproxy_backend_http_responses_total{route="osd-fleet-manager",exported_namespace="osd-fleet-manager-stage"}[10m])) > 0 + 0.35)[10m:]))/(1-0.99)'
+  metricName: errBudgetExApiLatencyP99
+
+- query: 'avg_over_time(floor(sum(rate(haproxy_backend_http_responses_total{route="osd-fleet-manager",exported_namespace="osd-fleet-manager-stage",code!="5xx"}[10m])) / sum(rate(haproxy_backend_http_responses_total{route="osd-fleet-manager",exported_namespace="osd-fleet-manager-stage"}[10m])) > 0 + 0.35)[10m:])'
+  metricName: sloAPIAvailability
+
+- query: 'sum(rate(api_inbound_request_duration_bucket{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage",le="0.1"}[10m]))/sum(rate(api_inbound_request_duration_count{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage"}[10m]))'
+  metricName: sloApiLatencyP90
+
+- query: 'sum(rate(api_inbound_request_duration_bucket{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage",le="1"}[10m]))/sum(rate(api_inbound_request_duration_count{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage"}[10m]))'
+  metricName: sloApiLatencyP90Less1s
+
+- query: 'sum(fleet_manager_management_cluster_hosted_cluster_count{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage",region="us-east-2"}) / (sum(fleet_manager_available_management_clusters_by_service_cluster_count{region="us-east-2", job="fleet-manager-metrics",namespace="osd-fleet-manager-stage"}) * sum(fleet_manager_max_desired_hosted_cluster_count{region="us-east-2", job="fleet-manager-metrics",namespace="osd-fleet-manager-stage"}))'
+  metricName: saturationLevel
+
+- query: '(sum(fleet_manager_management_cluster_hosted_cluster_count{region="us-east-2",namespace="osd-fleet-manager-stage"}) by (service_cluster)) / (sum(fleet_manager_available_management_clusters_by_service_cluster_count{region="us-east-2",namespace="osd-fleet-manager-stage"}) by (service_cluster) * sum(fleet_manager_max_desired_hosted_cluster_count{region="us-east-2", job="fleet-manager-metrics",namespace="osd-fleet-manager-stage"}) by (service_cluster))'
+  metricName: saturationLevelBySC
+
+- query: '(sum(fleet_manager_available_management_clusters_by_service_cluster_count{job="fleet-manager-metrics", region="us-east-2", namespace="osd-fleet-manager-stage"}) by (service_cluster) * (sum(fleet_manager_max_desired_hosted_cluster_count{region="us-east-2", job="fleet-manager-metrics",namespace="osd-fleet-manager-stage"}) by (service_cluster))) - sum(fleet_manager_management_cluster_hosted_cluster_count{job="fleet-manager-metrics", namespace="osd-fleet-manager-stage", region="us-east-2"}) by (service_cluster)'
+  metricName: remainingCapacityBySC
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_cluster_accepted", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_cluster_accepted", namespace="osd-fleet-manager-stage"})'
+  metricName: mcReconcileAccepted
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_cluster_network_provisioned", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_cluster_network_provisioned", namespace="osd-fleet-manager-stage"})'
+  metricName: mcReconcileNetProvision
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_cluster_provisioned", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_cluster_provisioned", namespace="osd-fleet-manager-stage"})'
+  metricName: mcReconcileProvisioned
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_ready", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_ready", namespace="osd-fleet-manager-stage"})'
+  metricName: mcReconcileReady
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_maintenance", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_maintenance", namespace="osd-fleet-manager-stage"})
+'
+  metricName: mcReconcileMaintenance
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_deprovisioning", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_deprovisioning", namespace="osd-fleet-manager-stage"})'
+  metricName: mcReconcileDeprovisioning
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_cleanup", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_cleanup", namespace="osd-fleet-manager-stage"})'
+  metricName: mcReconcileCleanup
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_cluster_provisioning", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="hs-mc_cluster_provisioning", namespace="osd-fleet-manager-stage"})'
+  metricName: mcReconcileProvisioning
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="processMetrics", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="processMetrics", namespace="osd-fleet-manager-stage"})'
+  metricName: mcReconcileProcessMetrics
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="reconcileMIAClusters", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-mc", reconciliation_step="reconcileMIAClusters", namespace="osd-fleet-manager-stage"})'
+  metricName: mcReconcileMIAClusters
+
+- query: 'sum without (pod, instance) (fleet_manager_reconciler_duration_in_seconds{job="fleet-manager-metrics",worker_type="hs-mc", namespace="osd-fleet-manager-stage"})'
+  metricName: mcReconcileTime
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_cluster_accepted", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_cluster_accepted", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileAccepted
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_cluster_network_provisioned", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_cluster_network_provisioned", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileNetProvision
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_cluster_provisioning", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_cluster_provisioning", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileProvisioning
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_cluster_provisioned", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_cluster_provisioned", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileProvisioned
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_ready", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_ready", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileReady
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_maintenance", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_maintenance", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileMaintenance
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_deprovisioning", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_deprovisioning", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileDeprovisioning
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_cleanup", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="hs-sc_cleanup", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileCleanup
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="processMetrics", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="processMetrics", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileProcessMetrics
+
+- query: 'sum(fleet_manager_reconciler_success_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="reconcileMIAClusters", namespace="osd-fleet-manager-stage"})
+/
+sum(fleet_manager_reconciler_total_count{job="fleet-manager-metrics",worker_type="hs-sc", reconciliation_step="reconcileMIAClusters", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileMIAClusters
+
+- query: 'sum without (pod, instance) (fleet_manager_reconciler_duration_in_seconds{job="fleet-manager-metrics",worker_type="hs-sc", namespace="osd-fleet-manager-stage"})'
+  metricName: scReconcileTime
+
+- query: 'sum without (pod,instance) (fleet_manager_cluster_status_count{job="fleet-manager-metrics", cluster_type="hs-sc", namespace="osd-fleet-manager-stage"})'
+  metricName: scStatusClusterCount
+
+- query: 'fleet_manager_cluster_status_since_created_in_seconds{cluster_type="hs-sc",job="fleet-manager-metrics", namespace="osd-fleet-manager-stage"}'
+  metricName: scStatusSinceCreation
+
+- query: 'sum without (pod,instance) (fleet_manager_cluster_status_count{cluster_type="hs-mc",job="fleet-manager-metrics", namespace="osd-fleet-manager-stage"})'
+  metricName: mcStatusClusterCount
+
+- query: 'fleet_manager_cluster_status_since_created_in_seconds{cluster_type="hs-mc",job="fleet-manager-metrics", namespace="osd-fleet-manager-stage"}'
+  metricName: mcStatusSinceCreation
+
+- query: 'sum(increase(api_inbound_request_count{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage",code!~"5..|0"}[10m]))
+/
+sum(increase(api_inbound_request_count{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage"}[10m]))'
+  metricName: apiOverallAvailability
+
+- query: 'sum(increase(api_inbound_request_duration_bucket{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage", code!~"5..|0",le="1"}[10m]))
+/
+sum(increase(api_inbound_request_duration_count{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage", code!~"5..|0"}[10m]))'
+  metricName: apiOverallLatency
+
+- query: 'sum by (code) (rate(api_inbound_request_count{job="fleet-manager-metrics", namespace="osd-fleet-manager-stage", pod=~"fleet-manager-.*"}[10m]))'
+  metricName: apiOverallRequests
+
+- query: 'sum(rate(api_inbound_request_count{job="fleet-manager-metrics", namespace="osd-fleet-manager-stage",code!~"2..", pod=~"fleet-manager-.*"}[10m]))/sum(rate(api_inbound_request_count{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage",pod=~"fleet-manager-.*"}[10m]))'
+  metricName: apiOverallErrorsNon2xx
+
+- query: 'sum(rate(api_inbound_request_count{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage", code=~"5..|0",pod=~"fleet-manager-.*"}[10m]))/sum(rate(api_inbound_request_count{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage",pod=~"fleet-manager-.*"}[10m]))'
+  metricName: apiOverallErrors5xx
+
+- query: 'histogram_quantile(0.99, sum by (le) (rate(api_inbound_request_duration_bucket{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage", code!~"5..|0", pod=~"fleet-manager-.*"}[5m])))'
+  metricName: apiOverallDuration99th
+
+- query: 'histogram_quantile(0.90, sum by (le) (rate(api_inbound_request_duration_bucket{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage", code!~"5..|0", pod=~"fleet-manager-.*"}[5m])))'
+  metricName: apiOverallDuration90th
+
+- query: 'histogram_quantile(0.5, sum by (le) (rate(api_inbound_request_duration_bucket{job="fleet-manager-metrics",namespace="osd-fleet-manager-stage", code!~"5..|0", pod=~"fleet-manager-.*"}[5m])))'
+  metricName: apiOverallDuration50th
+
+- query: 'sum(increase(api_outbound_request_count{path=~"/api/clusters_mgmt/v1/clusters/.",namespace="osd-fleet-manager-stage",apiservice="ocm-clusters-service", code!~"5..|0"}[10m]))
+/
+sum(increase(api_outbound_request_count{path=~"/api/clusters_mgmt/v1/clusters/.",namespace="osd-fleet-manager-stage",apiservice="ocm-clusters-service"}[10m]))'
+  metricName: depOCMAvailability
+
+- query: 'sum(increase(api_outbound_request_duration_bucket{path=~"/api/clusters_mgmt/v1/clusters/.",namespace="osd-fleet-manager-stage",apiservice="ocm-clusters-service", code!~"5..|0",le="1"}[10m]))
+/
+sum(increase(api_outbound_request_count{path=~"/api/clusters_mgmt/v1/clusters/.",namespace="osd-fleet-manager-stage",apiservice="ocm-clusters-service", code!~"5..|0"}[10m]))'
+  metricName: depOCMLatency
+
+- query: 'sum by (code) (rate(api_outbound_request_count{path=~"/api/clusters_mgmt/v1/clusters/.",namespace="osd-fleet-manager-stage",apiservice="ocm-clusters-service"}[5m]))'
+  metricName: depOCMRequests
+
+- query: 'sum(rate(api_outbound_request_count{job="osdfm",path=~"/api/clusters_mgmt/v1/clusters/.",apiservice="ocm-clusters-service",namespace="osd-fleet-manager-stage",code!~"2..|0"}[10m])) / 
+sum(rate(api_outbound_request_count{job="osdfm", path=~"/api/clusters_mgmt/v1/clusters/.",namespace="osd-fleet-manager-stage",apiservice="ocm-clusters-service"}[10m]))'
+  metricName: depOCMErrorsNon2xx
+
+- query: 'sum(rate(api_outbound_request_count{path=~"/api/clusters_mgmt/v1/clusters/.",namespace="osd-fleet-manager-stage",apiservice="ocm-clusters-service", code=~"5..|0"}[10m])) / sum(rate(api_outbound_request_count{path=~"/api/clusters_mgmt/v1/clusters/.",namespace="osd-fleet-manager-stage",apiservice="ocm-clusters-service"}[10m]))'
+  metricName: depOCMErrors5xx
+
+- query: 'histogram_quantile(0.99, sum by (le) (rate(api_outbound_request_duration_bucket{job="fleet-manager-metrics", path=~"/api/clusters_mgmt/v1/clusters/.",apiservice="ocm-clusters-service", namespace="osd-fleet-manager-stage",code!~"5..|0"}[10m])))'
+  metricName: depOCMDuration99th
+
+- query: 'histogram_quantile(0.90, sum by (le) (rate(api_outbound_request_duration_bucket{job="fleet-manager-metrics", path=~"/api/clusters_mgmt/v1/clusters/.",apiservice="ocm-clusters-service", namespace="osd-fleet-manager-stage",code!~"5..|0"}[10m])))'
+  metricName: depOCMDuration90th
+
+- query: 'histogram_quantile(0.5, sum by (le) (rate(api_outbound_request_duration_bucket{job="fleet-manager-metrics", path=~"/api/clusters_mgmt/v1/clusters/.",apiservice="ocm-clusters-service", namespace="osd-fleet-manager-stage",code!~"5..|0"}[10m])))'
+  metricName: depOCMDuration50th
+
+- query: 'sum by (query) (rate(fleet_manager_database_query_count{namespace="osd-fleet-manager-stage", job="fleet-manager-metrics"}[10m]))'
+  metricName: dbStatusQueries
+
+- query: 'histogram_quantile(0.99,sum by (le) (rate(fleet_manager_database_query_duration_bucket{namespace="osd-fleet-manager-stage",job="fleet-manager-metrics", query="SELECT"}[5m])))'
+  metricName: dbStatusSelectDuration99th
+
+- query: 'histogram_quantile(0.90,sum by (le) (rate(fleet_manager_database_query_duration_bucket{namespace="osd-fleet-manager-stage", job="fleet-manager-metrics", query="SELECT"}[5m])))'
+  metricName: dbStatusSelectDuration90th
+
+- query: 'histogram_quantile(0.50,sum by (le) (rate(fleet_manager_database_query_duration_bucket{namespace="osd-fleet-manager-stage", job="fleet-manager-metrics", query="SELECT"}[5m])))'
+  metricName: dbStatusSelectDuration50th
+
+- query: 'histogram_quantile(0.99,sum by (le) (rate(fleet_manager_database_query_duration_bucket{namespace="osd-fleet-manager-stage",job="fleet-manager-metrics", query="UPDATE"}[5m])))'
+  metricName: dbStatusUpdateDuration99th
+
+- query: 'histogram_quantile(0.90,sum by (le) (rate(fleet_manager_database_query_duration_bucket{namespace="osd-fleet-manager-stage", job="fleet-manager-metrics",query="UPDATE"}[5m])))'
+  metricName: dbStatusUpdateDuration90th
+
+- query: 'histogram_quantile(0.50,sum by (le) (rate(fleet_manager_database_query_duration_bucket{namespace="osd-fleet-manager-stage", job="fleet-manager-metrics",query="UPDATE"}[5m])))'
+  metricName: dbStatusUpdateDuration50th
+
+- query: 'rate(process_cpu_seconds_total{namespace="osd-fleet-manager-stage",job="fleet-manager-metrics",pod=~"fleet-manager-.*"}[5m]) * 1000'
+  metricName: backendCPU
+
+- query: 'max(container_memory_working_set_bytes{namespace="osd-fleet-manager-stage",container="service", pod=~"fleet-manager-.*"})'
+  metricName: backendMemoryContainerMemory
+
+- query: 'max(kube_pod_container_resource_limits{namespace="osd-fleet-manager-stage",pod=~"fleet-manager-.*",container="service", resource="memory",pod=~"fleet-manager-.*"})'
+  metricName: backendMemoryContainerLimits
+
+- query: 'go_goroutines{namespace="osd-fleet-manager-stage",job="fleet-manager-metrics",pod=~"fleet-manager-.*"}'
+  metricName: backendgoroutines
