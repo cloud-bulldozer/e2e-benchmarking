@@ -1,0 +1,7 @@
+- expr: up{job=~"crio|kubelet"} == 0
+  description: "{{$labels.node}}/{{$labels.job}} down"
+  severity: warning
+
+- expr: up{job="ovnkube-node"} == 0
+  description: "{{$labels.instance}}/{{$labels.pod}} {{$labels.job}} down"
+  severity: warning
