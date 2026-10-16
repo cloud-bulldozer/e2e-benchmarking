@@ -123,6 +123,16 @@ if [ "${VM}" = true ]; then
   add_flag "use-virtctl" "${USE_VIRTCTL}"
 fi
 
+# Add sriov flag if SRIOV mode is enabled
+if [ "${SRIOV_MODE}" = true ]; then
+  add_flag "sriov" "${SRIOV_PF_INTERFACE}"
+fi
+
+# Add macvlan flag if MACVLAN mode is enabled
+if [ "${MACVLAN_MODE}" = true ]; then
+  add_flag "macvlan" "${MACVLAN_PF_INTERFACE}"
+fi
+
 # Execute the constructed command
 print_command
 "${cmd[@]}"
