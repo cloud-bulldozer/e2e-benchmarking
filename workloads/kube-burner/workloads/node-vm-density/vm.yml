@@ -1,0 +1,50 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  labels:
+    name: {{.JobName}}
+  name: {{.JobName}}-{{.Iteration}}
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt-vm: {{.JobName}}-{{.Iteration}}
+    spec:
+      domain:
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - disk:
+                bus: virtio
+              name: node-vm-density
+        machine:
+          type: pc-q35-rhel8.4.0
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 100m
+          limits:
+            cpu: 100m
+             #memory:
+             #hugepages:
+             #pageSize: 1Gi
+      nodeSelector: {{.nodeSelector}}
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - containerDisk:
+            image: {{.containerImage}}
+          name: node-vm-density
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              password: password
+              chpasswd: { expire: False }
+              runcmd:
+                - sed -i -e "s/PasswordAuthentication.*/PasswordAuthentication yes/" /etc/ssh/sshd_config
+                - systemctl restart sshd
+          name: cloudinitdisk
+status: {}
