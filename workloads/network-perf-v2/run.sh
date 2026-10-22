@@ -113,6 +113,9 @@ add_flag "uuid" "${UUID}"
 add_flag "vm" "${VM}"
 add_flag "pod" "${POD}"
 add_flag "udnl2" "${UDNL2}"
+if [ "${UDNL2}" = "true" ]; then
+  add_flag "udnPluginBinding" "l2bridge"
+fi
 add_flag "udnl3" "${UDNL3}"
 add_flag "bridge" "${BRIDGE}"
 add_flag "bridgeNetwork" "${BRIDGE_CONFIG}"
