@@ -2,7 +2,7 @@
 # MaaS Gateway Performance Benchmark - Environment Defaults
 
 export OPERATOR_TYPE=${OPERATOR_TYPE:-odh}
-export MAAS_REF=${MAAS_REF:-v0.2.1}
+export MAAS_REF=${MAAS_REF:-main}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
