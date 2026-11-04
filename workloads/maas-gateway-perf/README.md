@@ -50,8 +50,6 @@ exported before `run.sh` and is passed straight through — `DEPLOY_MODE`,
 `OPERATOR_CATALOG`, `OPERATOR_IMAGE`, `OPERATOR_CHANNEL`, `MAAS_API_IMAGE`,
 `MAAS_CONTROLLER_IMAGE`, and the rest of `scripts/deploy.sh --help`.
 
-The kube-burner job config uses Go template loops over providers, payload sizes, and concurrency levels to generate all benchmark jobs dynamically from CLI flags.
-
 ## Usage
 
 Basic usage with defaults (ODH, 2 providers, 2 payload sizes, 5 concurrency levels = 20 baseline + 20 gateway = 40 GuideLLM Jobs):

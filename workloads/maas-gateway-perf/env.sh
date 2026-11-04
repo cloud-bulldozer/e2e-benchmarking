@@ -33,7 +33,6 @@ if [ "$KUBE_BURNER_VERSION" = "default" ]; then
     unset KUBE_BURNER_VERSION
 fi
 export KUBE_BURNER_VERSION=${KUBE_BURNER_VERSION:-1.12.8}
-# Set to point at a specific release tarball instead of KUBE_BURNER_VERSION.
 export KUBE_BURNER_URL=${KUBE_BURNER_URL:-}
 
 # ------------------------------------------------------------------
@@ -48,8 +47,6 @@ export WARMUP=${WARMUP:-30s}
 export SAMPLES=${SAMPLES:-3}
 export PARALLELISM=${PARALLELISM:-1}
 export PAUSE=${PAUSE:-10s}
-# Everything else the workload accepts (--targets, --load-profiles,
-# --identities, --think-time, ...) goes through EXTRA_FLAGS.
 export EXTRA_FLAGS=${EXTRA_FLAGS:-}
 
 # ------------------------------------------------------------------
