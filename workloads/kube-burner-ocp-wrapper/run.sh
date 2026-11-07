@@ -51,6 +51,88 @@ hypershift(){
     MC_PROMETHEUS_TOKEN=$(oc --kubeconfig=${MC_KUBECONFIG} create token -n openshift-monitoring prometheus-k8s --duration=24h)
     set -x
     HC_PRODUCT="rosa"
+  elif [[ ${HC_PLATFORM,,} == "gcp" ]]; then
+    echo "Detected ${HC_PLATFORM} environment..."
+
+    # MC Name - GKE cluster name
+    if [ -z "${MC_NAME}" ]; then
+      MC_NAME=${GKE_MC_CLUSTER_NAME:-$(kubectl config current-context --kubeconfig="${MC_KUBECONFIG}" | cut -d'_' -f4)}
+    fi
+
+    # GCP Project ID
+    if [ -z "${PROJECT_ID}" ]; then
+      PROJECT_ID=$(gcloud config get-value project 2> /dev/null)
+    fi
+
+    # GCP Location - default to global, can be overridden
+    if [ -z "${GCP_LOCATION}" ]; then
+      GCP_LOCATION=${GCP_LOCATION:-global}
+    fi
+
+    # HC Name - from hosted cluster infrastructure
+    HC_INFRA_NAME=$(oc get infrastructure cluster -o jsonpath='{.status.infrastructureName}')
+
+    # Extract base cluster name (remove random suffix after last hyphen)
+    # Example: hc1-8tw26 -> hc1
+    HC_NAME=$(echo "${HC_INFRA_NAME}" | sed 's/-[^-]*$//')
+
+    # HCP Namespace - standard HyperShift pattern
+    HCP_NAMESPACE="clusters-${HC_NAME}"
+
+    # Worker node query for GMP - using GKE-specific metrics
+    QUERY="sum(kubernetes_io:node_memory_allocatable_bytes{cluster_name=\"${MC_NAME}\"})by(node_name)"
+
+    # Prometheus endpoints
+    if [[ -z ${GMP_ENDPOINT} ]]; then
+      GMP_ENDPOINT="https://monitoring.googleapis.com/v1/projects/${PROJECT_ID}/location/${GCP_LOCATION}/prometheus"
+    fi
+
+    # MC Prometheus endpoint - using LoadBalancer service or internal service
+    if [[ -z ${MC_PROMETHEUS_ENDPOINT} ]]; then
+      # Try LoadBalancer IP first
+      MC_PROM_IP=$(oc --kubeconfig=${MC_KUBECONFIG} get svc prometheus-public -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
+      if [[ -n ${MC_PROM_IP} ]]; then
+        MC_PROMETHEUS_ENDPOINT="http://${MC_PROM_IP}:9090"
+      else
+        # Fallback to internal service
+        MC_PROMETHEUS_ENDPOINT="http://prometheus-operated.monitoring.svc:9090"
+      fi
+    fi
+
+    # Authentication
+    set +x
+    # GMP token
+    if [[ -z ${GMP_TOKEN} ]]; then
+      GMP_TOKEN=$(gcloud auth print-access-token)
+    fi
+
+    # MC Prometheus - no token needed (public LB or internal access)
+    MC_PROM_TOKEN=""
+    set -x
+
+    # Map to standard variable names
+    MC_OBO=${MC_PROMETHEUS_ENDPOINT}      # MC Prometheus for HCP control plane metrics
+    MC_PROMETHEUS=${GMP_ENDPOINT}         # GMP for GKE infrastructure metrics
+    MC_PROMETHEUS_TOKEN=${GMP_TOKEN}      # Token for GMP
+    MC_PROMETHEUS_TOKEN_FILE=${GMP_TOKEN_FILE:-}  # Token file for kube-burner auto-refresh (optional)
+
+    # Get worker nodes from GMP query
+    echo "Querying GMP for worker nodes..."
+    set +x
+    Q_STDOUT=$(curl -H "Authorization: Bearer ${GMP_TOKEN}" -k --silent -G "${GMP_ENDPOINT}/api/v1/query" --data-urlencode "query=${QUERY}" --data-urlencode "time=$(date +%s)" 2>/dev/null)
+    set -x
+
+    Q_NODES=""
+    for n in $(echo "$Q_STDOUT" | jq -r '.data.result[].metric.node_name'); do
+      if [[ ${Q_NODES} == "" ]]; then
+        Q_NODES=${n}
+      else
+        Q_NODES=${Q_NODES}"|"${n}
+      fi
+    done
+    MGMT_WORKER_NODES=${Q_NODES}
+
+    HC_PRODUCT="gcp"
   else
     echo "Detected ${HC_PLATFORM} environment..."
 
@@ -95,29 +177,41 @@ hypershift(){
 EOF
 )
 
-  HOSTED_PROMETHEUS=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
+  # TODO: Enable HOSTED_PROMETHEUS for GCP when HC ingress/routes are available
+  # For now, GCP HCP does not expose Prometheus routes, so skip HC Prometheus
+  if [[ ${HC_PLATFORM,,} == "gcp" ]]; then
+    echo "Skipping HOSTED_PROMETHEUS for GCP (HC routes not available)"
+    HOSTED_PROMETHEUS=""
+    HOSTED_PROMETHEUS_TOKEN=""
+  else
+    HOSTED_PROMETHEUS=https://$(oc get route -n openshift-monitoring prometheus-k8s -o jsonpath="{.spec.host}")
 
-  set +x
-  # Retry until HOSTED_PROMETHEUS_TOKEN is retrieved
-  until HOSTED_PROMETHEUS_TOKEN=$(oc create token -n openshift-monitoring prometheus-k8s --duration=24h 2>/dev/null) && [[ -n "$HOSTED_PROMETHEUS_TOKEN" ]]; do
-    echo "Waiting for HOSTED_PROMETHEUS_TOKEN..."
-    sleep 30
-  done
-  set -x
+    set +x
+    # Retry until HOSTED_PROMETHEUS_TOKEN is retrieved
+    until HOSTED_PROMETHEUS_TOKEN=$(oc create token -n openshift-monitoring prometheus-k8s --duration=24h 2>/dev/null) && [[ -n "$HOSTED_PROMETHEUS_TOKEN" ]]; do
+      echo "Waiting for HOSTED_PROMETHEUS_TOKEN..."
+      sleep 30
+    done
+    set -x
+  fi
 
-  echo "Get all management worker nodes, excludes infra, obo, workload"
-  Q_NODES=""
-  set +x
-  Q_STDOUT=$(curl -H "Authorization: Bearer ${MC_PROMETHEUS_TOKEN}" -k --silent --globoff ${MC_PROMETHEUS}/api/v1/query?query=${QUERY}&time='$(date +"%s")' 2>/dev/null)
-  set -x
-  for n in $(echo "$Q_STDOUT" | jq -r ".data.result[].metric.$([ \"$HC_PLATFORM\" = \"aws\" ] && echo node || echo instance)"); do
-    if [[ ${Q_NODES} == "" ]]; then
-      Q_NODES=${n}
-    else
-      Q_NODES=${Q_NODES}"|"${n};
-    fi
-  done
-  MGMT_WORKER_NODES=${Q_NODES}
+  # Get all management worker nodes, excludes infra, obo, workload
+  # Skip for GCP - already retrieved using GMP-specific query above
+  if [[ ${HC_PLATFORM,,} != "gcp" ]]; then
+    echo "Get all management worker nodes, excludes infra, obo, workload"
+    Q_NODES=""
+    set +x
+    Q_STDOUT=$(curl -H "Authorization: Bearer ${MC_PROMETHEUS_TOKEN}" -k --silent --globoff ${MC_PROMETHEUS}/api/v1/query?query=${QUERY}&time='$(date +"%s")' 2>/dev/null)
+    set -x
+    for n in $(echo "$Q_STDOUT" | jq -r ".data.result[].metric.$([ \"$HC_PLATFORM\" = \"aws\" ] && echo node || echo instance)"); do
+      if [[ ${Q_NODES} == "" ]]; then
+        Q_NODES=${n}
+      else
+        Q_NODES=${Q_NODES}"|"${n};
+      fi
+    done
+    MGMT_WORKER_NODES=${Q_NODES}
+  fi
 
   echo "Exporting required vars"
   cat << EOF
@@ -133,12 +227,20 @@ HC_PRODUCT: ${HC_PRODUCT}
 HC_PLATFORM: ${HC_PLATFORM}
 EOF
 
+  # Add GCP-specific variables to output if GCP platform
+  if [[ ${HC_PLATFORM,,} == "gcp" ]]; then
+    cat << EOF
+PROJECT_ID: ${PROJECT_ID}
+GCP_LOCATION: ${GCP_LOCATION}
+EOF
+  fi
+
   if [[ ${WORKLOAD} =~ "index" ]]; then
     export elapsed=${ELAPSED:-20m}
   fi
-  
+
   set +x
-  export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES HC_PRODUCT MC_NAME HC_PLATFORM
+  export MC_OBO MC_PROMETHEUS MC_PROMETHEUS_TOKEN MC_PROMETHEUS_TOKEN_FILE HOSTED_PROMETHEUS HOSTED_PROMETHEUS_TOKEN HCP_NAMESPACE MGMT_WORKER_NODES HC_PRODUCT MC_NAME HC_PLATFORM PROJECT_ID GCP_LOCATION
   set -x
 
 }

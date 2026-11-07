@@ -10,7 +10,7 @@
       defaultIndex: {{.ES_INDEX}}
       type: opensearch
 - endpoint: {{.MC_PROMETHEUS}}
-  token: {{.MC_PROMETHEUS_TOKEN}}
+  {{if .MC_PROMETHEUS_TOKEN_FILE}}tokenFile: {{.MC_PROMETHEUS_TOKEN_FILE}}{{else}}token: {{.MC_PROMETHEUS_TOKEN}}{{end}}
   metrics:
     - metrics-profiles/{{.HC_PRODUCT}}/mc-metrics.yml
   indexer:
@@ -18,6 +18,10 @@
       insecureSkipVerify: true
       defaultIndex: {{.ES_INDEX}}
       type: opensearch
+# HOSTED_PROMETHEUS is skipped for GCP HCP because it does not expose Prometheus routes/ingress yet.
+# Workload metrics (podLatency, pprof, job summaries) are still collected without this.
+# Remove the platform condition once HC ingress/routes are available for GCP HCP.
+{{- if ne .HC_PLATFORM "gcp" }}
 - endpoint: {{.HOSTED_PROMETHEUS}}
   token: {{.HOSTED_PROMETHEUS_TOKEN}}
   metrics:
@@ -29,3 +33,4 @@
       insecureSkipVerify: true
       defaultIndex: {{.ES_INDEX}}
       type: opensearch
+{{- end }}
