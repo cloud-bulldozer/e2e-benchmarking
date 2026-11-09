@@ -2,6 +2,10 @@
 
 set -e
 
+if [[ -n ${QPS_LIST:-} ]]; then
+  exec bash "$(dirname "${BASH_SOURCE[0]}")/sweep.sh" "$@"
+fi
+
 ES_SERVER=${ES_SERVER:-}
 LOG_LEVEL=${LOG_LEVEL:-info}
 if [ "$KUBE_BURNER_VERSION" = "default" ]; then
