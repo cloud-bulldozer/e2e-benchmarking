@@ -1,0 +1,9 @@
+---
+# TCP Workloads
+tests:
+  - TCPStream:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 10
+    samples: 3
+    messagesize: 1024
