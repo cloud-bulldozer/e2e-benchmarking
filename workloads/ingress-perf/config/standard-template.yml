@@ -1,0 +1,60 @@
+# vi: expandtab shiftwidth=2 softtabstop=2
+
+# First scenario is configured as warmup and it will also tune the default ingress-controller to assign the router pods to the infra nodes
+- termination: http
+  connections: 200
+  samples: 5
+  duration: 5m
+  path: /1024.html
+  concurrency: 18
+  tool: wrk
+  serverReplicas: 45
+  tuningPatch: $TUNING_PATCH
+  delay: 10s
+  requestTimeout: 10s
+  warmup: true
+
+- termination: http
+  connections: $CONNECTIONS
+  samples: $SAMPLES
+  duration: $DURATION
+  path: $ENDPOINT_PATH
+  concurrency: $CONCURRENCY
+  tool: $TOOL
+  serverReplicas: $SERVER_REPLICAS
+  requestTimeout: $REQUEST_TIMEOUT
+  delay: $DELAY
+
+- termination: edge
+  connections: $CONNECTIONS
+  samples: $SAMPLES
+  duration: $DURATION
+  path: $ENDPOINT_PATH
+  concurrency: $CONCURRENCY
+  tool: $TOOL
+  serverReplicas: $SERVER_REPLICAS
+  requestTimeout: $REQUEST_TIMEOUT
+  delay: $DELAY
+
+- termination: reencrypt
+  connections: 200
+  samples: $SAMPLES
+  duration: $DURATION
+  path: $ENDPOINT_PATH
+  concurrency: $CONCURRENCY
+  tool: $TOOL
+  serverReplicas: $SERVER_REPLICAS
+  requestTimeout: $REQUEST_TIMEOUT
+  delay: $DELAY
+
+- termination: passthrough
+  connections: $CONNECTIONS
+  samples: $SAMPLES
+  duration: $DURATION
+  path: $ENDPOINT_PATH
+  concurrency: $CONCURRENCY
+  tool: $TOOL
+  serverReplicas: $SERVER_REPLICAS
+  requestTimeout: $REQUEST_TIMEOUT
+  delay: $DELAY
+
