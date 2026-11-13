@@ -1,0 +1,60 @@
+---
+tests:
+  - TCPStream:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 20
+    samples: 3
+    messagesize: 1024
+
+  - TCPStream2:
+    parallelism: 2
+    profile: "TCP_STREAM"
+    duration: 20
+    samples: 3
+    messagesize: 1024
+
+  - TCPStream3:
+    parallelism: 1
+    profile: "TCP_STREAM"
+    duration: 20
+    samples: 3
+    messagesize: 8192
+
+  - TCPStream4:
+    parallelism: 2
+    profile: "TCP_STREAM"
+    duration: 20
+    samples: 3
+    messagesize: 8192
+
+ # UDP Workloads
+  - UDPStream:
+    parallelism: 1
+    profile: "UDP_STREAM"
+    duration: 20
+    samples: 3
+    messagesize: 1024
+
+  - UDPStream2:
+    parallelism: 2
+    profile: "UDP_STREAM"
+    duration: 20
+    samples: 3
+    messagesize: 1024
+
+# Connection Request Response
+  - CRR:
+    parallelism: 1
+    profile: "TCP_CRR"
+    duration: 10
+    samples: 3
+    messagesize: 1024
+
+# Request Response
+  - RR:
+    parallelism: 1
+    profile: "TCP_RR"
+    duration: 20
+    samples: 3
+    messagesize: 1024
