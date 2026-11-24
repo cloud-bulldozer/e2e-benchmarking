@@ -1,10 +1,23 @@
+# shellcheck shell=bash
 # Common
 export UUID=${UUID:-$(uuidgen)}
 export CLEAN_UP=${CLEAN_UP:-true}
 export PLATFORM=${PLATFORM:-openshift}
 
+# Cross-cluster mode: client pods on the KUBECONFIG cluster, server pods on the
+# SERVER_KUBECONFIG cluster. A non-empty SERVER_KUBECONFIG turns it on.
+export SERVER_KUBECONFIG=${SERVER_KUBECONFIG:-}
+export SERVER_DOMAIN=${SERVER_DOMAIN:-}
+export SERVER_PROMETHEUS_URL=${SERVER_PROMETHEUS_URL:-}
+
 if [[ "${PLATFORM}" == "microshift" ]]; then
-    export LOCAL=${LOCAL:-true}
+    # Same node by default; a cross-cluster run places client and server on
+    # different clusters, so LOCAL defaults to false there.
+    if [[ -n "${SERVER_KUBECONFIG}" ]]; then
+        export LOCAL=${LOCAL:-false}
+    else
+        export LOCAL=${LOCAL:-true}
+    fi
     # MicroShift has no in-cluster Prometheus; opt out by default so a
     # default run does not fail the PROMETHEUS_URL guard in run.sh.
     export METRICS=${METRICS:-false}
@@ -31,7 +44,8 @@ export NETPERF_FILENAME=${NETPERF_FILENAME:-k8s-netperf}
 export NETPERF_VERSION=${NETPERF_VERSION:-v0.1.43}
 export OS=${OS:-Linux}
 export PROMETHEUS_URL=${PROMETHEUS_URL:-}
-export ARCH=$(uname -m)
+ARCH=$(uname -m)
+export ARCH
 export NETPERF_URL=${NETPERF_URL:-https://github.com/cloud-bulldozer/k8s-netperf/releases/download/${NETPERF_VERSION}/k8s-netperf_${OS}_${NETPERF_VERSION}_${ARCH}.tar.gz}
 
 # External server
