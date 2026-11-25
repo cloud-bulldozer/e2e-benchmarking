@@ -75,15 +75,37 @@ When client and server run on two nodes of one cluster (`LOCAL=false` without `S
 
 Same-node runs (`LOCAL=true`) and cross-cluster runs add and remove no `netperf` label. On OpenShift, `LOCAL=true` still removes the infra role label from infra nodes, as before.
 
-## When a run fails
+## When a run fails or is interrupted
 
 | Outcome | Label removal | Debug queries | `*.csv` printed | Indexing (`utils/index.sh`) | Exit status |
 |---|---|---|---|---|---|
 | k8s-netperf succeeds | yes | yes | yes | yes | 0 |
-| k8s-netperf fails or times out, `CLEAN_UP=true` | yes | yes | yes | yes | k8s-netperf's (124 on `TEST_TIMEOUT`) |
+| k8s-netperf fails or times out, `CLEAN_UP=true` | yes | yes | yes | yes | k8s-netperf's (124 or 137 on `TEST_TIMEOUT`) |
 | k8s-netperf fails or times out, `CLEAN_UP=false` | no | no | yes | no | k8s-netperf's |
+| `run.sh` receives SIGINT, SIGTERM or SIGHUP | no | no | no | no | 130, 143 or 129 |
 
 With `CLEAN_UP=false` the caller owns cleanup, so after a failed run `run.sh` makes no further call to either cluster, whatever CI variables (`PROW_JOB_ID`, `BUILD_ID`, `AIRFLOW_CTX_DAG_ID`) are set.
+
+To stop a run, send SIGTERM (or SIGINT) once to `run.sh` or to its process group. `run.sh` passes one SIGTERM to the bounded command it is running (a short local command such as `cat` first finishes), waits for that command to end (k8s-netperf gets `TEST_KILL_AFTER` to clean up, other commands 10 seconds) and exits without starting anything else. A second signal reaches k8s-netperf as a second SIGTERM; in cross-cluster mode k8s-netperf then exits without waiting for its cleanup. Every process `run.sh` starts stays in its session; when `run.sh` exits on its own or after a signal, they have all ended.
+
+If `run.sh` itself is killed with SIGKILL (for example by an outer timeout that escalates), it cannot end what it started: k8s-netperf keeps running until `TEST_TIMEOUT` plus `TEST_KILL_AFTER`, and a child of the download or of the indexing step that ignores SIGTERM can run on after its deadline. So a caller that cleans up cluster resources afterwards must not conclude from the `run.sh` process being gone that the benchmark has stopped. Start `run.sh` in its own session (`setsid`) and wait until no process of that session is left (`pgrep -s <sid>` finds nothing), ending them with `pkill -KILL -s <sid>` if needed, or run it under a supervisor that waits for all of its descendants (a child subreaper).
+
+## Deadlines
+
+These commands run with a deadline (GNU `timeout`): the download, the version check, each `oc` / `kubectl` call (also those of `utils/index.sh`), k8s-netperf and the indexing step. Short local commands (`mktemp`, `cat`, `date`, `awk` and the like) have none; the worst case below allows 30 seconds for them. Each deadline is followed by SIGTERM and, after a grace period (10 seconds, `TEST_KILL_AFTER` for k8s-netperf), SIGKILL. Durations are GNU `timeout` durations greater than zero (seconds, or a number followed by `s`, `m`, `h` or `d`); `0` and `inf` are refused because they mean no deadline.
+
+Worst-case run time, with every duration in seconds and `C = CALL_TIMEOUT + 10`, `D = DOWNLOAD_TIMEOUT + 10`, `N = TEST_TIMEOUT + TEST_KILL_AFTER`, `I = INDEX_TIMEOUT + 10`, plus the 30 seconds allowed for local commands:
+
+| Mode | Worst case | k8s-netperf fails with `CLEAN_UP=false` |
+|---|---|---|
+| Two nodes of one cluster (node labels) | `21C + D + N + I + 30` | `9C + D + N + 30` |
+| OpenShift, `LOCAL=true` | `6C + D + N + I + 30` | `2C + D + N + 30` |
+| MicroShift, same node | `5C + D + N + I + 30` | `C + D + N + 30` |
+| Cross-cluster | `8C + D + N + I + 30` | `C + D + N + 30` |
+
+With the defaults a cross-cluster run ends within 16570 seconds (4 h 36 min).
+
+`run.sh` needs GNU `timeout` (coreutils) and bash.
 
 ## Tests
 
@@ -118,10 +140,13 @@ $ NETPERF_VERSION=main VM=true POD=false LOCALNET=physnet LOCALNET_CONFIG=localn
 | ALL_SCENARIOS | Run all test scenarios (hostNetwork & podNetwork) | true |
 | BRIDGE | Bridge NAD name passed as `--bridge` | unset |
 | BRIDGE_CONFIG | Path to bridge VM IP JSON → `--bridgeNetwork` (e.g. `bridgeNetwork.json`) | unset |
+| CALL_TIMEOUT | Deadline of each `oc` / `kubectl` call (also in `utils/index.sh`) and of the k8s-netperf version check | 60 |
 | CLEAN_UP | Clean-up resources created by k8s-netperf. With `false`, a failed run is followed by no cluster call | true |
 | DEBUG | Enable debug log level for k8s-netperf | true |
+| DOWNLOAD_TIMEOUT | Deadline of the k8s-netperf download and extraction | 600 |
 | ES_SERVER | Server to send results | `None` (Please set your own that resembles https://USER:PASSWORD@HOSTNAME:443) |
 | EXTERNAL_SERVER_ADDRESS | IP address where the external server is running. User has to configure the external server with the required k8s-netperf driver | unset |
+| INDEX_TIMEOUT | Deadline of the indexing step (`utils/index.sh`) | 300 |
 | LOCAL | Run network performance test pods on the same node | `true` when `PLATFORM=microshift` without `SERVER_KUBECONFIG`, otherwise `false` |
 | LOCALNET | Localnet network name → `--localnet` (used by k8s-netperf to create the CUDN) | unset |
 | LOCALNET_CONFIG | Path to localnet VM IP JSON → `--localnet-config` (e.g. `localnetNetwork.json`) | unset |
@@ -136,7 +161,8 @@ $ NETPERF_VERSION=main VM=true POD=false LOCALNET=physnet LOCALNET_CONFIG=localn
 | SERVER_DOMAIN | Cross-cluster: DNS suffix of the server cluster's Services → `--server-domain` | unset |
 | SERVER_KUBECONFIG | Cross-cluster: kubeconfig of the server cluster → `--server-kubeconfig`; setting it turns cross-cluster mode on | unset |
 | SERVER_PROMETHEUS_URL | Cross-cluster: Prometheus of the server cluster → `--server-prom` | unset |
-| TEST_TIMEOUT | Timeout for k8s-netperf | 14400 |
+| TEST_KILL_AFTER | Grace after `TEST_TIMEOUT` or a stop signal before k8s-netperf is killed; covers its cross-cluster cleanup | 660 |
+| TEST_TIMEOUT | Timeout for k8s-netperf (greater than zero) | 14400 |
 | TOLERANCE | Tolerance when comparing hostNetwork to podNetwork | 70 |
 | UDNL2 | Run User-Defined Network (L2) scenarios | false |
 | UDNL3 | Run User-Defined Network (L3) scenarios | false |

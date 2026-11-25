@@ -56,6 +56,18 @@ export WORKLOAD=${WORKLOAD:-smoke.yaml}
 export WORKLOAD_NAME=${WORKLOAD_NAME:-k8s-netperf}
 export TEST_TIMEOUT=${TEST_TIMEOUT:-14400}
 
+# Deadlines (GNU timeout durations, greater than zero). See README for the
+# worst-case run time they give.
+# Grace after TEST_TIMEOUT or a stop signal before k8s-netperf is killed: covers
+# the cross-cluster cleanup of k8s-netperf after SIGTERM (30 s + 330 s + 300 s).
+export TEST_KILL_AFTER=${TEST_KILL_AFTER:-660}
+# Download and extraction of k8s-netperf, retries included.
+export DOWNLOAD_TIMEOUT=${DOWNLOAD_TIMEOUT:-600}
+# Each oc / kubectl call (also inside utils/index.sh) and the version probe.
+export CALL_TIMEOUT=${CALL_TIMEOUT:-60}
+# utils/index.sh as a whole.
+export INDEX_TIMEOUT=${INDEX_TIMEOUT:-300}
+
 # Tolerance of delta from hostNetwork to podNetwork - single stream
 # Setting high watermark to only alert us if something has really gone
 # sideways. We will be actively montiroing the results. Eventually

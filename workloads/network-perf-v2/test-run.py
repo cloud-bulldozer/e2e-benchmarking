@@ -22,10 +22,11 @@ import uuid
 
 SOURCE = Path(__file__).resolve().parent
 REPO = SOURCE.parent.parent
+GRACE = 10  # run.sh's fixed grace before SIGKILL for commands other than k8s-netperf
 
 # One fake for every tool; the tool is the file name (anything else is k8s-netperf).
 FAKE = r'''#!@PYTHON@ -I
-import json, os, sys, time
+import json, os, signal, subprocess, sys, time
 
 STATE = os.environ["FAKE_STATE"]
 NAME = os.path.basename(sys.argv[0])
@@ -91,6 +92,19 @@ def apply_mutations():
             node["managers"].append(rule["manager"])
         node["rv"] += 1
         save("nodes.json", state)
+
+
+def hang(rule):
+    if rule.get("ignore_term"):
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    if rule.get("child_holds_stdout"):
+        child = subprocess.Popen([sys.executable, "-I", "-c",
+                                  "import signal, time; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(3600)"])
+        log(event="child", child=child.pid)
+    log(event="hang")
+    time.sleep(rule.get("seconds", 3600))
+    log(event="hang-end")
+    sys.exit(0)
 
 
 def selector_match(labels, selector):
@@ -209,14 +223,46 @@ def cluster():
 
 def netperf():
     if ARGS == ["--version"]:
+        behavior = BEHAVIOR.get("version", "")
         log(event="version")
-        print("Version: %s\nGit Commit: fake" % VERSION)
+        if behavior == "hang":
+            time.sleep(3600)
+        if behavior != "empty":
+            print("Version: %s\nGit Commit: fake" % VERSION)
         return
     config = BEHAVIOR.get("netperf", {})
     with open("result.csv", "w") as f:
         f.write("Driver,Scenario\nnetperf,TCP_STREAM\n")
+    state = {"count": 0, "until": None, "code": 0}
+    mode = config.get("mode", "default")
+
+    def on_signal(sig, frame):
+        name = signal.Signals(sig).name
+        state["count"] += 1
+        log(event="signal", sig=name)
+        if mode == "pr301":
+            if state["count"] == 1:
+                state["until"] = time.monotonic() + config.get("cleanup", 1)
+                state["code"] = 143 if sig == signal.SIGTERM else 130
+            else:
+                log(event="exit-without-cleanup")
+                os._exit(state["code"])
+        elif mode == "default":
+            signal.signal(sig, signal.SIG_DFL)
+            os.kill(os.getpid(), sig)
+
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        signal.signal(sig, on_signal)
     log(event="run", version=VERSION)
     apply_mutations()
+    end = time.monotonic() + config.get("sleep", 0)
+    while True:
+        if state["until"] is not None and time.monotonic() >= state["until"]:
+            log(event="cleanup-done")
+            sys.exit(state["code"])
+        if state["until"] is None and time.monotonic() >= end:
+            break
+        time.sleep(0.02)
     log(event="exit", code=config.get("exit", 0))
     sys.exit(config.get("exit", 0))
 
@@ -224,6 +270,9 @@ def netperf():
 def curl():
     log(event="call")
     if "--retry-all-errors" in ARGS:
+        rule = BEHAVIOR.get("download", {})
+        if rule.get("stall"):
+            hang({"ignore_term": rule.get("ignore_term")})
         with open(os.path.join(STATE, "netperf.tar.gz"), "rb") as f:
             sys.stdout.buffer.write(f.read())
         return
@@ -237,6 +286,12 @@ def main():
         return curl()
     log(event="call")
     apply_mutations()
+    index, rule = first("delay")
+    if rule:
+        time.sleep(rule["seconds"])
+    index, rule = first("hang")
+    if rule:
+        hang(rule)
     index, rule = first("fail")
     if rule:
         sys.stderr.write(rule.get("stderr", "fake failure") + "\n")
@@ -245,6 +300,28 @@ def main():
 
 
 main()
+'''
+
+# Signals run.sh during bounded() at a chosen phase of a chosen command. use_hook() makes run.sh's test_hook()
+# call it, in the test's copy of run.sh only.
+HOOK = r'''#!@PYTHON@ -I
+import json, os, signal, sys, time
+config = json.load(open(os.path.join(os.environ["FAKE_STATE"], "hook.json")))
+phase, command = sys.argv[1], " ".join(sys.argv[2:])
+if not all(m in command for m in config["match"]):
+    sys.exit(0)
+with open(config["marker"] + ".phases", "a") as f:
+    f.write(phase + "\n")
+if phase != config["phase"] or os.path.exists(config["marker"]):
+    sys.exit(0)
+open(config["marker"], "w").close()
+deadline = time.monotonic() + 20
+while time.monotonic() < deadline:
+    with open(config["log"]) as f:
+        if any('"event": "run"' in line for line in f):
+            break
+    time.sleep(0.02)
+os.kill(os.getppid(), signal.SIGTERM)
 '''
 
 NODES = {
@@ -327,6 +404,9 @@ class RunSh(unittest.TestCase):
             self.write_fake(self.bin / tool, "unused")
         self.write_fake(self.workload / "k8s-netperf", "v0.1.43")
         self.make_tarball("k8s-netperf", "v9.9.9-downloaded")
+        self.hook = self.bin / "hook"
+        self.hook.write_text(HOOK.replace("@PYTHON@", sys.executable))
+        self.hook.chmod(0o755)
         self.set_nodes()
         self.behavior = {}
         self.tmp = self.root / "tmp"
@@ -337,7 +417,8 @@ class RunSh(unittest.TestCase):
             "PATH": "%s:%s" % (self.bin, os.environ["PATH"]),
             "HOME": str(self.root), "FAKE_STATE": str(self.state), "TMPDIR": str(self.tmp),
             "KUBECONFIG": str(self.root / "nonexistent-kubeconfig"),
-            "UUID": "test-uuid", "TEST_TIMEOUT": "60",
+            "UUID": "test-uuid", "TEST_TIMEOUT": "60", "CALL_TIMEOUT": "2", "DOWNLOAD_TIMEOUT": "5",
+            "INDEX_TIMEOUT": "20", "TEST_KILL_AFTER": "2",
         }
         for tool in ("oc", "kubectl", "curl"):
             self.assertEqual(shutil.which(tool, path=self.env["PATH"]), str(self.bin / tool))
@@ -392,6 +473,9 @@ class RunSh(unittest.TestCase):
             calls = [e for e in calls if e["t"] > after]
         return calls
 
+    def signals(self):
+        return [e["sig"] for e in self.log() if e.get("event") == "signal"]
+
     # -- running run.sh --------------------------------------------------------------------------
 
     def start(self, **variables):
@@ -432,6 +516,14 @@ class RunSh(unittest.TestCase):
             except ProcessLookupError:
                 pass
 
+    def wait_for(self, predicate, timeout=20):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if predicate():
+                return
+            time.sleep(0.02)
+        self.fail("condition not reached within %ss" % timeout)
+
     def assert_clean_end(self, result):
         self.assertEqual(result.leftovers, [], "processes left in run.sh's session")
         self.assertEqual(list(self.tmp.iterdir()), [], "files left in TMPDIR")
@@ -443,13 +535,28 @@ class RunSh(unittest.TestCase):
         self.addCleanup(Path("/tmp/%s-uuid.txt" % name).unlink, True)
         return {"PROW_JOB_ID": "1234", "JOB_NAME": "job", "BUILD_ID": "7", "UUID": name, "WORKLOAD_NAME": name}
 
+    def use_hook(self, phase, match=("k8s-netperf", "--uuid=")):
+        """Make the copy of run.sh call the hook script at its test points."""
+        config = {"phase": phase, "match": list(match), "marker": str(self.state / "hook-fired"),
+                  "log": str(self.state / "log.jsonl")}
+        (self.state / "hook.json").write_text(json.dumps(config))
+        (self.state / "hook-fired").unlink(missing_ok=True)
+        (self.state / "hook-fired.phases").unlink(missing_ok=True)
+        script = self.workload / "run.sh"
+        text = script.read_text()
+        no_op = "test_hook() {\n  :\n}\n"
+        hooked = 'test_hook() {\n  "%s" "$@" || true\n}\n' % self.hook
+        if hooked not in text:
+            self.assertEqual(text.count(no_op), 1, "run.sh has no test_hook() to replace")
+            script.write_text(text.replace(no_op, hooked))
+
     # -- 1-4: command line in each mode -------------------------------------------------------------
 
     def test_01_openshift_default(self):
         result = self.run_sh()
         self.assertEqual(result.rc, 0, result.output)
         self.assertEqual(self.argv(), ["--all=true"] + DEFAULT_ARGV)
-        self.assertIn("Executing command: timeout 60 ./k8s-netperf --all=true", result.output)
+        self.assertIn("Executing command: timeout --foreground -k 2 60 ./k8s-netperf --all=true", result.output)
         labels = [e["argv"] for e in self.cluster_calls() if e["argv"][:1] == ["label"]]
         self.assertEqual([a[:3] for a in labels], [["label", "nodes", "w1"], ["label", "nodes", "w2"],
                                                    ["label", "nodes", "w1"], ["label", "nodes", "w2"]])
@@ -507,6 +614,10 @@ class RunSh(unittest.TestCase):
             ({"SERVER_KUBECONFIG": str(self.root / "missing")}, "is not a readable file"),
             ({"SERVER_KUBECONFIG": str(self.root)}, "is not a readable file"),
             ({"PLATFORM": "microshift", "METRICS": "true"}, "requires PROMETHEUS_URL"),
+            ({"TEST_TIMEOUT": "0"}, "TEST_TIMEOUT=0 is not a duration"),
+            ({"DOWNLOAD_TIMEOUT": "never"}, "DOWNLOAD_TIMEOUT=never is not a duration"),
+            ({"INDEX_TIMEOUT": "-5"}, "INDEX_TIMEOUT=-5 is not a duration"),
+            ({"TEST_KILL_AFTER": "inf"}, "TEST_KILL_AFTER=inf is not a duration"),
         ]
         for variables, message in cases:
             with self.subTest(variables=variables):
@@ -514,6 +625,21 @@ class RunSh(unittest.TestCase):
                 result = self.run_sh(**variables)
                 self.assertEqual(result.rc, 1, result.output)
                 self.assertIn(message, result.output)
+                self.assertEqual(self.log(), [])
+
+    def test_06_durations(self):
+        for value in ("14400", "4h", ".5s", "1e3s", "1e-7s", "0x1p4", "0x0d", "0x1d", "1.5m", "1d", " 5"):
+            with self.subTest(accepted=value):
+                (self.state / "log.jsonl").unlink(missing_ok=True)
+                result = self.run_sh(TEST_KILL_AFTER=value)
+                self.assertEqual(result.rc, 0, result.output)
+                self.assertEqual(len(self.runs()), 1)
+        for value in ("0", "0s", "0x0", "-1", "inf", "nan", "abc", "5x", "'1", "1,5", "1ss"):
+            with self.subTest(rejected=value):
+                (self.state / "log.jsonl").unlink(missing_ok=True)
+                result = self.run_sh(TEST_KILL_AFTER=value, LC_ALL="C")
+                self.assertEqual(result.rc, 1, result.output)
+                self.assertIn("is not a duration", result.output)
                 self.assertEqual(self.log(), [])
 
     def test_07_parent_environment(self):
@@ -560,13 +686,17 @@ class RunSh(unittest.TestCase):
                 self.assert_clean_end(result)
 
     def test_09_inventory_failure_stops(self):
-        self.behavior = {"fail": [{"tool": "kubectl", "match": ["get", "nodes", "-o", "jsonpath"]}]}
-        result = self.run_sh()
-        self.assertEqual(result.rc, 1, result.output)
-        self.assertIn("could not read the node labels", result.output)
-        self.assertEqual(self.runs(), [])
-        self.assertEqual([e for e in self.cluster_calls() if e["argv"][:1] == ["label"]], [])
-        self.assert_clean_end(result)
+        for kind in ("fail", "hang"):
+            with self.subTest(kind=kind):
+                (self.state / "log.jsonl").unlink(missing_ok=True)
+                self.behavior = {kind: [{"tool": "kubectl", "match": ["get", "nodes", "-o", "jsonpath"]}]}
+                result = self.run_sh()
+                self.assertEqual(result.rc, 1, result.output)
+                self.assertIn("could not read the node labels", result.output)
+                self.assertEqual(self.runs(), [])
+                self.assertEqual([e for e in self.cluster_calls() if e["argv"][:1] == ["label"]], [])
+                self.assertLess(result.elapsed, 2 * (2 + GRACE) + 10)
+                self.assert_clean_end(result)
 
     def test_09_label_inserted_between_read_and_write(self):
         self.behavior = {"mutate": [{"tool": "kubectl", "match": ["label", "nodes", "w1", "netperf=client"],
@@ -584,6 +714,15 @@ class RunSh(unittest.TestCase):
         result = self.run_sh()
         self.assertEqual(result.rc, 1, result.output)
         self.assertIn("labeling w2 netperf=server did not succeed (exit code 1); its outcome is unknown", result.output)
+        self.assertEqual(self.runs(), [])
+        self.assertEqual(self.netperf_labels(), {})  # w1 was this run's and removed; w2 never written
+        self.assert_clean_end(result)
+
+    def test_09_label_call_times_out(self):
+        self.behavior = {"hang": [{"tool": "kubectl", "match": ["label", "nodes", "w2", "netperf=server"]}]}
+        result = self.run_sh()
+        self.assertEqual(result.rc, 1, result.output)
+        self.assertIn("labeling w2 netperf=server did not succeed (exit code 124); its outcome is unknown", result.output)
         self.assertEqual(self.runs(), [])
         self.assertEqual(self.netperf_labels(), {})  # w1 was this run's and removed; w2 never written
         self.assert_clean_end(result)
@@ -619,7 +758,7 @@ class RunSh(unittest.TestCase):
                 self.assertEqual(self.netperf_labels(), {"w1": "client", "w2": "server"})
                 self.assertEqual([e for e in self.cluster_calls() if "label" in e["argv"]], [])
 
-    # -- 11-12: failed runs -----------------------------------------------------------------------------
+    # -- 11-16: failed runs and deadlines ---------------------------------------------------------------
 
     def test_11_failed_run_caller_cleans_up(self):
         for prow in ("", "1234"):
@@ -649,12 +788,221 @@ class RunSh(unittest.TestCase):
                 self.assertEqual(any("infrastructure" in a for a in after), prow != "")
                 self.assert_clean_end(result)
 
+    def test_13_stalled_download(self):
+        for ignore_term in (False, True):
+            with self.subTest(ignore_term=ignore_term):
+                (self.state / "log.jsonl").unlink(missing_ok=True)
+                (self.workload / "k8s-netperf").unlink(missing_ok=True)
+                self.behavior = {"download": {"stall": True, "ignore_term": ignore_term}}
+                result = self.run_sh(DOWNLOAD_TIMEOUT="2")
+                self.assertEqual(result.rc, 124, result.output)
+                self.assertLess(result.elapsed, 2 + GRACE + 5)
+                self.assertIn("exceeded DOWNLOAD_TIMEOUT=2", result.output)
+                self.assertEqual([e["tool"] for e in self.log() if e.get("event") == "call"], ["curl"])
+                self.assertEqual(self.runs(), [])
+                self.assert_clean_end(result)
+
+    def test_14_api_call_hangs_after_benchmark(self):
+        self.behavior = {"hang": [{"tool": "oc", "match": ["get", "pods"]}]}
+        result = self.run_sh()
+        self.assertEqual(result.rc, 0, result.output)
+        c, n, i = 2 + GRACE, 60 + 2, 20 + GRACE
+        self.assertLess(result.elapsed, 21 * c + n + i + 30)
+        self.assertLess(result.elapsed, 2 + 2 + 15)  # one hung call: CALL_TIMEOUT, no grace needed
+        self.assert_clean_end(result)
+
+    def test_15_index_call_hangs(self):
+        cases = {"ignores TERM": {"ignore_term": True},
+                 "child holds stdout": {"child_holds_stdout": True}}
+        for name, rule in cases.items():
+            with self.subTest(name):
+                (self.state / "log.jsonl").unlink(missing_ok=True)
+                self.set_nodes()
+                self.behavior = {"hang": [dict(rule, tool="oc", match=["get", "infrastructure", "infrastructureName"])]}
+                result = self.run_sh(INDEX_TIMEOUT="60", **self.ci())
+                self.assertEqual(result.rc, 0, result.output)
+                calls = self.cluster_calls()
+                hung = [k for k, e in enumerate(calls) if "infrastructureName" in " ".join(e["argv"])][0]
+                self.assertGreater(len(calls), hung + 1, "index.sh did not continue after the hung call")
+                self.assertLess(calls[hung + 1]["t"] - calls[hung]["t"], 2 + GRACE + 3)
+                self.assert_clean_end(result)
+
+    def test_15_index_interrupted_leaves_no_files(self):
+        hang = {"hang": [{"tool": "oc", "match": ["infrastructureName"], "ignore_term": True,
+                          "child_holds_stdout": True}]}
+        with self.subTest("INDEX_TIMEOUT"):
+            self.behavior = hang
+            result = self.run_sh(CALL_TIMEOUT="30", INDEX_TIMEOUT="2", **self.ci())
+            self.assertEqual(result.rc, 0, result.output)
+            self.assertLess(result.elapsed, 2 + GRACE + 10)
+            self.assert_clean_end(result)
+        with self.subTest("TERM during indexing"):
+            (self.state / "log.jsonl").unlink(missing_ok=True)
+            self.set_nodes()
+            self.behavior = hang
+            process = self.start(CALL_TIMEOUT="30", INDEX_TIMEOUT="60", **self.ci())
+            self.wait_for(lambda: [e for e in self.log() if e.get("event") == "hang"])
+            os.kill(process.pid, signal.SIGTERM)
+            result = self.finish(process)
+            self.assertEqual(result.rc, 143, result.output)
+            self.assertLess(result.elapsed, 30)
+            self.assert_clean_end(result)
+
+    def test_16_slow_preparation_then_failure(self):
+        self.behavior = {"delay": [{"tool": "kubectl", "match": ["get", "nodes"], "seconds": 1.5}],
+                         "netperf": {"exit": 5}}
+        result = self.run_sh(CLEAN_UP="false", TEST_TIMEOUT="5")
+        self.assertEqual(result.rc, 5, result.output)
+        c, d, n = 2 + GRACE, 5 + GRACE, 5 + 2
+        self.assertLess(result.elapsed, 9 * c + d + n + 30)
+        self.assertEqual(self.cluster_calls(after=self.runs()[0]["t"]), [])
+
+    # -- 17-22: signals ----------------------------------------------------------------------------------
+
+    def test_17_benchmark_ignores_first_term(self):
+        self.behavior = {"netperf": {"mode": "ignore", "sleep": 60}}
+        result = self.run_sh(TEST_TIMEOUT="2", TEST_KILL_AFTER="2")
+        self.assertEqual(result.rc, 137, result.output)
+        self.assertEqual(self.signals(), ["SIGTERM"])
+        self.assertLess(result.elapsed, 2 + 2 + 15)
+        self.assert_clean_end(result)
+
+    def test_18_pr301_cleanup_at_timeout(self):
+        self.behavior = {"netperf": {"mode": "pr301", "sleep": 60, "cleanup": 1}}
+        result = self.run_sh(TEST_TIMEOUT="2", TEST_KILL_AFTER="5")
+        self.assertEqual(result.rc, 124, result.output)
+        self.assertEqual(self.signals(), ["SIGTERM"])
+        self.assertTrue([e for e in self.log() if e.get("event") == "cleanup-done"])
+        self.assert_clean_end(result)
+
+    def test_19_signal_to_run_sh(self):
+        cases = [("TERM", signal.SIGTERM, False, 143), ("INT", signal.SIGINT, False, 130),
+                 ("HUP", signal.SIGHUP, False, 129), ("TERM to the process group", signal.SIGTERM, True, 143)]
+        for name, sig, group, code in cases:
+            with self.subTest(name):
+                (self.state / "log.jsonl").unlink(missing_ok=True)
+                self.set_nodes()
+                self.behavior = {"netperf": {"mode": "pr301", "sleep": 60, "cleanup": 1}}
+                process = self.start(TEST_TIMEOUT="300", TEST_KILL_AFTER="30")
+                self.wait_for(lambda: self.runs())
+                sent = time.time()
+                (os.killpg if group else os.kill)(process.pid, sig)
+                result = self.finish(process)
+                self.assertEqual(result.rc, code, result.output)
+                self.assertEqual(self.signals(), ["SIGTERM"])
+                done = [e for e in self.log() if e.get("event") == "cleanup-done"]
+                self.assertEqual(len(done), 1)
+                self.assertLess(result.elapsed, 20)
+                self.assertEqual(self.cluster_calls(after=sent), [])
+                self.assertIn("Stopped by SIG%s" % signal.Signals(sig).name[3:], result.output)
+                self.assert_clean_end(result)
+
+    def test_20_second_signal_skips_cleanup(self):
+        self.behavior = {"netperf": {"mode": "pr301", "sleep": 60, "cleanup": 30}}
+        process = self.start(TEST_TIMEOUT="300", TEST_KILL_AFTER="60")
+        self.wait_for(lambda: self.runs())
+        os.kill(process.pid, signal.SIGTERM)
+        self.wait_for(lambda: self.signals())
+        time.sleep(0.3)
+        os.kill(process.pid, signal.SIGTERM)
+        result = self.finish(process)
+        self.assertEqual(result.rc, 143, result.output)
+        self.assertEqual(self.signals(), ["SIGTERM", "SIGTERM"])
+        self.assertTrue([e for e in self.log() if e.get("event") == "exit-without-cleanup"])
+        self.assertLess(result.elapsed, 15)
+        self.assert_clean_end(result)
+
+    def test_21_signal_windows(self):
+        for phase in ("launched", "registered"):
+            with self.subTest(phase=phase):
+                (self.state / "log.jsonl").unlink(missing_ok=True)
+                (self.state / "hook-fired").unlink(missing_ok=True)
+                self.set_nodes()
+                self.behavior = {"netperf": {"mode": "pr301", "sleep": 300, "cleanup": 1}}
+                self.use_hook(phase)
+                result = self.run_sh(TEST_TIMEOUT="300", TEST_KILL_AFTER="60")
+                self.assertEqual(result.rc, 143, result.output)
+                self.assertEqual(self.signals(), ["SIGTERM"])
+                self.assertEqual(len([e for e in self.log() if e.get("event") == "cleanup-done"]), 1)
+                self.assertLess(result.elapsed, 20)
+                self.assert_clean_end(result)
+        with self.subTest(phase="rewait"):
+            (self.state / "log.jsonl").unlink(missing_ok=True)
+            (self.state / "hook-fired").unlink(missing_ok=True)
+            self.behavior = {"netperf": {"mode": "pr301", "sleep": 300, "cleanup": 120}}
+            self.use_hook("rewait")
+            process = self.start(TEST_TIMEOUT="300", TEST_KILL_AFTER="200")
+            phases = self.state / "hook-fired.phases"
+            self.wait_for(lambda: phases.exists() and "registered" in phases.read_text())
+            time.sleep(0.5)  # run.sh is now blocked in wait: the next TERM makes the wait loop iterate
+            os.kill(process.pid, signal.SIGTERM)
+            result = self.finish(process)
+            self.assertEqual(result.rc, 143, result.output)
+            self.assertEqual(self.signals(), ["SIGTERM", "SIGTERM"])
+            self.assertTrue([e for e in self.log() if e.get("event") == "exit-without-cleanup"])
+            self.assertLess(result.elapsed, 20)
+            self.assert_clean_end(result)
+        with self.subTest(phase="before k8s-netperf"):
+            (self.state / "log.jsonl").unlink(missing_ok=True)
+            self.behavior = {"hang": [{"tool": "oc", "match": ["label", "nodes", "-l"]}]}
+            process = self.start(LOCAL="true", CALL_TIMEOUT="300")
+            self.wait_for(lambda: [e for e in self.log() if e.get("event") == "hang"])
+            os.kill(process.pid, signal.SIGTERM)
+            result = self.finish(process)
+            self.assertEqual(result.rc, 143, result.output)
+            self.assertEqual(self.runs(), [])
+            self.assertLess(result.elapsed, GRACE + 5)
+            self.assert_clean_end(result)
+
+    def test_22_abrupt_end_of_run_sh(self):
+        cases = {
+            "during k8s-netperf": ({"netperf": {"mode": "ignore", "sleep": 300}}, {}, lambda: self.runs()),
+            "during the download": ({"download": {"stall": True, "ignore_term": True}}, {"DOWNLOAD_TIMEOUT": "2"},
+                                    lambda: [e for e in self.log() if e.get("event") == "hang"]),
+            "during index.sh": ({"hang": [{"tool": "oc", "match": ["infrastructureName"], "ignore_term": True,
+                                           "child_holds_stdout": True}]},
+                                self.ci(),
+                                lambda: [e for e in self.log() if e.get("event") == "hang"]),
+        }
+        for name, (behavior, variables, started) in cases.items():
+            with self.subTest(name):
+                (self.state / "log.jsonl").unlink(missing_ok=True)
+                self.set_nodes()
+                if name == "during the download":
+                    (self.workload / "k8s-netperf").unlink(missing_ok=True)
+                else:
+                    self.write_fake(self.workload / "k8s-netperf", "v0.1.43")
+                self.behavior = behavior
+                process = self.start(**variables)
+                self.wait_for(started)
+                os.kill(process.pid, signal.SIGKILL)
+                process.process.wait(timeout=10)
+                time.sleep(3)  # past DOWNLOAD_TIMEOUT / CALL_TIMEOUT: only run.sh's group KILL would end these
+                members = session_members(process.pid)
+                self.assertTrue(members, "nothing left in the session: the test did not exercise survivors")
+                logged = {e["pid"]: e["sid"] for e in self.log()}
+                for pid in members:
+                    if pid in logged:
+                        self.assertEqual(logged[pid], process.pid)
+                self.kill_session(process.pid)
+                self.wait_for(lambda: not session_members(process.pid), timeout=5)
+
     def test_23_binary_selection(self):
         with self.subTest("matching version is reused"):
             result = self.run_sh(NETPERF_VERSION="v0.1.43")
             self.assertEqual(result.rc, 0, result.output)
             self.assertIn("We already have the specified version available.", result.output)
             self.assertEqual([e for e in self.cluster_calls() if e["tool"] == "curl"], [])
+        for behavior in ("hang", "empty"):
+            with self.subTest(version_probe=behavior):
+                (self.state / "log.jsonl").unlink(missing_ok=True)
+                self.write_fake(self.workload / "k8s-netperf", "v0.1.43")
+                self.behavior = {"version": behavior}
+                result = self.run_sh(NETPERF_VERSION="v0.1.43")
+                self.assertEqual(result.rc, 0, result.output)
+                self.assertIn("Switching k8s-netperf version.", result.output)
+                self.assertEqual(self.runs()[0]["version"], "v9.9.9-downloaded")
+                self.assertLess(result.elapsed, 30)
         with self.subTest("non-default file name and URL, UUID unchanged"):
             (self.state / "log.jsonl").unlink(missing_ok=True)
             self.behavior = {}
